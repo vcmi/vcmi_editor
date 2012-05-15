@@ -1,0 +1,6 @@
+*.lps
+*.res
+*.compiled
+/bin
+/units
+
