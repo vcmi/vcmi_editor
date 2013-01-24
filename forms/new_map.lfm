@@ -1,0 +1,106 @@
+object NewMapForm: TNewMapForm
+  Left = 312
+  Height = 240
+  Top = 194
+  Width = 320
+  BorderStyle = bsDialog
+  Caption = 'New map'
+  ClientHeight = 240
+  ClientWidth = 320
+  Position = poMainFormCenter
+  ShowInTaskBar = stNever
+  LCLVersion = '1.0.5.0'
+  object pnButtons: TPanel
+    Left = 0
+    Height = 43
+    Top = 197
+    Width = 320
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 43
+    ClientWidth = 320
+    TabOrder = 0
+    object btOk: TButton
+      Left = 56
+      Height = 23
+      Top = 11
+      Width = 59
+      Caption = 'Create'
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object btCancel: TButton
+      Left = 184
+      Height = 23
+      Top = 11
+      Width = 59
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object edWidth: TSpinEdit
+    Left = 16
+    Height = 21
+    Top = 24
+    Width = 110
+    Increment = 36
+    MaxValue = 1024
+    MinValue = 36
+    TabOrder = 1
+    Value = 36
+  end
+  object edHeight: TSpinEdit
+    Left = 152
+    Height = 21
+    Top = 24
+    Width = 110
+    Increment = 36
+    MaxValue = 1024
+    MinValue = 36
+    TabOrder = 2
+    Value = 36
+  end
+  object lbWidth: TLabel
+    Left = 17
+    Height = 14
+    Top = 8
+    Width = 37
+    Caption = 'lbWidth'
+    ParentColor = False
+  end
+  object lbHeight: TLabel
+    Left = 152
+    Height = 14
+    Top = 8
+    Width = 40
+    Caption = 'lbHeight'
+    ParentColor = False
+  end
+  object edLevels: TSpinEdit
+    Left = 16
+    Height = 21
+    Top = 104
+    Width = 112
+    MaxValue = 2
+    MinValue = 1
+    TabOrder = 3
+    Value = 1
+  end
+  object lbLevels: TLabel
+    Left = 16
+    Height = 14
+    Top = 88
+    Width = 39
+    Caption = 'lbLevels'
+    ParentColor = False
+  end
+  object cbSquare: TCheckBox
+    Left = 16
+    Height = 17
+    Top = 56
+    Width = 77
+    Caption = 'Square map'
+    TabOrder = 4
+  end
+end

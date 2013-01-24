@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <SaveClosedFiles Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="VCMI Editor"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <XPManifest>
+        <UIAccess Value="True"/>
+      </XPManifest>
+      <Icon Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="2">
+      <Item1 Name="Debug" Default="True"/>
+      <Item2 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin\vcmieditor"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="forms;3rd_party"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\release"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dRELEASE"/>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="random_map_1.h3m"/>
+        <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="3">
+      <Item1>
+        <PackageName Value="csvdocument_package"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LazOpenGLContext"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+    </RequiredPackages>
+    <Units Count="22">
+      <Unit0>
+        <Filename Value="vcmieditor.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="vcmieditor"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="fMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="main"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="lod.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lod"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="def.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="def"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="map.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Map"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="editor_types.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editor_types"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="terrain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="terrain"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="undo_base.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="undo_base"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="undo_map.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="undo_map"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="map_actions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_actions"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="zlib_stream.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="zlib_stream"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="objects.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="objects"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="def_animation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="def_animation"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="forms\new_map.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewMapForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="new_map"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="minimap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="minimap"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="filesystem_base.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="filesystem_base"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="filesystem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="filesystem"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="3rd_party\vcmi_fpjsonrtti.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="vcmi_fpjsonrtti"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="vcmi_json.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="vcmi_json"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="editor_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editor_utils"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="map_reader.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_reader"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="map_reader_h3m.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_reader_h3m"/>
+      </Unit21>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="bin\vcmieditor_d"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="forms;3rd_party"/>
+      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\debug"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CustomOptions Value="-dDEBUG"/>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
