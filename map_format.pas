@@ -17,22 +17,44 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit map_reader;
+unit map_format;
 
 {$I compilersetup.inc}
-{$INTERFACES CORBA}
+{$INTERFACES COM}
 
 interface
 
 uses
-  Classes, SysUtils, Map;
+  Classes, SysUtils, Map, terrain;
 
 type
+  //make it managed object
   IMapReader = interface
-    procedure Read(AMap: TVCMIMap);
+    function Read(AStream: TStream):TVCMIMap;
   end;
 
+
+
+  { TBaseMapFormatHandler }
+
+  TBaseMapFormatHandler = class abstract (TInterfacedObject)
+  protected
+    FTM: TTerrainManager;
+  public
+     constructor Create(tm: TTerrainManager); virtual;
+
+  end;
+
+  TBaseMapFormatHandlerClass = class of TBaseMapFormatHandler;
+
 implementation
+
+{ TBaseMapFormatHandler }
+
+constructor TBaseMapFormatHandler.Create(tm: TTerrainManager);
+begin
+  FTM := tm;
+end;
 
 end.
 

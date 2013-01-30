@@ -35,6 +35,7 @@ type
   { TfMain }
 
   TfMain = class(TForm)
+    actSaveMapAs: TAction;
     actTerrain: TAction;
     actObjects: TAction;
     MainActions: TActionList;
@@ -63,6 +64,11 @@ type
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     mm:      TMainMenu;
     menuFile: TMenuItem;
     MapView: TOpenGLControl;
@@ -75,7 +81,10 @@ type
     btnBrush4: TSpeedButton;
     btnBrushFill: TSpeedButton;
     btnBrushArea: TSpeedButton;
+    menuPlayer: TPopupMenu;
+    SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
+    ToolBar2: TToolBar;
     ToolButton10: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
@@ -101,8 +110,12 @@ type
     vScrollBar: TScrollBar;
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
+    procedure actOpenMapExecute(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
+    procedure actSaveMapAsExecute(Sender: TObject);
+    procedure actSaveMapExecute(Sender: TObject);
+    procedure actSaveMapUpdate(Sender: TObject);
     procedure actTerrainExecute(Sender: TObject);
     procedure actTerrainUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
@@ -170,6 +183,7 @@ type
     FViewTilesH, FViewTilesV: Integer; //amount of tiles visible on mapview
 
     FMap: TVCMIMap;
+    FMapFilename: string;
     FTerrianManager: TTerrainManager;
     FObjManager: TObjectsManager;
 
@@ -222,8 +236,9 @@ type
     procedure RenderCursor;
 
     procedure LoadMap(AFileName: string);
-  public
-    { public declarations }
+    procedure SaveMap(AFileName: string);
+  protected
+    procedure UpdateActions; override;
   end;
 
 var
@@ -232,7 +247,8 @@ var
 implementation
 
 uses
-  undo_map, Math;
+  undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
+  editor_str_consts, Math, lazutf8classes;
 
 {$R *.lfm}
 
@@ -253,6 +269,15 @@ begin
   (Sender as TAction).Checked := (pcToolBox.ActivePage = tsObjects);
 end;
 
+procedure TfMain.actOpenMapExecute(Sender: TObject);
+begin
+  if OpenMapDialog.Execute then
+  begin
+    LoadMap(OpenMapDialog.FileName);
+
+  end;
+end;
+
 procedure TfMain.actRedoExecute(Sender: TObject);
 begin
   FUndoManager.Redo;
@@ -268,12 +293,40 @@ begin
   if FUndoManager.CanRedo then
   begin
     a.Enabled := True;
-    a.Caption := 'Redo ' + FUndoManager.PeekNext.Description;
+    a.Caption := rsRedo + FUndoManager.PeekNext.Description;
   end else
   begin
     a.Enabled := False;
-    a.Caption := 'Redo';
+    a.Caption := rsRedo;
   end;
+end;
+
+procedure TfMain.actSaveMapAsExecute(Sender: TObject);
+begin
+  if SaveMapAsDialog.Execute then
+  begin
+    SaveMap(SaveMapAsDialog.FileName);
+    FMapFilename := SaveMapAsDialog.FileName;
+  end;
+end;
+
+procedure TfMain.actSaveMapExecute(Sender: TObject);
+var
+  stm: TFileStreamUTF8;
+begin
+
+  if FMapFilename = '' then
+  begin
+    actSaveMapAs.Execute;
+  end
+  else begin
+    SaveMap(FMapFilename);
+  end;
+end;
+
+procedure TfMain.actSaveMapUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty; //todo: use IsDirty
 end;
 
 procedure TfMain.actTerrainExecute(Sender: TObject);
@@ -303,11 +356,11 @@ begin
   if FUndoManager.CanUndo then
   begin
     a.Enabled := True;
-    a.Caption := 'Undo ' + FUndoManager.PeekCurrent.Description;
+    a.Caption := rsUndo + FUndoManager.PeekCurrent.Description;
   end else
   begin
     a.Enabled := False;
-    a.Caption := 'Undo';
+    a.Caption := rsUndo;
   end;
 
 end;
@@ -419,14 +472,10 @@ begin
   FResourceManager.ScanFilesystem;
 
   FTerrianManager.LoadConfig;
-
-  FMap := TVCMIMap.Create(FTerrianManager);
-
   FTerrianManager.LoadTerrainGraphics;
 
 
   FCurrentTerrain := TTerrainType.dirt;
-
   FTerrainBrushMode := TBrushMode.fixed;
   FTerrainBrushSize := 1;
   pcToolBox.ActivePage := tsTerrain;
@@ -440,18 +489,23 @@ begin
   FObjManager.LoadObjects;
 
   FMinimap := TMinimap.Create(Self);
-  FMinimap.Map := FMap;
+
+  FMap := TVCMIMap.Create(FTerrianManager);
 
   //load map if specified
 
-  if Paramcount > 1 then
+  if Paramcount > 0 then
   begin
     dir := GetCurrentDirUTF8();
     dir := IncludeTrailingPathDelimiter(dir);
     map_filename:= dir + ParamStr(1);
     if FileExistsUTF8(map_filename) then
       LoadMap(map_filename);
+
   end;
+
+
+  //FMinimap.Map := FMap;
 
   MapChanded;
   InvalidateObjects;
@@ -558,13 +612,65 @@ begin
 end;
 
 procedure TfMain.LoadMap(AFileName: string);
-begin
+var
+  file_ext: String;
 
+  new_map: TVCMIMap;
+
+  reader: IMapReader;
+
+  stm: TFileStreamUTF8;
+  cstm: TStream;
+
+  set_filename: Boolean;
+begin
+  //todo: ask to save map
+  cstm := nil;
+  set_filename := False;
+
+  file_ext := Trim(UpperCase(ExtractFileExt(AFileName)));
+
+  stm := TFileStreamUTF8.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  stm.Seek(0,soBeginning);
+
+  try
+    case file_ext of
+      '.JSON':
+        begin
+          reader := TMapReaderVCMI.Create(FTerrianManager);
+          cstm := stm;
+          set_filename := True; //support saving
+        end;
+      '.H3M':
+        begin
+          reader := TMapReaderH3m.Create(FTerrianManager);
+          cstm := TZlibInputStream.CreateGZip(stm,0);
+
+          //TODO: support uncompressed maps
+        end;
+      else
+        begin
+          raise Exception.Create('Unsuported map extension');
+        end;
+    end;
+
+    new_map := reader.Read(cstm);
+  finally
+    FreeAndNil(stm);
+    FreeAndNil(cstm);
+  end;
+
+  FreeAndNil(FMap); //destroy old map
+  FMap := new_map;
+  if set_filename then FMapFilename := AFileName;
+  MapChanded;
 end;
 
 procedure TfMain.MapChanded;
 begin
+  FMinimap.Map := FMap;
   InvalidateMapDimensions;
+  FUndoManager.Clear;
 end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
@@ -755,7 +861,7 @@ begin
 end;
 
 procedure TfMain.ObjectsViewPaint(Sender: TObject);
-  var
+var
   c: TOpenGLControl;
   row: Integer;
   col: Integer;
@@ -1011,6 +1117,30 @@ begin
   end;
 end;
 
+procedure TfMain.SaveMap(AFileName: string);
+var
+  writer: IMapWriter;
+  stm: TFileStreamUTF8;
+begin
+
+  if FileExistsUTF8(AFileName) then
+  begin
+    if MessageDlg(rsConfirm,rsFileExists, TMsgDlgType.mtConfirmation, mbYesNo,0) <> mrYes then
+      exit;
+  end;
+
+  stm := TFileStreamUTF8.Create(AFileName,fmCreate);
+  stm.Size := 0;
+
+  try
+     writer := TMapWriterVCMI.Create(FTerrianManager);
+     FMap.SaveToStream(stm,writer);
+     FMapFilename := AFileName;
+  finally
+    stm.Free;
+  end;
+end;
+
 procedure TfMain.sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
@@ -1033,6 +1163,16 @@ begin
   FMouseTileX := FMapHPos + ofs_x;
   FMouseTileY := FMapVPos + ofs_y;
 
+end;
+
+procedure TfMain.UpdateActions;
+begin
+  inherited UpdateActions;
+
+  if Assigned(FMap) then
+    Caption := FMap.Name + ' - VCMI editor'
+  else
+    Caption := 'VCMI editor';
 end;
 
 procedure TfMain.VerticalAxisPaint(Sender: TObject);

@@ -24,7 +24,7 @@ unit editor_types;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils,gset,gutil;
 
 type
 {$push}
@@ -33,11 +33,25 @@ type
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
 
-  TPlayerColor = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK,none=$FF);
-{$pop}
+  TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK,none=$FF);
 
+  TPlayerColor = TPlayer.RED..TPlayer.PINK;
+
+  TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
+
+  {$pop}
   TDefFrame = UInt8;
 
+  TFactionID = type integer;
+  TFactionIDCompare = specialize gutil.TLess<TFactionID> ;
+  TFactions  = specialize gset.TSet<TFactionID,TFactionIDCompare>;
+  THeroClassID = type integer;
+  THeroID = type integer;
+
+  TCustomID = type integer;
+const
+  ID_RANDOM = -1;
+  FACTION_RANDOM = TFactionID(-1);
 
 implementation
 

@@ -1017,20 +1017,20 @@ object fMain: TfMain
   LCLVersion = '1.0.5.0'
   object pnMap: TPanel
     Left = 0
-    Height = 512
-    Top = 44
+    Height = 508
+    Top = 48
     Width = 618
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 512
+    ClientHeight = 508
     ClientWidth = 618
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 478
+      Height = 474
       Top = 18
       Width = 584
       Align = alClient
@@ -1049,7 +1049,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 496
+      Top = 492
       Width = 582
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1061,7 +1061,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 602
-      Height = 478
+      Height = 474
       Top = 18
       Width = 16
       Align = alRight
@@ -1073,17 +1073,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 478
+      Height = 474
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 478
+      ClientHeight = 474
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 478
+        Height = 474
         Top = 0
         Width = 18
         Align = alClient
@@ -1115,12 +1115,12 @@ object fMain: TfMain
   end
   object Panel3: TPanel
     Left = 618
-    Height = 512
-    Top = 44
+    Height = 508
+    Top = 48
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 512
+    ClientHeight = 508
     ClientWidth = 204
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1144,7 +1144,7 @@ object fMain: TfMain
     end
     object pcToolBox: TPageControl
       Left = 0
-      Height = 308
+      Height = 304
       Top = 204
       Width = 204
       TabStop = False
@@ -1345,11 +1345,11 @@ object fMain: TfMain
         end
       end
       object tsObjects: TTabSheet
-        ClientHeight = 300
+        ClientHeight = 296
         ClientWidth = 196
         object sbObjects: TScrollBar
           Left = 180
-          Height = 300
+          Height = 296
           Top = 0
           Width = 16
           Align = alRight
@@ -1361,7 +1361,7 @@ object fMain: TfMain
         end
         object ObjectsView: TOpenGLControl
           Left = 0
-          Height = 300
+          Height = 296
           Top = 0
           Width = 180
           Align = alClient
@@ -1376,12 +1376,11 @@ object fMain: TfMain
   end
   object ToolBar1: TToolBar
     Left = 0
-    Height = 44
+    Height = 24
     Top = 0
     Width = 822
-    ButtonHeight = 44
+    AutoSize = True
     Images = imlMainActions
-    ShowCaptions = True
     TabOrder = 2
     object ToolButton1: TToolButton
       Left = 1
@@ -1389,57 +1388,66 @@ object fMain: TfMain
       Action = actCreateMap
     end
     object ToolButton2: TToolButton
-      Left = 80
+      Left = 24
       Top = 2
       Action = actOpenMap
     end
     object ToolButton3: TToolButton
-      Left = 137
+      Left = 47
       Top = 2
       Action = actSaveMap
     end
     object ToolButton4: TToolButton
-      Left = 192
+      Left = 70
       Top = 2
       Width = 5
       Caption = 'ToolButton4'
       Style = tbsDivider
     end
     object ToolButton5: TToolButton
-      Left = 197
+      Left = 75
       Top = 2
       Action = actUndo
     end
     object ToolButton6: TToolButton
-      Left = 230
+      Left = 98
       Top = 2
       Action = actRedo
     end
     object ToolButton7: TToolButton
-      Left = 263
+      Left = 121
       Top = 2
       Width = 10
       Caption = 'ToolButton7'
       Style = tbsSeparator
     end
+  end
+  object ToolBar2: TToolBar
+    Left = 0
+    Height = 24
+    Top = 24
+    Width = 822
+    AutoSize = True
+    Caption = 'ToolBar2'
+    Images = imlMainActions
+    ShowCaptions = True
+    TabOrder = 3
     object ToolButton8: TToolButton
-      Left = 315
-      Top = 2
-      Action = actObjects
-      Style = tbsCheck
-    end
-    object ToolButton9: TToolButton
-      Left = 273
+      Left = 1
       Top = 2
       Action = actTerrain
-      Style = tbsCheck
+    end
+    object ToolButton9: TToolButton
+      Left = 43
+      Top = 2
+      Action = actObjects
     end
     object ToolButton10: TToolButton
-      Left = 360
+      Left = 88
       Top = 2
-      Width = 10
-      Caption = 'ToolButton10'
-      Style = tbsSeparator
+      Caption = 'Player'
+      DropdownMenu = menuPlayer
+      Style = tbsDropDown
     end
   end
   object mm: TMainMenu
@@ -1565,6 +1573,9 @@ object fMain: TfMain
           0000000000000000000000000000000000000000000000000000
         }
       end
+      object MenuItem5: TMenuItem
+        Action = actSaveMapAs
+      end
     end
     object MenuEdit: TMenuItem
       Caption = 'Edit'
@@ -1647,6 +1658,9 @@ object fMain: TfMain
         }
       end
     end
+    object MenuItem6: TMenuItem
+      Caption = 'Map options'
+    end
   end
   object MainActions: TActionList
     Images = imlMainActions
@@ -1659,10 +1673,13 @@ object fMain: TfMain
     object actOpenMap: TAction
       Caption = 'Open map'
       ImageIndex = 1
+      OnExecute = actOpenMapExecute
     end
     object actSaveMap: TAction
       Caption = 'Save map'
       ImageIndex = 2
+      OnExecute = actSaveMapExecute
+      OnUpdate = actSaveMapUpdate
     end
     object actUndo: TAction
       Caption = 'Undo'
@@ -1687,6 +1704,10 @@ object fMain: TfMain
       Caption = 'Terrain'
       OnExecute = actTerrainExecute
       OnUpdate = actTerrainUpdate
+    end
+    object actSaveMapAs: TAction
+      Caption = 'Save map as ...'
+      OnExecute = actSaveMapAsExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties
@@ -1868,5 +1889,34 @@ object fMain: TfMain
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 48
     top = 233
+  end
+  object SaveMapAsDialog: TSaveDialog
+    Title = 'Select file to save map to'
+    DefaultExt = '.json'
+    Filter = 'VCMI maps|*.json'
+    FilterIndex = 0
+    left = 48
+    top = 296
+  end
+  object menuPlayer: TPopupMenu
+    left = 133
+    top = 186
+    object MenuItem7: TMenuItem
+      Tag = -1
+      Caption = 'No player'
+      GroupIndex = 10
+      RadioItem = True
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Player 1'
+      GroupIndex = 10
+      RadioItem = True
+    end
+    object MenuItem9: TMenuItem
+      Tag = 1
+      Caption = 'Player 2'
+      GroupIndex = 10
+      RadioItem = True
+    end
   end
 end

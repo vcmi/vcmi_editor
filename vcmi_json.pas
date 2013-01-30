@@ -48,7 +48,11 @@ type
     procedure JSONToObject(const JSON: TJSONObject; AObject: TObject); override;
   end;
 
+  { TVCMIJSONStreamer }
 
+  TVCMIJSONStreamer = class (TJSONStreamer)
+
+  end;
 
 implementation
 

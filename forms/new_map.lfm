@@ -65,16 +65,16 @@ object NewMapForm: TNewMapForm
     Left = 17
     Height = 14
     Top = 8
-    Width = 37
-    Caption = 'lbWidth'
+    Width = 29
+    Caption = 'Width'
     ParentColor = False
   end
   object lbHeight: TLabel
     Left = 152
     Height = 14
     Top = 8
-    Width = 40
-    Caption = 'lbHeight'
+    Width = 32
+    Caption = 'Height'
     ParentColor = False
   end
   object edLevels: TSpinEdit
@@ -91,8 +91,8 @@ object NewMapForm: TNewMapForm
     Left = 16
     Height = 14
     Top = 88
-    Width = 39
-    Caption = 'lbLevels'
+    Width = 31
+    Caption = 'Levels'
     ParentColor = False
   end
   object cbSquare: TCheckBox

@@ -88,7 +88,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="22">
+    <Units Count="25">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -161,6 +161,7 @@
         <Filename Value="forms\new_map.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewMapForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="new_map"/>
       </Unit13>
@@ -195,15 +196,30 @@
         <UnitName Value="editor_utils"/>
       </Unit19>
       <Unit20>
-        <Filename Value="map_reader.pas"/>
+        <Filename Value="map_format.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_reader"/>
+        <UnitName Value="map_format"/>
       </Unit20>
       <Unit21>
-        <Filename Value="map_reader_h3m.pas"/>
+        <Filename Value="map_format_h3m.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_reader_h3m"/>
+        <UnitName Value="map_format_h3m"/>
       </Unit21>
+      <Unit22>
+        <Filename Value="stream_adapter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="stream_adapter"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="editor_str_consts.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editor_str_consts"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="map_format_vcmi.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_format_vcmi"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

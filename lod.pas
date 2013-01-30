@@ -98,12 +98,12 @@ end;
 
 procedure TLod.LoadToStream(AStream: TStream; constref AItem: TLodItem);
 var
-  stm: TZlibStream;
+  stm: TZlibInputStream;
 begin
   FFileStream.Seek(AItem.FileOffset,soBeginning);
   if AItem.FileLength <> 0 then
   begin
-    stm := TZlibStream.Create(FFileStream,AItem.UncompressedFileSize);
+    stm := TZlibInputStream.Create(FFileStream,AItem.UncompressedFileSize);
     AStream.CopyFrom(stm,AItem.UncompressedFileSize);
     stm.free;
   end
