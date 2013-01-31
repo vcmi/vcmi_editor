@@ -134,7 +134,7 @@ var
 begin
   L := ReadDWord;
   SetLength(Result,L);
-  ReadBuffer(Result[1],L);
+  if L > 0 then ReadBuffer(Result[1],L);
   Result := SysToUTF8(Result);
 end;
 

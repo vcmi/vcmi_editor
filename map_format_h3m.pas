@@ -24,7 +24,7 @@ unit map_format_h3m;
 interface
 
 uses
-  Classes, SysUtils, map, FileUtil, map_format, terrain, stream_adapter,
+  Classes, SysUtils, map, math, FileUtil, map_format, terrain, stream_adapter,
   editor_types;
 
 const
@@ -35,6 +35,8 @@ const
 
   TOTAL_FACTIONS = 9;
   TOTAL_FACTIONS_ROE = 8;
+
+  HEROES_QUANTITY=156;
 
 type
 
@@ -52,6 +54,17 @@ type
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);
      procedure ReadPlayerAttr(Attr: TPlayerAttr);
+     procedure ReadSVLC();
+     procedure ReadTeams();
+     procedure ReadAllowedHeros();
+     procedure ReadDisposedHeros();
+     procedure ReadAllowedArtifacts();
+     procedure ReadAllowedSpells();
+     procedure ReadAllowedAbilities();
+     procedure ReadRumors();
+     procedure ReadPredefinedHeroes();
+
+     procedure ReadTerrain();
    public
      constructor Create(tm: TTerrainManager); override;
      function Read(AStream: TStream): TVCMIMap;
@@ -84,7 +97,6 @@ var
   AreAnyPalyers: boolean;
 
 begin
-
   AStream.Seek(0,soBeginning);
   FSrc.Create(AStream);
   //main header part
@@ -107,7 +119,7 @@ begin
       Result.Name := ReadString;
       Result.Description :=  ReadString;
 
-      Result.Difficulty := ReadByte;
+      Result.Difficulty := TDifficulty(ReadByte);
 
       if FMapVersion <> MAP_VERSION_ROE then
       begin
@@ -119,12 +131,97 @@ begin
     end;
 
     ReadPlayerAttrs(FMap.PlayerAttributes);
+    ReadSVLC();
+    ReadTeams();
+    ReadAllowedHeros();
+    ReadDisposedHeros();
+    ReadAllowedArtifacts();
+    ReadAllowedSpells();
+    ReadAllowedAbilities();
+
+    ReadRumors();
+    ReadPredefinedHeroes();
+    ReadTerrain();
   except
     FreeAndNil(Fmap);
     raise;
   end;
 
   FMap := nil;
+end;
+
+procedure TMapReaderH3m.ReadAllowedAbilities;
+begin
+  //TODO: ReadAllowedAbilities
+  if FMapVersion>=MAP_VERSION_SOD then
+  begin
+    FSrc.Skip(4);
+  end;
+end;
+
+procedure TMapReaderH3m.ReadAllowedArtifacts;
+begin
+  //todo: ReadAllowedArtifacts
+
+  if FMapVersion <> MAP_VERSION_ROE then
+    FSrc.Skip(ifthen(FMapVersion=MAP_VERSION_AB,17,18));
+end;
+
+procedure TMapReaderH3m.ReadAllowedHeros;
+var
+  cnt: Integer;
+begin
+  //TODO: ReadAllowedHeros
+
+  cnt := ifthen(FMapVersion=MAP_VERSION_ROE,16,20);
+
+  FSrc.Skip(cnt);
+
+  //unknown plaseholder
+  if FMapVersion<>MAP_VERSION_ROE then
+  begin
+    cnt :=FSrc.ReadDWord;
+    FSrc.Skip(cnt);
+  end;
+
+
+end;
+
+procedure TMapReaderH3m.ReadAllowedSpells;
+begin
+  //TODO: ReadAllowedSpells
+  if FMapVersion>=MAP_VERSION_SOD then
+  begin
+    FSrc.Skip(9);
+  end;
+end;
+
+procedure TMapReaderH3m.ReadDisposedHeros;
+var
+  id: Byte;
+  portr: Byte;
+  name: String;
+  players: Byte;
+  hero_count: Byte;
+  i: Integer;
+begin
+
+  //TODO: read disposed heroes
+
+  if FMapVersion >= MAP_VERSION_SOD then
+  begin
+    hero_count := FSrc.ReadByte;
+
+    for i := 0 to hero_count - 1 do
+    begin
+      id := FSrc.ReadByte;
+      portr :=FSrc.ReadByte;
+      name := FSrc.ReadString;
+      players := FSrc.ReadByte;
+    end;
+  end;
+
+  FSrc.Skip(31);
 end;
 
 procedure TMapReaderH3m.ReadPlayerAttr(Attr: TPlayerAttr);
@@ -240,6 +337,164 @@ begin
   for player_color in TPlayerColor do
   begin
     ReadPlayerAttr(Attrs.GetAttr(Integer(player_color)));
+  end;
+end;
+
+procedure TMapReaderH3m.ReadPredefinedHeroes;
+
+var
+  enabled: Boolean;
+  experience: DWord;
+  bio: String;
+  cnt: Word;
+  i: Integer;
+begin
+
+  //TODO:  ReadPredefinedHeroes
+
+  if FMapVersion < MAP_VERSION_SOD then Exit;
+
+  for i := 0 to HEROES_QUANTITY - 1 do
+  begin
+    enabled := FSrc.ReadBoolean;
+    if not enabled then Continue;
+
+    if FSrc.ReadBoolean then
+    begin
+      experience := FSrc.ReadDWord;
+    end;
+
+    if FSrc.ReadBoolean then
+    begin
+      cnt := FSrc.ReadDWord;
+      fsrc.Skip(cnt*2);
+    end;
+
+    if FSrc.ReadBoolean then  //arts
+    begin
+      FSrc.Skip(19*2);
+
+      cnt := FSrc.ReadWord;
+
+       FSrc.Skip(cnt*2);
+    end;
+
+    if FSrc.ReadBoolean then  //bio
+    begin
+      bio :=  FSrc.ReadString;
+    end;
+
+    FSrc.Skip(1); //sex
+
+    if FSrc.ReadBoolean then  //spells
+    begin
+      FSrc.Skip(9);
+    end;
+
+    if FSrc.ReadBoolean then
+    begin
+      FSrc.Skip(4); //prim skills
+    end;
+
+  end;
+end;
+
+procedure TMapReaderH3m.ReadRumors;
+var
+  cnt: DWord;
+  name: String;
+  txt: String;
+  i: Integer;
+begin
+  //TODO: ReadRumors
+  cnt := FSrc.ReadDWord;
+  for i := 0 to cnt - 1 do
+  begin
+    name := FSrc.ReadString;
+    txt :=  FSrc.ReadString;
+  end;
+end;
+
+procedure TMapReaderH3m.ReadSVLC;
+var
+  cond: Byte;
+begin
+  cond := FSrc.ReadByte;
+  //TODO:ReadSVC
+  if not cond = 255 then raise Exception.Create('SVLC not implenmeted');
+
+  cond := FSrc.ReadByte;
+  //TODO:ReadSLC
+  if not cond = 255 then raise Exception.Create('SVLC not implenmeted');
+
+
+end;
+
+procedure TMapReaderH3m.ReadTeams;
+var
+  team_count: Byte;
+  player: TPlayerColor;
+  team: Byte;
+  attr: TPlayerAttr;
+begin
+  team_count := FSrc.ReadByte;
+
+  if team_count > 0 then
+  begin
+    for player in TPlayerColor do
+    begin
+      team := FSrc.ReadByte;
+      FMap.PlayerAttributes.GetAttr(Integer(player)).TeamId := team;
+    end;
+  end
+  else begin
+    for player in TPlayerColor do
+    begin
+      attr :=FMap.PlayerAttributes.GetAttr(Integer(player));
+      if attr.CanComputerPlay or attr.CanHumanPlay then
+      begin
+        attr.TeamId := team_count;
+        Inc(team_count);
+      end;
+    end;
+  end;
+end;
+
+procedure TMapReaderH3m.ReadTerrain;
+  procedure ReadLevel(Level:Integer);
+  var
+    tile: PMapTile;
+    x: Integer;
+    y: Integer;
+  begin
+    for y := 0 to FMap.Height - 1 do
+    begin
+      for x := 0 to FMap.Width - 1 do
+      begin
+        tile := FMap.GetTile(Level,x,y);
+
+        with tile^, FSrc do
+        begin
+          TerType := TTerrainType(ReadByte);
+          TerSubType := ReadByte;
+          RiverType := ReadByte;
+          RiverDir := ReadByte;
+          RoadType := ReadByte;
+          RoadDir := ReadByte;
+          Flags := ReadByte;
+
+        end;
+
+
+      end;
+    end;
+  end;
+var
+  i: Integer;
+begin
+  for i := 0 to FMap.Levels - 1 do
+  begin
+    ReadLevel(i);
   end;
 end;
 

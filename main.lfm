@@ -1017,20 +1017,20 @@ object fMain: TfMain
   LCLVersion = '1.0.5.0'
   object pnMap: TPanel
     Left = 0
-    Height = 508
+    Height = 488
     Top = 48
     Width = 618
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 508
+    ClientHeight = 488
     ClientWidth = 618
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 474
+      Height = 454
       Top = 18
       Width = 584
       Align = alClient
@@ -1049,7 +1049,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 492
+      Top = 472
       Width = 582
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1061,7 +1061,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 602
-      Height = 474
+      Height = 454
       Top = 18
       Width = 16
       Align = alRight
@@ -1073,17 +1073,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 474
+      Height = 454
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 474
+      ClientHeight = 454
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 474
+        Height = 454
         Top = 0
         Width = 18
         Align = alClient
@@ -1115,12 +1115,12 @@ object fMain: TfMain
   end
   object Panel3: TPanel
     Left = 618
-    Height = 508
+    Height = 488
     Top = 48
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 508
+    ClientHeight = 488
     ClientWidth = 204
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1144,7 +1144,7 @@ object fMain: TfMain
     end
     object pcToolBox: TPageControl
       Left = 0
-      Height = 304
+      Height = 284
       Top = 204
       Width = 204
       TabStop = False
@@ -1345,11 +1345,11 @@ object fMain: TfMain
         end
       end
       object tsObjects: TTabSheet
-        ClientHeight = 296
+        ClientHeight = 276
         ClientWidth = 196
         object sbObjects: TScrollBar
           Left = 180
-          Height = 296
+          Height = 276
           Top = 0
           Width = 16
           Align = alRight
@@ -1361,7 +1361,7 @@ object fMain: TfMain
         end
         object ObjectsView: TOpenGLControl
           Left = 0
-          Height = 296
+          Height = 276
           Top = 0
           Width = 180
           Align = alClient
@@ -1449,6 +1449,18 @@ object fMain: TfMain
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
+  end
+  object sb: TStatusBar
+    Left = 0
+    Height = 20
+    Top = 536
+    Width = 822
+    Panels = <    
+      item
+        Text = 'test'
+        Width = 50
+      end>
+    SimplePanel = False
   end
   object mm: TMainMenu
     Images = imlMainActions
@@ -1657,9 +1669,13 @@ object fMain: TfMain
           4EFF069A4E330000000000000000000000000000000000000000
         }
       end
-    end
-    object MenuItem6: TMenuItem
-      Caption = 'Map options'
+      object MenuItem10: TMenuItem
+        Caption = '-'
+        GlyphShowMode = gsmNever
+      end
+      object MenuItem11: TMenuItem
+        Action = actMapOptions
+      end
     end
   end
   object MainActions: TActionList
@@ -1708,6 +1724,10 @@ object fMain: TfMain
     object actSaveMapAs: TAction
       Caption = 'Save map as ...'
       OnExecute = actSaveMapAsExecute
+    end
+    object actMapOptions: TAction
+      Caption = 'Map options'
+      OnExecute = actMapOptionsExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

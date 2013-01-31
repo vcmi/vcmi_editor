@@ -34,10 +34,10 @@ type
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
 
   TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK,none=$FF);
-
   TPlayerColor = TPlayer.RED..TPlayer.PINK;
-
   TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
+
+  TDifficulty = (Easy = 0, Normal, Hard, Expert, Impossible);
 
   {$pop}
   TDefFrame = UInt8;
@@ -52,6 +52,8 @@ type
 const
   ID_RANDOM = -1;
   FACTION_RANDOM = TFactionID(-1);
+
+
 
 implementation
 

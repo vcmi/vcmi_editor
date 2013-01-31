@@ -131,6 +131,8 @@ type
     *)
     procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer = -1);
 
+    procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
+
     property FrameCount: Integer read GetFrameCount;
   end;
 
@@ -589,6 +591,66 @@ begin
     glEnd();
 
   glDisable(GL_TEXTURE_2D);
+end;
+
+procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
+var
+  cx: Integer;
+  cy: Integer;
+
+  H: Int32;
+  W: Int32;
+
+  mir: UInt8;
+
+  tx1,tx2,ty1,ty2: Double;
+begin
+  H := height;
+  W := width;
+
+  mir := flags mod 4;
+
+
+
+  cx := X;
+  cy := Y;
+
+  glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,entries[SpriteIndex].TextureId);
+    glBegin(GL_POLYGON);
+
+    case mir of
+      0:begin  //ok
+        glTexCoord2d(0,0); glVertex2i(cx,  cy);
+        glTexCoord2d(1,0); glVertex2i(cx+W,cy);
+        glTexCoord2d(1,1); glVertex2i(cx+W,cy+H);
+        glTexCoord2d(0,1); glVertex2i(cx,  cy+H);
+        end;
+      1: begin //ok
+        glTexCoord2d(1,0); glVertex2i(cx,  cy);
+        glTexCoord2d(0,0); glVertex2i(cx+W,cy);
+        glTexCoord2d(0,1); glVertex2i(cx+W,cy+H);
+        glTexCoord2d(1,1); glVertex2i(cx,  cy+H);
+        end;
+      2: begin //ok
+        glTexCoord2d(0,1); glVertex2i(cx,  cy);
+        glTexCoord2d(1,1); glVertex2i(cx+W,cy);
+        glTexCoord2d(1,0); glVertex2i(cx+W,cy+H);
+        glTexCoord2d(0,0); glVertex2i(cx,  cy+H);
+        end;
+      3:begin  //ok
+        glTexCoord2d(1,1); glVertex2i(cx,  cy);
+        glTexCoord2d(0,1); glVertex2i(cx+W,cy);
+        glTexCoord2d(0,0); glVertex2i(cx+W,cy+H);
+        glTexCoord2d(1,0); glVertex2i(cx,  cy+H);
+        end;
+    end;
+
+
+    glEnd();
+
+  glDisable(GL_TEXTURE_2D);
+
 end;
 
 procedure TDef.UnBindTextures;

@@ -77,18 +77,21 @@
         <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="csvdocument_package"/>
+        <PackageName Value="RunTimeTypeInfoControls"/>
       </Item1>
       <Item2>
-        <PackageName Value="LazOpenGLContext"/>
+        <PackageName Value="csvdocument_package"/>
       </Item2>
       <Item3>
-        <PackageName Value="LCL"/>
+        <PackageName Value="LazOpenGLContext"/>
       </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
     </RequiredPackages>
-    <Units Count="25">
+    <Units Count="26">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -220,6 +223,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_vcmi"/>
       </Unit24>
+      <Unit25>
+        <Filename Value="forms\map_options.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="MapOptionsForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="map_options"/>
+      </Unit25>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

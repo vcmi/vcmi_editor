@@ -26,11 +26,12 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, csvdocument_package, lazopenglcontext, main, lod, def, Map,
-  editor_types, terrain, undo_base, undo_map, map_actions, zlib_stream, objects,
-  def_animation, new_map, minimap, filesystem_base, filesystem, vcmi_json,
-  vcmi_fpjsonrtti, editor_utils, map_format, map_format_h3m, stream_adapter,
-  editor_str_consts, map_format_vcmi
+  Forms, csvdocument_package, lazopenglcontext, runtimetypeinfocontrols, main,
+  lod, def, Map, editor_types, terrain, undo_base, undo_map, map_actions,
+  zlib_stream, objects, def_animation, new_map, minimap, filesystem_base,
+  filesystem, vcmi_json, vcmi_fpjsonrtti, editor_utils, map_format,
+  map_format_h3m, stream_adapter, editor_str_consts, map_format_vcmi,
+  map_options
   { you can add units after this };
 
 {$R *.res}

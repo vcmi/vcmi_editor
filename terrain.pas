@@ -113,7 +113,7 @@ type
     procedure LoadTerrainGraphics;
     procedure BindTextures;
 
-    procedure Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer);
+    procedure Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
 
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
@@ -339,9 +339,10 @@ begin
   end;
 end;
 
-procedure TTerrainManager.Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer);
+procedure TTerrainManager.Render(const tt: TTerrainType; sbt: UInt8; X,
+  Y: Integer; Flags: UInt8);
 begin
-  FTerrainDefs[tt].Render(sbt, x*TILE_SIZE, y*TILE_SIZE);
+  FTerrainDefs[tt].RenderF(sbt, x*TILE_SIZE, y*TILE_SIZE,Flags);
 end;
 
 procedure TTerrainManager.SetResourceLoader(AValue: IResourceLoader);

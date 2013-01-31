@@ -4,6 +4,10 @@ unit editor_str_consts;
 
 interface
 
+const
+
+  FORMAT_VCMI_EXT = '.JSON';
+  FORMAT_H3M_EXT = '.H3M';
 
 resourcestring
   rsDefaultMapName = 'Untitled';

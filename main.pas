@@ -35,6 +35,7 @@ type
   { TfMain }
 
   TfMain = class(TForm)
+    actMapOptions: TAction;
     actSaveMapAs: TAction;
     actTerrain: TAction;
     actObjects: TAction;
@@ -61,11 +62,12 @@ type
     itmFreateMap: TMenuItem;
     MenuEdit: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
@@ -84,6 +86,7 @@ type
     menuPlayer: TPopupMenu;
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
+    sb: TStatusBar;
     ToolBar2: TToolBar;
     ToolButton10: TToolButton;
     ToolButton5: TToolButton;
@@ -108,6 +111,7 @@ type
     SpeedButton11: TSpeedButton;
     tsTerrain: TTabSheet;
     vScrollBar: TScrollBar;
+    procedure actMapOptionsExecute(Sender: TObject);
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
@@ -248,12 +252,22 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
-  editor_str_consts, Math, lazutf8classes;
+  editor_str_consts, map_options, Math, lazutf8classes;
 
 {$R *.lfm}
 
 
 { TfMain }
+
+procedure TfMain.actMapOptionsExecute(Sender: TObject);
+var
+  f: TMapOptionsForm;
+begin
+  f := TMapOptionsForm.Create(Self);
+
+  f.Map := FMap;
+  f.ShowModal;
+end;
 
 procedure TfMain.actObjectsExecute(Sender: TObject);
 begin
@@ -622,11 +636,12 @@ var
   stm: TFileStreamUTF8;
   cstm: TStream;
 
-  set_filename: Boolean;
+  set_filename, is_compressed: Boolean;
 begin
   //todo: ask to save map
   cstm := nil;
   set_filename := False;
+  is_compressed := False;
 
   file_ext := Trim(UpperCase(ExtractFileExt(AFileName)));
 
@@ -635,17 +650,17 @@ begin
 
   try
     case file_ext of
-      '.JSON':
+      FORMAT_VCMI_EXT:
         begin
           reader := TMapReaderVCMI.Create(FTerrianManager);
           cstm := stm;
           set_filename := True; //support saving
         end;
-      '.H3M':
+      FORMAT_H3M_EXT:
         begin
           reader := TMapReaderH3m.Create(FTerrianManager);
           cstm := TZlibInputStream.CreateGZip(stm,0);
-
+          is_compressed := true;
           //TODO: support uncompressed maps
         end;
       else
@@ -657,7 +672,7 @@ begin
     new_map := reader.Read(cstm);
   finally
     FreeAndNil(stm);
-    FreeAndNil(cstm);
+    if is_compressed then FreeAndNil(cstm);
   end;
 
   FreeAndNil(FMap); //destroy old map
@@ -755,8 +770,16 @@ begin
 end;
 
 procedure TfMain.MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  ptile: PMapTile;
 begin
   SetMapViewMouse(x,y);
+
+  ptile := FMap.GetTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY);
+
+
+
+  sb.Panels[0].Text :=  IntToStr(ptile^.Flags mod 4);
 
   InvalidateMapAxis;
 end;
@@ -952,7 +975,7 @@ end;
 
 procedure TfMain.ObjectsViewResize(Sender: TObject);
 begin
-  InvalidateObjPos;
+  InvalidateObjects;
 end;
 
 procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);

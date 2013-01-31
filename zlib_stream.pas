@@ -45,7 +45,7 @@ type
 
     FState: TZStream;
 
-    FInflateFinished:  Boolean;
+    //FInflateFinished:  Boolean;
 
     procedure DecompressTill(APosition: Int64);
 
@@ -88,7 +88,7 @@ begin
   begin
     raise Exception.Create('Error init decompression');
   end;
-  FInflateFinished := False;
+  //FInflateFinished := False;
 end;
 
 constructor TZlibInputStream.CreateGZip(AInput: TStream; ADecompressedSize: SizeUInt
@@ -106,7 +106,7 @@ begin
   begin
     raise Exception.Create('Error init decompression');
   end;
-  FInflateFinished := False;
+  //FInflateFinished := False;
 
 end;
 
@@ -119,7 +119,7 @@ var
 begin
   Assert(APosition < (100 * 1024 * 1024), 'File too large'); //just in case
 
-  if FInflateFinished then Exit;
+  //if FInflateFinished then Exit;
 
   if (APosition >= 0) and (APosition <= FState.total_out) then
      Exit; //no need to decompress anything
@@ -178,22 +178,21 @@ begin
     end;
   until end_loop;
 
-  if file_ended then
-  begin
-    inflateEnd(FState);
+  //if file_ended then
+  //begin
+  //  //inflateEnd(FState);
+  //  FDecompressedSize := FState.total_out;
+  //  //SetLength(FOutputBuffer,FDecompressedSize);
+  //  //FInflateFinished := true;
+  //end
+  //else begin
     FDecompressedSize := FState.total_out;
-    SetLength(FOutputBuffer,FDecompressedSize);
-    FInflateFinished := true;
-  end
-  else begin
-    FDecompressedSize := FState.total_out;
-  end;
+  //end;
 end;
 
 destructor TZlibInputStream.Destroy;
 begin
-  if not FInflateFinished then
-    inflateEnd(FState);
+  inflateEnd(FState);
   inherited Destroy;
 end;
 
