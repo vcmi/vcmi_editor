@@ -24,7 +24,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, editor_types, terrain;
+  Classes, SysUtils, Math, editor_types, terrain, editor_classes;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -67,7 +67,7 @@ type
 
   { TCustomHeros }
 
-  TCustomHeros = class (TCollection)
+  TCustomHeros = class (TArrayCollection)
   public
     constructor Create;
     destructor Destroy; override;
@@ -115,27 +115,29 @@ type
     constructor Create;
     destructor Destroy; override;
   published
-    property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
-    property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
-
     property AITactics: TAITactics read FAITactics write SetAITactics;
-    property AreAllowerFactionsSet: Boolean read FAreAllowerFactionsSet write SetAreAllowerFactionsSet;
+    property AreAllowerFactionsSet: Boolean read FAreAllowerFactionsSet write SetAreAllowerFactionsSet; //???
     property AllowedFactions: TFactions read FAllowedFactions;
     property IsFactionRandom: boolean read FIsFactionRandom write SetIsFactionRandom;
-    property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
+
+    property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
+    property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
+
+    property CustomHeros: TCustomHeros read FCustomHeros;
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown;
+    property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
+
     property MainTownType: TFactionID read FMainTownType write SetMainTownType;
     property MainTownX: Integer read FMainTownX write SetMainTownX;
     property MainTownY: Integer read FMainTownY write SetMainTownY;
     property MainTownL: Integer read FMainTownL write SetMainTownL;
 
-    property RandomHero:Boolean read FRandomHero write SetRandomHero;
+
     property MainHeroClass: THeroClassID read FMainHeroClass write SetMainHeroClass;
     property MainHeroPortrait:TCustomID read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:string read FMainHeroName write SetMainHeroName;
 
-    property CustomHeros: TCustomHeros read FCustomHeros;
-
+    property RandomHero:Boolean read FRandomHero write SetRandomHero;
     property TeamId: Integer read FTeamId write SetTeamId;
   end;
 
@@ -162,9 +164,9 @@ type
     property Pink:TPlayerAttr index Integer(TPlayerColor.Pink) read GetAttr;
   end;
 
-  { TMapObject }
+  { TMapObjectTemplate }
 
-  TMapObject = class
+  TMapObjectTemplate = class (TCollectionItem)
   private
     FID: TObjectTypeID;
     FMask: TStringList;
@@ -177,23 +179,30 @@ type
     procedure SetSubID(AValue: TCustomID);
     procedure SetZIndex(AValue: Integer);
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
     property Filename:string read FFilename write SetFilename;
 
     property Mask:TStrings read GetMask;
 
-    property ID: TObjectTypeID read FID write SetID;
-    property SubID: TCustomID read FSubID write SetSubID;
+    property Id: TObjectTypeID read FID write SetID;
+    property SubId: TCustomID read FSubID write SetSubID;
 
     property ZIndex: Integer read FZIndex write SetZIndex;
   end;
 
+  { TMapObjectTemplates }
+
+  TMapObjectTemplates = class (TArrayCollection)
+  public
+    constructor Create;
+
+  end;
+
   { TMapTile }
-  PMapTile = ^TMapTile;
-  TMapTile = object
-  private  //not strict, used by map
+  TMapTile = class
+  strict private
     FFlags: UInt8;
     FRiverDir: UInt8;
     FRiverType: UInt8;
@@ -211,6 +220,8 @@ type
   public
     constructor Create();
 
+    procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
+  published
     property TerType: TTerrainType read FTerType write SetTerType;
     property TerSubType: UInt8 read FTerSubtype write SetTerSubtype;
 
@@ -219,8 +230,6 @@ type
     property RoadType:UInt8 read FRoadType write SetRoadType;
     property RoadDir:UInt8 read FRoadDir write SetRoadDir;
     property Flags:UInt8 read FFlags write SetFlags;
-
-    procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
   end;
 
   { TVCMIMap }
@@ -232,9 +241,10 @@ type
     FDifficulty: TDifficulty;
 
     FHeight: Integer;
-    FLevelLimit: Integer;
+    FHeroLevelLimit: Integer;
     FName: string;
     FPlayerAttributes: TPlayerAttrs;
+    FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
     FWigth: Integer;
     FLevels: Integer;
@@ -245,11 +255,12 @@ type
 
     procedure Changed;
 
+    procedure DestroyTiles();
     procedure RecreateTerrainArray;
     procedure SetCurrentLevel(AValue: Integer);
     procedure SetDescription(AValue: string);
     procedure SetDifficulty(AValue: TDifficulty);
-    procedure SetLevelLimit(AValue: Integer);
+    procedure SetHeroLevelLimit(AValue: Integer);
     procedure SetName(AValue: string);
     procedure SetTerrainManager(AValue: TTerrainManager);
   public
@@ -263,7 +274,7 @@ type
     procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8); overload; //set concete terrain
     procedure FillLevel(TT: TTerrainType);
 
-    function GetTile(Level, X, Y: Integer): PMapTile;
+    function GetTile(Level, X, Y: Integer): TMapTile;
 
     //Left, Right, top, Bottom - clip rect in Tiles
     procedure Render(Left, Right, Top, Bottom: Integer);
@@ -274,18 +285,20 @@ type
 
     property IsDirty: Boolean read FIsDirty;
 
-  public
+  published
     property Height: Integer read FHeight;
     property Width: Integer read FWigth;
     property Levels: Integer read FLevels;
-  published
+
     property Name:string read FName write SetName;
     property Description:string read FDescription write SetDescription;
 
     property Difficulty: TDifficulty read FDifficulty write SetDifficulty;
-    property LevelLimit: Integer read FLevelLimit write SetLevelLimit;
+    property HeroLevelLimit: Integer read FHeroLevelLimit write SetHeroLevelLimit;
 
     property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
+
+    property Templates: TMapObjectTemplates read FTemplates;
   end;
 
   {$pop}
@@ -294,43 +307,51 @@ implementation
 
 uses editor_str_consts;
 
-{ TMapObject }
+{ TMapObjectTemplates }
 
-constructor TMapObject.Create;
+constructor TMapObjectTemplates.Create;
 begin
+  inherited Create(TMapObjectTemplate);
+end;
+
+{ TMapObjectTemplate }
+
+constructor TMapObjectTemplate.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
   FMask := TStringList.Create;
 end;
 
-destructor TMapObject.Destroy;
+destructor TMapObjectTemplate.Destroy;
 begin
   FMask.Free;
   inherited Destroy;
 end;
 
-function TMapObject.GetMask: TStrings;
+function TMapObjectTemplate.GetMask: TStrings;
 begin
   Result := FMask;
 end;
 
-procedure TMapObject.SetFilename(AValue: string);
+procedure TMapObjectTemplate.SetFilename(AValue: string);
 begin
   if FFilename = AValue then Exit;
   FFilename := AValue;
 end;
 
-procedure TMapObject.SetID(AValue: TObjectTypeID);
+procedure TMapObjectTemplate.SetID(AValue: TObjectTypeID);
 begin
   if FID = AValue then Exit;
   FID := AValue;
 end;
 
-procedure TMapObject.SetSubID(AValue: TCustomID);
+procedure TMapObjectTemplate.SetSubID(AValue: TCustomID);
 begin
   if FSubID = AValue then Exit;
   FSubID := AValue;
 end;
 
-procedure TMapObject.SetZIndex(AValue: Integer);
+procedure TMapObjectTemplate.SetZIndex(AValue: Integer);
 begin
   if FZIndex = AValue then Exit;
   FZIndex := AValue;
@@ -499,7 +520,7 @@ end;
 
 constructor TMapTile.Create;
 begin
-
+  //todo: set defaults
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
@@ -585,12 +606,35 @@ begin
   FIsDirty := True;
 
   FPlayerAttributes := TPlayerAttrs.Create;
+  FTemplates := TMapObjectTemplates.Create;
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FTemplates.Free;
   FPlayerAttributes.Free;
   inherited Destroy;
+end;
+
+procedure TVCMIMap.DestroyTiles;
+var
+  Level: Integer;
+  X: Integer;
+  Y: Integer;
+begin
+  if Length(FTerrain)<>0 then
+  begin
+    for Level := 0 to Length(FTerrain) - 1 do
+    begin
+      for X := 0 to Length(FTerrain[Level]) - 1 do
+      begin
+        for Y := 0 to Length(FTerrain[Level,X]) - 1 do
+        begin
+          FTerrain[Level][X][Y].Free();
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TVCMIMap.FillLevel(TT: TTerrainType);
@@ -609,9 +653,9 @@ begin
 
 end;
 
-function TVCMIMap.GetTile(Level, X, Y: Integer): PMapTile;
+function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;
 begin
-  Result := @(FTerrain[Level][X][Y]);
+  Result := (FTerrain[Level][X][Y]); //todo: check
 end;
 
 procedure TVCMIMap.RecreateTerrainArray;
@@ -622,6 +666,8 @@ var
 
   tt: TTerrainType;
 begin
+  DestroyTiles();
+
   SetLength(FTerrain, FLevels);
 
   for Level := 0 to FLevels-1 do
@@ -635,9 +681,9 @@ begin
       SetLength(FTerrain[Level, X],FHeight);
       for Y := 0 to FHeight - 1 do
       begin
-        FTerrain[Level][X][Y].Create();
-        FTerrain[Level][X][Y].FTerType :=  tt;
-        FTerrain[Level][X][Y].FTerSubtype := FTerrainManager.GetRandomNormalSubtype(tt);
+        FTerrain[Level][X][Y] := TMapTile.Create();
+        FTerrain[Level][X][Y].TerType :=  tt;
+        FTerrain[Level][X][Y].TerSubtype := FTerrainManager.GetRandomNormalSubtype(tt);
       end;
     end;
   end;
@@ -687,10 +733,10 @@ begin
   Changed;
 end;
 
-procedure TVCMIMap.SetLevelLimit(AValue: Integer);
+procedure TVCMIMap.SetHeroLevelLimit(AValue: Integer);
 begin
-  if FLevelLimit = AValue then Exit;
-  FLevelLimit := AValue;
+  if FHeroLevelLimit = AValue then Exit;
+  FHeroLevelLimit := AValue;
   Changed;
 end;
 
@@ -704,8 +750,8 @@ end;
 procedure TVCMIMap.SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8
   );
 begin
-  FTerrain[Level][X][Y].FTerType := TT;
-  FTerrain[Level][X][Y].FTerSubtype := TS;
+  FTerrain[Level][X][Y].TerType := TT;
+  FTerrain[Level][X][Y].TerSubtype := TS;
 
   Changed;
 end;

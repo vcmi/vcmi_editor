@@ -1043,6 +1043,7 @@ object fMain: TfMain
       OnMouseLeave = MapViewMouseLeave
       OnMouseMove = MapViewMouseMove
       OnMouseUp = MapViewMouseUp
+      OnMouseWheel = MapViewMouseWheel
       OnPaint = MapViewPaint
       OnResize = MapViewResize
     end
@@ -1449,17 +1450,25 @@ object fMain: TfMain
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
+    object ToolButton11: TToolButton
+      Left = 138
+      Top = 2
+      Width = 5
+      Caption = 'ToolButton11'
+      Style = tbsDivider
+    end
+    object ToolButton12: TToolButton
+      Left = 143
+      Top = 2
+      Action = actUnderground
+    end
   end
-  object sb: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
     Height = 20
     Top = 536
     Width = 822
-    Panels = <    
-      item
-        Text = 'test'
-        Width = 50
-      end>
+    Panels = <>
     SimplePanel = False
   end
   object mm: TMainMenu
@@ -1729,6 +1738,12 @@ object fMain: TfMain
       Caption = 'Map options'
       OnExecute = actMapOptionsExecute
     end
+    object actUnderground: TAction
+      AutoCheck = True
+      Caption = 'Underground'
+      OnExecute = actUndergroundExecute
+      OnUpdate = actUndergroundUpdate
+    end
   end
   object ApplicationProperties1: TApplicationProperties
     left = 136
@@ -1924,17 +1939,6 @@ object fMain: TfMain
     object MenuItem7: TMenuItem
       Tag = -1
       Caption = 'No player'
-      GroupIndex = 10
-      RadioItem = True
-    end
-    object MenuItem8: TMenuItem
-      Caption = 'Player 1'
-      GroupIndex = 10
-      RadioItem = True
-    end
-    object MenuItem9: TMenuItem
-      Tag = 1
-      Caption = 'Player 2'
       GroupIndex = 10
       RadioItem = True
     end

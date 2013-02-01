@@ -66,7 +66,7 @@ type
 
      procedure ReadTerrain();
 
-     procedure ReadObjMask(obj: TMapObject);
+     procedure ReadObjMask(obj: TMapObjectTemplate);
      procedure ReadDefInfo();
      procedure ReadObjects();
      procedure ReadEvents();
@@ -128,10 +128,10 @@ begin
 
       if FMapVersion <> MAP_VERSION_ROE then
       begin
-        Result.LevelLimit := ReadByte;
+        Result.HeroLevelLimit := ReadByte;
       end else
       begin
-        Result.LevelLimit := 0;
+        Result.HeroLevelLimit := 0;
       end;
     end;
 
@@ -206,7 +206,7 @@ end;
 
 procedure TMapReaderH3m.ReadDefInfo;
 var
-  obj: TMapObject;
+  obj: TMapObjectTemplate;
   cnt: DWord;
   i: Integer;
   w: Word;
@@ -216,7 +216,7 @@ begin
 
   for i := 0 to cnt - 1 do
   begin
-    obj := TMapObject.Create;
+    obj :=  TMapObjectTemplate(FMap.Templates.Add);
 
     obj.Filename := FSrc.ReadString;
     ReadObjMask(obj);
@@ -272,7 +272,7 @@ begin
 
 end;
 
-procedure TMapReaderH3m.ReadObjMask(obj: TMapObject);
+procedure TMapReaderH3m.ReadObjMask(obj: TMapObjectTemplate);
 type
    TFlag = (None=0,Block, Active);
 const
@@ -284,8 +284,6 @@ var
   i: Integer;
   j: Byte;
   s: String;
-
-
 begin
   FillChar(mask_flags,SizeOf(mask_flags),#0);
 
@@ -314,7 +312,7 @@ begin
     s := StringOfChar(MASK_NOT_VISIBLE, 8);
     for j := High(mask_flags[i]) downto Low(mask_flags[i]) do
     begin
-      s[8-j] := FLAG_CHARS[mask_flags[i,j]];
+      s[8-j] := FLAG_CHARS[mask_flags[i,j]];  //todo: fix reversing of mask
     end;
     obj.Mask.Insert(0,s);
   end;
@@ -562,7 +560,7 @@ end;
 procedure TMapReaderH3m.ReadTerrain;
   procedure ReadLevel(Level:Integer);
   var
-    tile: PMapTile;
+    tile: TMapTile;
     x: Integer;
     y: Integer;
   begin
@@ -572,7 +570,7 @@ procedure TMapReaderH3m.ReadTerrain;
       begin
         tile := FMap.GetTile(Level,x,y);
 
-        with tile^, FSrc do
+        with tile, FSrc do
         begin
           TerType := TTerrainType(ReadByte);
           TerSubType := ReadByte;

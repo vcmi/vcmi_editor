@@ -91,7 +91,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="26">
+    <Units Count="27">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -231,6 +231,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="vcmi_fpjsonrtti"/>
       </Unit25>
+      <Unit26>
+        <Filename Value="editor_classes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editor_classes"/>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

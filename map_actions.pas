@@ -109,7 +109,7 @@ end;
 
 procedure TEditTerrain.Execute;
 var
-  t: PMapTile;
+  t: TMapTile;
   old_info, new_info: TTileInfo;
 
   i: Integer;
@@ -126,8 +126,8 @@ begin
 
     old_info.X := new_info.X;
     old_info.Y := new_info.Y;
-    old_info.TerType := t^.TerType;
-    old_info.TerSubtype := t^.TerSubType;
+    old_info.TerType := t.TerType;
+    old_info.TerSubtype := t.TerSubType;
 
     FOldTileInfos.PushBack(old_info);
 

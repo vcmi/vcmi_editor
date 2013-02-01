@@ -48,15 +48,20 @@ Type
                        jsoCheckEmptyDateTime);    // If TDateTime value is empty and jsoDateTimeAsString is used, 0 date returns empty string
   TJSONStreamOptions = Set of TJSONStreamOption;
 
-  TJSONFiler = Class(TComponent)
+  { TJSONFiler }
+
+  TJSONFiler = Class abstract (TComponent)
   Protected
+    function PreparePropName(PropName:AnsiString): AnsiString;
+    procedure DoPreparePropName(var PropName: AnsiString); virtual;
+
     Procedure Error(Const Msg : String);
     Procedure Error(Const FMT : String;  Args : Array of const);
   end;
 
   { TJSONStreamer }
 
-  TJSONStreamer = Class(TJSONFiler)
+  TJSONStreamer = Class abstract (TJSONFiler)
   private
     FAfterStreamObject: TJSONStreamEvent;
     FBeforeStreamObject: TJSONStreamEvent;
@@ -67,7 +72,9 @@ Type
     function GetChildProperty: String;
     function IsChildStored: boolean;
     function StreamChildren(AComp: TComponent): TJSONArray;
+
   protected
+
     function StreamClassProperty(Const AObject: TObject): TJSONData; virtual;
     Function StreamProperty(Const AObject : TObject; Const PropertyName : String) : TJSONData;
     Function StreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo) : TJSONData;
@@ -84,7 +91,7 @@ Type
     // Collection results in { Items: [I,I,I] }
     Function ObjectToJSON(Const AObject : TObject) : TJSONObject;
     // Stream a collection - always returns an array
-    function StreamCollection(Const ACollection: TCollection): TJSONArray;
+    function StreamCollection(Const ACollection: TCollection): TJSONData; virtual;
     // Stream a TStrings instance as an array
     function StreamTStringsArray(Const AStrings: TStrings): TJSONArray;
     // Stream a TStrings instance as an object
@@ -97,7 +104,7 @@ Type
     // Some utility functions.
     //
     // Call ObjectToJSON and convert result to JSON String.
-    Function ObjectToJSONString(AObject : TObject) : TJSONStringType;
+    Function ObjectToJSONString(AObject : TObject) : TJSONStringType; virtual;
     // Convert TSTrings to JSON string with array or Object.
     Function StringsToJSON(Const Strings : TStrings; AsObject : Boolean = False) : TJSONStringType;
     // Convert collection to JSON string
@@ -123,13 +130,14 @@ Type
   TJSONRestorePropertyEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Var Handled : Boolean) of object;
   TJSONPropertyErrorEvent = Procedure (Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData; Error : Exception; Var Continue : Boolean) of object;
   TJSONGetObjectEvent = Procedure (Sender : TOBject; AObject : TObject; Info : PPropInfo; AData : TJSONObject; DataName : TJSONStringType; Var AValue : TObject);
-  TJSONDeStreamer = Class(TJSONFiler)
+  TJSONDeStreamer = Class abstract (TJSONFiler)
   private
     FAfterReadObject: TJSONStreamEvent;
     FBeforeReadObject: TJSONStreamEvent;
     FOnGetObject: TJSONGetObjectEvent;
     FOnPropError: TJSONpropertyErrorEvent;
     FOnRestoreProp: TJSONRestorePropertyEvent;
+    FCaseInsensitive : Boolean;
     procedure DeStreamClassProperty(AObject: TObject; PropInfo: PPropInfo; PropData: TJSONData);
   protected
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
@@ -162,6 +170,8 @@ Type
     // Called when a object-typed property must be restored, and the property is Nil. Must return an instance for the property.
     // Published Properties of the instance will be further restored with available data.
     Property OngetObject : TJSONGetObjectEvent Read FOnGetObject Write FOnGetObject;
+    // JSON is by definition case sensitive. Should properties be looked up case-insentive ?
+    Property CaseInsensitive : Boolean Read FCaseInsensitive Write FCaseInsensitive;
   end;
 
   EJSONRTTI = Class(Exception);
@@ -470,7 +480,7 @@ begin
     try
       For I:=0 to PIL.Count-1 do
         begin
-        J:=JSON.IndexOfName(Pil.Items[i]^.Name);
+        J:=JSON.IndexOfName(PreparePropName(Pil.Items[i]^.Name),FCaseInsensitive);
         If (J<>-1) then
           RestoreProperty(AObject,PIL.Items[i],JSON.Items[J]);
         end;
@@ -623,6 +633,11 @@ end;
 
 { TJSONFiler }
 
+procedure TJSONFiler.DoPreparePropName(var PropName: AnsiString);
+begin
+
+end;
+
 procedure TJSONFiler.Error(Const Msg: String);
 begin
   Raise EJSONRTTI.Create(Name+' : '+Msg);
@@ -631,6 +646,12 @@ end;
 procedure TJSONFiler.Error(Const FMT: String; Args: array of const);
 begin
   Raise EJSONRTTI.CreateFmt(Name+' : '+FMT,Args);
+end;
+
+function TJSONFiler.PreparePropName(PropName: AnsiString): AnsiString;
+begin
+  Result := PropName;
+  DoPreparePropName(Result);
 end;
 
 { TJSONStreamer }
@@ -644,7 +665,6 @@ destructor TJSONStreamer.Destroy;
 begin
   Inherited;
 end;
-
 
 Function TJSONStreamer.StreamChildren(AComp : TComponent) : TJSONArray;
 
@@ -696,7 +716,7 @@ begin
           begin
           PD:=StreamProperty(AObject,PIL.Items[i]);
           If (PD<>Nil) then
-            Result.Add(PIL.Items[I]^.Name,PD);
+            Result.Add(PreparePropName(PIL.Items[I]^.Name),PD);
           end;
       finally
         FReeAndNil(Pil);
@@ -812,7 +832,7 @@ function TJSONStreamer.CollectionToJSON(const ACollection: TCollection
   ): TJSONStringType;
 
 Var
-  D : TJSONArray;
+  D : TJSONData;
 
 begin
   D:=StreamCollection(ACollection);
@@ -892,16 +912,15 @@ begin
 end;
 
 
-Function TJSONStreamer.StreamCollection(Const ACollection : TCollection) : TJSONArray;
-
-Var
-  I : Integer;
-
+function TJSONStreamer.StreamCollection(const ACollection: TCollection
+  ): TJSONData;
+var
+  I: Integer;
 begin
   Result:=TJSONArray.Create;
   try
     For I:=0 to ACollection.Count-1 do
-      Result.Add(ObjectToJSON(ACollection.Items[i]));
+      TJSONArray(Result).Add(ObjectToJSON(ACollection.Items[i]));
   except
     FreeAndNil(Result);
     Raise;

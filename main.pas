@@ -35,6 +35,7 @@ type
   { TfMain }
 
   TfMain = class(TForm)
+    actUnderground: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
     actTerrain: TAction;
@@ -69,8 +70,6 @@ type
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem7: TMenuItem;
-    MenuItem8: TMenuItem;
-    MenuItem9: TMenuItem;
     mm:      TMainMenu;
     menuFile: TMenuItem;
     MapView: TOpenGLControl;
@@ -86,9 +85,11 @@ type
     menuPlayer: TPopupMenu;
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
-    sb: TStatusBar;
+    StatusBar: TStatusBar;
     ToolBar2: TToolBar;
     ToolButton10: TToolButton;
+    ToolButton11: TToolButton;
+    ToolButton12: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
@@ -122,6 +123,8 @@ type
     procedure actSaveMapUpdate(Sender: TObject);
     procedure actTerrainExecute(Sender: TObject);
     procedure actTerrainUpdate(Sender: TObject);
+    procedure actUndergroundExecute(Sender: TObject);
+    procedure actUndergroundUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
     procedure actUndoUpdate(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
@@ -156,6 +159,8 @@ type
     procedure MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure MapViewMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure MapViewPaint(Sender: TObject);
     procedure MapViewResize(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
@@ -354,6 +359,21 @@ end;
 procedure TfMain.actTerrainUpdate(Sender: TObject);
 begin
   (Sender as TAction).Checked := (pcToolBox.ActivePage = tsTerrain);
+end;
+
+procedure TfMain.actUndergroundExecute(Sender: TObject);
+var
+  under: Boolean;
+begin
+  under :=  (Sender as TAction).Checked;
+
+  FMap.CurrentLevel := ifthen(under,1,0);
+  InvalidateMap;
+end;
+
+procedure TfMain.actUndergroundUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FMap) and (FMap.Levels > 1);
 end;
 
 procedure TfMain.actUndoExecute(Sender: TObject);
@@ -576,7 +596,7 @@ end;
 
 procedure TfMain.InvalidateMapAxis;
 begin
-  MapView.Invalidate;
+  InvalidateMap;
   VerticalAxis.Invalidate;
   HorisontalAxis.Invalidate;
 end;
@@ -771,17 +791,19 @@ end;
 
 procedure TfMain.MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  ptile: PMapTile;
+  FOldTileX: Integer;
+  FOldTileY: Integer;
 begin
+  FOldTileX := FMouseTileX;
+  FOldTileY := FMouseTileY;
   SetMapViewMouse(x,y);
 
-  ptile := FMap.GetTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY);
+  if (FOldTileX<>FMouseTileX) or (FOldTileY<>FMouseTileY) then
+  begin
+    InvalidateMapAxis;
+  end;
 
 
-
-  sb.Panels[0].Text :=  IntToStr(ptile^.Flags mod 4);
-
-  InvalidateMapAxis;
 end;
 
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
@@ -793,6 +815,37 @@ begin
     FMouseDown := False;
   end;
 
+end;
+
+procedure TfMain.MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  sb: TScrollBar;
+begin
+  //
+  if ssShift in Shift then
+  begin
+    sb := hScrollBar;
+  end
+  else begin
+    sb := vScrollBar;
+  end;
+
+  sb.Position := sb.Position - Sign(WheelDelta) * 3;
+
+  if ssShift in Shift then
+  begin
+    FMapHPos := sb.Position;
+  end
+  else begin
+    FMapVPos := sb.Position;
+  end;
+
+  SetMapViewMouse(MousePos.x,MousePos.Y);
+
+  InvalidateMapAxis;
+
+  Handled := True;
 end;
 
 procedure TfMain.MapViewPaint(Sender: TObject);
@@ -982,6 +1035,8 @@ var
   text_width: Integer;
   txt: string;
   ofs: Integer;
+
+  img: TBitmap;
 begin
   case Kind of
     TAxisKind.Horizontal: tmp := Axis.Width;
@@ -990,8 +1045,11 @@ begin
 
   tiles := tmp div TILE_SIZE;
 
-  ctx := Axis.Canvas;
-  ctx.Lock;
+  img := TBitmap.Create;
+
+  img.SetSize(Axis.Width,Axis.Height);
+
+  ctx := img.Canvas;
 
   try
     ctx.Brush.Color := clWhite;
@@ -1028,8 +1086,13 @@ begin
         end;
       end;
     end;
+
+    axis.Canvas.Changing;
+    Axis.Canvas.Draw(0,0,img);
+    Axis.Canvas.Changed;
   finally
-    ctx.Unlock;
+
+    img.Free;
   end;
 end;
 

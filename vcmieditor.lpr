@@ -31,7 +31,7 @@ uses
   zlib_stream, objects, def_animation, new_map, minimap, filesystem_base,
   filesystem, vcmi_json, editor_utils, map_format, map_format_h3m,
   stream_adapter, editor_str_consts, map_format_vcmi, vcmi_fpjsonrtti,
-  map_options
+  map_options, editor_classes
   { you can add units after this };
 
 {$R *.res}
