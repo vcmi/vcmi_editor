@@ -32,9 +32,9 @@ type
 
   TDefBitmask = packed array[0..5] of uint8; //top to bottom, right to left as in H3M
 
-  { TObjDef }
+  { TObjTemplate }
 
-  TObjDef = class(TDef)
+  TObjTemplate = class(TDef)
   private
     filename: AnsiString;
     passability,
@@ -48,7 +48,7 @@ type
     procedure LoadGraphics(AResourceLoader:IResourceLoader);
   end;
 
-  TDefVector = specialize TFPGObjectList<TObjDef>;
+  TDefVector = specialize TFPGObjectList<TObjTemplate>;
 
   { TDefIdHash }
 
@@ -56,11 +56,11 @@ type
     class function hash(a:TdefId; n:longint):longint;
   end;
 
-  TIdToDefMap = specialize THashmap<TDefId, TObjDef, TDefIdHash>;
+  TIdToDefMap = specialize THashmap<TDefId, TObjTemplate, TDefIdHash>;
 
   { TObjectsManager }
 
-  TObjectsManager = class (TComponent)
+  TObjectsManager = class (TGraphicsCosnumer)
   strict private
 
     FDefs: TDefVector; //all aviable defs
@@ -74,10 +74,9 @@ type
     procedure LoadObjectsConfig;
     procedure LoadObjectsGraphics;
   private
-    FResourceLoader: IResourceLoader;
+    FGraphicsManager: TGraphicsManager;
     function GetObjCount: Integer;
-    function GetObjcts(AIndex: Integer): TObjDef;
-    procedure SetResourceLoader(AValue: IResourceLoader);
+    function GetObjcts(AIndex: Integer): TObjTemplate;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -86,10 +85,9 @@ type
 
     procedure BindTextures;
 
-    property Objcts[AIndex: Integer]: TObjDef read GetObjcts;
+    property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
 
-    property ResourceLoader:IResourceLoader read FResourceLoader write SetResourceLoader;
 
   end;
 
@@ -101,14 +99,14 @@ uses
 const
   OBJECT_LIST = 'DATA/ZEOBJTS';
 
-{ TObjDef }
+{ TObjTemplate }
 
-constructor TObjDef.Create;
+constructor TObjTemplate.Create;
 begin
   inherited;
 end;
 
-procedure TObjDef.LoadGraphics(AResourceLoader: IResourceLoader);
+procedure TObjTemplate.LoadGraphics(AResourceLoader: IResourceLoader);
 var
   ms: TMemoryStream;
 begin
@@ -164,7 +162,7 @@ begin
   Result := FDefs.Count;
 end;
 
-function TObjectsManager.GetObjcts(AIndex: Integer): TObjDef;
+function TObjectsManager.GetObjcts(AIndex: Integer): TObjTemplate;
 begin
   Result := FDefs[AIndex];
 end;
@@ -246,7 +244,7 @@ var
   end;
 
 var
-  def: TObjDef;
+  def: TObjTemplate;
   id: TDefId;
 
   s_tmp: string;
@@ -262,7 +260,7 @@ begin
   doc.LineEnding := #13#10;
 
   try
-    FResourceLoader.LoadToStream(stm,TResourceType.Text,OBJECT_LIST);
+    ResourceLoader.LoadToStream(stm,TResourceType.Text,OBJECT_LIST);
     stm.Seek(0,soBeginning);
 
     doc.CSVText := stm.DataString;
@@ -271,7 +269,7 @@ begin
     begin
       col := 0;
 
-      def := TObjDef.Create;
+      def := TObjTemplate.Create;
 
       s_tmp := '';
 
@@ -309,15 +307,10 @@ var
 begin
   for i := 0 to FDefs.Count - 1 do
   begin
-    FDefs[i].LoadGraphics(FResourceLoader);
+    FDefs[i].LoadGraphics(ResourceLoader);
   end;
 end;
 
-procedure TObjectsManager.SetResourceLoader(AValue: IResourceLoader);
-begin
-  if FResourceLoader = AValue then Exit;
-  FResourceLoader := AValue;
-end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TDefId;
 begin

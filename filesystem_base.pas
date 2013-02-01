@@ -35,7 +35,7 @@ type
 
   { TResourceLoader }
 
-  IResourceLoader = interface
+  IResourceLoader = interface ['{6BBEC2EA-75F4-4836-B25B-2F68B25091F2}']
     (*
        AStream - stream to write to (f.e. memory stream)
        AResType - type of resourse to load
@@ -44,9 +44,45 @@ type
     procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string);
   end;
 
+  { TFSConsumer }
+
+  TFSConsumer = class abstract (TComponent)
+  private
+    FResourceLoader: IResourceLoader;
+    procedure SetResourceLoader(AValue: IResourceLoader);
+  public
+    constructor Create(AOwner: TComponent); override;
+    property ResourceLoader:IResourceLoader read FResourceLoader write SetResourceLoader;
+  end;
+
 implementation
 
 
+
+{ TFSConsumer }
+
+constructor TFSConsumer.Create(AOwner: TComponent);
+var
+  rl: IResourceLoader;
+begin
+  inherited Create(AOwner);
+
+  if AOwner.GetInterface(IResourceLoader,rl) then
+  begin
+    ResourceLoader := rl;
+  end;
+
+  if AOwner is TFSConsumer then
+  begin
+    ResourceLoader := (AOwner as TFSConsumer).ResourceLoader;
+  end;
+end;
+
+procedure TFSConsumer.SetResourceLoader(AValue: IResourceLoader);
+begin
+  if FResourceLoader = AValue then Exit;
+  FResourceLoader := AValue;
+end;
 
 end.
 

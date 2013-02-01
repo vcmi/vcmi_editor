@@ -95,15 +95,13 @@ type
 
   { TTerrainManager }
 
-  TTerrainManager = class (TComponent)
+  TTerrainManager = class (TGraphicsCosnumer)
   private
-    FResourceLoader: IResourceLoader;
     FTerrainDefs: array [TTerrainType] of TDef;
 
     FPatternConfig: TTerrainPatternConfig;
 
     procedure InitTerrainDef(tt: TTerrainType);
-    procedure SetResourceLoader(AValue: IResourceLoader);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -118,7 +116,6 @@ type
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
 
-    property ResourceLoader:IResourceLoader read FResourceLoader write SetResourceLoader;
   end;
 
 implementation
@@ -317,7 +314,7 @@ var
 begin
   stm := TMemoryStream.Create;
   try
-    FResourceLoader.LoadToStream(stm,TResourceType.Animation,'Sprites\' + TERRAIN_DEF_FILES[tt]);
+    ResourceLoader.LoadToStream(stm,TResourceType.Animation,'Sprites\' + TERRAIN_DEF_FILES[tt]);
     FTerrainDefs[tt].LoadFromDefStream(stm);
   finally
     stm.Free;
@@ -345,11 +342,6 @@ begin
   FTerrainDefs[tt].RenderF(sbt, x*TILE_SIZE, y*TILE_SIZE,Flags);
 end;
 
-procedure TTerrainManager.SetResourceLoader(AValue: IResourceLoader);
-begin
-  if FResourceLoader = AValue then Exit;
-  FResourceLoader := AValue;
-end;
 
 end.
 

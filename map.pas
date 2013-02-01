@@ -40,7 +40,7 @@ type
   end;
 
 
-  TMapDiscreteSize = (S = 36, M = 72, L = 108, XL = 144);
+  //TMapDiscreteSize = (S = 36, M = 72, L = 108, XL = 144);
 
   TMapCreateParams = object
   public
@@ -162,6 +162,34 @@ type
     property Pink:TPlayerAttr index Integer(TPlayerColor.Pink) read GetAttr;
   end;
 
+  { TMapObject }
+
+  TMapObject = class
+  private
+    FID: TObjectTypeID;
+    FMask: TStringList;
+    FFilename: string;
+    FSubID: TCustomID;
+    FZIndex: Integer;
+    function GetMask: TStrings;
+    procedure SetFilename(AValue: string);
+    procedure SetID(AValue: TObjectTypeID);
+    procedure SetSubID(AValue: TCustomID);
+    procedure SetZIndex(AValue: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Filename:string read FFilename write SetFilename;
+
+    property Mask:TStrings read GetMask;
+
+    property ID: TObjectTypeID read FID write SetID;
+    property SubID: TCustomID read FSubID write SetSubID;
+
+    property ZIndex: Integer read FZIndex write SetZIndex;
+  end;
+
   { TMapTile }
   PMapTile = ^TMapTile;
   TMapTile = object
@@ -265,6 +293,48 @@ type
 implementation
 
 uses editor_str_consts;
+
+{ TMapObject }
+
+constructor TMapObject.Create;
+begin
+  FMask := TStringList.Create;
+end;
+
+destructor TMapObject.Destroy;
+begin
+  FMask.Free;
+  inherited Destroy;
+end;
+
+function TMapObject.GetMask: TStrings;
+begin
+  Result := FMask;
+end;
+
+procedure TMapObject.SetFilename(AValue: string);
+begin
+  if FFilename = AValue then Exit;
+  FFilename := AValue;
+end;
+
+procedure TMapObject.SetID(AValue: TObjectTypeID);
+begin
+  if FID = AValue then Exit;
+  FID := AValue;
+end;
+
+procedure TMapObject.SetSubID(AValue: TCustomID);
+begin
+  if FSubID = AValue then Exit;
+  FSubID := AValue;
+end;
+
+procedure TMapObject.SetZIndex(AValue: Integer);
+begin
+  if FZIndex = AValue then Exit;
+  FZIndex := AValue;
+end;
 
 { TCustomHeros }
 

@@ -24,7 +24,7 @@ unit lod;
 interface
 
 uses
-  SysUtils, Classes, gvector;
+  SysUtils, Classes;
 
 //Format Specifications
 //

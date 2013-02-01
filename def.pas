@@ -24,57 +24,20 @@ unit def;
 interface
 
 uses
-  Classes, SysUtils, Math, editor_types, gvector, Gl, GLext, editor_utils;
+  Classes, SysUtils, Math,
+  gvector, ghashmap, fgl,
+  Gl, GLext,
+  editor_types, editor_utils, filesystem_base;
 
 const
   TILE_SIZE = 32; //in pixels
 
 type
-
-  TH3DefColor = packed record
-    r,g,b : UInt8;
-  end;
-
-  TH3Palette = packed array [0..255] of TH3DefColor;
-
   TRBGAColor = packed record   //todo: optimise
     r,g,b,a : UInt8;
   end;
 
   TRGBAPalette = array[0..255] of TRBGAColor;
-
-  PH3DefHeader = ^TH3DefHeader;
-  TH3DefHeader = packed record
-    typ: UInt32;
-    width: UInt32;
-    height: UInt32;
-    blockCount: UInt32;
-    palette: TH3Palette;
-  end;
-
-  PH3DefEntryBlockHeader = ^TH3DefEntryBlockHeader;
-  TH3DefEntryBlockHeader = packed record
-    unknown1: UInt32;
-    totalInBlock: UInt32;
-    unknown2: UInt32;
-    unknown3: UInt32;
-
-//  char *names[length];
-//  uint32_t offsets[length];
-
-     //folowed by sprites
-  end;
-
-  TH3SpriteHeader = packed record
-    prSize: UInt32;
-    defType2: UInt32;
-    FullWidth: UInt32;
-    FullHeight: UInt32;
-    SpriteWidth: UInt32;
-    SpriteHeight: UInt32;
-    LeftMargin: UInt32;
-    TopMargin: UInt32;
-  end;
 
   PDefEntry = ^TDefEntry;
 
@@ -122,21 +85,91 @@ type
     destructor Destroy; override;
     (*H3 def format*)
     procedure LoadFromDefStream(AStream: TStream);
-
     procedure BindTextures;
-
 
     (*
       TileX,TileY: map coords of topleft tile
     *)
     procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer = -1);
-
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
-
     property FrameCount: Integer read GetFrameCount;
   end;
 
+  TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
+
+  { TDefMap }
+
+  TDefMap = class (TDefMapBase)
+  protected
+    procedure Deref(Item: Pointer); override;
+  public
+    constructor Create;
+  end;
+
+  { TGraphicsManager }
+
+  TGraphicsManager = class (TFSConsumer)
+  private
+    FNameToDefMap: TDefMap;
+
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
+  { TGraphicsCosnumer }
+
+  TGraphicsCosnumer = class abstract (TFSConsumer)
+  private
+    FGraphicsManager: TGraphicsManager;
+    procedure SetGraphicsManager(AValue: TGraphicsManager);
+  public
+    constructor Create(AOwner: TComponent); override;
+    property GraphicsManager:TGraphicsManager read FGraphicsManager write SetGraphicsManager;
+  end;
+
 implementation
+
+type
+
+  TH3DefColor = packed record
+    r,g,b : UInt8;
+  end;
+
+  TH3Palette = packed array [0..255] of TH3DefColor;
+
+  PH3DefHeader = ^TH3DefHeader;
+  TH3DefHeader = packed record
+    typ: UInt32;
+    width: UInt32;
+    height: UInt32;
+    blockCount: UInt32;
+    palette: TH3Palette;
+  end;
+
+  PH3DefEntryBlockHeader = ^TH3DefEntryBlockHeader;
+  TH3DefEntryBlockHeader = packed record
+    unknown1: UInt32;
+    totalInBlock: UInt32;
+    unknown2: UInt32;
+    unknown3: UInt32;
+
+//  char *names[length];
+//  uint32_t offsets[length];
+
+     //folowed by sprites
+  end;
+
+  TH3SpriteHeader = packed record
+    prSize: UInt32;
+    defType2: UInt32;
+    FullWidth: UInt32;
+    FullHeight: UInt32;
+    SpriteWidth: UInt32;
+    SpriteHeight: UInt32;
+    LeftMargin: UInt32;
+    TopMargin: UInt32;
+  end;
 
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
@@ -148,6 +181,52 @@ const
     (r: 0; g: 0; b:0; a: 0),
     (r: 0; g: 0; b:0; a: 128),
     (r: 0; g: 0; b:0; a: 192));
+
+{ TGraphicsCosnumer }
+
+constructor TGraphicsCosnumer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  if AOwner is TGraphicsManager then
+  begin
+    GraphicsManager := (AOwner as TGraphicsManager);
+  end;
+end;
+
+procedure TGraphicsCosnumer.SetGraphicsManager(AValue: TGraphicsManager);
+begin
+  if FGraphicsManager = AValue then Exit;
+  FGraphicsManager := AValue;
+end;
+
+{ TGraphicsManager }
+
+constructor TGraphicsManager.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FNameToDefMap := TDefMap.Create;
+end;
+
+destructor TGraphicsManager.Destroy;
+begin
+  FNameToDefMap.Free;
+  inherited Destroy;
+end;
+
+{ TDefMap }
+
+constructor TDefMap.Create;
+begin
+  inherited Create;
+end;
+
+procedure TDefMap.Deref(Item: Pointer);
+begin
+  //inherited Deref(Item);
+  Finalize(string(Item^));
+  TDef(Pointer(PByte(Item)+KeySize)^).Free;
+end;
 
 { TDefEntry }
 
@@ -602,15 +681,11 @@ var
   W: Int32;
 
   mir: UInt8;
-
-  tx1,tx2,ty1,ty2: Double;
 begin
   H := height;
   W := width;
 
   mir := flags mod 4;
-
-
 
   cx := X;
   cy := Y;

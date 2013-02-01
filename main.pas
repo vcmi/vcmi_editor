@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, GL, GLext, OpenGLContext, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, def,
-  minimap, filesystem, types;
+  minimap, filesystem, filesystem_base, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -190,6 +190,7 @@ type
     FMapFilename: string;
     FTerrianManager: TTerrainManager;
     FObjManager: TObjectsManager;
+    FGraphicsManager: TGraphicsManager;
 
     FHightLightTile: Boolean;
 
@@ -213,7 +214,7 @@ type
     FObjectsVPos: Integer;
     FViewObjectRowsH: Integer;
 
-    FDraggingObject: TObjDef;
+    FDraggingTemplate: TObjTemplate;
 
     FMapDragging: boolean;
 
@@ -480,10 +481,11 @@ begin
   ObjectsView.SharedControl := MapView;
 
   FResourceManager := TFSManager.Create(self);
-  FTerrianManager := TTerrainManager.Create(Self);
-  FTerrianManager.ResourceLoader := FResourceManager;
-
   FResourceManager.ScanFilesystem;
+
+  FGraphicsManager := TGraphicsManager.Create(FResourceManager);
+
+  FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
@@ -497,9 +499,7 @@ begin
 
   FUndoManager := TMapUndoManger.Create;
 
-  FObjManager := TObjectsManager.Create(self);
-  FObjManager.ResourceLoader := FResourceManager;
-
+  FObjManager := TObjectsManager.Create(FGraphicsManager);
   FObjManager.LoadObjects;
 
   FMinimap := TMinimap.Create(Self);
@@ -867,7 +867,7 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  FDraggingObject := nil;
+  FDraggingTemplate := nil;
 
   col := x div OBJ_CELL_SIZE;
   row := y div OBJ_CELL_SIZE;
@@ -878,7 +878,7 @@ begin
   begin
     DragManager.DragStart(ObjectsView, True,0);
 
-    FDraggingObject := FObjManager.Objcts[o_idx];
+    FDraggingTemplate := FObjManager.Objcts[o_idx];
   end;
 
 end;
@@ -889,7 +889,7 @@ var
   row: Integer;
   col: Integer;
   o_idx: Integer;
-  o_def: TObjDef;
+  o_def: TObjTemplate;
   cx: Integer;
   cy: Integer;
   dim: Integer;
@@ -941,16 +941,12 @@ begin
             cx := col * OBJ_CELL_SIZE;
             cy := row * OBJ_CELL_SIZE;
 
-
-
             glPushAttrib(GL_CURRENT_BIT);
 
             glBegin(GL_LINE_LOOP);
 
             glColor4ub(200, 200, 200, 255);
             glLineWidth(1);
-
-
 
             dim := OBJ_CELL_SIZE;
 
@@ -1056,7 +1052,7 @@ var
 
   pos_x: integer;
 
-  o_def: TObjDef;
+  o_def: TObjTemplate;
 begin
   pb := Sender as TPaintBox;
 
@@ -1134,9 +1130,9 @@ begin
 
   if FMapDragging then
   begin
-    Assert(Assigned(FDraggingObject));
+    Assert(Assigned(FDraggingTemplate));
 
-    FDraggingObject.Render(0,cx, cy);
+    FDraggingTemplate.Render(0,cx, cy);
   end;
 end;
 

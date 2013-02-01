@@ -65,6 +65,11 @@ type
      procedure ReadPredefinedHeroes();
 
      procedure ReadTerrain();
+
+     procedure ReadObjMask(obj: TMapObject);
+     procedure ReadDefInfo();
+     procedure ReadObjects();
+     procedure ReadEvents();
    public
      constructor Create(tm: TTerrainManager); override;
      function Read(AStream: TStream): TVCMIMap;
@@ -138,10 +143,13 @@ begin
     ReadAllowedArtifacts();
     ReadAllowedSpells();
     ReadAllowedAbilities();
-
     ReadRumors();
     ReadPredefinedHeroes();
     ReadTerrain();
+    ReadDefInfo();
+    ReadObjects();
+    ReadEvents();
+
   except
     FreeAndNil(Fmap);
     raise;
@@ -196,6 +204,36 @@ begin
   end;
 end;
 
+procedure TMapReaderH3m.ReadDefInfo;
+var
+  obj: TMapObject;
+  cnt: DWord;
+  i: Integer;
+  w: Word;
+  b: Byte;
+begin
+  cnt := FSrc.ReadDWord;
+
+  for i := 0 to cnt - 1 do
+  begin
+    obj := TMapObject.Create;
+
+    obj.Filename := FSrc.ReadString;
+    ReadObjMask(obj);
+
+    w := FSrc.ReadWord; //todo: terrain, terrain menu
+    w := FSrc.ReadWord;
+
+    obj.ID := FSrc.ReadDWord;
+    obj.SubID := FSrc.ReadDWord;
+
+    b := FSrc.ReadByte;  //todo: read type
+    b := FSrc.ReadByte;
+    FSrc.Skip(16); //junk
+    obj.ZIndex := b * Z_INDEX_OVERLAY;
+  end;
+end;
+
 procedure TMapReaderH3m.ReadDisposedHeros;
 var
   id: Byte;
@@ -222,6 +260,67 @@ begin
   end;
 
   FSrc.Skip(31);
+end;
+
+procedure TMapReaderH3m.ReadEvents;
+begin
+
+end;
+
+procedure TMapReaderH3m.ReadObjects;
+begin
+
+end;
+
+procedure TMapReaderH3m.ReadObjMask(obj: TMapObject);
+type
+   TFlag = (None=0,Block, Active);
+const
+  FLAG_CHARS: array [TFlag] of char = (MASK_NOT_VISIBLE, MASK_BLOCKED,MASK_ACTIVABLE);
+
+var
+  mask_flags: array[0..5,0..7] of TFlag;
+  b: Byte;
+  i: Integer;
+  j: Byte;
+  s: String;
+
+
+begin
+  FillChar(mask_flags,SizeOf(mask_flags),#0);
+
+  for i := Low(mask_flags) to High(mask_flags) do
+  begin
+    b := FSrc.ReadByte;
+    for j := Low(mask_flags[i]) to High(mask_flags[i]) do
+    begin
+      if ((b shr j) and 1 ) =0 then
+        mask_flags[i,j] := TFlag.Block;
+    end;
+  end;
+
+  for i := Low(mask_flags) to High(mask_flags) do
+  begin
+    b := FSrc.ReadByte;
+    for j := Low(mask_flags[i]) to High(mask_flags[i]) do
+    begin
+      if ((b shr j) and 1 ) = 1 then
+        mask_flags[i,j] := TFlag.Active;
+    end;
+  end;
+
+  for i := High(mask_flags) downto Low(mask_flags) do
+  begin
+    s := StringOfChar(MASK_NOT_VISIBLE, 8);
+    for j := High(mask_flags[i]) downto Low(mask_flags[i]) do
+    begin
+      s[8-j] := FLAG_CHARS[mask_flags[i,j]];
+    end;
+    obj.Mask.Insert(0,s);
+  end;
+
+
+
 end;
 
 procedure TMapReaderH3m.ReadPlayerAttr(Attr: TPlayerAttr);

@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils,
   gmap, fgl,
-  filesystem_base, vcmi_json, editor_types, lod, FileUtil;
+  filesystem_base, lod, FileUtil;
 
 type
 
@@ -319,9 +319,6 @@ end;
 procedure TFSManager.LoadToStream(AStream: TStream;
   AResType: TResourceType; AName: string);
 var
-  ext: string;
-  path: string;
-
   stm: TFileStream;
 
   res_id: TResId;

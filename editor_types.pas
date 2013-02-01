@@ -48,12 +48,19 @@ type
   THeroClassID = type integer;
   THeroID = type integer;
 
+  TObjectTypeID = type Integer;
   TCustomID = type integer;
 const
   ID_RANDOM = -1;
   FACTION_RANDOM = TFactionID(-1);
 
+const
+  MASK_NOT_VISIBLE = '0';
+  MASK_VISIBLE     = 'V';
+  MASK_BLOCKED     = 'B';
+  MASK_ACTIVABLE   = 'A';
 
+  Z_INDEX_OVERLAY = -1000000;
 
 implementation
 

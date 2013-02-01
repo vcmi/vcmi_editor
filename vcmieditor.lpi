@@ -184,51 +184,52 @@
         <UnitName Value="filesystem"/>
       </Unit16>
       <Unit17>
-        <Filename Value="3rd_party\vcmi_fpjsonrtti.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="vcmi_fpjsonrtti"/>
-      </Unit17>
-      <Unit18>
         <Filename Value="vcmi_json.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vcmi_json"/>
-      </Unit18>
-      <Unit19>
+      </Unit17>
+      <Unit18>
         <Filename Value="editor_utils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_utils"/>
-      </Unit19>
-      <Unit20>
+      </Unit18>
+      <Unit19>
         <Filename Value="map_format.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format"/>
-      </Unit20>
-      <Unit21>
+      </Unit19>
+      <Unit20>
         <Filename Value="map_format_h3m.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_h3m"/>
-      </Unit21>
-      <Unit22>
+      </Unit20>
+      <Unit21>
         <Filename Value="stream_adapter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stream_adapter"/>
-      </Unit22>
-      <Unit23>
+      </Unit21>
+      <Unit22>
         <Filename Value="editor_str_consts.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_str_consts"/>
-      </Unit23>
-      <Unit24>
+      </Unit22>
+      <Unit23>
         <Filename Value="map_format_vcmi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_vcmi"/>
-      </Unit24>
-      <Unit25>
+      </Unit23>
+      <Unit24>
         <Filename Value="forms\map_options.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MapOptionsForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="map_options"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="3rd_party\vcmi_fpjsonrtti.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="vcmi_fpjsonrtti"/>
       </Unit25>
     </Units>
   </ProjectOptions>

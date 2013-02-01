@@ -112,7 +112,7 @@ end;
 
 procedure TZlibInputStream.DecompressTill(APosition: Int64);
 var
-  to_end, file_ended, end_loop: Boolean;
+  to_end, {file_ended,} end_loop: Boolean;
 
   read_amount: Int64;
   ret: cint;
@@ -132,7 +132,7 @@ begin
   if (not to_end) and (Length(FOutputBuffer) < APosition) then
     SetLength(FOutputBuffer,APosition);
 
-  file_ended := False;
+  //file_ended := False;
   end_loop := False;
 
   repeat
@@ -140,10 +140,10 @@ begin
     begin
       read_amount := FInput.Read( FInputBuffer[0], Length(FInputBuffer));
 
-      if read_amount <> Length(FInputBuffer) then
-      begin
-        file_ended := True;
-      end;
+      //if read_amount <> Length(FInputBuffer) then
+      //begin
+      //  file_ended := True;
+      //end;
 
       FState.avail_in := read_amount;
       FState.next_in := @FInputBuffer[0];
