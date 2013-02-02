@@ -1943,4 +1943,10 @@ object fMain: TfMain
       RadioItem = True
     end
   end
+  object AnimTimer: TTimer
+    Interval = 100
+    OnTimer = AnimTimerTimer
+    left = 133
+    top = 256
+  end
 end

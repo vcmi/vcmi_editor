@@ -86,6 +86,7 @@ type
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
+    AnimTimer: TTimer;
     ToolBar2: TToolBar;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
@@ -127,6 +128,7 @@ type
     procedure actUndergroundUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
     procedure actUndoUpdate(Sender: TObject);
+    procedure AnimTimerTimer(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
     procedure btnBrush2Click(Sender: TObject);
     procedure btnBrush4Click(Sender: TObject);
@@ -399,6 +401,11 @@ begin
     a.Caption := rsUndo;
   end;
 
+end;
+
+procedure TfMain.AnimTimerTimer(Sender: TObject);
+begin
+  MapView.Invalidate;
 end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);

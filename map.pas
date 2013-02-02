@@ -24,7 +24,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, editor_types, terrain, editor_classes, def;
+  Classes, SysUtils, Math, LCLIntf, editor_types, terrain, editor_classes, def;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -250,17 +250,24 @@ type
 
   TMapObject = class (TCollectionItem)
   strict private
+    FLastFrame: Integer;
+    FLastTick: DWord;
+
     FTemplate: TMapObjectTemplate;
     FL: integer;
     FTemplateID: integer;
     FX: integer;
     FY: integer;
+    procedure Render(Frame:integer); inline;
     procedure SetL(AValue: integer);
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
   public
+    constructor Create(ACollection: TCollection); override;
     property Template: TMapObjectTemplate read FTemplate;
+    procedure RenderStatic(); inline;
+    procedure RenderAnim(); inline;
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -373,6 +380,41 @@ end;
 function TMapObjects.GetOwner: TPersistent;
 begin
   Result := FMap;
+end;
+
+constructor TMapObject.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FLastFrame := 0;
+end;
+
+procedure TMapObject.Render(Frame: integer);
+begin
+  Template.FDef.RenderO(Frame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+end;
+
+procedure TMapObject.RenderAnim;
+var
+  new_tick: DWord;
+begin
+  new_tick := GetTickCount;
+
+  if abs(new_tick - FLastTick) > 150 then
+  begin
+    Inc(FLastFrame);
+
+    FLastTick := new_tick;
+
+    if FLastFrame >= Template.FDef.FrameCount then
+      FLastFrame := 0;
+  end;
+
+  Render(FLastFrame);
+end;
+
+procedure TMapObject.RenderStatic;
+begin
+  Render(FLastFrame);
 end;
 
 procedure TMapObject.SetL(AValue: integer);
@@ -845,14 +887,18 @@ begin
   for i := 0 to FObjects.Count - 1 do
   begin
     o := TMapObject(FObjects.Items[i]);
-    if o.L <> CurrentLevel then Continue;
+    if o.L <> CurrentLevel then
+      Continue;
 
     if (o.X < Left)
       or (o.Y < Top)
       or (o.X - 8 > Right)
       or (o.y - 6 > Bottom)
       then Continue;
-    o.Template.FDef.RenderO(0, o.x*TILE_SIZE, o.y*TILE_SIZE);
+
+    o.RenderAnim();
+
+
   end;
 end;
 
