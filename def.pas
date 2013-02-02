@@ -92,6 +92,8 @@ type
     *)
     procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer = -1);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
+
+    procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer);
     property FrameCount: Integer read GetFrameCount;
   end;
 
@@ -120,6 +122,7 @@ type
 
     function GetGraphics (const AResourceName:string): TDef;
 
+    procedure BindTextures;
   end;
 
   { TGraphicsCosnumer }
@@ -206,6 +209,16 @@ begin
 end;
 
 { TGraphicsManager }
+
+procedure TGraphicsManager.BindTextures;
+var
+  i: Integer;
+begin
+  for i := 0 to FNameToDefMap.Count - 1 do
+  begin
+    FNameToDefMap.Data[i].BindTextures;
+  end;
+end;
 
 constructor TGraphicsManager.Create(AOwner: TComponent);
 begin
@@ -766,6 +779,38 @@ begin
 
   glDisable(GL_TEXTURE_2D);
 
+end;
+
+procedure TDef.RenderO(const SpriteIndex: UInt8; X, Y: Integer);
+var
+  cx: Integer;
+  cy: Integer;
+
+  factor: Double;
+  cur_dim: integer;
+  H: Int32;
+  W: Int32;
+begin
+
+  H := height;
+  W := width;
+
+
+  cx := X;
+  cy := Y;
+
+  glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,entries[SpriteIndex].TextureId);
+    glBegin(GL_POLYGON);
+
+      glTexCoord2d(0,0); glVertex2i(cx-w,  cy-h);
+      glTexCoord2d(1,0); glVertex2i(cx,cy-h);
+      glTexCoord2d(1,1); glVertex2i(cx,cy);
+      glTexCoord2d(0,1); glVertex2i(cx-w,  cy);
+
+    glEnd();
+
+  glDisable(GL_TEXTURE_2D)
 end;
 
 procedure TDef.UnBindTextures;

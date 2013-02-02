@@ -109,7 +109,6 @@ type
     procedure LoadConfig;
 
     procedure LoadTerrainGraphics;
-    procedure BindTextures;
 
     procedure Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
 
@@ -239,16 +238,6 @@ begin
 end;
 
 { TTerrainManager }
-
-procedure TTerrainManager.BindTextures;
-var
-  tt: TTerrainType;
-begin
-  for tt := Low(TTerrainType) to High(TTerrainType) do
-  begin
-    FTerrainDefs[tt].BindTextures;
-  end;
-end;
 
 constructor TTerrainManager.Create(AOwner: TComponent);
 var

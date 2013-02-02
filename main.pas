@@ -586,14 +586,9 @@ end;
 
 procedure TfMain.Init;
 begin
-  FTerrianManager.BindTextures;
-  FObjManager.BindTextures;
+  FGraphicsManager.BindTextures;
 
   glDisable(GL_DEPTH_TEST);
-
-  glEnable(GL_SCISSOR_TEST);
-  //glEnable(GL_ALPHA_TEST);
-
 
   glInited := True;
 end;
@@ -717,6 +712,8 @@ begin
   FreeAndNil(FMap); //destroy old map
   FMap := new_map;
   if set_filename then FMapFilename := AFileName;
+
+  if glInited then FGraphicsManager.BindTextures; //???
   MapChanded;
 end;
 
@@ -881,6 +878,9 @@ begin
     Init;
   end;
 
+  glEnable(GL_SCISSOR_TEST);
+
+
   glScissor(0, 0, MapView.Width, MapView.Height);
 
   glMatrixMode(GL_PROJECTION);
@@ -896,22 +896,22 @@ begin
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  //glEnable (GL_BLEND);
-  //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   FMap.Render(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  //render objects
-   glEnable (GL_BLEND);
-   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+  FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   //todo: render passability
 
   RenderCursor;
 
   glDisable (GL_BLEND);
+
+  glDisable(GL_SCISSOR_TEST);
+  //glDisable(GL_ALPHA_TEST);
+
   c.SwapBuffers;
 end;
 
@@ -971,7 +971,6 @@ begin
     Init;
   end;
 
-  glDisable(GL_DEPTH_TEST);
   glEnable(GL_SCISSOR_TEST);
 
   glEnable (GL_BLEND);
@@ -1029,7 +1028,8 @@ begin
 
       end;
     end;
-  glEnable (GL_BLEND);
+  glDisable (GL_BLEND);
+  glDisable(GL_SCISSOR_TEST);
 
   c.SwapBuffers;
 end;

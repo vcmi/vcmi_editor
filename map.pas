@@ -24,7 +24,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, editor_types, terrain, editor_classes;
+  Classes, SysUtils, Math, editor_types, terrain, editor_classes, def;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -168,6 +168,8 @@ type
 
   TMapObjectTemplate = class (TCollectionItem)
   private
+    FDef: TDef;
+  private
     FAllowedTerrains: TTerrainTypes;
     FID: TObjectTypeID;
     FMask: TStringList;
@@ -186,6 +188,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+
   published
 
     property TID: integer read GetTID;
@@ -205,8 +209,10 @@ type
   { TMapObjectTemplates }
 
   TMapObjectTemplates = class (TArrayCollection)
+  private
+    FMap: TVCMIMap;
   public
-    constructor Create;
+    constructor Create(AMap: TVCMIMap);
   end;
 
   { TMapTile }
@@ -325,6 +331,7 @@ type
 
     //Left, Right, top, Bottom - clip rect in Tiles
     procedure Render(Left, Right, Top, Bottom: Integer);
+    procedure RenderObjects(Left, Right, Top, Bottom: Integer);
 
     property CurrentLevel: Integer read FCurrentLevel write SetCurrentLevel;
 
@@ -397,9 +404,10 @@ end;
 
 { TMapObjectTemplates }
 
-constructor TMapObjectTemplates.Create;
+constructor TMapObjectTemplates.Create(AMap: TVCMIMap);
 begin
   inherited Create(TMapObjectTemplate);
+  FMap := AMap;
 end;
 
 { TMapObjectTemplate }
@@ -435,11 +443,16 @@ begin
 end;
 
 procedure TMapObjectTemplate.SetAnimation(AValue: string);
+var
+  gm: TGraphicsManager;
+
 begin
   if FAnimation = AValue then Exit;
   AValue := ExtractFileNameWithoutExt(Trim(UpperCase(AValue)));
-
   FAnimation := AValue;
+
+  gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
+  FDef := gm.GetGraphics(FAnimation);
   //todo: load and check
 end;
 
@@ -716,7 +729,7 @@ begin
   FIsDirty := True;
 
   FPlayerAttributes := TPlayerAttrs.Create;
-  FTemplates := TMapObjectTemplates.Create;
+  FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
 end;
 
@@ -818,6 +831,28 @@ begin
     begin
       FTerrain[FCurrentLevel][i][j].Render(FTerrainManager,i,j);
     end;
+  end;
+
+
+end;
+
+procedure TVCMIMap.RenderObjects(Left, Right, Top, Bottom: Integer);
+var
+  i: Integer;
+  o: TMapObject;
+begin
+  //todo: blit order or depth test
+  for i := 0 to FObjects.Count - 1 do
+  begin
+    o := TMapObject(FObjects.Items[i]);
+    if o.L <> CurrentLevel then Continue;
+
+    if (o.X < Left)
+      or (o.Y < Top)
+      or (o.X - 8 > Right)
+      or (o.y - 6 > Bottom)
+      then Continue;
+    o.Template.FDef.RenderO(0, o.x*TILE_SIZE, o.y*TILE_SIZE);
   end;
 end;
 

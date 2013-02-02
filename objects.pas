@@ -85,8 +85,6 @@ type
 
     procedure LoadObjects;
 
-    procedure BindTextures;
-
     property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
 
@@ -122,16 +120,6 @@ begin
 end;
 
 { TObjectsManager }
-
-procedure TObjectsManager.BindTextures;
-var
-  i: Integer;
-begin
-  for i := 0 to FDefs.Count - 1 do
-  begin
-    FDefs[i].Def.BindTextures;
-  end;
-end;
 
 constructor TObjectsManager.Create(AOwner: TComponent);
 begin
