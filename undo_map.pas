@@ -86,7 +86,6 @@ end;
 
 procedure TMapUndoManger.Clear;
 begin
-  //todo: TMapUndoManger Clear
   FItemStack.Clear;
   FCurrentPosition := -1;
 end;

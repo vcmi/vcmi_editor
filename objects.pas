@@ -34,18 +34,20 @@ type
 
   { TObjTemplate }
 
-  TObjTemplate = class(TDef)
+  TObjTemplate = class
   private
+    FDef: TDef;
     filename: AnsiString;
     passability,
     actions: TDefBitmask;
     landscape,land_edit_groups: uint16;
     Typ,SubType: uint32;
     Group,isOverlay: uint8;
+    procedure SetDef(AValue: TDef);
   public
     constructor Create;
 
-    procedure LoadGraphics(AResourceLoader:IResourceLoader);
+    property Def: TDef read FDef write SetDef;
   end;
 
   TDefVector = specialize TFPGObjectList<TObjTemplate>;
@@ -106,17 +108,10 @@ begin
   inherited;
 end;
 
-procedure TObjTemplate.LoadGraphics(AResourceLoader: IResourceLoader);
-var
-  ms: TMemoryStream;
+procedure TObjTemplate.SetDef(AValue: TDef);
 begin
-  ms := TMemoryStream.Create;
-  try
-    AResourceLoader.LoadToStream(ms,TResourceType.Animation,'SPRITES/'+filename);
-    LoadFromDefStream(ms);
-  finally
-    ms.Free;
-  end;
+  if FDef = AValue then Exit;
+  FDef := AValue;
 end;
 
 { TDefIdHash }
@@ -134,7 +129,7 @@ var
 begin
   for i := 0 to FDefs.Count - 1 do
   begin
-    FDefs[i].BindTextures;
+    FDefs[i].Def.BindTextures;
   end;
 end;
 
@@ -307,7 +302,7 @@ var
 begin
   for i := 0 to FDefs.Count - 1 do
   begin
-    FDefs[i].LoadGraphics(ResourceLoader);
+    FDefs[i].Def := GraphicsManager.GetGraphics(FDefs[i].filename);
   end;
 end;
 

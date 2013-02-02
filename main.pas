@@ -232,6 +232,7 @@ type
 
     procedure InvalidateMapAxis;
     procedure InvalidateMap;
+    procedure InvalidateMapContent;
 
     procedure SetMapViewMouse(x,y: integer);
 
@@ -301,7 +302,7 @@ end;
 procedure TfMain.actRedoExecute(Sender: TObject);
 begin
   FUndoManager.Redo;
-  InvalidateMap;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.actRedoUpdate(Sender: TObject);
@@ -368,7 +369,7 @@ begin
   under :=  (Sender as TAction).Checked;
 
   FMap.CurrentLevel := ifthen(under,1,0);
-  InvalidateMap;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.actUndergroundUpdate(Sender: TObject);
@@ -379,7 +380,7 @@ end;
 procedure TfMain.actUndoExecute(Sender: TObject);
 begin
   FUndoManager.Undo;
-  InvalidateMap;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.actUndoUpdate(Sender: TObject);
@@ -498,6 +499,9 @@ var
   dir: String;
   map_filename: String;
 begin
+  pnHAxis.DoubleBuffered := True;
+  pnVAxis.DoubleBuffered := True;
+  pnMinimap.DoubleBuffered := True;
   ObjectsView.SharedControl := MapView;
 
   FResourceManager := TFSManager.Create(self);
@@ -601,6 +605,13 @@ begin
   HorisontalAxis.Invalidate;
 end;
 
+procedure TfMain.InvalidateMapContent;
+begin
+  MapView.Invalidate;
+  FMinimap.InvalidateMap;
+  Minimap.Invalidate;
+end;
+
 procedure TfMain.InvalidateMap;
 begin
   MapView.Invalidate;
@@ -608,6 +619,8 @@ begin
 end;
 
 procedure TfMain.InvalidateMapDimensions;
+var
+  factor: Double;
 begin
   FViewTilesV := MapView.Height div TILE_SIZE + 1;
   FViewTilesH := MapView.Width div TILE_SIZE + 1;
@@ -620,6 +633,12 @@ begin
 
   hScrollBar.LargeChange := FViewTilesH;
   vScrollBar.LargeChange := FViewTilesV;
+
+  factor := Double(getMapHeight) / Double(getMapWidth);
+
+  pnMinimap.Height := round(factor * pnMinimap.Width) ;
+
+  //todo: invalidate map dimensions
 end;
 
 procedure TfMain.InvalidateObjects;
@@ -741,7 +760,7 @@ begin
 
   FUndoManager.ExecuteItem(action_item);
 
-  InvalidateMap;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -802,8 +821,6 @@ begin
   begin
     InvalidateMapAxis;
   end;
-
-
 end;
 
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
@@ -904,13 +921,8 @@ begin
 end;
 
 procedure TfMain.MinimapPaint(Sender: TObject);
-var
-  pb: TPaintBox;
-  ctx: TCanvas;
 begin
-  pb := Sender as TPaintBox;
-  ctx := pb.Canvas;
-  FMinimap.Paint(ctx);
+  FMinimap.Paint(Sender as TPaintBox);
 end;
 
 procedure TfMain.ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1013,7 +1025,7 @@ begin
             glEnd();
             glPopAttrib();
 
-            o_def.Render(0,cx,cy, OBJ_CELL_SIZE);
+            o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE);
 
       end;
     end;
@@ -1195,7 +1207,7 @@ begin
   begin
     Assert(Assigned(FDraggingTemplate));
 
-    FDraggingTemplate.Render(0,cx, cy);
+    FDraggingTemplate.Def.Render(0,cx, cy);
   end;
 end;
 

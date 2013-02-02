@@ -61,7 +61,7 @@ type
     procedure SetName(AValue: string);
     procedure SetPortrait(AValue: THeroID);
   published
-    property Portrait:THeroID read FPortrait write SetPortrait;
+    property Portrait:THeroID read FPortrait write SetPortrait nodefault;
     property Name: string read FName write SetName;
   end;
 
@@ -138,7 +138,7 @@ type
     property MainHeroName:string read FMainHeroName write SetMainHeroName;
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero;
-    property TeamId: Integer read FTeamId write SetTeamId;
+    property TeamId: Integer read FTeamId write SetTeamId default 0;
   end;
 
   { TPlayerAttrs }
@@ -168,28 +168,38 @@ type
 
   TMapObjectTemplate = class (TCollectionItem)
   private
+    FAllowedTerrains: TTerrainTypes;
     FID: TObjectTypeID;
     FMask: TStringList;
-    FFilename: string;
+    FAnimation: string;
+    FMenuTerrains: TTerrainTypes;
     FSubID: TCustomID;
     FZIndex: Integer;
     function GetMask: TStrings;
-    procedure SetFilename(AValue: string);
+    function GetTID: integer;
+    procedure SetAllowedTerrains(AValue: TTerrainTypes);
+    procedure SetAnimation(AValue: string);
     procedure SetID(AValue: TObjectTypeID);
+    procedure SetMenuTerrains(AValue: TTerrainTypes);
     procedure SetSubID(AValue: TCustomID);
     procedure SetZIndex(AValue: Integer);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
-    property Filename:string read FFilename write SetFilename;
+
+    property TID: integer read GetTID;
+
+    property Animation:string read FAnimation write SetAnimation;
 
     property Mask:TStrings read GetMask;
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
+    property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains default ALL_TERRAINS;
 
-    property Id: TObjectTypeID read FID write SetID;
-    property SubId: TCustomID read FSubID write SetSubID;
+    property Id: TObjectTypeID read FID write SetID nodefault;
+    property SubId: TCustomID read FSubID write SetSubID nodefault;
 
-    property ZIndex: Integer read FZIndex write SetZIndex;
+    property ZIndex: Integer read FZIndex write SetZIndex default 0;
   end;
 
   { TMapObjectTemplates }
@@ -197,7 +207,6 @@ type
   TMapObjectTemplates = class (TArrayCollection)
   public
     constructor Create;
-
   end;
 
   { TMapTile }
@@ -222,14 +231,51 @@ type
 
     procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
   published
-    property TerType: TTerrainType read FTerType write SetTerType;
-    property TerSubType: UInt8 read FTerSubtype write SetTerSubtype;
+    property TerType: TTerrainType read FTerType write SetTerType nodefault;
+    property TerSubType: UInt8 read FTerSubtype write SetTerSubtype default 0;
 
-    property RiverType:UInt8 read FRiverType write SetRiverType;
-    property RiverDir:UInt8 read FRiverDir write SetRiverDir;
-    property RoadType:UInt8 read FRoadType write SetRoadType;
-    property RoadDir:UInt8 read FRoadDir write SetRoadDir;
-    property Flags:UInt8 read FFlags write SetFlags;
+    property RiverType:UInt8 read FRiverType write SetRiverType default 0;
+    property RiverDir:UInt8 read FRiverDir write SetRiverDir default 0;
+    property RoadType:UInt8 read FRoadType write SetRoadType default 0;
+    property RoadDir:UInt8 read FRoadDir write SetRoadDir default 0;
+    property Flags:UInt8 read FFlags write SetFlags default 0;
+  end;
+
+
+  TMapObject = class (TCollectionItem)
+  strict private
+    FTemplate: TMapObjectTemplate;
+    FL: integer;
+    FTemplateID: integer;
+    FX: integer;
+    FY: integer;
+    procedure SetL(AValue: integer);
+    procedure SetTemplateID(AValue: integer);
+    procedure SetX(AValue: integer);
+    procedure SetY(AValue: integer);
+  public
+    property Template: TMapObjectTemplate read FTemplate;
+  published
+    property X:integer read FX write SetX;
+    property Y:integer read FY write SetY;
+    property L:integer read FL write SetL;
+
+    property TemplateID: integer read FTemplateID write SetTemplateID;
+
+  end;
+
+  { TMapObjects }
+
+  TMapObjects = class (TArrayCollection)
+  private
+    FMap: TVCMIMap;
+  protected
+    function GetOwner: TPersistent; override;
+
+  public
+    constructor Create(AOwner: TVCMIMap);
+
+    property Map: TVCMIMap read FMap;
   end;
 
   { TVCMIMap }
@@ -243,6 +289,7 @@ type
     FHeight: Integer;
     FHeroLevelLimit: Integer;
     FName: string;
+    FObjects: TMapObjects;
     FPlayerAttributes: TPlayerAttrs;
     FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
@@ -299,13 +346,54 @@ type
     property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
 
     property Templates: TMapObjectTemplates read FTemplates;
+    property Objects: TMapObjects read FObjects;
   end;
 
   {$pop}
 
 implementation
 
-uses editor_str_consts;
+uses FileUtil, editor_str_consts;
+
+{ TMapObjects }
+
+constructor TMapObjects.Create(AOwner: TVCMIMap);
+begin
+  inherited Create(TMapObject);
+  FMap  := AOwner;
+end;
+
+function TMapObjects.GetOwner: TPersistent;
+begin
+  Result := FMap;
+end;
+
+procedure TMapObject.SetL(AValue: integer);
+begin
+  if FL = AValue then Exit;
+  FL := AValue;
+end;
+
+procedure TMapObject.SetTemplateID(AValue: integer);
+begin
+  if FTemplateID = AValue then Exit;
+
+  FTemplate := TMapObjectTemplate((Collection as TMapObjects).Map.FTemplates.Items[AValue]);
+
+  FTemplateID := AValue;
+end;
+
+procedure TMapObject.SetX(AValue: integer);
+begin
+  if FX = AValue then Exit;
+  FX := AValue;
+end;
+
+procedure TMapObject.SetY(AValue: integer);
+begin
+  if FY = AValue then Exit;
+  FY := AValue;
+end;
 
 { TMapObjectTemplates }
 
@@ -320,6 +408,8 @@ constructor TMapObjectTemplate.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FMask := TStringList.Create;
+  FAllowedTerrains := ALL_TERRAINS;
+
 end;
 
 destructor TMapObjectTemplate.Destroy;
@@ -333,16 +423,36 @@ begin
   Result := FMask;
 end;
 
-procedure TMapObjectTemplate.SetFilename(AValue: string);
+function TMapObjectTemplate.GetTID: integer;
 begin
-  if FFilename = AValue then Exit;
-  FFilename := AValue;
+  Result := inherited ID;
+end;
+
+procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
+begin
+  if FAllowedTerrains = AValue then Exit;
+  FAllowedTerrains := AValue;
+end;
+
+procedure TMapObjectTemplate.SetAnimation(AValue: string);
+begin
+  if FAnimation = AValue then Exit;
+  AValue := ExtractFileNameWithoutExt(Trim(UpperCase(AValue)));
+
+  FAnimation := AValue;
+  //todo: load and check
 end;
 
 procedure TMapObjectTemplate.SetID(AValue: TObjectTypeID);
 begin
   if FID = AValue then Exit;
   FID := AValue;
+end;
+
+procedure TMapObjectTemplate.SetMenuTerrains(AValue: TTerrainTypes);
+begin
+  if FMenuTerrains = AValue then Exit;
+  FMenuTerrains := AValue;
 end;
 
 procedure TMapObjectTemplate.SetSubID(AValue: TCustomID);
@@ -607,12 +717,16 @@ begin
 
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create;
+  FObjects := TMapObjects.Create(Self);
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+
+  FObjects.Free;
   FTemplates.Free;
   FPlayerAttributes.Free;
+  DestroyTiles();
   inherited Destroy;
 end;
 

@@ -30,6 +30,7 @@ type
 {$push}
 {$packenum 1}
   TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, sub, lava, water, rock{,border=$FF});
+  TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
 
@@ -61,6 +62,16 @@ const
   MASK_ACTIVABLE   = 'A';
 
   Z_INDEX_OVERLAY = -1000000;
+const
+  ALL_TERRAINS = [TTerrainType.dirt,
+  TTerrainType.sand,
+  TTerrainType.grass,
+  TTerrainType.snow,
+  TTerrainType.swamp,
+  TTerrainType.rough,
+  TTerrainType.sub,
+  TTerrainType.lava,
+  TTerrainType.water];
 
 implementation
 

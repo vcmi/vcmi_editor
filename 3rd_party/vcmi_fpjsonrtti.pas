@@ -74,6 +74,8 @@ Type
     function StreamChildren(AComp: TComponent): TJSONArray;
 
   protected
+    function NeedToStreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo): boolean;
+    procedure DoBeforeStreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo; var Skip: boolean); virtual;
 
     function StreamClassProperty(Const AObject: TObject): TJSONData; virtual;
     Function StreamProperty(Const AObject : TObject; Const PropertyName : String) : TJSONData;
@@ -666,6 +668,12 @@ begin
   Inherited;
 end;
 
+procedure TJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
+  PropertyInfo: PPropInfo; var Skip: boolean);
+begin
+
+end;
+
 Function TJSONStreamer.StreamChildren(AComp : TComponent) : TJSONArray;
 
 begin
@@ -687,6 +695,16 @@ end;
 function TJSONStreamer.IsChildStored: boolean;
 begin
   Result:=(GetChildProperty<>'Children');
+end;
+
+function TJSONStreamer.NeedToStreamProperty(const AObject: TObject;
+  PropertyInfo: PPropInfo): boolean;
+var
+  Skip: Boolean;
+begin
+  Skip := False;
+  DoBeforeStreamProperty(AObject,PropertyInfo,Skip);
+  Result := not Skip;
 end;
 
 function TJSONStreamer.ObjectToJSON(Const AObject: TObject): TJSONObject;
@@ -714,9 +732,13 @@ begin
       try
         For I:=0 to PIL.Count-1 do
           begin
-          PD:=StreamProperty(AObject,PIL.Items[i]);
-          If (PD<>Nil) then
-            Result.Add(PreparePropName(PIL.Items[I]^.Name),PD);
+            if NeedToStreamProperty(AObject, PIL.Items[i]) then
+            begin
+              PD:=StreamProperty(AObject,PIL.Items[i]);
+              If (PD<>Nil) then
+                Result.Add(PreparePropName(PIL.Items[I]^.Name),PD);
+            end;
+
           end;
       finally
         FReeAndNil(Pil);

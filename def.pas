@@ -44,7 +44,7 @@ type
   { TDefEntry }
 
   TDefEntry = object
-    name: string;
+   // name: string;
     offcet: UInt32;
     group: Integer;
     TextureId: GLuint;
@@ -112,9 +112,14 @@ type
   private
     FNameToDefMap: TDefMap;
 
+    procedure LoadDef(const AResourceName:string; ADef: TDef);
+
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function GetGraphics (const AResourceName:string): TDef;
+
   end;
 
   { TGraphicsCosnumer }
@@ -214,11 +219,42 @@ begin
   inherited Destroy;
 end;
 
+function TGraphicsManager.GetGraphics(const AResourceName: string): TDef;
+var
+  res_index: Integer;
+begin
+  if FNameToDefMap.Find(AResourceName,res_index) then
+  begin
+    Result := FNameToDefMap.Data[res_index];
+  end
+  else begin
+    Result := TDef.Create;
+    LoadDef(AResourceName,Result);
+    FNameToDefMap.Add(AResourceName,Result);
+  end;
+
+end;
+
+procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef);
+var
+  ms: TMemoryStream;
+begin
+  ms := TMemoryStream.Create;
+  try
+    ResourceLoader.LoadToStream(ms,TResourceType.Animation,'SPRITES/'+AResourceName);
+    ADef.LoadFromDefStream(ms);
+  finally
+    ms.Free;
+  end;
+end;
+
+
 { TDefMap }
 
 constructor TDefMap.Create;
 begin
   inherited Create;
+  OnKeyCompare := @CompareStr;
 end;
 
 procedure TDefMap.Deref(Item: Pointer);
@@ -242,6 +278,7 @@ begin
 
   glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA,FullWidth,FullHeight,0,GL_RGBA, GL_UNSIGNED_BYTE, @(raw_image[0]));
   glDisable(GL_TEXTURE_2D);
+  SetLength(raw_image,0); //clear
 end;
 
 procedure TDefEntry.Resize(w, h: Integer);
@@ -268,6 +305,7 @@ var
   count: GLsizei;
   SpriteIndex: Integer;
 begin
+  if FTexturesBinded then Exit;
   count := entries.Size;
 
   SetLength(id_s,count);
@@ -285,7 +323,7 @@ end;
 constructor TDef.Create;
 begin
   entries := TDefEntries.Create;
-
+  FTexturesBinded := false;
 end;
 
 destructor TDef.Destroy;
@@ -318,6 +356,8 @@ var
 
   header: TH3DefHeader;
 begin
+  if FTexturesBinded then UnBindTextures;
+  FTexturesBinded := false;
   AStream.Seek(0,soBeginning);
   AStream.Read(header{%H-},SizeOf(header));
 
@@ -354,7 +394,7 @@ begin
      for i := 0 to total_in_block - 1 do
      begin
        AStream.Read(current_name{%H-},SizeOf(current_name));
-       entries.Mutable[total_entries+i]^.name := current_name;
+       //entries.Mutable[total_entries+i]^.name := current_name;
      end;
 
      //offcets

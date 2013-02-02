@@ -38,8 +38,6 @@ type
     procedure CollectionArrayCallback(Item: TJSONData; Data: TObject; var Continue: Boolean);
   protected
     procedure DoPreparePropName(var PropName: AnsiString); override;
-    procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;
-      PropData: TJSONData); override;
     //preprocess comments
     function ObjectFromString(const JSON: TJSONStringType): TJSONData; override;
   public
@@ -59,6 +57,8 @@ type
 
   TVCMIJSONStreamer = class (TJSONStreamer)
   protected
+    procedure DoBeforeStreamProperty(const AObject: TObject;
+      PropertyInfo: PPropInfo; var Skip: boolean); override;
     procedure DoPreparePropName(var PropName: AnsiString); override;
   public
     function StreamCollection(const ACollection: TCollection): TJSONData;
@@ -79,6 +79,40 @@ begin
 end;
 
 { TVCMIJSONStreamer }
+
+procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
+  PropertyInfo: PPropInfo; var Skip: boolean);
+var
+  PropType: PTypeInfo;
+  Value: Int64;
+  DefValue: Int64;
+begin
+  inherited DoBeforeStreamProperty(AObject, PropertyInfo, Skip);
+
+  PropType := PropertyInfo^.PropType;
+
+  case PropType^.Kind of
+    tkInteger, tkChar, tkEnumeration, tkWChar: begin
+      Value := GetOrdProp(AObject, PropertyInfo);
+      DefValue := PropertyInfo^.Default;
+
+      if (Value = DefValue) and (DefValue<>longint($80000000)) then
+      begin
+        Skip := True;
+      end;
+    end;
+
+     tkSet: begin
+      Value := GetOrdProp(AObject, PropertyInfo);
+      DefValue := PropertyInfo^.Default;
+
+      if (Value = DefValue) and (DefValue<>longint($80000000)) then
+      begin
+        Skip := True;
+      end;
+    end;
+  end;
+end;
 
 procedure TVCMIJSONStreamer.DoPreparePropName(var PropName: AnsiString);
 begin
@@ -190,13 +224,6 @@ end;
 procedure TVCMIJSONDestreamer.DoPreparePropName(var PropName: AnsiString);
 begin
   MakeCamelCase(PropName);
-end;
-
-procedure TVCMIJSONDestreamer.DoRestoreProperty(AObject: TObject;
-  PropInfo: PPropInfo; PropData: TJSONData);
-begin
-
-  inherited DoRestoreProperty(AObject, PropInfo, PropData);
 end;
 
 function TVCMIJSONDestreamer.JSONStreamToJson(AStream: TStream): TJSONData;

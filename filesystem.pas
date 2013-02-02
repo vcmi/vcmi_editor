@@ -66,9 +66,7 @@ type
 
   }
 
-  //TODO: filsystem scan
   //TODO: mod support
-  //TODO: lod support
 
   {$push}
   {$m+}

@@ -140,6 +140,9 @@ const
     'rocktl'
     );
 
+  // 'Clrrvr.def' "Icyrvr.def" "Lavrvr.def" "Mudrvr.def"
+  // 'cobbrd.def 'dirtrd.def' 'gravrd.def'
+
 procedure SetView(out V: TTerrainViewInterval; min,max: uint8);
 begin
   v.max:=max;
@@ -252,10 +255,6 @@ var
   tt: TTerrainType;
 begin
   inherited Create(AOwner);
-  for tt := Low(TTerrainType) to High(TTerrainType) do
-  begin
-    FTerrainDefs[tt] := TDef.Create;
-  end;
 
   FPatternConfig := TTerrainPatternConfig.Create;
 end;
@@ -264,10 +263,6 @@ destructor TTerrainManager.Destroy;
 var
   tt: TTerrainType;
 begin
-  for tt := Low(TTerrainType) to High(TTerrainType) do
-  begin
-    FTerrainDefs[tt].Free;
-  end;
   FPatternConfig.Free;
   inherited Destroy;
 end;
@@ -298,7 +293,7 @@ begin
     TTerrainType.sub,
     TTerrainType.lava:SetView(vews,49,63); //SetView(vews,49,72);
     TTerrainType.water:SetView(vews,20,32);
-    TTerrainType.rock: SetView(vews,0,7);
+    TTerrainType.rock: SetView(vews,0,0);
   else
     raise Exception.Create('Unknown terrain: '+IntToStr(Ord(tt)));
   end;
@@ -309,16 +304,8 @@ begin
 end;
 
 procedure TTerrainManager.InitTerrainDef(tt: TTerrainType);
-var
-  stm: TMemoryStream;
 begin
-  stm := TMemoryStream.Create;
-  try
-    ResourceLoader.LoadToStream(stm,TResourceType.Animation,'Sprites\' + TERRAIN_DEF_FILES[tt]);
-    FTerrainDefs[tt].LoadFromDefStream(stm);
-  finally
-    stm.Free;
-  end;
+  FTerrainDefs[tt] := GraphicsManager.GetGraphics(TERRAIN_DEF_FILES[tt])
 end;
 
 procedure TTerrainManager.LoadConfig;
