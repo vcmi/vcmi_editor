@@ -280,17 +280,18 @@ end;
 { TDefEntry }
 
 procedure TDefEntry.Bind(ATextureId: GLuint);
+
 begin
   TextureId := ATextureId;
 
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, TextureId);
+  glEnable(GL_TEXTURE_RECTANGLE);
+  glBindTexture(GL_TEXTURE_RECTANGLE, TextureId);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA,FullWidth,FullHeight,0,GL_RGBA, GL_UNSIGNED_BYTE, @(raw_image[0]));
-  glDisable(GL_TEXTURE_2D);
+  glTexImage2D(GL_TEXTURE_RECTANGLE, 0,GL_RGBA,FullWidth,FullHeight,0,GL_RGBA, GL_UNSIGNED_BYTE, @(raw_image[0]));
+  glDisable(GL_TEXTURE_RECTANGLE);
   SetLength(raw_image,0); //clear
 end;
 
@@ -711,18 +712,18 @@ begin
   cx := X;
   cy := Y;
 
-  glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D,entries[SpriteIndex].TextureId);
+  glEnable(GL_TEXTURE_RECTANGLE);
+    glBindTexture(GL_TEXTURE_RECTANGLE,entries[SpriteIndex].TextureId);
     glBegin(GL_POLYGON);
 
-      glTexCoord2d(0,0); glVertex2i(cx,  cy);
-      glTexCoord2d(1,0); glVertex2i(cx+W,cy);
-      glTexCoord2d(1,1); glVertex2i(cx+W,cy+H);
-      glTexCoord2d(0,1); glVertex2i(cx,  cy+H);
+      glTexCoord2i(0,0); glVertex2i(cx,  cy);
+      glTexCoord2i(width,0); glVertex2i(cx+W,cy);
+      glTexCoord2i(width,height); glVertex2i(cx+W,cy+H);
+      glTexCoord2i(0,height); glVertex2i(cx,  cy+H);
 
     glEnd();
 
-  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_RECTANGLE);
 end;
 
 procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
@@ -743,41 +744,41 @@ begin
   cx := X;
   cy := Y;
 
-  glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D,entries[SpriteIndex].TextureId);
+  glEnable(GL_TEXTURE_RECTANGLE);
+    glBindTexture(GL_TEXTURE_RECTANGLE,entries[SpriteIndex].TextureId);
     glBegin(GL_POLYGON);
 
     case mir of
       0:begin  //ok
-        glTexCoord2d(0,0); glVertex2i(cx,  cy);
-        glTexCoord2d(1,0); glVertex2i(cx+W,cy);
-        glTexCoord2d(1,1); glVertex2i(cx+W,cy+H);
-        glTexCoord2d(0,1); glVertex2i(cx,  cy+H);
+        glTexCoord2i(0,0); glVertex2i(cx,  cy);
+        glTexCoord2i(w,0); glVertex2i(cx+W,cy);
+        glTexCoord2i(w,h); glVertex2i(cx+W,cy+H);
+        glTexCoord2i(0,h); glVertex2i(cx,  cy+H);
         end;
       1: begin //ok
-        glTexCoord2d(1,0); glVertex2i(cx,  cy);
-        glTexCoord2d(0,0); glVertex2i(cx+W,cy);
-        glTexCoord2d(0,1); glVertex2i(cx+W,cy+H);
-        glTexCoord2d(1,1); glVertex2i(cx,  cy+H);
+        glTexCoord2i(w,0); glVertex2i(cx,  cy);
+        glTexCoord2i(0,0); glVertex2i(cx+W,cy);
+        glTexCoord2i(0,h); glVertex2i(cx+W,cy+H);
+        glTexCoord2i(w,h); glVertex2i(cx,  cy+H);
         end;
       2: begin //ok
-        glTexCoord2d(0,1); glVertex2i(cx,  cy);
-        glTexCoord2d(1,1); glVertex2i(cx+W,cy);
-        glTexCoord2d(1,0); glVertex2i(cx+W,cy+H);
-        glTexCoord2d(0,0); glVertex2i(cx,  cy+H);
+        glTexCoord2i(0,h); glVertex2i(cx,  cy);
+        glTexCoord2i(w,h); glVertex2i(cx+W,cy);
+        glTexCoord2i(w,0); glVertex2i(cx+W,cy+H);
+        glTexCoord2i(0,0); glVertex2i(cx,  cy+H);
         end;
       3:begin  //ok
-        glTexCoord2d(1,1); glVertex2i(cx,  cy);
-        glTexCoord2d(0,1); glVertex2i(cx+W,cy);
-        glTexCoord2d(0,0); glVertex2i(cx+W,cy+H);
-        glTexCoord2d(1,0); glVertex2i(cx,  cy+H);
+        glTexCoord2i(w,h); glVertex2i(cx,  cy);
+        glTexCoord2i(0,h); glVertex2i(cx+W,cy);
+        glTexCoord2i(0,0); glVertex2i(cx+W,cy+H);
+        glTexCoord2i(w,0); glVertex2i(cx,  cy+H);
         end;
     end;
 
 
     glEnd();
 
-  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_RECTANGLE);
 
 end;
 
@@ -799,18 +800,18 @@ begin
   cx := X;
   cy := Y;
 
-  glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D,entries[SpriteIndex].TextureId);
+  glEnable(GL_TEXTURE_RECTANGLE);
+    glBindTexture(GL_TEXTURE_RECTANGLE,entries[SpriteIndex].TextureId);
     glBegin(GL_POLYGON);
 
-      glTexCoord2d(0,0); glVertex2i(cx-w,  cy-h);
-      glTexCoord2d(1,0); glVertex2i(cx,cy-h);
-      glTexCoord2d(1,1); glVertex2i(cx,cy);
-      glTexCoord2d(0,1); glVertex2i(cx-w,  cy);
+      glTexCoord2i(0,0); glVertex2i(cx-w,  cy-h);
+      glTexCoord2i(w,0); glVertex2i(cx,cy-h);
+      glTexCoord2i(w,h); glVertex2i(cx,cy);
+      glTexCoord2i(0,h); glVertex2i(cx-w,  cy);
 
     glEnd();
 
-  glDisable(GL_TEXTURE_2D)
+  glDisable(GL_TEXTURE_RECTANGLE)
 end;
 
 procedure TDef.UnBindTextures;
