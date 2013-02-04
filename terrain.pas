@@ -24,7 +24,8 @@ unit terrain;
 interface
 
 uses
-  Classes, SysUtils, editor_types, def, fpjson,fpjsonrtti,vcmi_json,filesystem_base;
+  Classes, SysUtils, editor_types, def, fpjson, fpjsonrtti, vcmi_json,
+  filesystem_base, editor_classes;
 
 type
 
@@ -40,7 +41,7 @@ type
 
   { TTransition }
 
-  TTransition = class(TCollectionItem)
+  TTransition = class (TCollectionItem)
   private
     FData: TStringList;
     FID: string;
@@ -50,8 +51,10 @@ type
     procedure SetID(AValue: string);
     procedure SetMapping(AValue: string);
     procedure SetMinPoints(AValue: integer);
-  published
+  public
     constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
     property Data: TStrings read GetData;
     property Mapping: string read FMapping write SetMapping;
     property ID:string read FID write SetID;
@@ -60,7 +63,7 @@ type
 
   { TTransitions }
 
-  TTransitions = class(TCollection)
+  TTransitions = class(TArrayCollection)
   public
     constructor Create;
   end;
@@ -100,6 +103,7 @@ type
     FTerrainDefs: array [TTerrainType] of TDef;
 
     FPatternConfig: TTerrainPatternConfig;
+    FDestreamer: TVCMIJSONDestreamer;
 
     procedure InitTerrainDef(tt: TTerrainType);
   public
@@ -128,19 +132,21 @@ const
 
   TERRAIN_DEF_FILES: array[TTerrainType] of string = (
     'DIRTTL',
-    'sandtl',
+    'SANDTL',
     'GRASTL',
-    'Snowtl',
-    'Swmptl',
+    'SNOWTL',
+    'SWMPTL',
     'ROUGTL',
-    'Subbtl',
-    'Lavatl',
-    'Watrtl',
-    'rocktl'
+    'SUBBTL',
+    'LAVATL',
+    'WATRTL',
+    'ROCKTL'
     );
 
   // 'Clrrvr.def' "Icyrvr.def" "Lavrvr.def" "Mudrvr.def"
   // 'cobbrd.def 'dirtrd.def' 'gravrd.def'
+
+  TERRAIN_CONFIG_FILE = 'config/terrainViewPatterns.json';
 
 procedure SetView(out V: TTerrainViewInterval; min,max: uint8);
 begin
@@ -212,6 +218,13 @@ end;
 constructor TTransition.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
+  FData := TStringList.Create;
+end;
+
+destructor TTransition.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
 end;
 
 function TTransition.GetData: TStrings;
@@ -246,6 +259,7 @@ begin
   inherited Create(AOwner);
 
   FPatternConfig := TTerrainPatternConfig.Create;
+  FDestreamer := TVCMIJSONDestreamer.Create(Self);
 end;
 
 destructor TTerrainManager.Destroy;
@@ -298,7 +312,18 @@ begin
 end;
 
 procedure TTerrainManager.LoadConfig;
+var
+  stm: TMemoryStream;
+
 begin
+  stm := TMemoryStream.Create;
+  try
+    ResourceLoader.LoadToStream(stm,TResourceType.Json,TERRAIN_CONFIG_FILE);
+    stm.Seek(0,soBeginning);
+    FDestreamer.JSONStreamToObject(stm,FPatternConfig,'');
+  finally
+    stm.Free;
+  end;
   //TODO: TTerrainManager.LoadConfig
 end;
 

@@ -587,6 +587,8 @@ end;
 procedure TfMain.hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
+  ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize +1,ScrollPos);
+
   FMapHPos := ScrollPos;
   InvalidateMapAxis;
 end;
@@ -627,11 +629,11 @@ procedure TfMain.InvalidateMapDimensions;
 var
   factor: Double;
 begin
-  FViewTilesV := MapView.Height div TILE_SIZE + 1;
-  FViewTilesH := MapView.Width div TILE_SIZE + 1;
+  FViewTilesV := MapView.Height div TILE_SIZE;
+  FViewTilesH := MapView.Width div TILE_SIZE;
 
-  vScrollBar.Max := getMapHeight;
-  hScrollBar.Max := getMapWidth;
+  vScrollBar.Max := getMapHeight - 1;
+  hScrollBar.Max := getMapWidth - 1;
 
   vScrollBar.PageSize := FViewTilesV;
   hScrollBar.PageSize := FViewTilesH;
@@ -643,7 +645,15 @@ begin
 
   pnMinimap.Height := round(factor * pnMinimap.Width) ;
 
-  //todo: invalidate map dimensions
+  if (FMapHPos + FViewTilesH) > getMapWidth then
+  begin
+    FMapHPos := Max(0, getMapWidth-FViewTilesH);
+  end;
+
+  if (FMapVPos + FViewTilesV) > getMapHeight then
+  begin
+    FMapVPos := Max(0, getMapHeight-FViewTilesV);
+  end;
 end;
 
 procedure TfMain.InvalidateObjects;
@@ -857,7 +867,7 @@ begin
 
   sb.Position := sb.Position - Sign(WheelDelta) * 3;
 
-
+  sb.Position := Min(sb.Max-sb.PageSize+1,sb.Position);
 
   if ssShift in Shift then
   begin
@@ -877,6 +887,10 @@ end;
 procedure TfMain.MapViewPaint(Sender: TObject);
 var
   c: TOpenGLControl;
+  scissor_x: Integer;
+  scissor_w: Integer;
+  scissor_h: Integer;
+  scissor_y: Integer;
 
 begin
   c := TOpenGLControl(Sender);
@@ -909,6 +923,14 @@ begin
   //glTranslatef(0.375, 0.375, 0);   //???
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  scissor_x := 0;
+  scissor_y := ifthen(FMapVPos + FViewTilesV >= getMapHeight(), MapView.Height mod TILE_SIZE, 0);
+
+  scissor_w := ifthen(FMapHPos + FViewTilesH >= getMapWidth(), FViewTilesH * TILE_SIZE, MapView.Width);
+  scissor_h := ifthen(FMapVPos + FViewTilesV >= getMapHeight(),  FViewTilesV * TILE_SIZE, MapView.Height);
+
+  glScissor(scissor_x,scissor_y, scissor_w,scissor_h);
 
   FMap.Render(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
@@ -1126,7 +1148,7 @@ procedure TfMain.ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
   sbObjects.Position := sbObjects.Position - Sign(WheelDelta) * sbObjects.PageSize;
- InvalidateObjPos;
+  InvalidateObjPos;
   Handled := true;
 end;
 
@@ -1291,6 +1313,7 @@ end;
 procedure TfMain.vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
+  ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize +1,ScrollPos);
   FMapVPos := ScrollPos;
   InvalidateMapAxis;
 end;

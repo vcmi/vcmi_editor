@@ -232,6 +232,7 @@ var
 begin
   src := TStringStream.Create('');
   src.Size := AStream.Size;
+  src.Seek(0,soBeginning);
   try
     src.CopyFrom(AStream,AStream.Size);
     Result := ObjectFromString(src.DataString);
@@ -256,14 +257,23 @@ begin
 
     root := TJSONObject(dt);
 
-    res_dt := root.Extract(AName);
-    if not (res_dt.JSONType = jtObject) then
+    if AName = '' then
     begin
-      res_dt.Free;
-      Error('Property %s shall be object',[AName]);
+      //use root
+      Result := TJSONObject(dt.Clone);
+    end
+    else begin
+      res_dt := root.Extract(AName);
+      if not (res_dt.JSONType = jtObject) then
+      begin
+        res_dt.Free;
+        Error('Property %s shall be object',[AName]);
+      end;
+
+      Result := TJSONObject(res_dt);
     end;
 
-    Result := TJSONObject(res_dt);
+
 
   finally
     dt.Free;

@@ -73,6 +73,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="random_map_1.h3m"/>
         <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
       </local>
     </RunParams>

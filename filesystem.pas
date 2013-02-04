@@ -325,8 +325,8 @@ var
 begin
 
   AName := SetDirSeparators(AName);
-
   AName := UpperCase(AName);
+  AName := ExtractFileNameWithoutExt(AName);
 
   res_id.VFSPath := AName;
   res_id.Typ := AResType;
