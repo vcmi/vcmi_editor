@@ -80,17 +80,18 @@ type
     function GetFrameCount: Integer; inline;
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8);
     procedure UnBindTextures;
+  private //for internal use
+     (*H3 def format*)
+    procedure LoadFromDefStream(AStream: TStream);
+    procedure BindTextures;
   public
     constructor Create;
     destructor Destroy; override;
-    (*H3 def format*)
-    procedure LoadFromDefStream(AStream: TStream);
-    procedure BindTextures;
 
     (*
       TileX,TileY: map coords of topleft tile
     *)
-    procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer = -1);
+    procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
 
     procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer);
@@ -113,6 +114,8 @@ type
   TGraphicsManager = class (TFSConsumer)
   private
     FNameToDefMap: TDefMap;
+
+    FBuffer: TMemoryStream;
 
     procedure LoadDef(const AResourceName:string; ADef: TDef);
 
@@ -190,6 +193,11 @@ const
     (r: 0; g: 0; b:0; a: 128),
     (r: 0; g: 0; b:0; a: 192));
 
+function CompareDefs(const d1,d2: TDef): integer;
+begin
+  Result := PtrInt(d1) - PtrInt(d2);
+end;
+
 { TGraphicsCosnumer }
 
 constructor TGraphicsCosnumer.Create(AOwner: TComponent);
@@ -224,10 +232,12 @@ constructor TGraphicsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FNameToDefMap := TDefMap.Create;
+  FBuffer := TMemoryStream.Create;
 end;
 
 destructor TGraphicsManager.Destroy;
 begin
+  FBuffer.Free;
   FNameToDefMap.Free;
   inherited Destroy;
 end;
@@ -236,7 +246,10 @@ function TGraphicsManager.GetGraphics(const AResourceName: string): TDef;
 var
   res_index: Integer;
 begin
-  if FNameToDefMap.Find(AResourceName,res_index) then
+
+  res_index :=  FNameToDefMap.IndexOf(AResourceName);
+
+  if res_index >= 0 then
   begin
     Result := FNameToDefMap.Data[res_index];
   end
@@ -249,16 +262,11 @@ begin
 end;
 
 procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef);
-var
-  ms: TMemoryStream;
 begin
-  ms := TMemoryStream.Create;
-  try
-    ResourceLoader.LoadToStream(ms,TResourceType.Animation,'SPRITES/'+AResourceName);
-    ADef.LoadFromDefStream(ms);
-  finally
-    ms.Free;
-  end;
+  FBuffer.Seek(0,soBeginning);
+  ResourceLoader.LoadToStream(FBuffer,TResourceType.Animation,'SPRITES/'+AResourceName);
+  FBuffer.Seek(0,soBeginning);
+  ADef.LoadFromDefStream(FBuffer);
 end;
 
 
@@ -268,6 +276,9 @@ constructor TDefMap.Create;
 begin
   inherited Create;
   OnKeyCompare := @CompareStr;
+  OnDataCompare := @CompareDefs;
+
+  Sorted := True;
 end;
 
 procedure TDefMap.Deref(Item: Pointer);
@@ -703,7 +714,7 @@ begin
   else
   begin
     cur_dim := Max(width,height);
-    factor := dim / cur_dim;
+    factor := Min(dim / cur_dim, 1); //no zoom
 
     h := round(Double(height) * factor);
     w := round(Double(width) * factor);
@@ -749,25 +760,25 @@ begin
     glBegin(GL_POLYGON);
 
     case mir of
-      0:begin  //ok
+      0:begin
         glTexCoord2i(0,0); glVertex2i(cx,  cy);
         glTexCoord2i(w,0); glVertex2i(cx+W,cy);
         glTexCoord2i(w,h); glVertex2i(cx+W,cy+H);
         glTexCoord2i(0,h); glVertex2i(cx,  cy+H);
         end;
-      1: begin //ok
+      1: begin
         glTexCoord2i(w,0); glVertex2i(cx,  cy);
         glTexCoord2i(0,0); glVertex2i(cx+W,cy);
         glTexCoord2i(0,h); glVertex2i(cx+W,cy+H);
         glTexCoord2i(w,h); glVertex2i(cx,  cy+H);
         end;
-      2: begin //ok
+      2: begin
         glTexCoord2i(0,h); glVertex2i(cx,  cy);
         glTexCoord2i(w,h); glVertex2i(cx+W,cy);
         glTexCoord2i(w,0); glVertex2i(cx+W,cy+H);
         glTexCoord2i(0,0); glVertex2i(cx,  cy+H);
         end;
-      3:begin  //ok
+      3:begin
         glTexCoord2i(w,h); glVertex2i(cx,  cy);
         glTexCoord2i(0,h); glVertex2i(cx+W,cy);
         glTexCoord2i(0,0); glVertex2i(cx+W,cy+H);

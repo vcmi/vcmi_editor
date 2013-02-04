@@ -564,6 +564,7 @@ var
   temp: String;
   htid: Byte;
   j: Integer;
+  ttt: DWord;
 begin
   cnt := FSrc.ReadDWord;
 
@@ -703,8 +704,8 @@ begin
 
         case id of
           RANDOM_DWELLING,RANDOM_DWELLING_LVL:begin
-            j := FSrc.ReadDWord;
-            if j <> 0 then
+            ttt := FSrc.ReadDWord;
+            if ttt <> 0 then
               SkipNotImpl(2);
           end;
         end;

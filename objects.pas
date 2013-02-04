@@ -67,8 +67,6 @@ type
 
     FDefs: TDefVector; //all aviable defs
 
-    FUsedDefs: TDefVector; //defs used in map
-
     FDefIdMap : TIdToDefMap;
 
     function TypToId(Typ,SubType: uint32):TDefId; inline;
@@ -126,15 +124,14 @@ begin
   inherited Create(AOwner);
 
   FDefs := TDefVector.Create(True);
-  FUsedDefs := TDefVector.Create(False);
+
 
   FDefIdMap := TIdToDefMap.Create;
 end;
 
 destructor TObjectsManager.Destroy;
 begin
-    FDefIdMap.Free;
-  FUsedDefs.Free;
+  FDefIdMap.Free;
   FDefs.Free;
 
   inherited Destroy;

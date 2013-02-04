@@ -593,9 +593,12 @@ end;
 
 procedure TfMain.Init;
 begin
-  FGraphicsManager.BindTextures;
-
   glDisable(GL_DEPTH_TEST);
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DITHER);
+  glDisable(GL_TEXTURE_2D);
+
+  FGraphicsManager.BindTextures;
 
   glInited := True;
 end;
@@ -854,6 +857,8 @@ begin
 
   sb.Position := sb.Position - Sign(WheelDelta) * 3;
 
+
+
   if ssShift in Shift then
   begin
     FMapHPos := sb.Position;
@@ -900,6 +905,8 @@ begin
     0, 1);
 
   glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  //glTranslatef(0.375, 0.375, 0);   //???
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1214,7 +1221,7 @@ begin
   begin
     Assert(Assigned(FDraggingTemplate));
 
-    FDraggingTemplate.Def.Render(0,cx, cy);
+    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE);
   end;
 end;
 

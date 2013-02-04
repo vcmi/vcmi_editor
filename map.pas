@@ -188,8 +188,6 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-
-
   published
 
     property TID: integer read GetTID;
@@ -489,8 +487,8 @@ var
   gm: TGraphicsManager;
 
 begin
+  AValue := SetDirSeparators(ExtractFileNameWithoutExt(Trim(UpperCase(AValue))));
   if FAnimation = AValue then Exit;
-  AValue := ExtractFileNameWithoutExt(Trim(UpperCase(AValue)));
   FAnimation := AValue;
 
   gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor

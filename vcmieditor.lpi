@@ -73,7 +73,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="random_map_1.h3m"/>
         <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
       </local>
     </RunParams>
@@ -91,7 +90,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="28">
+    <Units Count="27">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -156,91 +155,86 @@
         <UnitName Value="objects"/>
       </Unit11>
       <Unit12>
-        <Filename Value="def_animation.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="def_animation"/>
-      </Unit12>
-      <Unit13>
         <Filename Value="forms\new_map.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewMapForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="new_map"/>
-      </Unit13>
-      <Unit14>
+      </Unit12>
+      <Unit13>
         <Filename Value="minimap.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="minimap"/>
-      </Unit14>
-      <Unit15>
+      </Unit13>
+      <Unit14>
         <Filename Value="filesystem_base.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="filesystem_base"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="filesystem.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="filesystem"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="vcmi_json.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vcmi_json"/>
-      </Unit17>
-      <Unit18>
+      </Unit16>
+      <Unit17>
         <Filename Value="editor_utils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_utils"/>
-      </Unit18>
-      <Unit19>
+      </Unit17>
+      <Unit18>
         <Filename Value="map_format.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format"/>
-      </Unit19>
-      <Unit20>
+      </Unit18>
+      <Unit19>
         <Filename Value="map_format_h3m.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_h3m"/>
-      </Unit20>
-      <Unit21>
+      </Unit19>
+      <Unit20>
         <Filename Value="stream_adapter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stream_adapter"/>
-      </Unit21>
-      <Unit22>
+      </Unit20>
+      <Unit21>
         <Filename Value="editor_str_consts.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_str_consts"/>
-      </Unit22>
-      <Unit23>
+      </Unit21>
+      <Unit22>
         <Filename Value="map_format_vcmi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_vcmi"/>
-      </Unit23>
-      <Unit24>
+      </Unit22>
+      <Unit23>
         <Filename Value="forms\map_options.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MapOptionsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="map_options"/>
-      </Unit24>
-      <Unit25>
+      </Unit23>
+      <Unit24>
         <Filename Value="3rd_party\vcmi_fpjsonrtti.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vcmi_fpjsonrtti"/>
-      </Unit25>
-      <Unit26>
+      </Unit24>
+      <Unit25>
         <Filename Value="editor_classes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_classes"/>
-      </Unit26>
-      <Unit27>
+      </Unit25>
+      <Unit26>
         <Filename Value="editor_consts.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_consts"/>
-      </Unit27>
+      </Unit26>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
