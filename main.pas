@@ -691,6 +691,8 @@ var
   cstm: TStream;
 
   set_filename, is_compressed: Boolean;
+
+  magic: dword;
 begin
   //todo: ask to save map
   cstm := nil;
@@ -713,9 +715,18 @@ begin
       FORMAT_H3M_EXT:
         begin
           reader := TMapReaderH3m.Create(FTerrianManager);
-          cstm := TZlibInputStream.CreateGZip(stm,0);
-          is_compressed := true;
-          //TODO: support uncompressed maps
+
+          stm.Read(magic,SizeOf(magic));
+          stm.Seek(0,soBeginning);
+
+          if (magic and $ffffff) = $00088B1F then
+          begin
+             cstm := TZlibInputStream.CreateGZip(stm,0);
+             is_compressed := true;
+          end
+          else begin
+             cstm := stm;
+          end;
         end;
       else
         begin
@@ -932,10 +943,13 @@ begin
 
   glScissor(scissor_x,scissor_y, scissor_w,scissor_h);
 
-  FMap.Render(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
-
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  FMap.Render(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+
+  //glEnable (GL_BLEND);
+  //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 

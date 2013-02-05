@@ -95,6 +95,7 @@ type
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
 
     procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer);
+
     property FrameCount: Integer read GetFrameCount;
   end;
 
@@ -313,7 +314,8 @@ end;
 
 procedure TDefEntry.SetRaw(Ofs: Int32; color: TRBGAColor);
 begin
-  raw_image[ofs] := color;
+  if Ofs < Length(raw_image) then //todo: investigate range overflow in type2
+    raw_image[ofs] := color;
 end;
 
 procedure TDefEntry.UnBind;
@@ -554,8 +556,53 @@ var
   end;
 
   procedure ReadType2();
+  var
+    row: Integer;
+    TotalRowLength: Integer;
+    SegmentType, code, value: Byte;
+    i: Integer;
+    RowAdd: Int32;
   begin
-    raise Exception.Create('Unknown sprite compression format');  //TODO: format 2
+    BaseOffset := BaseOffsetor + AStream.ReadWord();
+
+    for row := 0 to SpriteHeight - 1 do
+    begin
+      SkipIfPositive(LeftMargin);
+
+      TotalRowLength:=0;
+
+      repeat
+         AStream.Seek(BaseOffset,soBeginning);
+         SegmentType := AStream.ReadByte;
+         code := SegmentType div 32;
+         value := (SegmentType and 31) + 1;
+
+         if code=7 then
+         begin
+           for i := 0 to value - 1 do
+           begin
+             PEntry^.SetRaw(i+ftcp, GetColor(AStream.ReadByte()));
+           end;
+         end
+         else begin
+           for i := 0 to value - 1 do
+           begin
+             PEntry^.SetRaw(i+ftcp, GetColor(Code));
+           end;
+         end;
+         Skip(Value);
+         TotalRowLength+=value;
+
+      until TotalRowLength >= SpriteWidth ;
+
+
+      SkipIfPositive(RightMargin);
+
+      RowAdd := SpriteWidth-TotalRowLength;
+
+      if (add>0) then
+         ftcp += add+RowAdd;
+    end;
   end;
 
   procedure ReadType3();

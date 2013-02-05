@@ -689,6 +689,8 @@ end;
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
 begin
   mgr.Render(FTerType,FTerSubtype,X,Y,Flags);
+  mgr.RenderRoad(TRoadType(FRoadType),FRoadDir,X,Y,Flags);
+  mgr.RenderRiver(TRiverType(FRiverType),FRiverDir,X,Y,Flags);
 end;
 
 procedure TMapTile.SetFlags(AValue: UInt8);

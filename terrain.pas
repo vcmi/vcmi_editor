@@ -136,10 +136,13 @@ type
   private
     FTerrainDefs: array [TTerrainType] of TDef;
 
+    FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TDef;
+
+    FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TDef;
+
     FPatternConfig: TTerrainPatternConfig;
     FDestreamer: TVCMIJSONDestreamer;
 
-    procedure InitTerrainDef(tt: TTerrainType);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -149,6 +152,10 @@ type
     procedure LoadTerrainGraphics;
 
     procedure Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
+
+    procedure RenderRoad(const rdt: TRoadType; const Dir: UInt8; X, Y: Integer;  Flags: UInt8);
+
+    procedure RenderRiver(const rt: TRiverType; const Dir: UInt8; X, Y: Integer; Flags: UInt8 );
 
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
@@ -195,8 +202,16 @@ const
     'ROCKTL'
     );
 
-  // 'Clrrvr.def' "Icyrvr.def" "Lavrvr.def" "Mudrvr.def"
-  // 'cobbrd.def 'dirtrd.def' 'gravrd.def'
+  RIVER_DEF_FILES: array[TRiverType.clearRiver..TRiverType.lavaRiver] of string =
+  (
+    'CLRRVR','ICYRVR','MUDRVR','LAVRVR'
+  );
+
+  ROAD_DEF_FILES: array[TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of string =
+  (
+     'DIRTRD','GRAVRD','COBBRD'
+  );
+
 
   TERRAIN_CONFIG_FILE = 'config/terrainViewPatterns.json';
 
@@ -415,8 +430,8 @@ begin
       end
       else
       begin
-        m.Lower := StrToInt(tmp[j]);
-        m.Upper := StrToInt(tmp[j]);
+        m.Lower := StrToIntDef(tmp[j],0);
+        m.Upper := StrToIntDef(tmp[j],0);
       end;
       FMappings.PushBack(m);
     end
@@ -506,11 +521,6 @@ begin
 
 end;
 
-procedure TTerrainManager.InitTerrainDef(tt: TTerrainType);
-begin
-  FTerrainDefs[tt] := GraphicsManager.GetGraphics(TERRAIN_DEF_FILES[tt])
-end;
-
 procedure TTerrainManager.LoadConfig;
 var
   stm: TMemoryStream;
@@ -530,17 +540,48 @@ end;
 procedure TTerrainManager.LoadTerrainGraphics;
 var
   tt: TTerrainType;
+  rt: TRiverType;
+  rdt: TRoadType;
 begin
   for tt := Low(TTerrainType) to High(TTerrainType) do
   begin
-    InitTerrainDef(tt);
+    FTerrainDefs[tt] := GraphicsManager.GetGraphics(TERRAIN_DEF_FILES[tt])
   end;
+
+  for rt in [TRiverType.clearRiver..TRiverType.lavaRiver] do
+  begin
+    FRiverDefs[rt] := GraphicsManager.GetGraphics(RIVER_DEF_FILES[rt]);
+  end;
+
+  for rdt in [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] do
+  begin
+    FRoadDefs[rdt] := GraphicsManager.GetGraphics(ROAD_DEF_FILES[rdt]);
+  end;
+
 end;
 
 procedure TTerrainManager.Render(const tt: TTerrainType; sbt: UInt8; X,
   Y: Integer; Flags: UInt8);
 begin
   FTerrainDefs[tt].RenderF(sbt, x*TILE_SIZE, y*TILE_SIZE,Flags);
+end;
+
+procedure TTerrainManager.RenderRiver(const rt: TRiverType; const Dir: UInt8;
+  X, Y: Integer; Flags: UInt8);
+begin
+  if rt <> TRiverType.noRiver then
+  begin
+    FRiverDefs[rt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE, Flags shr 2);
+  end;
+end;
+
+procedure TTerrainManager.RenderRoad(const rdt: TRoadType; const Dir: UInt8; X,
+  Y: Integer; Flags: UInt8);
+begin
+  if rdt <> TRoadType.noRoad then
+  begin
+    FRoadDefs[rdt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE, Flags shr 4);
+  end;
 end;
 
 

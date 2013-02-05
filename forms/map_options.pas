@@ -24,10 +24,11 @@ type
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
     tsMain: TTabSheet;
+    procedure btOkClick(Sender: TObject);
   private
     FMap: TVCMIMap;
     procedure SetMap(AValue: TVCMIMap);
-    { private declarations }
+    procedure ReadData;
   public
     { public declarations }
     property Map: TVCMIMap read FMap write SetMap;
@@ -40,11 +41,29 @@ implementation
 
 { TMapOptionsForm }
 
+procedure TMapOptionsForm.btOkClick(Sender: TObject);
+begin
+  //todo: validate
+  //todo: save
+
+  FMap.Name := edName.Text;
+  FMap.Description := edDescription.Text;
+
+  ModalResult := mrOK;
+  Close;
+end;
+
+procedure TMapOptionsForm.ReadData;
+begin
+  edName.Text := FMap.Name;
+  edDescription.Text := FMap.Description;
+end;
+
 procedure TMapOptionsForm.SetMap(AValue: TVCMIMap);
 begin
   if FMap = AValue then Exit;
   FMap := AValue;
-
+  if Assigned( FMap) then ReadData;
 end;
 
 

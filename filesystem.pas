@@ -517,6 +517,10 @@ begin
   SetCurrentVFSPath('SPRITES/');
   ScanLod('Mods/WoG/Data/hmm35wog.pac');
 
+  FCurrentFilter := [TResourceType.Animation];
+  SetCurrentVFSPath('SPRITES/');
+  ScanLod('Data/HotA.lod');
+
 //
 // "CONFIG/":
 //[

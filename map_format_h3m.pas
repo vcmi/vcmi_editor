@@ -32,6 +32,9 @@ const
   MAP_VERSION_AB = $15;
   MAP_VERSION_SOD = $1c;
   MAP_VERSION_WOG = $33;
+  MAP_VERSION_HOTA = 30;
+
+
 
   TOTAL_FACTIONS = 9;
   TOTAL_FACTIONS_ROE = 8;
@@ -105,7 +108,8 @@ begin
   if    (AVersion <> MAP_VERSION_AB)
     and (AVersion <> MAP_VERSION_ROE)
     and (AVersion <> MAP_VERSION_SOD)
-    and (AVersion <> MAP_VERSION_WOG) then
+    and (AVersion <> MAP_VERSION_WOG)
+    and (AVersion <> MAP_VERSION_HOTA)then
   begin
     raise Exception.Create('Invalid map format '+IntToHex(AVersion,8));
   end;
@@ -891,25 +895,30 @@ begin
 
   if not (Attr.CanComputerPlay or Attr.CanHumanPlay) then
   begin
-    case FMapVersion of
-      MAP_VERSION_SOD,MAP_VERSION_WOG: FSrc.Skip(13) ;
+    if FMapVersion >=MAP_VERSION_SOD then
+    begin
+      FSrc.Skip(13)
+    end
+    else begin
+     case FMapVersion of
       MAP_VERSION_AB: FSrc.Skip(12);
       MAP_VERSION_ROE: FSrc.Skip(6);
     end;
+    end;
+
     Exit;
   end;
 
   Attr.AITactics := TAITactics(FSrc.ReadByte);
 
-  case FMapVersion of
-    MAP_VERSION_SOD,MAP_VERSION_WOG:
-      begin
-        Attr.AreAllowerFactionsSet := FSrc.ReadBoolean;
-      end;
-    else
-      begin
-        Attr.AreAllowerFactionsSet := True;
-      end;
+
+  if FMapVersion >=MAP_VERSION_SOD then
+  begin
+    Attr.AreAllowerFactionsSet := FSrc.ReadBoolean;
+  end
+  else
+  begin
+    Attr.AreAllowerFactionsSet := True;
   end;
 
   case FMapVersion of

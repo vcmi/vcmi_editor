@@ -21,7 +21,7 @@ object MapOptionsForm: TMapOptionsForm
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
     Caption = 'Ok'
-    ModalResult = 1
+    OnClick = btOkClick
     TabOrder = 0
   end
   object btCancel: TButton
