@@ -69,7 +69,7 @@ type //h3 object types
     STAR_AXIS = 61,
     PRISON = 62,
     PYRAMID = 63,//subtype 0
-    WOG_OBJECT = 63,//subtype > 0
+    //WOG_OBJECT = 63,//subtype > 0
     RALLY_FLAG = 64,
     RANDOM_ART = 65,
     RANDOM_TREASURE_ART = 66,
@@ -144,6 +144,9 @@ type //h3 object types
     MAGIC_CLOUDS = 229,
     MAGIC_PLAINS2 = 230,
     ROCKLANDS = 231);
+
+const
+  WOG_OBJECT = TObj.PYRAMID;//subtype > 0
 
 implementation
 

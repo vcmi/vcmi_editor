@@ -343,10 +343,12 @@ type
     destructor Destroy; override;
 
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set default terrain
-    procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8); overload; //set concete terrain
+    procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload; //set concete terrain
     procedure FillLevel(TT: TTerrainType);
 
     function GetTile(Level, X, Y: Integer): TMapTile;
+
+    function IsOnMap(Level, X, Y: Integer): boolean;
 
     //Left, Right, top, Bottom - clip rect in Tiles
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
@@ -357,6 +359,8 @@ type
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
     property IsDirty: Boolean read FIsDirty;
+
+    property TerrainManager: TTerrainManager read FTerrainManager;
 
   published
     property Height: Integer read FHeight;
@@ -862,6 +866,14 @@ begin
   Result := (FTerrain[Level][X][Y]); //todo: check
 end;
 
+function TVCMIMap.IsOnMap(Level, X, Y: Integer): boolean;
+begin
+  Result := (Level >=0)
+  and (Level < Levels)
+  and (x>=0) and (x<Width)
+  and (y>=0) and (y<Height);
+end;
+
 procedure TVCMIMap.RecreateTerrainArray;
 var
   Level: Integer;
@@ -999,11 +1011,15 @@ begin
   Changed;
 end;
 
-procedure TVCMIMap.SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8
-  );
+procedure TVCMIMap.SetTerrain(Level, X, Y: Integer; TT: TTerrainType;
+  TS: UInt8; mir: UInt8);
+var
+  t: TMapTile;
 begin
-  FTerrain[Level][X][Y].TerType := TT;
-  FTerrain[Level][X][Y].TerSubtype := TS;
+  t := FTerrain[Level][X][Y];
+  t.TerType := TT;
+  t.TerSubtype := TS;
+  t.Flags := (t.Flags and $FC) or (mir and 3);
 
   Changed;
 end;

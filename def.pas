@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, Math,
-  gvector, ghashmap, fgl,
+  gvector, fgl,
   Gl, GLext,
   editor_types, editor_utils, filesystem_base;
 
@@ -65,7 +65,7 @@ type
 
   { TDef }
 
-  TDef = class
+  TDef = class (IResource)
   strict private
 
     typ: UInt32;
@@ -82,7 +82,7 @@ type
     procedure UnBindTextures;
   private //for internal use
      (*H3 def format*)
-    procedure LoadFromDefStream(AStream: TStream);
+    procedure LoadFromStream(AStream: TStream);
     procedure BindTextures;
   public
     constructor Create;
@@ -150,7 +150,6 @@ type
 
   TH3Palette = packed array [0..255] of TH3DefColor;
 
-  PH3DefHeader = ^TH3DefHeader;
   TH3DefHeader = packed record
     typ: UInt32;
     width: UInt32;
@@ -159,7 +158,6 @@ type
     palette: TH3Palette;
   end;
 
-  PH3DefEntryBlockHeader = ^TH3DefEntryBlockHeader;
   TH3DefEntryBlockHeader = packed record
     unknown1: UInt32;
     totalInBlock: UInt32;
@@ -264,10 +262,10 @@ end;
 
 procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef);
 begin
-  FBuffer.Seek(0,soBeginning);
-  ResourceLoader.LoadToStream(FBuffer,TResourceType.Animation,'SPRITES/'+AResourceName);
-  FBuffer.Seek(0,soBeginning);
-  ADef.LoadFromDefStream(FBuffer);
+  //FBuffer.Seek(0,soBeginning);
+  ResourceLoader.LoadResource(Adef,TResourceType.Animation,'SPRITES/'+AResourceName);
+  //FBuffer.Seek(0,soBeginning);
+  //ADef.LoadFromStream(FBuffer);
 end;
 
 
@@ -367,7 +365,7 @@ begin
   Result := entries.Size;
 end;
 
-procedure TDef.LoadFromDefStream(AStream: TStream);
+procedure TDef.LoadFromStream(AStream: TStream);
 var
   total_entries: Integer;
   block_nomber: Integer;
@@ -382,11 +380,14 @@ var
 
 
   header: TH3DefHeader;
+  orig_position: Int32;
 begin
   if FTexturesBinded then UnBindTextures;
   FTexturesBinded := false;
-  AStream.Seek(0,soBeginning);
+  orig_position := AStream.Position;
+  //AStream.Seek(0,soBeginning);
   AStream.Read(header{%H-},SizeOf(header));
+
 
 
   typ := LEtoN(header.typ);
@@ -428,7 +429,7 @@ begin
      for i := 0 to total_in_block - 1 do
      begin
        AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
-       entries.Mutable[total_entries+i]^.offcet := current_offcet;
+       entries.Mutable[total_entries+i]^.offcet := current_offcet+UInt32(orig_position);
 
        entries.Mutable[total_entries+i]^.group := block_nomber;
      end;
@@ -607,7 +608,7 @@ var
 
   procedure ReadType3();
   var
-    row: UInt32;
+    row: Int32;
     tmp: UInt16;
     TotalRowLength : Int32;
 
@@ -619,13 +620,13 @@ var
   begin
     for row := 0 to SpriteHeight - 1 do
     begin
-      AStream.Seek(Uint32(BaseOffsetor)+row*2*(Uint32(SpriteWidth) div 32),soFromBeginning);
+      AStream.Seek(BaseOffsetor+row*2*(SpriteWidth div 32),soBeginning);
       tmp := AStream.ReadWord();
       BaseOffset := BaseOffsetor + tmp;
       SkipIfPositive(LeftMargin);
       TotalRowLength := 0;
 
-      AStream.Seek(BaseOffset,soFromBeginning);
+      AStream.Seek(BaseOffset,soBeginning);
 
       repeat
          SegmentType := AStream.ReadByte;
@@ -671,7 +672,7 @@ begin
 
   BaseOffset := PEntry^.offcet;
 
-  AStream.Seek(BaseOffset,soFromBeginning);
+  AStream.Seek(BaseOffset,soBeginning);
   AStream.Read(h{%H-},SizeOf(h));
 
   BaseOffset := AStream.Position;

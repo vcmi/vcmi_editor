@@ -29,6 +29,22 @@ uses
   editor_types, def, fpjson, vcmi_json,
   filesystem_base, editor_classes;
 
+const
+  FLIP_MODE_SAME_IMAGE = 'sameImage';
+  FLIP_MODE_DIFF_IMAGES = 'diffImages';
+
+  RULE_DIRT = 'D';
+  RULE_SAND = 'S';
+  RULE_TRANSITION = 'T';
+  RULE_NATIVE = 'N';
+  RULE_ANY = '?';
+
+
+  FLIP_PATTERN_HORIZONTAL = 1;
+  FLIP_PATTERN_VERTICAL = 2;
+  FLIP_PATTERN_BOTH = 3;
+
+
 type
 
   TTerrainGroup = (
@@ -47,9 +63,16 @@ type
     points: Integer;
     constructor Create();
     function IsStandartRule: boolean;
+    function IsDirt: boolean; inline;
+    function IsSand: boolean; inline;
+    function IsTrans: boolean; inline;
+    function IsAny: boolean; inline;
+
   end;
 
   TRules = specialize TVector<TWeightedRule>;
+
+  TRulesArray =  array[0..8] of TRules ;
 
   TMapping = record
     Lower, Upper: Integer;
@@ -64,10 +87,11 @@ type
 
   TPattern = class (TCollectionItem)
   private
-    FData: array[0..8] of TRules;
+    FData: TRulesArray;
     FMappings: TMappings;
   private
     FFlipMode: string;
+    FGroup: TTerrainGroup;
     FStrData: TStringList;
     FID: string;
     FMapping: string;
@@ -77,15 +101,22 @@ type
     procedure SetID(AValue: string);
     procedure SetMapping(AValue: string);
     procedure SetMinPoints(AValue: integer);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
     procedure Loaded;
+
+    property Mappings: TMappings read FMappings;
+    property RData: TRulesArray read FData;
+
+    property Group: TTerrainGroup read FGroup;
   published
     property Data: TStrings read GetData;
     property Mapping: string read FMapping write SetMapping;
-    property ID:string read FID write SetID;
+    property Id:string read FID write SetID;
     property MinPoints: integer read FMinPoints write SetMinPoints;
     property FlipMode:string read FFlipMode write SetFlipMode;
   end;
@@ -93,9 +124,15 @@ type
   { TPatterns }
 
   TPatterns = class(TArrayCollection)
+  private
+    function GetPattern(Idx: Integer): TPattern;
   public
     constructor Create;
     procedure Loaded;
+
+    procedure SetGroup(g: TTerrainGroup);
+
+    property Items[Idx: Integer]:TPattern read GetPattern; default;
   end;
 
   { TTerrainPatternConfig }
@@ -119,6 +156,8 @@ type
     function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
 
     function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
+
+    function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
   published
     property Dirt: TPatterns read FDirt;
     property Normal: TPatterns read FNormal;
@@ -133,6 +172,13 @@ type
   { TTerrainManager }
 
   TTerrainManager = class (TGraphicsCosnumer)
+  private
+    type
+      TValidationResult = record
+        result: Boolean;
+        replacement: string;
+      end;
+
   private
     FTerrainDefs: array [TTerrainType] of TDef;
 
@@ -160,6 +206,7 @@ type
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
 
+    property PatternConfig: TTerrainPatternConfig read FPatternConfig;
   end;
 
 implementation
@@ -167,20 +214,7 @@ implementation
 uses
   strutils,RegExpr;
 
-const
-  FLIP_MODE_SAME_IMAGE = 'sameImage';
-  FLIP_MODE_DIFF_IMAGES = 'diffImages';
 
-  RULE_DIRT = 'D';
-  RULE_SAND = 'S';
-  RULE_TRANSITION = 'T';
-  RULE_NATIVE = 'N';
-  RULE_ANY = '?';
-
-
-  FLIP_PATTERN_HORIZONTAL = 1;
-  FLIP_PATTERN_VERTICAL = 2;
-  FLIP_PATTERN_BOTH = 3;
 
 type
   TTerrainViewInterval = record
@@ -229,6 +263,21 @@ begin
   name := '';
 end;
 
+function TWeightedRule.IsAny: boolean;
+begin
+  Result := name = RULE_ANY;
+end;
+
+function TWeightedRule.IsDirt: boolean;
+begin
+  Result := name = RULE_DIRT;
+end;
+
+function TWeightedRule.IsSand: boolean;
+begin
+  Result := name = RULE_SAND;
+end;
+
 function TWeightedRule.IsStandartRule: boolean;
 begin
   Result := (name = RULE_ANY)
@@ -238,15 +287,29 @@ begin
     or (name = RULE_TRANSITION);
 end;
 
+function TWeightedRule.IsTrans: boolean;
+begin
+   Result := name = RULE_TRANSITION;
+end;
+
 { TTerrainPatternConfig }
 
 procedure TTerrainPatternConfig.ConvertConfig;
 begin
   FDirt.Loaded;
+  FDirt.SetGroup(TTerrainGroup.DIRT);
+
   FNormal.Loaded;
+  FNormal.SetGroup(TTerrainGroup.NORMAL);
+
   FRock.Loaded;
+  FRock.SetGroup(TTerrainGroup.ROCK);
+
   FSand.Loaded;
+  FSand.SetGroup(TTerrainGroup.SAND);
+
   FWater.Loaded;
+  FWater.SetGroup(TTerrainGroup.WATER);
 end;
 
 constructor TTerrainPatternConfig.Create;
@@ -286,6 +349,41 @@ begin
   raise Exception.Create('Terrain config error. Pattern '+AId+' not found');
 end;
 
+function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
+  flip: Integer): TPattern;
+var
+  i: Integer;
+  tmp: TRules;
+  y: Integer;
+
+begin
+
+  Result := TPattern.Create(nil);
+  Result.Assign(APattern);
+
+  if flip in [FLIP_PATTERN_HORIZONTAL,FLIP_PATTERN_BOTH] then
+  begin
+    for i := 0 to 3 - 1 do
+    begin
+      y := i*3;
+
+      tmp := Result.FData[Y+2];
+      Result.FData[Y+2] := Result.FData[Y];
+      Result.FData[Y] := tmp;
+    end;
+  end;
+
+  if flip in [FLIP_PATTERN_VERTICAL,FLIP_PATTERN_BOTH] then
+  begin
+    for i := 0 to 3 - 1 do
+    begin
+      tmp := Result.FData[i+6];
+      Result.FData[i+6] := Result.FData[i];
+      Result.FData[i] := tmp;
+    end;
+  end;
+end;
+
 function TTerrainPatternConfig.GetGroupConfig(AGroup: TTerrainGroup
   ): TPatterns;
 begin
@@ -323,17 +421,53 @@ begin
   inherited Create(TPattern);
 end;
 
+function TPatterns.GetPattern(Idx: Integer): TPattern;
+begin
+  Result := TPattern(inherited Items[idx]);
+end;
+
 procedure TPatterns.Loaded;
 var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
   begin
-    TPattern(Items[i]).Loaded;
+    Items[i].Loaded;
+  end;
+end;
+
+procedure TPatterns.SetGroup(g: TTerrainGroup);
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+  begin
+    Items[i].FGroup := g;
   end;
 end;
 
 { TPattern }
+
+procedure TPattern.AssignTo(Dest: TPersistent);
+var
+  dest_o: TPattern;
+begin
+  if Dest is TPattern then
+  begin
+    dest_o := TPattern(Dest);
+
+    dest_o.Data.Assign(Data);
+    dest_o.Mapping := Mapping;
+    dest_o.ID := ID;
+    dest_o.MinPoints := MinPoints;
+    dest_o.FlipMode := FlipMode;
+    dest_o.FGroup := FGroup;
+    dest_o.Loaded;
+  end
+  else begin
+    inherited AssignTo(Dest);
+  end;
+end;
 
 constructor TPattern.Create(ACollection: TCollection);
 var
@@ -392,9 +526,9 @@ begin
 
     rule.Create();
     cell := FStrData[i];
-    cell := ReplaceStr(cell,#20,'');
+    //cell := ReplaceStr(cell,#20,'');
 
-    SplitRegExpr(',',cell,tmp);
+    SplitRegExpr('\s*,\s*',cell,tmp);
 
     for j := 0 to tmp.Count - 1 do
     begin
@@ -404,7 +538,7 @@ begin
       begin
         rule.name := Copy(tmp[j],1,p-1);
 
-        rule.points := StrToInt(Copy(tmp[j],p,MaxInt));
+        rule.points := StrToInt(Copy(tmp[j],p+1,MaxInt));
       end
       else
       begin
@@ -416,8 +550,8 @@ begin
 
     tmp.Clear;
 
-    FMapping := ReplaceStr(FMapping,#20,'');
-    SplitRegExpr(',',FMapping,tmp);
+    //FMapping := ReplaceStr(FMapping,#20,'');
+    SplitRegExpr('\s*,\s*',FMapping,tmp);
 
     for j := 0 to tmp.Count - 1 do
     begin
@@ -426,12 +560,12 @@ begin
       if p <> 0 then
       begin
         m.Lower := StrToInt(Copy(tmp[j],1,p-1));
-        m.Upper := StrToInt(Copy(tmp[j],p,MaxInt));
+        m.Upper := StrToInt(Copy(tmp[j],p+1,MaxInt));
       end
       else
       begin
-        m.Lower := StrToIntDef(tmp[j],0);
-        m.Upper := StrToIntDef(tmp[j],0);
+        m.Lower := StrToInt(tmp[j]);
+        m.Upper := StrToInt(tmp[j]);
       end;
       FMappings.PushBack(m);
     end
@@ -468,8 +602,6 @@ end;
 { TTerrainManager }
 
 constructor TTerrainManager.Create(AOwner: TComponent);
-var
-  tt: TTerrainType;
 begin
   inherited Create(AOwner);
 
@@ -478,8 +610,6 @@ begin
 end;
 
 destructor TTerrainManager.Destroy;
-var
-  tt: TTerrainType;
 begin
   FPatternConfig.Free;
   inherited Destroy;

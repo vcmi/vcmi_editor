@@ -183,7 +183,12 @@ type
 
     procedure ScanFilesystem;
 
-    procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string);
+    procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string);  deprecated;
+    procedure LoadResource(AResource: IResource; AResType: TResourceType;
+      AName: string);
+
+  public
+    class function NormalizeResName(const AName: string): string; static;
   end;
 
 
@@ -294,6 +299,44 @@ begin
   inherited Destroy;
 end;
 
+procedure TFSManager.LoadResource(AResource: IResource;
+  AResType: TResourceType; AName: string);
+var
+  stm: TFileStream;
+
+  res_id: TResId;
+  res_loc: TResLocation;
+  it : TResIDToLcationMap.TIterator;
+begin
+  AName := NormalizeResName(AName);
+
+  res_id.VFSPath := AName;
+  res_id.Typ := AResType;
+
+  it := FResMap.Find(res_id);
+
+  if not Assigned(it) then
+  begin
+    raise Exception.Create('Res not found '+AName);
+  end;
+
+  res_loc := it.Value;
+  it.Free;
+
+  case res_loc.lt of
+    TLocationType.InLod: res_loc.lod.LoadResource(AResource,res_loc.FileHeader) ;
+    TLocationType.InFile: begin
+      stm := TFileStream.Create(res_loc.path,fmOpenRead or fmShareDenyWrite);
+      try
+        stm.Seek(0,soBeginning);
+        AResource.LoadFromStream(stm);
+      finally
+        stm.Free;
+      end;
+    end;
+  end;
+end;
+
 procedure TFSManager.ScanLod(LodRelPath: string);
 var
   lod: TLod;
@@ -323,10 +366,7 @@ var
   res_loc: TResLocation;
   it : TResIDToLcationMap.TIterator;
 begin
-
-  AName := SetDirSeparators(AName);
-  AName := UpperCase(AName);
-  AName := ExtractFileNameWithoutExt(AName);
+  AName := NormalizeResName(AName);
 
   res_id.VFSPath := AName;
   res_id.Typ := AResType;
@@ -379,6 +419,13 @@ begin
       Exit;
     end;
   end;
+end;
+
+class function TFSManager.NormalizeResName(const AName: string): string;
+begin
+  Result := SetDirSeparators(AName);
+  Result := UpperCase(Result);
+  Result := ExtractFileNameWithoutExt(Result);
 end;
 
 procedure TFSManager.OnFileFound(FileIterator: TFileIterator);
@@ -519,6 +566,11 @@ begin
 
   FCurrentFilter := [TResourceType.Animation];
   SetCurrentVFSPath('SPRITES/');
+  ScanLod('Data/HotA.lod');
+
+
+  FCurrentFilter := [TResourceType.Text];
+  SetCurrentVFSPath('DATA/');
   ScanLod('Data/HotA.lod');
 
 //

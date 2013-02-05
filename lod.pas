@@ -24,7 +24,7 @@ unit lod;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, filesystem_base;
 
 //Format Specifications
 //
@@ -72,7 +72,9 @@ type
 
     procedure Scan(ACallback: TOnItemFound);
 
-    procedure LoadToStream(AStream: TStream; constref AItem:TLodItem);
+    procedure LoadToStream(AStream: TStream; constref AItem:TLodItem); deprecated;
+
+    procedure LoadResource(AResource: IResource; constref AItem:TLodItem);
   end;
 
 implementation
@@ -94,6 +96,23 @@ destructor TLod.Destroy;
 begin
   FFileStream.Free;
   inherited Destroy;
+end;
+
+procedure TLod.LoadResource(AResource: IResource; constref AItem: TLodItem);
+var
+  stm: TZlibInputStream;
+begin
+  FFileStream.Seek(AItem.FileOffset,soBeginning);
+  if AItem.FileLength <> 0 then
+  begin
+    stm := TZlibInputStream.Create(FFileStream,AItem.UncompressedFileSize);
+    AResource.LoadFromStream(stm);
+    stm.free;
+  end
+  else begin
+    AResource.LoadFromStream(FFileStream);
+  end;
+
 end;
 
 procedure TLod.LoadToStream(AStream: TStream; constref AItem: TLodItem);

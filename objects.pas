@@ -74,7 +74,6 @@ type
     procedure LoadObjectsConfig;
     procedure LoadObjectsGraphics;
   private
-    FGraphicsManager: TGraphicsManager;
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TObjTemplate;
   public
@@ -95,7 +94,8 @@ uses
   CsvDocument;
 
 const
-  OBJECT_LIST = 'DATA/ZEOBJTS';
+  //OBJECT_LIST = 'DATA/ZEOBJTS';
+  OBJECT_LIST = 'DATA/OBJECTS';
 
 { TObjTemplate }
 

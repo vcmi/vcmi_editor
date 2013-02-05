@@ -24,7 +24,7 @@ unit vcmi_json;
 interface
 
 uses
-  Classes, SysUtils, fpjson,vcmi_fpjsonrtti,jsonparser, typinfo;
+  Classes, SysUtils, fpjson,vcmi_fpjsonrtti, typinfo;
 
 type
 
@@ -247,7 +247,6 @@ function TVCMIJSONDestreamer.JSONStreamToJSONObject(AStream: TStream;
 var
   root: TJSONObject;
   dt, res_dt:TJSONData;
-  o: TJSONObject;
 begin
   dt := nil;
   try

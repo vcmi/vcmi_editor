@@ -334,10 +334,7 @@ begin
 end;
 
 procedure TfMain.actSaveMapExecute(Sender: TObject);
-var
-  stm: TFileStreamUTF8;
 begin
-
   if FMapFilename = '' then
   begin
     actSaveMapAs.Execute;
@@ -715,7 +712,7 @@ begin
       FORMAT_H3M_EXT:
         begin
           reader := TMapReaderH3m.Create(FTerrianManager);
-
+          magic := 0;
           stm.Read(magic,SizeOf(magic));
           stm.Seek(0,soBeginning);
 
@@ -762,33 +759,37 @@ var
 begin
   //TODO: handle all cases
 
+  if FTerrainBrushMode <> TBrushMode.none then
+  begin
+    action_item := TEditTerrain.Create(FMap);
 
+    action_item.BrushMode := FTerrainBrushMode;
+    action_item.TerrainType := FCurrentTerrain;
+    action_item.Level := FMap.CurrentLevel;
 
-  action_item := TEditTerrain.Create(FMap);
-
-  action_item.BrushMode := FTerrainBrushMode;
-  action_item.TerrainType := FCurrentTerrain;
-  action_item.Level := FMap.CurrentLevel;
-
-    case FTerrainBrushMode of
-    TBrushMode.fixed:begin
-      for i := 0 to FTerrainBrushSize -1 do
-      begin
-        for j := 0 to FTerrainBrushSize - 1 do
+      case FTerrainBrushMode of
+      TBrushMode.fixed:begin
+        for i := 0 to FTerrainBrushSize -1 do
         begin
-          action_item.AddTile(FMouseTileX+i,FMouseTileY+j);
+          for j := 0 to FTerrainBrushSize - 1 do
+          begin
+            action_item.AddTile(FMouseTileX+i,FMouseTileY+j);
+          end;
         end;
       end;
+      TBrushMode.area:; //todo: handle area mode, fill mode
+      TBrushMode.fill:;
     end;
-    TBrushMode.area:; //todo: handle area mode, fill mode
-    TBrushMode.fill:;
 
+
+    FUndoManager.ExecuteItem(action_item);
+
+    InvalidateMapContent;
   end;
 
 
-  FUndoManager.ExecuteItem(action_item);
 
-  InvalidateMapContent;
+  //todo: select object
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
