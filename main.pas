@@ -946,7 +946,7 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  FMap.Render(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   //glEnable (GL_BLEND);
   //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1123,7 +1123,7 @@ begin
         TAxisKind.Horizontal: tmp := FMapHPos;
         TAxisKind.Vertical: tmp := FMapVPos;
       end;
-      txt := IntToStr(tmp + 1 + i);
+      txt := IntToStr(tmp + i);
       text_width := ctx.GetTextWidth(txt);
 
       case Kind of

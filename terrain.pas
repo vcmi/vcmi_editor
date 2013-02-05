@@ -580,7 +580,7 @@ procedure TTerrainManager.RenderRoad(const rdt: TRoadType; const Dir: UInt8; X,
 begin
   if rdt <> TRoadType.noRoad then
   begin
-    FRoadDefs[rdt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE, Flags shr 4);
+    FRoadDefs[rdt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE + TILE_SIZE div 2, Flags shr 4);
   end;
 end;
 

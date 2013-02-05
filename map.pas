@@ -24,7 +24,9 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, LCLIntf, editor_types, terrain, editor_classes, def;
+  Classes, SysUtils, Math, LCLIntf,
+  gvector, gpriorityqueue,
+  editor_types, terrain, editor_classes, def;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -234,6 +236,7 @@ type
     constructor Create();
 
     procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
+    procedure RenderRoad(mgr: TTerrainManager; X,Y: Integer); inline;
   published
     property TerType: TTerrainType read FTerType write SetTerType nodefault;
     property TerSubType: UInt8 read FTerSubtype write SetTerSubtype default 0;
@@ -275,6 +278,15 @@ type
 
   end;
 
+  { TObjPriorityCompare }
+
+  TObjPriorityCompare = class
+  public
+    class function c(a,b: TMapObject): boolean;
+  end;
+
+  TMapObjectRenderQueue = specialize TPriorityQueue<TMapObject, TObjPriorityCompare>;
+
   { TMapObjects }
 
   TMapObjects = class (TArrayCollection)
@@ -311,6 +323,8 @@ type
 
     FTerrain: array of array of array of TMapTile; //levels, X, Y
 
+
+
     procedure Changed;
 
     procedure DestroyTiles();
@@ -335,7 +349,7 @@ type
     function GetTile(Level, X, Y: Integer): TMapTile;
 
     //Left, Right, top, Bottom - clip rect in Tiles
-    procedure Render(Left, Right, Top, Bottom: Integer);
+    procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
     procedure RenderObjects(Left, Right, Top, Bottom: Integer);
 
     property CurrentLevel: Integer read FCurrentLevel write SetCurrentLevel;
@@ -367,18 +381,19 @@ implementation
 
 uses FileUtil, editor_str_consts;
 
-{ TMapObjects }
+{ TObjPriorityCompare }
 
-constructor TMapObjects.Create(AOwner: TVCMIMap);
+class function TObjPriorityCompare.c(a, b: TMapObject): boolean;
 begin
-  inherited Create(TMapObject);
-  FMap  := AOwner;
+
+  Result := (a.Template.ZIndex > b.Template.ZIndex)
+    or(
+      (a.Template.ZIndex = b.Template.ZIndex)
+      and (a.Y > b.Y)
+     );
 end;
 
-function TMapObjects.GetOwner: TPersistent;
-begin
-  Result := FMap;
-end;
+{ TMapObject }
 
 constructor TMapObject.Create(ACollection: TCollection);
 begin
@@ -440,6 +455,19 @@ procedure TMapObject.SetY(AValue: integer);
 begin
   if FY = AValue then Exit;
   FY := AValue;
+end;
+
+{ TMapObjects }
+
+constructor TMapObjects.Create(AOwner: TVCMIMap);
+begin
+  inherited Create(TMapObject);
+  FMap  := AOwner;
+end;
+
+function TMapObjects.GetOwner: TPersistent;
+begin
+  Result := FMap;
 end;
 
 { TMapObjectTemplates }
@@ -689,8 +717,13 @@ end;
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
 begin
   mgr.Render(FTerType,FTerSubtype,X,Y,Flags);
-  mgr.RenderRoad(TRoadType(FRoadType),FRoadDir,X,Y,Flags);
+
   mgr.RenderRiver(TRiverType(FRiverType),FRiverDir,X,Y,Flags);
+end;
+
+procedure TMapTile.RenderRoad(mgr: TTerrainManager; X, Y: Integer);
+begin
+  mgr.RenderRoad(TRoadType(FRoadType),FRoadDir,X,Y,Flags);
 end;
 
 procedure TMapTile.SetFlags(AValue: UInt8);
@@ -773,6 +806,8 @@ begin
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
+
+
 end;
 
 destructor TVCMIMap.Destroy;
@@ -858,7 +893,7 @@ begin
   end;
 end;
 
-procedure TVCMIMap.Render(Left, Right, Top, Bottom: Integer);
+procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   j: Integer;
@@ -875,6 +910,15 @@ begin
     end;
   end;
 
+  for i := Left to Right do
+  begin
+    for j := Top to Bottom do
+    begin
+      FTerrain[FCurrentLevel][i][j].RenderRoad(FTerrainManager,i,j);
+    end;
+  end;
+
+
 
 end;
 
@@ -882,7 +926,12 @@ procedure TVCMIMap.RenderObjects(Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   o: TMapObject;
+
+  FQueue : TMapObjectRenderQueue;
 begin
+
+  FQueue := TMapObjectRenderQueue.Create;
+
   //todo: blit order or depth test
   for i := 0 to FObjects.Count - 1 do
   begin
@@ -894,12 +943,20 @@ begin
       or (o.Y < Top)
       or (o.X - 8 > Right)
       or (o.y - 6 > Bottom)
-      then Continue;
+      then Continue; //todo: use visisblity mask
 
-    o.RenderAnim();
-
+    FQueue.Push(o);
 
   end;
+
+  while not FQueue.IsEmpty do
+  begin
+    o := FQueue.Top;
+    o.RenderAnim;
+    FQueue.Pop;
+  end;
+
+  FQueue.Free;
 end;
 
 procedure TVCMIMap.SaveToStream(ADest: TStream; AWriter: IMapWriter);

@@ -564,6 +564,7 @@ var
     RowAdd: Int32;
   begin
     BaseOffset := BaseOffsetor + AStream.ReadWord();
+    AStream.Seek(BaseOffset,soBeginning);
 
     for row := 0 to SpriteHeight - 1 do
     begin
@@ -572,8 +573,7 @@ var
       TotalRowLength:=0;
 
       repeat
-         AStream.Seek(BaseOffset,soBeginning);
-         SegmentType := AStream.ReadByte;
+         SegmentType := AStream.ReadByte();
          code := SegmentType div 32;
          value := (SegmentType and 31) + 1;
 
