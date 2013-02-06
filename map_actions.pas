@@ -302,8 +302,8 @@ begin
 
   if bestPattern = -1 then
   begin
-    raise Exception.Create('No pattern detected');
-    //Exit;
+    //raise Exception.Create('No pattern detected');
+    Exit;
   end;
 
   pattern := config[bestPattern];
@@ -322,10 +322,16 @@ begin
     end;
   end;
 
-  if pattern.FlipMode = FLIP_MODE_SAME_IMAGE then
+  if pattern.FlipMode = TFlipMode.sameImage then
   begin
-    info.TerSubtype := RandomRange(mapping.Lower,mapping.Upper);
-    Info.mir := bestFlip;
+    if (Info.mir <> bestFlip)
+      or (Info.TerSubtype<mapping.Lower)
+      or (Info.TerSubtype>mapping.Upper)
+      then
+    begin
+      info.TerSubtype := RandomRange(mapping.Lower,mapping.Upper);
+      Info.mir := bestFlip;
+    end;
   end
   else begin
     range := (mapping.Upper - mapping.Lower) div 4;
@@ -546,7 +552,7 @@ begin
         end;
         TTerrainGroup.DIRT:begin
           sandTestOK := rule.IsSand and isSandType(cur_tinfo.TerType);
-          dirtTestOk := rule.IsDirt and not isSandType(cur_tinfo.TerType) and not nativeTestOk;
+          dirtTestOk := rule.IsDirt and (not isSandType(cur_tinfo.TerType)) and (not nativeTestOk);
 
           applyValidationRslt(rule.IsAny or sandTestOK or dirtTestOk or nativeTestOk);
         end;

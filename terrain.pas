@@ -47,6 +47,8 @@ const
 
 type
 
+  TFlipMode = (sameImage,diffImages);
+
   TTerrainGroup = (
     NORMAL,
     DIRT,
@@ -78,7 +80,8 @@ type
     Lower, Upper: Integer;
   end;
 
-  TMappings = specialize TVector<TMapping>;
+  //TMappings = specialize TVector<TMapping>;
+  TMappings = array[0..1] of TMapping;
 
   {$push}
   {$m+}
@@ -90,14 +93,14 @@ type
     FData: TRulesArray;
     FMappings: TMappings;
   private
-    FFlipMode: string;
+    FFlipMode: TFlipMode;
     FGroup: TTerrainGroup;
     FStrData: TStringList;
     FID: string;
     FMapping: string;
     FMinPoints: integer;
     function GetData: TStrings;
-    procedure SetFlipMode(AValue: string);
+    procedure SetFlipMode(AValue: TFlipMode);
     procedure SetID(AValue: string);
     procedure SetMapping(AValue: string);
     procedure SetMinPoints(AValue: integer);
@@ -118,7 +121,7 @@ type
     property Mapping: string read FMapping write SetMapping;
     property Id:string read FID write SetID;
     property MinPoints: integer read FMinPoints write SetMinPoints;
-    property FlipMode:string read FFlipMode write SetFlipMode;
+    property FlipMode:TFlipMode read FFlipMode write SetFlipMode default TFlipMode.sameImage;
   end;
 
   { TPatterns }
@@ -145,18 +148,16 @@ type
     FSand: TPatterns;
     FWater: TPatterns;
 
+    //FFlipped: array[0..3,TTerrainGroup] of TPatterns;
+
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure ConvertConfig;
-
     function GetGroupConfig(AGroup: TTerrainGroup):TPatterns;
-
     function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
-
     function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
-
     function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
   published
     property Dirt: TPatterns read FDirt;
@@ -451,18 +452,35 @@ end;
 procedure TPattern.AssignTo(Dest: TPersistent);
 var
   dest_o: TPattern;
+  i: Integer;
+  j: Integer;
 begin
   if Dest is TPattern then
   begin
     dest_o := TPattern(Dest);
 
-    dest_o.Data.Assign(Data);
-    dest_o.Mapping := Mapping;
+    //dest_o.Data.Assign(Data);
+    //dest_o.Mapping := Mapping;
     dest_o.ID := ID;
     dest_o.MinPoints := MinPoints;
     dest_o.FlipMode := FlipMode;
     dest_o.FGroup := FGroup;
-    dest_o.Loaded;
+
+    for i := 0 to 9 - 1 do
+    begin
+      for j := 0 to FData[i].Size - 1 do
+      begin
+        dest_o.FData[i].PushBack(FData[i][j]);
+      end;
+    end;
+
+    for i := 0 to 1 do
+    begin
+      dest_o.FMappings[i] := FMappings[i];
+    end;
+
+
+    //dest_o.Loaded;
   end
   else begin
     inherited AssignTo(Dest);
@@ -481,16 +499,14 @@ begin
     FData[i] := TRules.Create;
   end;
 
-  FMappings := TMappings.Create;
 
-  FlipMode := FLIP_MODE_SAME_IMAGE;
+  FFlipMode := TFlipMode.sameImage;
 end;
 
 destructor TPattern.Destroy;
 var
   i: Integer;
 begin
-  FMappings.Free;
   for i := Low(FData) to High(FData) do
   begin
     FData[i].Free;
@@ -553,6 +569,8 @@ begin
     //FMapping := ReplaceStr(FMapping,#20,'');
     SplitRegExpr('\s*,\s*',FMapping,tmp);
 
+    if tmp.Count > 2 then raise Exception.Create('terrain config invalid. too many mappings');
+
     for j := 0 to tmp.Count - 1 do
     begin
       p := Pos('-',tmp[j]);
@@ -567,7 +585,7 @@ begin
         m.Lower := StrToInt(tmp[j]);
         m.Upper := StrToInt(tmp[j]);
       end;
-      FMappings.PushBack(m);
+      FMappings[j] := m;
     end
 
   end;
@@ -575,7 +593,7 @@ begin
   tmp.Free;
 end;
 
-procedure TPattern.SetFlipMode(AValue: string);
+procedure TPattern.SetFlipMode(AValue: TFlipMode);
 begin
   if FFlipMode = AValue then Exit;
   FFlipMode := AValue;
