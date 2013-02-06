@@ -539,6 +539,7 @@ begin
   for I := Low(FData) to High(FData) do
   begin
     tmp.Clear;
+    FData[i].Clear;
 
     rule.Create();
     cell := FStrData[i];

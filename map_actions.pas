@@ -122,7 +122,7 @@ var
   info: TTileInfo;
 begin
   info.TerType := TerrainType;
-  info.TerSubtype := 0; //todo: maybe selecet random at this time
+  info.TerSubtype := 0; //todo: maybe select random at this time
   info.X := X;
   info.Y := Y;
   info.mir := 0;
@@ -272,6 +272,7 @@ var
   vr: TValidationResult;
   mapping: TMapping;
   range: Integer;
+  ofc: Integer;
 begin
   config := FMap.TerrainManager.PatternConfig.GetTerrainConfig(info.TerType);
 
@@ -333,9 +334,22 @@ begin
       Info.mir := bestFlip;
     end;
   end
+  else if (info.TerType = TerrainType.rock) and (mapping.Lower = 16)  then
+  begin
+    //todo: fix workaround
+     range := 2;
+
+     ofc := mapping.Lower + (bestFlip mod 2) * range;
+
+      info.TerSubtype := RandomRange(ofc, ofc + range);
+      info.mir := 0;
+
+  end
   else begin
-    range := (mapping.Upper - mapping.Lower) div 4;
-    info.TerSubtype := RandomRange(mapping.Lower + bestFlip*range, mapping.Lower + (bestFlip + 1)*range -1);
+    range := (mapping.Upper - mapping.Lower) div 4 + 1;
+    ofc := mapping.Lower + bestFlip*range;
+
+    info.TerSubtype := RandomRange(ofc, ofc + range);
     info.mir := 0;
   end;
 end;
@@ -562,13 +576,13 @@ begin
         end;
         TTerrainGroup.WATER:begin
           sandTestOK := rule.IsSand
-            and (cur_tinfo.TerType<>TTerrainType.dirt)
+            //and (cur_tinfo.TerType<>TTerrainType.dirt)
             and (cur_tinfo.TerType<>TTerrainType.water);
           applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
         end;
         TTerrainGroup.ROCK:begin
           sandTestOK := rule.IsSand
-            and (cur_tinfo.TerType<>TTerrainType.dirt)
+            //and (cur_tinfo.TerType<>TTerrainType.dirt)
             and (cur_tinfo.TerType<>TTerrainType.rock);
           applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
 
