@@ -188,7 +188,7 @@ const
     (r: 0; g: 0; b:0; a: 128), //???
     (r: 0; g: 0; b:0; a: 128), //???
     (r: 0; g: 0; b:0; a: 128),
-    (r: 0; g: 0; b:0; a: 0),
+    (r: 0; g: 0; b:0; a: 0),  //player color //TODO: use player colors
     (r: 0; g: 0; b:0; a: 128),
     (r: 0; g: 0; b:0; a: 192));
 

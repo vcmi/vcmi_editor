@@ -94,8 +94,8 @@ uses
   CsvDocument;
 
 const
-  //OBJECT_LIST = 'DATA/ZEOBJTS';
-  OBJECT_LIST = 'DATA/OBJECTS';
+  OBJECT_LIST = 'DATA/ZEOBJTS';
+  //OBJECT_LIST = 'DATA/OBJECTS';
 
 { TObjTemplate }
 

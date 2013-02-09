@@ -1014,7 +1014,7 @@ object fMain: TfMain
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '1.0.5.0'
+  LCLVersion = '1.0.7.0'
   object pnMap: TPanel
     Left = 0
     Height = 488
@@ -1439,28 +1439,53 @@ object fMain: TfMain
       Action = actTerrain
     end
     object ToolButton9: TToolButton
-      Left = 43
+      Left = 119
       Top = 2
       Action = actObjects
     end
     object ToolButton10: TToolButton
-      Left = 88
+      Left = 307
       Top = 2
       Caption = 'Player'
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
     object ToolButton11: TToolButton
-      Left = 138
+      Left = 357
       Top = 2
       Width = 5
       Caption = 'ToolButton11'
       Style = tbsDivider
     end
     object ToolButton12: TToolButton
-      Left = 143
+      Left = 362
       Top = 2
       Action = actUnderground
+    end
+    object ToolButton13: TToolButton
+      Left = 164
+      Top = 2
+      Action = actHeroes
+    end
+    object ToolButton14: TToolButton
+      Left = 206
+      Top = 2
+      Action = actMonsters
+    end
+    object ToolButton15: TToolButton
+      Left = 258
+      Top = 2
+      Action = actArtifacts
+    end
+    object ToolButton16: TToolButton
+      Left = 43
+      Top = 2
+      Action = actRoads
+    end
+    object ToolButton17: TToolButton
+      Left = 81
+      Top = 2
+      Action = actRivers
     end
   end
   object StatusBar: TStatusBar
@@ -1721,6 +1746,7 @@ object fMain: TfMain
       ShortCut = 16473
     end
     object actObjects: TAction
+      Category = 'Objects'
       Caption = 'Objects'
       OnExecute = actObjectsExecute
       OnUpdate = actObjectsUpdate
@@ -1743,6 +1769,24 @@ object fMain: TfMain
       Caption = 'Underground'
       OnExecute = actUndergroundExecute
       OnUpdate = actUndergroundUpdate
+    end
+    object actHeroes: TAction
+      Category = 'Objects'
+      Caption = 'Heroes'
+    end
+    object actMonsters: TAction
+      Category = 'Objects'
+      Caption = 'Monsters'
+    end
+    object actArtifacts: TAction
+      Category = 'Objects'
+      Caption = 'Artifacts'
+    end
+    object actRoads: TAction
+      Caption = 'Roads'
+    end
+    object actRivers: TAction
+      Caption = 'Rivers'
     end
   end
   object ApplicationProperties1: TApplicationProperties

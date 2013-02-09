@@ -897,7 +897,7 @@ begin
   begin
     if FMapVersion >=MAP_VERSION_SOD then
     begin
-      FSrc.Skip(13)
+      FSrc.Skip(13);
     end
     else begin
      case FMapVersion of

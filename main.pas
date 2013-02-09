@@ -35,6 +35,11 @@ type
   { TfMain }
 
   TfMain = class(TForm)
+    actHeroes: TAction;
+    actArtifacts: TAction;
+    actRivers: TAction;
+    actRoads: TAction;
+    actMonsters: TAction;
     actUnderground: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
@@ -91,6 +96,11 @@ type
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
+    ToolButton14: TToolButton;
+    ToolButton15: TToolButton;
+    ToolButton16: TToolButton;
+    ToolButton17: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
@@ -563,12 +573,16 @@ end;
 
 function TfMain.getMapHeight: Integer;
 begin
-  Result := FMap.Height;
+  Result := 0;
+  if Assigned(FMap) then
+    Result := FMap.Height;
 end;
 
 function TfMain.getMapWidth: Integer;
 begin
-  Result := FMap.Width;
+  Result := 0;
+  if Assigned(FMap) then
+     Result := FMap.Width;
 end;
 
 function TfMain.GetObjIdx(col, row: integer): integer;

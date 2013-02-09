@@ -28,8 +28,6 @@ uses
   gmap, fgl,
   filesystem_base, lod, FileUtil;
 
-type
-
   {
   real FS
     ROOT\
@@ -66,8 +64,20 @@ type
 
   }
 
+type
+
+  TVFSDir = (DATA, SPRITES, CONFIG);
+const
+  VFS_PATHS: array [TVFSDir] of string = ('DATA/','SPRITES/','CONFIG/');
+
+  VFS_FILTERS: array [TVFSDir] of TResourceTypes = (
+    [TResourceType.Text],
+    [TResourceType.Animation, TResourceType.Json],
+    [TResourceType.Json,TResourceType.Text]);
+
   //TODO: mod support
 
+type
   {$push}
   {$m+}
 
@@ -165,6 +175,7 @@ type
     FCurrentVFSPath: string;
     FCurrentRelPath: string;
 
+    procedure SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
     procedure SetCurrentVFSPath(ACurrentVFSPath: string);
 
     function MakeFullPath(RelPath: string):string;
@@ -199,6 +210,9 @@ const
   RES_TO_EXT: array[TResourceType] of string = (
     'TXT','JSON','DEF'
   );
+
+  MOD_CONFIG = 'mod.json';
+  MOD_ROOT = 'Content';
 
 { TResLocation }
 
@@ -355,6 +369,12 @@ end;
 procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: string);
 begin
   FCurrentVFSPath := SetDirSeparators(ACurrentVFSPath);
+end;
+
+procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
+begin
+  SetCurrentVFSPath(VFS_PATHS[ACurrentVFSPath]);
+  FCurrentFilter := VFS_FILTERS[ACurrentVFSPath];
 end;
 
 procedure TFSManager.LoadToStream(AStream: TStream;
@@ -544,35 +564,31 @@ begin
   //	{"type" : "lod", "path" : "ALL/Data/H3sprite.lod"},
   //	{"type" : "dir",  "path" : "ALL/Sprites"}
 
-  FCurrentFilter := [TResourceType.Text];
-  SetCurrentVFSPath('DATA/');
+  SetCurrentVFSPath(TVFSDir.DATA);
   ScanLod('Data/H3ab_bmp.lod');
   ScanLod('Data/H3bitmap.lod');
   ScanDir('Data');
 
-  SetCurrentVFSPath('SPRITES/');
-  FCurrentFilter := [TResourceType.Animation];
+  SetCurrentVFSPath(TVFSDir.SPRITES);
   ScanLod('Data/H3ab_spr.lod');
   ScanLod('Data/H3sprite.lod');
   ScanDir('Sprites');
 
-  FCurrentFilter := [TResourceType.Text];
-  SetCurrentVFSPath('DATA/');
+  SetCurrentVFSPath(TVFSDir.DATA);
   ScanLod('Mods/WoG/Data/hmm35wog.pac');
 
-  FCurrentFilter := [TResourceType.Animation];
-  SetCurrentVFSPath('SPRITES/');
+  SetCurrentVFSPath(TVFSDir.SPRITES);
   ScanLod('Mods/WoG/Data/hmm35wog.pac');
 
-  FCurrentFilter := [TResourceType.Animation];
-  SetCurrentVFSPath('SPRITES/');
-  ScanLod('Data/HotA.lod');
-
-
-  FCurrentFilter := [TResourceType.Text];
-  SetCurrentVFSPath('DATA/');
-  ScanLod('Data/HotA.lod');
-
+  //FCurrentFilter := [TResourceType.Animation];
+  //SetCurrentVFSPath('SPRITES/');
+  //ScanLod('Data/HotA.lod');
+  //
+  //
+  //FCurrentFilter := [TResourceType.Text];
+  //SetCurrentVFSPath('DATA/');
+  //ScanLod('Data/HotA.lod');
+  //
 //
 // "CONFIG/":
 //[
@@ -580,8 +596,7 @@ begin
 //{"type" : "dir",  "path" : "LOCAL/Config", "writeable": true}
 //],
 
-  SetCurrentVFSPath('CONFIG/');
-  FCurrentFilter := [TResourceType.Text, TResourceType.Json];
+  SetCurrentVFSPath(TVFSDir.CONFIG);
   ScanDir('config');
 end;
 
