@@ -40,12 +40,13 @@ type
 
 procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
+procedure Unbind(var ATextureId: GLuint); inline;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
 
 implementation
 
-procedure BindRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage; AInternalFormat: GLEnum); inline;
+procedure BindRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage; AInternalFormat: GLEnum); //inline;
 begin
   glEnable(GL_TEXTURE_RECTANGLE);
   glBindTexture(GL_TEXTURE_RECTANGLE, ATextureId);
@@ -65,6 +66,12 @@ end;
 procedure BindCompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);
 begin
   BindRGBA(ATextureId,w, h,ARawImage,GL_COMPRESSED_RGBA);
+end;
+
+procedure Unbind(var ATextureId: GLuint);
+begin
+  glDeleteTextures(1,@ATextureId);
+  ATextureId := 0;
 end;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);

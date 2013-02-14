@@ -26,8 +26,8 @@ interface
 uses
   Classes, SysUtils, Math,
   gvector, fgl,
-  Gl, GLext,
-  editor_types, editor_utils, filesystem_base;
+  Gl,
+  editor_types, editor_utils, filesystem_base, editor_gl;
 
 const
   TILE_SIZE = 32; //in pixels
@@ -109,6 +109,8 @@ type
      (*H3 def format*)
     procedure LoadFromStream(AStream: TStream);
     procedure BindTextures;
+
+    procedure RenderFlag (var Sprite: TGLSprite; dim:integer; color: TPlayer); inline;
   public
     constructor Create;
     destructor Destroy; override;
@@ -119,7 +121,7 @@ type
     procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
 
-    procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer);
+    procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;
 
@@ -169,7 +171,6 @@ type
 
 implementation
 
-uses editor_gl;
 
 type
 
@@ -213,13 +214,13 @@ type
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
     (r: 0; g: 0; b:0; a: 0),
-    (r: 0; g: 0; b:0; a: 192),
+    (r: 0; g: 0; b:0; a: 64),
     (r: 0; g: 0; b:0; a: 128), //???
     (r: 0; g: 0; b:0; a: 128), //???
     (r: 0; g: 0; b:0; a: 128),
-    (r: 128; g: 128; b:128; a: 255),  //player color //TODO: use player colors
+    (r: 128; g: 128; b:128; a: 255),  //player color
     (r: 0; g: 0; b:0; a: 128),
-    (r: 0; g: 0; b:0; a: 192));
+    (r: 0; g: 0; b:0; a: 64));
 
   PLAYER_COLOR_INDEX = 5;
 
@@ -234,7 +235,7 @@ const
     (r: 255; g: 192; b:203; a: 255) //PINK
   );
 
-  DEF_TYPE_MAP_OBJECT = $43;
+  //DEF_TYPE_MAP_OBJECT = $43;
 
 function CompareDefs(const d1,d2: TDef): integer;
 begin
@@ -258,8 +259,7 @@ end;
 
 procedure TBaseSprite.UnBind;
 begin
-  glDeleteTextures(1,@TextureId);
-  TextureId := 0;
+  editor_gl.Unbind(TextureId);
 end;
 
 { TFlagTexture }
@@ -881,11 +881,7 @@ begin
 
   editor_gl.RenderSprite(Sprite, dim);
 
-  if Flaggable and (color in [TPlayer.RED..TPlayer.PINK]) then
-  begin
-    Sprite.TextureID := flag_entries[color].TextureId;
-    editor_gl.RenderSprite(Sprite, dim);
-  end;
+  RenderFlag(Sprite, dim, color);
 end;
 
 procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
@@ -905,7 +901,17 @@ begin
 
 end;
 
-procedure TDef.RenderO(const SpriteIndex: UInt8; X, Y: Integer);
+procedure TDef.RenderFlag(var Sprite: TGLSprite; dim: integer; color: TPlayer);
+begin
+  if Flaggable and (color in [TPlayer.RED..TPlayer.PINK]) then
+  begin
+    Sprite.TextureID := flag_entries[color].TextureId;
+    editor_gl.RenderSprite(Sprite, dim);
+  end;
+
+end;
+
+procedure TDef.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
@@ -916,6 +922,8 @@ begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
 
   editor_gl.RenderSprite(Sprite);
+
+  RenderFlag(Sprite,-1,color);
 end;
 
 procedure TDef.UnBindTextures;

@@ -1,24 +1,26 @@
 object NewMapForm: TNewMapForm
   Left = 312
-  Height = 240
+  Height = 200
   Top = 194
-  Width = 320
+  Width = 300
   BorderStyle = bsDialog
   Caption = 'New map'
-  ClientHeight = 240
-  ClientWidth = 320
+  ClientHeight = 200
+  ClientWidth = 300
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.0.5.0'
+  LCLVersion = '1.0.7.0'
   object pnButtons: TPanel
     Left = 0
     Height = 43
-    Top = 197
-    Width = 320
+    Top = 157
+    Width = 300
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 43
-    ClientWidth = 320
+    ClientWidth = 300
     TabOrder = 0
     object btOk: TButton
       Left = 56

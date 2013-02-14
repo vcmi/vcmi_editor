@@ -1720,6 +1720,7 @@ object fMain: TfMain
     object actCreateMap: TAction
       Caption = 'Create map ...'
       ImageIndex = 0
+      OnExecute = actCreateMapExecute
     end
     object actOpenMap: TAction
       Caption = 'Open map'
@@ -1983,10 +1984,7 @@ object fMain: TfMain
     top = 186
     object MenuItem7: TMenuItem
       Tag = -1
-      Action = actSelectNoPlayer
-    end
-    object MenuItem6: TMenuItem
-      Action = actSelectRedPlayer
+      Caption = 'No palyer'
     end
   end
   object AnimTimer: TTimer
@@ -1994,21 +1992,5 @@ object fMain: TfMain
     OnTimer = AnimTimerTimer
     left = 133
     top = 256
-  end
-  object PlayerActions: TActionList
-    OnExecute = PlayerActionsExecute
-    left = 232
-    top = 112
-    object actSelectNoPlayer: TAction
-      Tag = -1
-      Caption = 'No palyer'
-      DisableIfNoHandler = False
-      OnExecute = actSelectNoPlayerExecute
-    end
-    object actSelectRedPlayer: TAction
-      Caption = 'Red'
-      DisableIfNoHandler = False
-      OnExecute = actSelectRedPlayerExecute
-    end
   end
 end

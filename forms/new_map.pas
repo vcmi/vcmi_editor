@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Spin;
+  StdCtrls, Spin, Map;
 
 type
 
@@ -46,12 +46,28 @@ type
     { private declarations }
   public
     { public declarations }
+
+    function Execute(var AParams: TMapCreateParams): boolean;
   end;
 
 
 implementation
 
 {$R *.lfm}
+
+{ TNewMapForm }
+
+function TNewMapForm.Execute(var AParams: TMapCreateParams): boolean;
+begin
+  Result := ShowModal = btOk.ModalResult;
+
+  if Result then
+  begin
+    AParams.Height := edHeight.Value;
+    AParams.Width := edWidth.Value;
+    AParams.Levels := edLevels.Value;
+  end;
+end;
 
 end.
 

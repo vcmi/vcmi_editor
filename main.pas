@@ -37,10 +37,6 @@ type
   TfMain = class(TForm)
     actHeroes: TAction;
     actArtifacts: TAction;
-    actSelectNoPlayer: TAction;
-    actSelectRedPlayer: TAction;
-    MenuItem6: TMenuItem;
-    PlayerActions: TActionList;
     actRivers: TAction;
     actRoads: TAction;
     actMonsters: TAction;
@@ -127,6 +123,7 @@ type
     SpeedButton11: TSpeedButton;
     tsTerrain: TTabSheet;
     vScrollBar: TScrollBar;
+    procedure actCreateMapExecute(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
@@ -136,8 +133,6 @@ type
     procedure actSaveMapAsExecute(Sender: TObject);
     procedure actSaveMapExecute(Sender: TObject);
     procedure actSaveMapUpdate(Sender: TObject);
-    procedure actSelectNoPlayerExecute(Sender: TObject);
-    procedure actSelectRedPlayerExecute(Sender: TObject);
     procedure actTerrainExecute(Sender: TObject);
     procedure actTerrainUpdate(Sender: TObject);
     procedure actUndergroundExecute(Sender: TObject);
@@ -182,6 +177,7 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure MapViewPaint(Sender: TObject);
     procedure MapViewResize(Sender: TObject);
+    procedure PlayerMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
     procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -189,14 +185,17 @@ type
     procedure ObjectsViewResize(Sender: TObject);
     procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-    procedure pbObjectsPaint(Sender: TObject);
     procedure pbObjectsResize(Sender: TObject);
-    procedure PlayerActionsExecute(AAction: TBasicAction; var Handled: Boolean);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure VerticalAxisPaint(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
+
+  private
+    procedure SetupPlayerSelection;
+
+    function CheckUnsavedMap: boolean;
   private
     const
       OBJ_PER_ROW = 3;
@@ -283,12 +282,37 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
-  editor_str_consts, root_manager, map_options, Math, lazutf8classes;
+  editor_str_consts, root_manager, map_options, new_map, Math, lazutf8classes;
 
 {$R *.lfm}
 
 
 { TfMain }
+
+procedure TfMain.actCreateMapExecute(Sender: TObject);
+var
+  frm: TNewMapForm;
+  params: TMapCreateParams;
+begin
+  if not CheckUnsavedMap then
+    Exit;
+
+  frm := TNewMapForm.Create(nil);
+  try
+
+    if frm.Execute(params) then
+    begin
+      FreeAndNil(FMap);
+
+      FMap := TVCMIMap.Create(FTerrianManager,params);
+      MapChanded;
+    end;
+
+  finally
+    frm.Free;
+  end;
+
+end;
 
 procedure TfMain.actMapOptionsExecute(Sender: TObject);
 var
@@ -369,16 +393,6 @@ end;
 procedure TfMain.actSaveMapUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty;
-end;
-
-procedure TfMain.actSelectNoPlayerExecute(Sender: TObject);
-begin
-  //PlayerActions.ExecuteAction(Sender as TAction);
-end;
-
-procedure TfMain.actSelectRedPlayerExecute(Sender: TObject);
-begin
-  //PlayerActions.ExecuteAction(Sender as TAction);
 end;
 
 procedure TfMain.actTerrainExecute(Sender: TObject);
@@ -517,6 +531,27 @@ begin
   FCurrentTerrain := TTerrainType.water;
 end;
 
+function TfMain.CheckUnsavedMap: boolean;
+var
+  res: Integer;
+begin
+  Result := True;
+  if Assigned(FMap) and FMap.IsDirty then
+  begin
+    res := MessageDlg(rsConfirm,rsMapChanged, TMsgDlgType.mtConfirmation, mbYesNoCancel,0);
+
+    case res of
+      mrYes:begin
+        actSaveMap.Execute;
+        Result := True;
+      end;
+      mrCancel:Result := False ;
+    end;
+
+  end;
+
+end;
+
 procedure TfMain.FormActivate(Sender: TObject);
 begin
   try
@@ -535,19 +570,10 @@ begin
 end;
 
 procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: boolean);
-var
-  res: Integer;
 begin
-  if Assigned(FMap) and FMap.IsDirty then
-  begin
-    res := MessageDlg(rsConfirm,rsMapChanged, TMsgDlgType.mtConfirmation, mbYesNoCancel,0);
 
-    case res of
-      mrYes: actSaveMap.Execute;
-      mrCancel:CanClose := False ;
-    end;
+  CanClose := CheckUnsavedMap;
 
-  end;
 end;
 
 procedure TfMain.FormCreate(Sender: TObject);
@@ -625,7 +651,8 @@ begin
   InvalidateObjects;
 
   FCurrentPlayer := TPlayer.none;
-  actSelectNoPlayer.Checked := True;
+
+  SetupPlayerSelection;
 
   if MapView.MakeCurrent() then
     Init;
@@ -1054,6 +1081,32 @@ begin
   InvalidateMapDimensions;
 end;
 
+procedure TfMain.PlayerMenuClick(Sender: TObject);
+var
+  m, mc : TMenuItem;
+  i: Integer;
+begin
+  m := Sender as TMenuItem;
+
+  for i := 0 to menuPlayer.Items.Count - 1 do
+  begin
+    mc := menuPlayer.Items[i];
+
+    if mc=m then
+    begin
+      SetCurrentPlayer(TPlayer(m.Tag));
+      mc.Checked := True;
+    end
+    else begin
+      mc.Checked := False;
+    end;
+
+  end;
+
+  InvalidateObjects;
+
+end;
+
 procedure TfMain.MinimapPaint(Sender: TObject);
 begin
   FMinimap.Paint(Sender as TPaintBox);
@@ -1250,94 +1303,9 @@ begin
   Handled := true;
 end;
 
-procedure TfMain.pbObjectsPaint(Sender: TObject);
-var
-  pb: TPaintBox;
-  ctx: TCanvas;
-  col: Integer;
-  row: Integer;
-
-  o_idx: Integer;
-
-  pos_x: integer;
-
-  o_def: TObjTemplate;
-begin
-  pb := Sender as TPaintBox;
-
-  ctx := pb.Canvas;
-
-  ctx.Lock;
-
-  try
-    ctx.Brush.Color := clWhite;
-    ctx.FillRect(0, 0, pb.Width, pb.Height);
-
-    for row := 1 to FViewObjectRowsH +1 do
-    begin
-      for col := 1 to 3 do
-      begin
-        o_idx := col + 3 * (row + FObjectsVPos);
-
-        if o_idx >= FObjectCount then
-          break; //TODO: remove workaround
-
-        o_def := FObjManager.Objcts[o_idx];
-
-        ctx.Brush.Color := clGray;
-
-        ctx.Rectangle((col-1)*OBJ_CELL_SIZE, (row-1)*OBJ_CELL_SIZE,col*OBJ_CELL_SIZE, row*OBJ_CELL_SIZE);
-      end;
-
-    end;
-  except
-    ctx.Unlock;
-  end;
-
-  //TODO: reminder
-
-
-end;
-
 procedure TfMain.pbObjectsResize(Sender: TObject);
 begin
   InvalidateObjects;
-end;
-
-procedure TfMain.PlayerActionsExecute(AAction: TBasicAction;
-  var Handled: Boolean);
-var
-  i: Integer;
-
-  act: TAction;
-  m: TMenuItem;
-begin
-  for i := 0 to PlayerActions.ActionCount - 1 do
-  begin
-    if act = AAction then
-    begin
-      act.Checked := true;
-
-      SetCurrentPlayer(TPlayer(act.Tag));
-    end
-    else begin
-      act.Checked := False;
-    end;
-  end;
-
-  for i := 0 to menuPlayer.Items.Count - 1 do
-  begin
-    m := menuPlayer.Items[i];
-    if m.Action =  AAction then
-    begin
-      m.Checked := true;
-    end
-    else begin
-      m.Checked := False;
-    end;
-  end;
-
-  //Handled := True;
 end;
 
 procedure TfMain.RenderCursor;
@@ -1377,7 +1345,7 @@ begin
   begin
     Assert(Assigned(FDraggingTemplate));
 
-    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE);
+    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
   end;
 end;
 
@@ -1437,12 +1405,47 @@ begin
 
 end;
 
+procedure TfMain.SetupPlayerSelection;
+var
+  m: TMenuItem;
+  p: TPlayer;
+begin
+  menuPlayer.Items.Clear;
+
+  m := TMenuItem.Create(menuPlayer);
+
+  m.Tag := Integer(TPlayer.none);
+  m.OnClick := @PlayerMenuClick;
+  m.Checked := True;
+  menuPlayer.Items.Add(m);
+  m.Caption := 'No player';
+
+  for p in [TPlayer.RED..TPlayer.PINK] do
+  begin
+    m := TMenuItem.Create(menuPlayer);
+
+    m.Tag := Integer(p);
+    m.OnClick := @PlayerMenuClick;
+    m.Caption := 'Player '+IntToStr(Integer(p));
+    menuPlayer.Items.Add(m);
+  end;
+
+
+end;
+
 procedure TfMain.UpdateActions;
+var
+  s: String;
 begin
   inherited UpdateActions;
 
   if Assigned(FMap) then
-    Caption := FMap.Name + ' - VCMI editor'
+  begin
+    s := '';
+    if FMap.IsDirty then
+      s := '*';
+    Caption := FMap.Name + s + ' - VCMI editor'
+  end
   else
     Caption := 'VCMI editor';
 end;

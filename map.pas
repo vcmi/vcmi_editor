@@ -805,7 +805,7 @@ begin
 
   Name := rsDefaultMapName;
 
-  FIsDirty := True;
+  FIsDirty := False;
 
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
