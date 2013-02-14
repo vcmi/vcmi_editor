@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, GL, GLext, OpenGLContext, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
-  Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, def,
+  Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
   minimap, filesystem, filesystem_base, types;
 
 type
@@ -37,6 +37,10 @@ type
   TfMain = class(TForm)
     actHeroes: TAction;
     actArtifacts: TAction;
+    actSelectNoPlayer: TAction;
+    actSelectRedPlayer: TAction;
+    MenuItem6: TMenuItem;
+    PlayerActions: TActionList;
     actRivers: TAction;
     actRoads: TAction;
     actMonsters: TAction;
@@ -132,6 +136,8 @@ type
     procedure actSaveMapAsExecute(Sender: TObject);
     procedure actSaveMapExecute(Sender: TObject);
     procedure actSaveMapUpdate(Sender: TObject);
+    procedure actSelectNoPlayerExecute(Sender: TObject);
+    procedure actSelectRedPlayerExecute(Sender: TObject);
     procedure actTerrainExecute(Sender: TObject);
     procedure actTerrainUpdate(Sender: TObject);
     procedure actUndergroundExecute(Sender: TObject);
@@ -155,6 +161,7 @@ type
     procedure btnSwampClick(Sender: TObject);
     procedure btnWaterClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure HorisontalAxisPaint(Sender: TObject);
@@ -184,6 +191,7 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure pbObjectsPaint(Sender: TObject);
     procedure pbObjectsResize(Sender: TObject);
+    procedure PlayerActionsExecute(AAction: TBasicAction; var Handled: Boolean);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure VerticalAxisPaint(Sender: TObject);
@@ -235,6 +243,8 @@ type
 
     FMapDragging: boolean;
 
+    FCurrentPlayer: TPlayer;
+
     function GetObjIdx(col, row:integer): integer;
 
     function getMapHeight: Integer;
@@ -260,6 +270,8 @@ type
 
     procedure LoadMap(AFileName: string);
     procedure SaveMap(AFileName: string);
+
+    procedure SetCurrentPlayer(APlayer: TPlayer);
   protected
     procedure UpdateActions; override;
   end;
@@ -271,7 +283,7 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
-  editor_str_consts, map_options, Math, lazutf8classes;
+  editor_str_consts, root_manager, map_options, Math, lazutf8classes;
 
 {$R *.lfm}
 
@@ -356,7 +368,17 @@ end;
 
 procedure TfMain.actSaveMapUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty; //todo: use IsDirty
+  (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty;
+end;
+
+procedure TfMain.actSelectNoPlayerExecute(Sender: TObject);
+begin
+  //PlayerActions.ExecuteAction(Sender as TAction);
+end;
+
+procedure TfMain.actSelectRedPlayerExecute(Sender: TObject);
+begin
+  //PlayerActions.ExecuteAction(Sender as TAction);
 end;
 
 procedure TfMain.actTerrainExecute(Sender: TObject);
@@ -497,15 +519,35 @@ end;
 
 procedure TfMain.FormActivate(Sender: TObject);
 begin
-  if not MapView.MakeCurrent() then
-  begin
-    Exit;
-  end;
-  if not glInited then
-  begin
-    Init;
+  try
+    if not MapView.MakeCurrent() then
+    begin
+      Exit;
+    end;
+    if not glInited then
+    begin
+      Init;
+    end;
+  finally
+    RootManager.InitComplete;
   end;
 
+end;
+
+procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+var
+  res: Integer;
+begin
+  if Assigned(FMap) and FMap.IsDirty then
+  begin
+    res := MessageDlg(rsConfirm,rsMapChanged, TMsgDlgType.mtConfirmation, mbYesNoCancel,0);
+
+    case res of
+      mrYes: actSaveMap.Execute;
+      mrCancel:CanClose := False ;
+    end;
+
+  end;
 end;
 
 procedure TfMain.FormCreate(Sender: TObject);
@@ -518,6 +560,17 @@ begin
   pnMinimap.DoubleBuffered := True;
   ObjectsView.SharedControl := MapView;
 
+  FCurrentTerrain := TTerrainType.dirt;
+  FTerrainBrushMode := TBrushMode.fixed;
+  FTerrainBrushSize := 1;
+  pcToolBox.ActivePage := tsTerrain;
+
+  RootManager.ProgressForm.StageCount := ifthen(Paramcount > 0, 5,4);
+
+  //stage 1
+
+  RootManager.ProgressForm.NextStage('Scanning filsystem.');
+
   FResourceManager := TFSManager.Create(self);
   FResourceManager.ScanFilesystem;
 
@@ -525,22 +578,28 @@ begin
 
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 
+  if not MapView.MakeCurrent() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Unable to switch GL context');
+  end;
+
+  //stage 2
+  RootManager.ProgressForm.NextStage('Loading terrain graphics.');
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
 
 
-  FCurrentTerrain := TTerrainType.dirt;
-  FTerrainBrushMode := TBrushMode.fixed;
-  FTerrainBrushSize := 1;
-  pcToolBox.ActivePage := tsTerrain;
-
-
   FUndoManager := TMapUndoManger.Create;
 
+  //stage 3
+  RootManager.ProgressForm.NextStage('Loading objects.');
   FObjManager := TObjectsManager.Create(FGraphicsManager);
-  FObjManager.LoadObjects;
+  FObjManager.LoadObjects(RootManager.ProgressForm);
 
   FMinimap := TMinimap.Create(Self);
+
+
 
   FMap := TVCMIMap.Create(FTerrianManager);
 
@@ -548,6 +607,9 @@ begin
 
   if Paramcount > 0 then
   begin
+    //stage 4
+    RootManager.ProgressForm.NextStage('Loading map.');
+
     dir := GetCurrentDirUTF8();
     dir := IncludeTrailingPathDelimiter(dir);
     map_filename:= dir + ParamStr(1);
@@ -561,6 +623,12 @@ begin
 
   MapChanded;
   InvalidateObjects;
+
+  FCurrentPlayer := TPlayer.none;
+  actSelectNoPlayer.Checked := True;
+
+  if MapView.MakeCurrent() then
+    Init;
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -606,6 +674,7 @@ end;
 
 procedure TfMain.Init;
 begin
+  RootManager.ProgressForm.NextStage('Initializing GL context.');
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
   glDisable(GL_DITHER);
@@ -1089,7 +1158,7 @@ begin
             glEnd();
             glPopAttrib();
 
-            o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE);
+            o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
 
       end;
     end;
@@ -1235,6 +1304,42 @@ begin
   InvalidateObjects;
 end;
 
+procedure TfMain.PlayerActionsExecute(AAction: TBasicAction;
+  var Handled: Boolean);
+var
+  i: Integer;
+
+  act: TAction;
+  m: TMenuItem;
+begin
+  for i := 0 to PlayerActions.ActionCount - 1 do
+  begin
+    if act = AAction then
+    begin
+      act.Checked := true;
+
+      SetCurrentPlayer(TPlayer(act.Tag));
+    end
+    else begin
+      act.Checked := False;
+    end;
+  end;
+
+  for i := 0 to menuPlayer.Items.Count - 1 do
+  begin
+    m := menuPlayer.Items[i];
+    if m.Action =  AAction then
+    begin
+      m.Checked := true;
+    end
+    else begin
+      m.Checked := False;
+    end;
+  end;
+
+  //Handled := True;
+end;
+
 procedure TfMain.RenderCursor;
 var
   dim: Integer;
@@ -1304,6 +1409,14 @@ procedure TfMain.sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
   InvalidateObjPos;
+end;
+
+procedure TfMain.SetCurrentPlayer(APlayer: TPlayer);
+begin
+  FCurrentPlayer := APlayer;
+
+  InvalidateObjects;
+  InvalidateMap;
 end;
 
 procedure TfMain.SetMapViewMouse(x, y: integer);

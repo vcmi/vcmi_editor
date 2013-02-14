@@ -24,7 +24,8 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, editor_types, filesystem_base, def;
+  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, editor_types,
+  filesystem_base, editor_graphics, editor_classes;
 
 type
 
@@ -71,8 +72,7 @@ type
 
     function TypToId(Typ,SubType: uint32):TDefId; inline;
 
-    procedure LoadObjectsConfig;
-    procedure LoadObjectsGraphics;
+
   private
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TObjTemplate;
@@ -80,7 +80,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadObjects;
+    procedure LoadObjects(AProgressCallback: IProgressCallback);
 
     property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
@@ -147,13 +147,7 @@ begin
   Result := FDefs[AIndex];
 end;
 
-procedure TObjectsManager.LoadObjects;
-begin
-  LoadObjectsConfig;
-  LoadObjectsGraphics;
-end;
-
-procedure TObjectsManager.LoadObjectsConfig;
+procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback);
 
 var
   stm: TStringStream;
@@ -228,6 +222,7 @@ var
   id: TDefId;
 
   s_tmp: string;
+  progess_delta: Integer;
 begin
   //todo: suppport for custom object lists
 
@@ -245,8 +240,18 @@ begin
 
     doc.CSVText := stm.DataString;
 
+    AProgressCallback.Max := 200;
+
+    progess_delta := doc.RowCount div 200;
+
     for row := 1 to doc.RowCount-1 do //first row contains no data, so start with 1
     begin
+
+      if (row mod progess_delta) = 0 then
+      begin
+        AProgressCallback.Advance(1);
+      end;
+
       col := 0;
 
       def := TObjTemplate.Create;
@@ -270,6 +275,7 @@ begin
 
       id := TypToId(def.Typ,def.SubType);
       FDefIdMap.Insert(id,def);
+      def.Def := GraphicsManager.GetGraphics(def.filename);
       FDefs.Add(def);
 
     end;
@@ -279,16 +285,6 @@ begin
     doc.Free;
   end;
 
-end;
-
-procedure TObjectsManager.LoadObjectsGraphics;
-var
-  i: Integer;
-begin
-  for i := 0 to FDefs.Count - 1 do
-  begin
-    FDefs[i].Def := GraphicsManager.GetGraphics(FDefs[i].filename);
-  end;
 end;
 
 

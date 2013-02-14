@@ -34,7 +34,7 @@ type
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
 
-  TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK,none=$FF);
+  TPlayer = (none = -1, RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK);
   TPlayerColor = TPlayer.RED..TPlayer.PINK;
   TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
 

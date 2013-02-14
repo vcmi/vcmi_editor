@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils,
   gvector,
-  editor_types, def, fpjson, vcmi_json,
+  editor_types, editor_graphics, fpjson, vcmi_json,
   filesystem_base, editor_classes;
 
 const

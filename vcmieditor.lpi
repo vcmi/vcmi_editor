@@ -91,7 +91,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="27">
+    <Units Count="30">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -111,9 +111,9 @@
         <UnitName Value="lod"/>
       </Unit2>
       <Unit3>
-        <Filename Value="def.pas"/>
+        <Filename Value="editor_graphics.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="def"/>
+        <UnitName Value="editor_graphics"/>
       </Unit3>
       <Unit4>
         <Filename Value="map.pas"/>
@@ -236,6 +236,25 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_consts"/>
       </Unit26>
+      <Unit27>
+        <Filename Value="root_manager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RootManager"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <UnitName Value="root_manager"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="progress_form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ProgressForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="progress_form"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="editor_gl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="editor_gl"/>
+      </Unit29>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

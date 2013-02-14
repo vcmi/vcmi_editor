@@ -15,6 +15,8 @@ resourcestring
   rsConfirm  = 'Confirm';
   rsFileExists = 'File already exists. Replase?';
 
+  rsMapChanged = 'Map has been changed. Save?';
+
   rsRedo = 'Redo';
   rsUndo = 'Undo';
 

@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, Math, LCLIntf,
   gvector, gpriorityqueue,
-  editor_types, terrain, editor_classes, def;
+  editor_types, terrain, editor_classes, editor_graphics;
 
 const
   MAP_DEFAULT_SIZE = 512;

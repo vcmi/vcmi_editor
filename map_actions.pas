@@ -103,6 +103,9 @@ type
 
 implementation
 
+uses
+  LazLogger;
+
 //operator = (a, b: TTileInfo): Boolean;
 //begin
 //  Result := (a.X = b.x) and;
@@ -303,7 +306,7 @@ begin
 
   if bestPattern = -1 then
   begin
-    //raise Exception.Create('No pattern detected');
+    DebugLn('No pattern detected at (X:%d , Y:%d, L: %d)',[Info.X,Info.Y,FLevel]);
     Exit;
   end;
 

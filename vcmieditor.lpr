@@ -27,11 +27,12 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, csvdocument_package, lazopenglcontext, runtimetypeinfocontrols, main,
-  lod, def, Map, editor_types, terrain, undo_base, undo_map, map_actions,
-  zlib_stream, objects, new_map, minimap, filesystem_base,
-  filesystem, vcmi_json, editor_utils, map_format, map_format_h3m,
-  stream_adapter, editor_str_consts, map_format_vcmi, vcmi_fpjsonrtti,
-  map_options, editor_classes, editor_consts;
+  lod,
+editor_graphics, Map, editor_types, terrain, undo_base, undo_map, map_actions,
+  zlib_stream, objects, new_map, minimap, filesystem_base, filesystem,
+  vcmi_json, editor_utils, map_format, map_format_h3m, stream_adapter,
+  editor_str_consts, map_format_vcmi, vcmi_fpjsonrtti, map_options,
+  editor_classes, editor_consts, root_manager, progress_form, editor_gl;
 
 {$R *.res}
 
@@ -40,6 +41,7 @@ begin
   Application.Title := 'VCMI Editor';
   RequireDerivedFormResource := True;
   Application.Initialize;
+  Application.CreateForm(TRootManager, RootManager);
   Application.CreateForm(TfMain, fMain);
   Application.Run;
 end.
