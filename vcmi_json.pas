@@ -127,7 +127,7 @@ var
   elem: TCollectionItem;
 begin
 
-  if ACollection is TNamedCollection then
+  if ACollection is INamedCollection then
   begin
     o := TJSONObject.Create;
     for elem in ACollection do
@@ -136,7 +136,7 @@ begin
     end;
     result := o;
   end
-  else if ACollection is TArrayCollection then
+  else if ACollection is IArrayCollection then
   begin
     a:=TJSONArray.Create;
     for elem in ACollection do
@@ -300,14 +300,14 @@ var
   O : TJSONObject;
   A: TJSONArray;
 begin
-  if (JSON.JSONType = jtObject) and (ACollection is TNamedCollection) then
+  if (JSON.JSONType = jtObject) and (ACollection is INamedCollection) then
   begin
     ACollection.Clear;
 
     O := JSON as TJSONObject;
     O.Iterate(@CollectionObjCallback,ACollection);
   end
-  else if (JSON.JSONType = jtArray) and (ACollection is TArrayCollection) then
+  else if (JSON.JSONType = jtArray) and (ACollection is IArrayCollection) then
   begin
     ACollection.Clear;
     A := JSON as TJSONArray;

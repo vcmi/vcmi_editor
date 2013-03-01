@@ -240,6 +240,7 @@
         <Filename Value="root_manager.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RootManager"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="DataModule"/>
         <UnitName Value="root_manager"/>
       </Unit27>
@@ -247,6 +248,7 @@
         <Filename Value="progress_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ProgressForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="progress_form"/>
       </Unit28>

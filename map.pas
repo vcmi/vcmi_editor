@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, Math, LCLIntf,
   gvector, gpriorityqueue,
-  editor_types, terrain, editor_classes, editor_graphics;
+  editor_types, terrain, editor_classes, editor_graphics, objects;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -67,9 +67,9 @@ type
     property Name: string read FName write SetName;
   end;
 
-  { TCustomHeros }
+  { TCustomHeroes }
 
-  TCustomHeros = class (TArrayCollection)
+  TCustomHeroes = class (specialize TGArrayCollection<TCustomHero>)
   public
     constructor Create;
     destructor Destroy; override;
@@ -84,7 +84,7 @@ type
     FAreAllowerFactionsSet: Boolean;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
-    FCustomHeros: TCustomHeros;
+    FCustomHeroes: TCustomHeroes;
     FGenerateHeroAtMainTown: boolean;
     FHasMainTown: boolean;
     FIsFactionRandom: boolean;
@@ -125,7 +125,7 @@ type
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
 
-    property CustomHeros: TCustomHeros read FCustomHeros;
+    property CustomHeroes: TCustomHeroes read FCustomHeroes;
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown;
     property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
 
@@ -190,6 +190,9 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    //TODO: refactor this temproary solution
+    procedure FillFrom(AOther: TObjTemplate);
   published
 
     property TID: integer read GetTID;
@@ -208,7 +211,9 @@ type
 
   { TMapObjectTemplates }
 
-  TMapObjectTemplates = class (TArrayCollection)
+  TMapObjectTemplateCollection = specialize TGArrayCollection<TMapObjectTemplate>;
+
+  TMapObjectTemplates = class (TMapObjectTemplateCollection)
   private
     FMap: TVCMIMap;
   public
@@ -287,9 +292,11 @@ type
 
   TMapObjectRenderQueue = specialize TPriorityQueue<TMapObject, TObjPriorityCompare>;
 
+  TMapObjectCollection  = specialize TGArrayCollection<TMapObject>;
+
   { TMapObjects }
 
-  TMapObjects = class (TArrayCollection)
+  TMapObjects = class (TMapObjectCollection)
   private
     FMap: TVCMIMap;
   protected
@@ -465,7 +472,7 @@ end;
 
 constructor TMapObjects.Create(AOwner: TVCMIMap);
 begin
-  inherited Create(TMapObject);
+  inherited Create;
   FMap  := AOwner;
 end;
 
@@ -478,7 +485,7 @@ end;
 
 constructor TMapObjectTemplates.Create(AMap: TVCMIMap);
 begin
-  inherited Create(TMapObjectTemplate);
+  inherited Create;
   FMap := AMap;
 end;
 
@@ -496,6 +503,16 @@ destructor TMapObjectTemplate.Destroy;
 begin
   FMask.Free;
   inherited Destroy;
+end;
+
+procedure TMapObjectTemplate.FillFrom(AOther: TObjTemplate);
+begin
+  FAnimation := AOther.Filename;
+  FDef := AOther.Def;
+
+  FID := AOther.Typ;
+  FSubID := AOther.SubType;
+  FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
 end;
 
 function TMapObjectTemplate.GetMask: TStrings;
@@ -552,14 +569,14 @@ begin
   FZIndex := AValue;
 end;
 
-{ TCustomHeros }
+{ TCustomHeroes }
 
-constructor TCustomHeros.Create;
+constructor TCustomHeroes.Create;
 begin
-  inherited Create(TCustomHero);
+  inherited Create();
 end;
 
-destructor TCustomHeros.Destroy;
+destructor TCustomHeroes.Destroy;
 begin
   inherited Destroy;
 end;
@@ -581,12 +598,12 @@ end;
 constructor TPlayerAttr.Create;
 begin
   FAllowedFactions := TFactions.Create;
-  FCustomHeros := TCustomHeros.Create;
+  FCustomHeroes := TCustomHeroes.Create;
 end;
 
 destructor TPlayerAttr.Destroy;
 begin
-  FCustomHeros.Free;
+  FCustomHeroes.Free;
   FAllowedFactions.Free;
   inherited Destroy;
 end;

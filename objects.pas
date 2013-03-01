@@ -38,17 +38,28 @@ type
   TObjTemplate = class
   private
     FDef: TDef;
-    filename: AnsiString;
-    passability,
-    actions: TDefBitmask;
-    landscape,land_edit_groups: uint16;
-    Typ,SubType: uint32;
-    Group,isOverlay: uint8;
+    FFilename: AnsiString;
+    FPassability,
+    FActions: TDefBitmask;
+    FLandscape,FLandEditGroups: uint16;
+    FTyp,FSubType: uint32;
+    FGroup,FIsOverlay: uint8;
     procedure SetDef(AValue: TDef);
   public
     constructor Create;
 
     property Def: TDef read FDef write SetDef;
+
+    property Filename: AnsiString read FFilename;
+    property Actions: TDefBitmask read FActions;
+    property Passability: TDefBitmask read FPassability;
+    property Landscape: uint16 read FLandscape;
+    property LandEditGroups: uint16 read FLandEditGroups;
+    property Typ: uint32 read FTyp;
+    property SubType: uint32 read FSubType;
+
+    property IsOverlay: uint8 read FIsOverlay;
+
   end;
 
   TDefVector = specialize TFPGObjectList<TObjTemplate>;
@@ -260,22 +271,22 @@ begin
 
       CellToStr(s_tmp);
 
-      def.filename := Trim(UpperCase(ExtractFileNameWithoutExt(s_tmp)));
+      def.FFilename := Trim(UpperCase(ExtractFileNameWithoutExt(s_tmp)));
 
 
-      CellToBitMask(def.passability);
-      CellToBitMask(def.actions);
-      CellToUint16Mask(def.landscape);
-      CellToUint16Mask(def.land_edit_groups);
+      CellToBitMask(def.FPassability);
+      CellToBitMask(def.FActions);
+      CellToUint16Mask(def.FLandscape);
+      CellToUint16Mask(def.FLandEditGroups);
 
-      def.Typ := CellToInt;
-      def.SubType := CellToInt;
-      def.Group := CellToInt;
-      def.isOverlay := CellToInt;
+      def.FTyp := CellToInt;
+      def.FSubType := CellToInt;
+      def.FGroup := CellToInt;
+      def.FIsOverlay := CellToInt;
 
-      id := TypToId(def.Typ,def.SubType);
+      id := TypToId(def.FTyp,def.FSubType);
       FDefIdMap.Insert(id,def);
-      def.Def := GraphicsManager.GetGraphics(def.filename);
+      def.Def := GraphicsManager.GetGraphics(def.FFilename);
       FDefs.Add(def);
 
     end;

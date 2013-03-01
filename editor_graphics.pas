@@ -786,6 +786,8 @@ begin
     LeToNInPlase(TopMargin);
   end;
 
+  //TODO: use margins to decrease decompressed sprite size
+
   PEntry^.FullHeight := h.FullHeight;
   PEntry^.FullWidth := h.FullWidth;
 

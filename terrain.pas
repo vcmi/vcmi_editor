@@ -126,16 +126,13 @@ type
 
   { TPatterns }
 
-  TPatterns = class(TArrayCollection)
-  private
-    function GetPattern(Idx: Integer): TPattern;
+  TPatterns = class(specialize TGArrayCollection<TPattern>)
   public
     constructor Create;
     procedure Loaded;
 
     procedure SetGroup(g: TTerrainGroup);
 
-    property Items[Idx: Integer]:TPattern read GetPattern; default;
   end;
 
   { TTerrainPatternConfig }
@@ -419,12 +416,7 @@ end;
 
 constructor TPatterns.Create;
 begin
-  inherited Create(TPattern);
-end;
-
-function TPatterns.GetPattern(Idx: Integer): TPattern;
-begin
-  Result := TPattern(inherited Items[idx]);
+  inherited Create();
 end;
 
 procedure TPatterns.Loaded;

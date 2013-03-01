@@ -1,7 +1,7 @@
 object ProgressForm: TProgressForm
-  Left = 306
+  Left = 569
   Height = 159
-  Top = 175
+  Top = 430
   Width = 514
   BorderStyle = bsNone
   Caption = 'ProgressForm'

@@ -30,20 +30,44 @@ uses
 
 type
 
-  { TNamedCollection
-    Stored as object in JSON
-    uses DisplayName as a name of field
-  }
+  { TGCollection }
 
-  TNamedCollection = class(TCollection)
+  generic TGCollection <TItem> = class (TCollection)
+  private
+    function GetItems(const Idx: Integer): TItem;
+    procedure SetItems(const Idx: Integer; AValue: TItem);
+  public
+    constructor Create;
+
+    function Add: TItem;
+
+    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
+  end;
+
+  { INamedCollection
+    Stored as object in JSON
+    uses DisplayName as a name of field }
+
+  INamedCollection = interface ['{3C14D8A9-3BAB-46D1-9A77-6216869F58D9}']
 
   end;
 
-  { TArrayCollection
-    Stored as array in JSON
-  }
+  { IArrayCollection
+    Stored as array in JSON  }
 
-  TArrayCollection = class(TCollection)
+  IArrayCollection = interface ['{8CD3BB79-5DD4-44D2-BE35-F179848262A0}']
+
+  end;
+
+  { TGArrayCollection }
+
+  generic TGArrayCollection <TItem> = class (specialize TGCollection <TItem>, IArrayCollection)
+
+  end;
+
+  { TGNamedCollection }
+
+  generic TGNamedCollection <TItem> = class (specialize TGCollection <TItem>, INamedCollection)
 
   end;
 
@@ -60,6 +84,29 @@ type
 
 
 implementation
+
+{ TGCollection }
+
+function TGCollection.Add: TItem;
+begin
+  Result := TItem(inherited Add);
+end;
+
+constructor TGCollection.Create;
+begin
+  inherited Create(TItem);
+end;
+
+function TGCollection.GetItems(const Idx: Integer): TItem;
+begin
+  Result := TItem( inherited Items[Idx]);
+end;
+
+procedure TGCollection.SetItems(const Idx: Integer; AValue: TItem);
+begin
+  inherited Items[Idx] := AValue;
+end;
+
 
 end.
 

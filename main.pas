@@ -903,14 +903,38 @@ begin
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  o: TMapObject;
+  ot: TMapObjectTemplate;
 begin
-  //TODO: plase obejct
+  SetMapViewMouse(x,y);
+
+  ot :=  FMap.Templates.Add;
+
+  ot.FillFrom(FDraggingTemplate);
+
+  o := FMap.Objects.Add;
+
+  o.TemplateID := ot.TID;
+
+  Assert(Assigned(o.Template), 'Template not assigned by ID');
+
+  o.L := FMap.CurrentLevel;
+  o.X := FMouseTileX;
+  o.Y := FMouseTileY;
+
+  //TODO: place object
+
+  //TODO: undo
+
+  InvalidateMapContent;
+
 end;
 
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
-  Accept := true; //TODO: hanlde accceptible terrain
+  Accept := true; //TODO: handle accceptible terrain
 
   SetMapViewMouse(x,y);
 
@@ -922,7 +946,6 @@ begin
 
   InvalidateMap;
 
-  //TODO: check terrain
 end;
 
 procedure TfMain.MapViewMouseDown(Sender: TObject; Button: TMouseButton;

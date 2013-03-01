@@ -361,8 +361,8 @@ begin
 
     b := FSrc.ReadByte;  //todo: read type
     b := FSrc.ReadByte;
-    FSrc.Skip(16); //junk
     obj.ZIndex := b * Z_INDEX_OVERLAY;
+    FSrc.Skip(16); //junk
   end;
 end;
 
@@ -983,7 +983,7 @@ begin
 
     for h := 0 to heroes_count - 1 do
     begin
-      hero := TCustomHero(Attr.CustomHeros.Add);
+      hero := TCustomHero(Attr.CustomHeroes.Add);
       hero.Portrait := FSrc.ReadIDByte;
       hero.Name := FSrc.ReadString;
     end;
