@@ -126,6 +126,8 @@ type
     property FrameCount: Integer read GetFrameCount;
 
     property Flaggable: Boolean read FFlaggable;
+
+    procedure RenderBorder(TileX,TileY: Integer);
   end;
 
   TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
@@ -884,6 +886,18 @@ begin
   editor_gl.RenderSprite(Sprite, dim);
 
   RenderFlag(Sprite, dim, color);
+end;
+
+procedure TDef.RenderBorder(TileX, TileY: Integer);
+var
+  cx: Integer;
+  cy: Integer;
+begin
+
+  cx := (TileX+1) * TILE_SIZE;
+  cy := (TileY+1) * TILE_SIZE;
+
+  editor_gl.RenderRect(cx,cy,-width,-height);
 end;
 
 procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);

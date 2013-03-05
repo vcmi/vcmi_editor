@@ -44,6 +44,8 @@ procedure Unbind(var ATextureId: GLuint); inline;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
 
+procedure RenderRect(x,y: Integer; dimx,dimy:integer);
+
 implementation
 
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage; AInternalFormat: GLEnum); //inline;
@@ -161,6 +163,26 @@ begin
 
   glDisable(GL_TEXTURE_RECTANGLE);
 
+end;
+
+procedure RenderRect(x, y: Integer; dimx, dimy: integer);
+begin
+      glPushAttrib(GL_CURRENT_BIT);
+    glBegin(GL_LINE_LOOP);
+
+    glColor4ub(200, 200, 200, 255);
+    glLineWidth(1);
+
+
+    glVertex2i(x, y);
+    glVertex2i(x + dimx, y);
+
+    glVertex2i(x + dimx, y + dimy);
+    glVertex2i(x, y + dimy);
+
+
+    glEnd();
+    glPopAttrib();
 end;
 
 

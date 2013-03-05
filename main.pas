@@ -177,6 +177,7 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure MapViewPaint(Sender: TObject);
     procedure MapViewResize(Sender: TObject);
+    procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
     procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
@@ -239,6 +240,8 @@ type
     FViewObjectRowsH: Integer;
 
     FDraggingTemplate: TObjTemplate;
+
+    FSelectedObject: TMapObject;
 
     FMapDragging: boolean;
 
@@ -414,6 +417,7 @@ begin
   under :=  (Sender as TAction).Checked;
 
   FMap.CurrentLevel := ifthen(under,1,0);
+  FSelectedObject := nil;
   InvalidateMapContent;
 end;
 
@@ -866,6 +870,10 @@ procedure TfMain.MapViewClick(Sender: TObject);
 var
   action_item:TEditTerrain;
   i,j: Integer;
+
+  q: TMapObjectQueue;
+
+  o: TMapObject;
 begin
   //TODO: handle all cases
 
@@ -895,10 +903,43 @@ begin
     FUndoManager.ExecuteItem(action_item);
 
     InvalidateMapContent;
+    Exit;
   end;
 
+  //TODO: road/river mode
 
+  q := TMapObjectQueue.Create;
+  try
+    FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
 
+    if Assigned(FSelectedObject)
+      and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY))
+      then
+    begin
+      //select next object
+      o := nil;
+      while not q.IsEmpty do
+      begin
+        o := q.Top;
+        q.Pop;
+
+        if q.Top = FSelectedObject then
+        begin
+          break;
+        end;
+
+      end;
+      FSelectedObject := o;
+    end
+    else
+    begin
+      if not q.IsEmpty then
+         FSelectedObject := q.Top;
+    end;
+
+  finally
+    q.Free;
+  end;
   //todo: select object
 end;
 
@@ -923,7 +964,7 @@ begin
   o.X := FMouseTileX;
   o.Y := FMouseTileY;
 
-  //TODO: place object
+  //TODO: set owner
 
   //TODO: undo
 
@@ -1088,6 +1129,12 @@ begin
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   //todo: render passability
+
+  if Assigned(FSelectedObject) then
+  begin
+    FSelectedObject.RenderSelectionRect;
+  end;
+
 
   RenderCursor;
 
@@ -1331,6 +1378,11 @@ begin
   InvalidateObjects;
 end;
 
+procedure TfMain.pcToolBoxChange(Sender: TObject);
+begin
+  FSelectedObject := nil;
+end;
+
 procedure TfMain.RenderCursor;
 var
   dim: Integer;
@@ -1348,8 +1400,6 @@ begin
 
     glColor4ub(200, 200, 200, 255);
     glLineWidth(1);
-
-
 
     dim := TILE_SIZE * FTerrainBrushSize;
 

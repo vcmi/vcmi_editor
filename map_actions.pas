@@ -99,17 +99,12 @@ type
     property TerrainType: TTerrainType read FTerrainType write SetTerrainType;
   end;
 
-    //operator= (a,b: TTileInfo): Boolean;
 
 implementation
 
 uses
   LazLogger;
 
-//operator = (a, b: TTileInfo): Boolean;
-//begin
-//  Result := (a.X = b.x) and;
-//end;
 
 { TTileCompare }
 

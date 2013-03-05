@@ -211,9 +211,8 @@ type
 
   { TMapObjectTemplates }
 
-  TMapObjectTemplateCollection = specialize TGArrayCollection<TMapObjectTemplate>;
 
-  TMapObjectTemplates = class (TMapObjectTemplateCollection)
+  TMapObjectTemplates = class (specialize TGArrayCollection<TMapObjectTemplate>)
   private
     FMap: TVCMIMap;
   public
@@ -274,6 +273,10 @@ type
     property Template: TMapObjectTemplate read FTemplate;
     procedure RenderStatic(); inline;
     procedure RenderAnim(); inline;
+
+    procedure RenderSelectionRect; inline;
+
+    function CoversTile(ALevel, AX, AY: Integer): boolean;
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -290,13 +293,11 @@ type
     class function c(a,b: TMapObject): boolean;
   end;
 
-  TMapObjectRenderQueue = specialize TPriorityQueue<TMapObject, TObjPriorityCompare>;
-
-  TMapObjectCollection  = specialize TGArrayCollection<TMapObject>;
+  TMapObjectQueue = specialize TPriorityQueue<TMapObject, TObjPriorityCompare>;
 
   { TMapObjects }
 
-  TMapObjects = class (TMapObjectCollection)
+  TMapObjects = class (specialize TGArrayCollection<TMapObject>)
   private
     FMap: TVCMIMap;
   protected
@@ -329,8 +330,6 @@ type
     FIsDirty: boolean;
 
     FTerrain: array of array of array of TMapTile; //levels, X, Y
-
-
 
     procedure Changed;
 
@@ -369,6 +368,8 @@ type
 
     property TerrainManager: TTerrainManager read FTerrainManager;
 
+    procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
+
   published
     property Height: Integer read FHeight;
     property Width: Integer read FWigth;
@@ -390,13 +391,12 @@ type
 
 implementation
 
-uses FileUtil, editor_str_consts;
+uses FileUtil, editor_str_consts, editor_gl;
 
 { TObjPriorityCompare }
 
 class function TObjPriorityCompare.c(a, b: TMapObject): boolean;
 begin
-
   Result := (a.Template.ZIndex > b.Template.ZIndex)
     or(
       (a.Template.ZIndex = b.Template.ZIndex)
@@ -405,6 +405,12 @@ begin
 end;
 
 { TMapObject }
+
+function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
+begin
+  //TODO: use MASK
+  Result := (FL = ALevel) and (FX=AX) and (FY=AY);
+end;
 
 constructor TMapObject.Create(ACollection: TCollection);
 begin
@@ -434,6 +440,11 @@ begin
   end;
 
   Render(FLastFrame);
+end;
+
+procedure TMapObject.RenderSelectionRect;
+begin
+  FTemplate.FDef.RenderBorder(FX,FY);
 end;
 
 procedure TMapObject.RenderStatic;
@@ -956,12 +967,11 @@ var
   i: Integer;
   o: TMapObject;
 
-  FQueue : TMapObjectRenderQueue;
+  FQueue : TMapObjectQueue;
 begin
 
-  FQueue := TMapObjectRenderQueue.Create;
+  FQueue := TMapObjectQueue.Create;
 
-  //todo: blit order or depth test
   for i := 0 to FObjects.Count - 1 do
   begin
     o := TMapObject(FObjects.Items[i]);
@@ -992,6 +1002,25 @@ procedure TVCMIMap.SaveToStream(ADest: TStream; AWriter: IMapWriter);
 begin
   AWriter.Write(ADest,Self);
   FIsDirty := False;
+end;
+
+procedure TVCMIMap.SelectObjectsOnTile(Level, X, Y: Integer;
+  dest: TMapObjectQueue);
+var
+  o: TMapObject;
+  i: Integer;
+begin
+  //TODO: use mask
+
+  for i := 0 to FObjects.Count - 1 do
+  begin
+    o := FObjects[i];
+
+    if o.CoversTile(Level,x,y) then
+    begin
+      dest.Push(o);
+    end;
+  end;
 end;
 
 procedure TVCMIMap.SetCurrentLevel(AValue: Integer);

@@ -1155,6 +1155,7 @@ object fMain: TfMain
       ShowTabs = False
       TabIndex = 1
       TabOrder = 1
+      OnChange = pcToolBoxChange
       object tsTerrain: TTabSheet
         ClientHeight = 386
         ClientWidth = 196
