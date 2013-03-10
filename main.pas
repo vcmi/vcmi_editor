@@ -24,7 +24,8 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, GL, GLext, OpenGLContext, Forms, Controls,
+  Classes, SysUtils, FileUtil,
+  GL, GLext, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
   minimap, filesystem, filesystem_base, types;
@@ -159,6 +160,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure HorisontalAxisPaint(Sender: TObject);
     procedure hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -670,6 +672,48 @@ begin
   FUndoManager.Free;
 end;
 
+procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
+  );
+var
+  dx,dy: integer;
+begin
+
+  if not Assigned(FSelectedObject) then
+  begin
+    Exit;
+  end;
+  //TODO: use UNDO/REDO
+
+  dx := 0;
+  dy := 0;
+
+  case Key of
+    VK_UP: Dec(dy) ;
+    VK_DOWN: Inc(dy);
+    VK_LEFT: Dec(dx);
+    VK_RIGHT: Inc(dx);
+  end;
+
+  if (dx<>0) or (dy<>0) then
+  begin
+    FSelectedObject.X := FSelectedObject.X + dx;
+    FSelectedObject.Y := FSelectedObject.Y + dy;
+    InvalidateMapContent;
+    Key := VK_UNKNOWN;
+    Exit;
+  end;
+
+  case Key of
+    VK_DELETE:begin
+      Fmap.Objects.Delete(FSelectedObject.Index);
+      FSelectedObject := nil;
+      Key := VK_UNKNOWN;
+      Exit;
+    end ;
+  end;
+
+end;
+
 function TfMain.getMapHeight: Integer;
 begin
   Result := 0;
@@ -967,6 +1011,8 @@ begin
   //TODO: set owner
 
   //TODO: undo
+
+  FSelectedObject := o;
 
   InvalidateMapContent;
 

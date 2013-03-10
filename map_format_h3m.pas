@@ -52,7 +52,6 @@ type
      FMap: TVCMIMap;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
-   strict private
      function IsNotROE: boolean;
 
      procedure SkipNotImpl(count: Integer);

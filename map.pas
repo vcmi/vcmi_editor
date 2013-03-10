@@ -454,6 +454,7 @@ end;
 
 procedure TMapObject.SetL(AValue: integer);
 begin
+  //TODO: ensure on map
   if FL = AValue then Exit;
   FL := AValue;
 end;
@@ -469,12 +470,14 @@ end;
 
 procedure TMapObject.SetX(AValue: integer);
 begin
+    //TODO: ensure on map
   if FX = AValue then Exit;
   FX := AValue;
 end;
 
 procedure TMapObject.SetY(AValue: integer);
 begin
+  //TODO: ensure on map
   if FY = AValue then Exit;
   FY := AValue;
 end;
