@@ -91,7 +91,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -257,6 +257,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="editor_gl"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="object_options.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="object_options"/>
+      </Unit30>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

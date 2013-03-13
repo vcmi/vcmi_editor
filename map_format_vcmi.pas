@@ -33,6 +33,9 @@ type
   TMapReaderVCMI = class(TBaseMapFormatHandler, IMapReader)
   private
     FDestreamer: TVCMIJSONDestreamer;
+
+    procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
+    procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
   public
     constructor Create(tm: TTerrainManager); override;
     destructor Destroy; override;
@@ -57,8 +60,6 @@ type
 
 implementation
 
-const
-  MAP_PROPERTY_NAME = 'Map';
 
 { TMapWriterVCMI }
 
@@ -112,22 +113,27 @@ end;
 
 procedure TMapWriterVCMI.Write(AStream: TStream; AMap: TVCMIMap);
 var
-  json:      TJSONObject; //root
   json_text: string;
   map_o:     TJSONObject;
+  o: TJSONObject;
 begin
-  json := TJSONObject.Create;
+  map_o := FStreamer.ObjectToJSON(AMap);
   try
-    map_o := FStreamer.ObjectToJSON(AMap);
+    //todo: use stored modifier
+    o := FStreamer.ObjectToJSON(AMap.Templates);
+
+    map_o.Objects['templates'] := o;
+
+    o := FStreamer.ObjectToJSON(AMap.Objects);
+    map_o.Objects['objects'] := o;
+
     StreamTiles(map_o, AMap);
 
-    json.Objects[MAP_PROPERTY_NAME] := map_o;
-
-    json_text := json.FormatJSON([foUseTabchar], 1);
+    json_text := map_o.FormatJSON([foUseTabchar], 1);
 
     AStream.Write(json_text[1], Length(json_text));
   finally
-    json.Free;
+    map_o.Free;
   end;
 end;
 
@@ -138,6 +144,39 @@ begin
   inherited Create(tm);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
+end;
+
+procedure TMapReaderVCMI.DestreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
+var
+  main_array, level_array: TJSONArray;
+  i: Integer;
+begin
+  main_array := ARoot.Arrays['tiles'];
+
+  for i := 0 to AMap.Levels - 1 do
+  begin
+    level_array := main_array.Arrays[i];
+    DeStreamTilesLevel(level_array,AMap,i);
+  end;
+end;
+
+procedure TMapReaderVCMI.DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
+  const Level: Integer);
+var
+  row: Integer;
+  col: Integer;
+
+  o: TJSONObject;
+begin
+  for row := 0 to AMap.Height - 1 do
+  begin
+    for col := 0 to AMap.Width - 1 do
+    begin
+      o := AJson.Objects[row*AMap.Height+col];
+
+      FDestreamer.JSONToObject(o,AMap.GetTile(Level,col,row));
+    end;
+  end;
 end;
 
 destructor TMapReaderVCMI.Destroy;
@@ -151,7 +190,10 @@ var
   map_o: TJSONObject;
   cp:    TMapCreateParams;
 begin
-  map_o := FDestreamer.JSONStreamToJSONObject(AStream, MAP_PROPERTY_NAME);
+
+  //TODO: !!! Read object template ID before options
+
+  map_o := FDestreamer.JSONStreamToJson(AStream) as TJSONObject;
 
   cp.Levels := map_o.Integers['Levels'];
   cp.Height := map_o.Integers['Height'];
@@ -162,6 +204,9 @@ begin
     try
 
       FDestreamer.JSONToObject(map_o, Result);
+
+      FDestreamer.JSONToObject(map_o.Objects['templates'],Result.Templates);
+      FDestreamer.JSONToObject(map_o.Objects['objects'],Result.Objects);
 
     finally
       map_o.Free;

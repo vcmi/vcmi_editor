@@ -106,6 +106,8 @@ end;
 
 procedure TMinimap.MayBeResizeImg;
 begin
+  if not Assigned(FMap) then
+    Exit;
   if not FMapDimentionsValid then
   begin
 
@@ -126,7 +128,10 @@ var
   tile: TMapTile;
   tile_rect: TRect;
 begin
-  if FMapImgValid then Exit;
+  if not Assigned(FMap) then
+    Exit;
+  if FMapImgValid then
+    Exit;
   level := FMap.CurrentLevel;
   ctx := FMapImg.Canvas;
 
@@ -169,6 +174,8 @@ var
   tile: TMapTile;
   tile_rect: TRect;
 begin
+  if not Assigned(FMap) then
+    Exit;
   //TODO: more accurate painting
   //todo: paint selection
   //todo: invalidate map only on change

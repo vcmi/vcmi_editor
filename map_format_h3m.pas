@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, map, math, FileUtil, map_format, terrain, stream_adapter,
-  editor_types;
+  editor_types, object_options, editor_classes;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -42,10 +42,11 @@ const
   HEROES_QUANTITY=156;
 
 type
+   TOwnerSize = (size1,size4);
 
    { TMapReaderH3m }
 
-   TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader)
+   TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader, IObjectOptionReader)
    strict private
      FSrc: TStreamReadAdapter;
      FMapVersion: DWord;
@@ -73,23 +74,42 @@ type
      procedure ReadObjMask(obj: TMapObjectTemplate);
      procedure ReadDefInfo();
 
-     procedure ReadCreatureSet(obj: TMapObject; nomber: Integer);
+     procedure ReadCreatureSet(ACreatureSet: TCreatureSet; nomber: Integer);
      procedure ReadArtifactsOfHero(obj: TMapObject);
      procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
 
      procedure ReadQuest(obj: TMapObject; out mis_type: integer);
 
-     procedure ReadPandorasBox(obj: TMapObject);
-     procedure ReadLocalEvent(obj: TMapObject);
-     procedure ReadHero(obj: TMapObject);
-     procedure ReadMonster(obj: TMapObject);
-     procedure ReadSeerHut(obj: TMapObject);
-
-     procedure ReadTown(obj: TMapObject);
-
-
      procedure ReadObjects();
      procedure ReadEvents();
+
+     procedure MayBeReadGuards(AOptions: TGuardedObjectOptions);
+     procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);
+
+     procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4);
+   public //IObjectOptionReader
+
+     procedure ReadSignBottle(AOptions: TSignBottleOptions);
+     procedure ReadLocalEvent(AOptions: TLocalEvenOptions);
+     procedure ReadHero(AOptions: THeroOptions);
+     procedure ReadMonster(AOptions: TMonsterOptions);
+     procedure ReadSeerHut(AOptions: TSeerHutOptions);
+     procedure ReadWitchHut(AOptions:TWitchHutOptions);
+     procedure ReadScholar(AOptions: TScholarOptions);
+     procedure ReadGarrison(AOptions: TGarrisonOptions);
+     procedure ReadArtifact(AOptions: TArtifactOptions);
+     procedure ReadSpellScroll(AOptions: TSpellScrollOptions);
+     procedure ReadResource(AOptions: TResourceOptions);
+     procedure ReadTown(AOptions: TTownOptions);
+     procedure ReadShrine(AOptions: TShrineOptions);
+     procedure ReadPandorasBox(AOptions: TPandorasOptions);
+     procedure ReadGrail(AOptions: TGrailOptions);
+     procedure ReadRandomDwelling(AOptions: TRandomDwellingOptions);
+     procedure ReadRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
+     procedure ReadRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
+     procedure ReadQuestGuard(AOptions: TQuestGuardOptions);
+     procedure ReadOwnedObject(AOptions: TOwnedObjectOptions);
+     procedure ReadHeroPlaseholder(AOptions: THeroPlaceholderOptions);
    public
      constructor Create(tm: TTerrainManager); override;
      function Read(AStream: TStream): TVCMIMap;
@@ -122,6 +142,33 @@ end;
 function TMapReaderH3m.IsNotROE: boolean;
 begin
   Result :=  FMapVersion <> MAP_VERSION_ROE;
+end;
+
+procedure TMapReaderH3m.MayBeReadGuards(AOptions: TGuardedObjectOptions);
+var
+  is_guard: Boolean;
+begin
+  is_guard := FSrc.ReadBoolean;
+  if is_guard then
+  begin
+    ReadCreatureSet(AOptions.Guards,7);
+  end;
+end;
+
+procedure TMapReaderH3m.MayBeReadGuardsWithMessage(
+  AOptions: TGuardedObjectOptions);
+var
+  is_guard_msg: Boolean;
+begin
+  is_guard_msg := FSrc.ReadBoolean;
+  if is_guard_msg then
+  begin
+    AOptions.GuardMessage := FSrc.ReadString;
+
+    MayBeReadGuards(AOptions);
+
+    FSrc.Skip(4); //junk
+  end;
 end;
 
 function TMapReaderH3m.Read(AStream: TStream): TVCMIMap;
@@ -228,8 +275,13 @@ begin
   //TODO: ReadAllowedSpells
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    FSrc.Skip(9);
+    SkipNotImpl(9);
   end;
+end;
+
+procedure TMapReaderH3m.ReadArtifact(AOptions: TArtifactOptions);
+begin
+  MayBeReadGuardsWithMessage(AOptions);
 end;
 
 procedure TMapReaderH3m.ReadArtifactsOfHero(obj: TMapObject);
@@ -282,20 +334,23 @@ begin
 
 end;
 
-procedure TMapReaderH3m.ReadCreatureSet(obj: TMapObject; nomber: Integer);
+procedure TMapReaderH3m.ReadCreatureSet(ACreatureSet: TCreatureSet;
+  nomber: Integer);
 var
   maxID,
-  bytesPerCre, creid,crecnt: Integer;
+  creid,crecnt: Integer;
   version: Boolean;
   i: Integer;
+  info: TCreatureInfo;
 begin
-  //todo:ReadCreatureSet
-
   version := IsNotROE;
 
-//maxID := ifthen(version,$ffff, $ff);
+  maxID := ifthen(version,$ffff, $ff);
+
+  ACreatureSet.Clear;
 
   with FSrc do begin
+    info := ACreatureSet.Add;
     for i := 0 to nomber - 1 do
     begin
       if version then
@@ -306,8 +361,13 @@ begin
         creid := ReadByte;
       end;
       crecnt := ReadWord;
+      if creid = maxID then
+        Continue;// empty slot, leave with default values
 
-      //if creid = maxID then Continue;
+      info.CreID := creid;
+      info.CreCount := crecnt;
+
+      //todo: random count
 
     end;
   end;
@@ -398,7 +458,20 @@ begin
 
 end;
 
-procedure TMapReaderH3m.ReadHero(obj: TMapObject);
+procedure TMapReaderH3m.ReadGarrison(AOptions: TGarrisonOptions);
+begin
+    SkipNotImpl(4);
+    ReadCreatureSet(nil,7);
+    if IsNotROE then SkipNotImpl(1);
+    FSrc.Skip(8);//junk
+end;
+
+procedure TMapReaderH3m.ReadGrail(AOptions: TGrailOptions);
+begin
+  SkipNotImpl(4);
+end;
+
+procedure TMapReaderH3m.ReadHero(AOptions: THeroOptions);
 var
   ident: DWord;
   owner: Byte;
@@ -459,11 +532,11 @@ begin
 
     if ReadBoolean then
     begin
-      ReadCreatureSet(obj,7);
+      ReadCreatureSet(nil,7);
     end;
 
     formation := ReadByte;
-    ReadArtifactsOfHero(obj);
+    ReadArtifactsOfHero(nil);
     patrol := ReadByte;
 
     if IsNotROE then
@@ -500,12 +573,26 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadLocalEvent(obj: TMapObject);
-
+procedure TMapReaderH3m.ReadHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+var
+  htid: Byte;
 begin
-  //todo: ReadLocalEvent
 
-  ReadPandorasBox(obj);
+  with FSrc do
+  begin
+    ReadOwner(AOptions,TOwnerSize.size1);
+    htid := ReadByte;
+    AOptions.TypeID := htid;
+    if htid = $ff then
+    begin
+      AOptions.Power := ReadByte;
+    end;
+  end;
+end;
+
+procedure TMapReaderH3m.ReadLocalEvent(AOptions: TLocalEvenOptions);
+begin
+  ReadPandorasBox(AOptions);
 
   with FSrc do
   begin
@@ -517,10 +604,11 @@ begin
 
     skip(4); //junk
   end;
-
 end;
 
-procedure TMapReaderH3m.ReadMonster(obj: TMapObject);
+
+
+procedure TMapReaderH3m.ReadMonster(AOptions: TMonsterOptions);
 var
   msg: String;
   ident: DWord;
@@ -560,188 +648,32 @@ var
   cnt: Integer;
   i: Integer;
   o: TMapObject;
-  defnum: DWord;
-
-  id: TObj;
-  subid: TCustomID;
-  temp: String;
-  htid: Byte;
-  j: Integer;
-  ttt: DWord;
 begin
   cnt := FSrc.ReadDWord;
 
   for i := 0 to cnt - 1 do
   begin
-    o := TMapObject(FMap.Objects.Add);
-    o.X := FSrc.ReadByte;
-    o.Y := FSrc.ReadByte;
-    o.L := FSrc.ReadByte;
+    try
+      o := TMapObject(FMap.Objects.Add);
+      o.X := FSrc.ReadByte;
+      o.Y := FSrc.ReadByte;
+      o.L := FSrc.ReadByte;
 
-    o.TemplateID := FSrc.ReadDWord;
+      o.TemplateID := FSrc.ReadDWord;
 
-    FSrc.Skip(5); //junk
+      FSrc.Skip(5); //junk
 
-    id := TObj(o.Template.Id);
-    subid := o.Template.SubId;
+      o.Options.ReadBy(Self);
+    except
+      on e:Exception do
+      begin
 
-    case id of
-      EVENT: begin
-        ReadLocalEvent(o);
+        raise;
       end;
-
-      HERO,RANDOM_HERO,PRISON:begin
-         ReadHero(o);
-      end;
-
-      MONSTER,
-      RANDOM_MONSTER,
-      RANDOM_MONSTER_L1,
-      RANDOM_MONSTER_L2,
-      RANDOM_MONSTER_L3,
-      RANDOM_MONSTER_L4,
-      RANDOM_MONSTER_L5,
-      RANDOM_MONSTER_L6,
-      RANDOM_MONSTER_L7:begin
-        ReadMonster(o);
-      end;
-
-      OCEAN_BOTTLE,SIGN:begin
-        temp := FSrc.ReadString;
-        FSrc.Skip(4);//junk
-      end;
-      SEER_HUT:begin
-        ReadSeerHut(o);
-      end;
-
-      WITCH_HUT:begin
-        if IsNotROE then
-        begin
-          SkipNotImpl(4);
-        end
-        else begin
-
-        end;
-      end;
-
-      SCHOLAR:begin
-        SkipNotImpl(2);
-        FSrc.Skip(6); //junk
-      end;
-
-      GARRISON,GARRISON2:begin
-        SkipNotImpl(4);
-        ReadCreatureSet(o,7);
-        if IsNotROE then SkipNotImpl(1);
-        FSrc.Skip(8);//junk
-      end;
-
-      ARTIFACT,RANDOM_ART,
-      RANDOM_TREASURE_ART,
-      RANDOM_MINOR_ART,
-      RANDOM_MAJOR_ART,
-      RANDOM_RELIC_ART,
-      SPELL_SCROLL:begin
-        with FSrc do
-        begin
-          if ReadBoolean then
-          begin
-            temp := ReadString;
-            if ReadBoolean then
-            begin
-               ReadCreatureSet(o,7);
-            end;
-            skip(4);//junk
-          end;
-
-          case id of
-            SPELL_SCROLL: SkipNotImpl(4) ;
-          end;
-        end;
-      end;
-      RESOURCE,
-      RANDOM_RESOURCE:begin
-        with FSrc do
-        begin
-          if ReadBoolean then
-          begin
-            temp := ReadString;
-            if ReadBoolean then
-            begin
-               ReadCreatureSet(o,7);
-            end;
-            skip(4);//junk
-          end;
-          SkipNotImpl(4);
-          Skip(4);//junk
-
-        end;
-      end;
-
-      RANDOM_TOWN,TOWN:begin
-        ReadTown(o);
-      end;
-
-      MINE,ABANDONED_MINE:
-        SkipNotImpl(4);
-
-      CREATURE_GENERATOR1,
-      CREATURE_GENERATOR2,
-      CREATURE_GENERATOR3,
-      CREATURE_GENERATOR4:SkipNotImpl(4);
-
-      SHRINE_OF_MAGIC_GESTURE,
-      SHRINE_OF_MAGIC_INCANTATION,
-      SHRINE_OF_MAGIC_THOUGHT:begin
-        SkipNotImpl(1);
-        fsrc.skip(3); //junk
-      end;
-
-      PANDORAS_BOX:
-        ReadPandorasBox(o);
-      GRAIL:
-        SkipNotImpl(4);
-
-      RANDOM_DWELLING,RANDOM_DWELLING_LVL,RANDOM_DWELLING_FACTION:begin
-        SkipNotImpl(4); //owner
-
-        case id of
-          RANDOM_DWELLING,RANDOM_DWELLING_LVL:begin
-            ttt := FSrc.ReadDWord;
-            if ttt <> 0 then
-              SkipNotImpl(2);
-          end;
-        end;
-
-        case id of
-          RANDOM_DWELLING,RANDOM_DWELLING_FACTION: SkipNotImpl(2) ;
-        end;
-      end;
-
-      QUEST_GUARD:ReadQuest(o, j);
-
-      SHIPYARD:SkipNotImpl(4); //owner
-
-      HERO_PLACEHOLDER:begin
-
-        with FSrc do
-        begin
-          Skip(1); //unknown
-          htid := ReadByte;
-          if htid = $ff then
-          begin
-            SkipNotImpl(1);
-          end
-          else begin
-
-          end;
-        end;
-      end;
-
-      LIGHTHOUSE:SkipNotImpl(4);
 
 
     end;
+
   end;
 end;
 
@@ -789,15 +721,29 @@ begin
     end;
     obj.Mask.Insert(0,s);
   end;
-
-
-
 end;
 
-procedure TMapReaderH3m.ReadPandorasBox(obj: TMapObject);
+procedure TMapReaderH3m.ReadOwnedObject(AOptions: TOwnedObjectOptions);
+begin
+  ReadOwner(AOptions);
+end;
+
+procedure TMapReaderH3m.ReadOwner(AOptions: TObjectOptions; size: TOwnerSize);
 var
-  is_guard: Boolean;
-  is_guard_msg: Boolean;
+  tmp: Byte;
+begin
+  tmp := FSrc.ReadByte;
+  case size of
+    TOwnerSize.size4:FSrc.Skip(3);
+  end;
+
+  Assert(AOptions.MayBeOwned, 'Attempt to read owner of not ownable object');
+
+  AOptions.Owner := TPlayer(tmp);
+end;
+
+procedure TMapReaderH3m.ReadPandorasBox(AOptions: TPandorasOptions);
+var
   i: Integer;
   exper: DWord;
   mana: DWord;
@@ -814,19 +760,7 @@ var
 begin
   with FSrc do
   begin
-    is_guard_msg := ReadBoolean;
-    if is_guard_msg then
-    begin
-      mess := ReadString;
-
-      is_guard := ReadBoolean;
-      if is_guard then
-      begin
-        ReadCreatureSet(obj,7);
-
-      end;
-      Skip(4); //junk
-    end;
+    MayBeReadGuardsWithMessage(AOptions);
 
     exper := ReadDWord;
     mana:=ReadDWord;
@@ -873,7 +807,7 @@ begin
 
     cnt := ReadByte;
 
-    ReadCreatureSet(obj,cnt); //TODO: real creature set
+    ReadCreatureSet(AOptions.Creatures,cnt);
 
     Skip(8);
   end;
@@ -1109,6 +1043,72 @@ begin
   end;
 end;
 
+procedure TMapReaderH3m.ReadQuestGuard(AOptions: TQuestGuardOptions);
+var
+  j: integer;
+begin
+  ReadQuest(nil, j);
+end;
+
+procedure TMapReaderH3m.ReadRandomDwelling(AOptions: TRandomDwellingOptions);
+var
+  ttt: DWord;
+begin
+  ReadOwner(AOptions);
+
+  ttt := FSrc.ReadDWord;
+  if ttt <> 0 then
+    SkipNotImpl(2); //castle1, castle2
+
+  SkipNotImpl(2) ;
+  AOptions.MinLevel := FSrc.ReadByte;
+  AOptions.MaxLevel := FSrc.ReadByte;
+
+end;
+
+procedure TMapReaderH3m.ReadRandomDwellingLVL(
+  AOptions: TRandomDwellingLVLOptions);
+var
+  ttt: DWord;
+begin
+  ReadOwner(AOptions);
+
+  ttt := FSrc.ReadDWord;
+  if ttt <> 0 then
+    SkipNotImpl(2); //castle1, castle2
+
+end;
+
+procedure TMapReaderH3m.ReadRandomDwellingTown(
+  AOptions: TRandomDwellingTownOptions);
+begin
+  ReadOwner(AOptions);
+
+  AOptions.MinLevel := FSrc.ReadByte;
+  AOptions.MaxLevel := FSrc.ReadByte;
+end;
+
+procedure TMapReaderH3m.ReadResource(AOptions: TResourceOptions);
+var
+  temp: String;
+begin
+  with FSrc do
+  begin
+    if ReadBoolean then
+    begin
+      temp := ReadString;
+      if ReadBoolean then
+      begin
+         ReadCreatureSet(nil,7);
+      end;
+      skip(4);//junk
+    end;
+    SkipNotImpl(4);
+    Skip(4);//junk
+
+  end;
+end;
+
 procedure TMapReaderH3m.ReadRumors;
 var
   cnt: DWord;
@@ -1125,7 +1125,13 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadSeerHut(obj: TMapObject);
+procedure TMapReaderH3m.ReadScholar(AOptions: TScholarOptions);
+begin
+  SkipNotImpl(2);
+  FSrc.Skip(6); //junk
+end;
+
+procedure TMapReaderH3m.ReadSeerHut(AOptions: TSeerHutOptions);
 var
     mis_type: Integer;
     reward_type: Byte;
@@ -1134,7 +1140,7 @@ begin
   with FSrc do begin
     if IsNotROE then
     begin
-      ReadQuest(obj,mis_type);
+      ReadQuest(nil,mis_type);
     end
     else begin
       aid := FSrc.ReadByte;
@@ -1168,6 +1174,25 @@ begin
       skip(3); // missionType==255 + junk
   end;
 
+end;
+
+procedure TMapReaderH3m.ReadShrine(AOptions: TShrineOptions);
+begin
+  SkipNotImpl(1);
+  fsrc.skip(3); //junk
+end;
+
+procedure TMapReaderH3m.ReadSignBottle(AOptions: TSignBottleOptions);
+begin
+  AOptions.Text := FSrc.ReadString;
+  FSrc.Skip(4);//junk
+end;
+
+procedure TMapReaderH3m.ReadSpellScroll(AOptions: TSpellScrollOptions);
+begin
+  ReadArtifact(AOptions);
+
+  SkipNotImpl(4) ;
 end;
 
 procedure TMapReaderH3m.ReadSVLC;
@@ -1250,7 +1275,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadTown(obj: TMapObject);
+procedure TMapReaderH3m.ReadTown(AOptions: TTownOptions);
 var
   temp: String;
   cnt: DWord;
@@ -1271,7 +1296,7 @@ begin
 
     if ReadBoolean then
     begin
-      ReadCreatureSet(obj,7);
+      ReadCreatureSet(nil,7);
     end;
 
     SkipNotImpl(1); //formation
@@ -1315,6 +1340,17 @@ begin
     if FMapVersion > MAP_VERSION_AB then SkipNotImpl(1);
     Skip(3); //junk
   end;
+end;
+
+procedure TMapReaderH3m.ReadWitchHut(AOptions: TWitchHutOptions);
+begin
+          if IsNotROE then
+        begin
+          SkipNotImpl(4);
+        end
+        else begin
+
+        end;
 end;
 
 procedure TMapReaderH3m.SkipNotImpl(count: Integer);

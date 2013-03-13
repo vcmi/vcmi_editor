@@ -57,7 +57,7 @@ begin
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_RECTANGLE, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, @(ARawImage));
-  glDisable(GL_TEXTURE_RECTANGLE)
+  glDisable(GL_TEXTURE_RECTANGLE);
 end;
 
 procedure BindUncompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);

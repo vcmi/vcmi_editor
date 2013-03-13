@@ -91,6 +91,12 @@ begin
 
   PropType := PropertyInfo^.PropType;
 
+  if not IsStoredProp(AObject,PropertyInfo) then
+  begin
+    Skip := True;
+    Exit;
+  end;
+
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkWChar: begin
       Value := GetOrdProp(AObject, PropertyInfo);

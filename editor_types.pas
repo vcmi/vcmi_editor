@@ -40,7 +40,7 @@ type
 
   TDifficulty = (Easy = 0, Normal, Hard, Expert, Impossible);
 
-  {$pop}
+{$pop}
   TDefFrame = UInt8;
 
   TFactionID = type integer;
@@ -53,7 +53,7 @@ type
   TCustomID = type integer;
 const
   ID_RANDOM = -1;
-  FACTION_RANDOM = TFactionID(-1);
+  FACTION_RANDOM = TFactionID(ID_RANDOM);
 
 const
   MASK_NOT_VISIBLE = '0';

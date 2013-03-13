@@ -37,6 +37,8 @@ type
     function GetItems(const Idx: Integer): TItem;
     procedure SetItems(const Idx: Integer; AValue: TItem);
   public
+    type
+      TItemType = Titem;
     constructor Create;
 
     function Add: TItem;

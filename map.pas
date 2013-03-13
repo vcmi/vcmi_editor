@@ -24,9 +24,8 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, LCLIntf,
-  gvector, gpriorityqueue,
-  editor_types, terrain, editor_classes, editor_graphics, objects;
+  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types,
+  terrain, editor_classes, editor_graphics, objects, object_options;
 
 const
   MAP_DEFAULT_SIZE = 512;
@@ -211,7 +210,6 @@ type
 
   { TMapObjectTemplates }
 
-
   TMapObjectTemplates = class (specialize TGArrayCollection<TMapObjectTemplate>)
   private
     FMap: TVCMIMap;
@@ -220,6 +218,7 @@ type
   end;
 
   { TMapTile }
+
   TMapTile = class
   strict private
     FFlags: UInt8;
@@ -252,11 +251,13 @@ type
     property Flags:UInt8 read FFlags write SetFlags default 0;
   end;
 
+  { TMapObject }
 
   TMapObject = class (TCollectionItem)
   strict private
     FLastFrame: Integer;
     FLastTick: DWord;
+    FOptions: TObjectOptions;
 
     FTemplate: TMapObjectTemplate;
     FL: integer;
@@ -270,6 +271,7 @@ type
     procedure SetY(AValue: integer);
   public
     constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
     property Template: TMapObjectTemplate read FTemplate;
     procedure RenderStatic(); inline;
     procedure RenderAnim(); inline;
@@ -277,6 +279,7 @@ type
     procedure RenderSelectionRect; inline;
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
+
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -284,6 +287,7 @@ type
 
     property TemplateID: integer read FTemplateID write SetTemplateID;
 
+    property Options: TObjectOptions read FOptions;
   end;
 
   { TObjPriorityCompare }
@@ -382,7 +386,7 @@ type
     property HeroLevelLimit: Integer read FHeroLevelLimit write SetHeroLevelLimit;
 
     property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
-
+  public //manual streamimg
     property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
   end;
@@ -416,6 +420,12 @@ constructor TMapObject.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FLastFrame := 0;
+end;
+
+destructor TMapObject.Destroy;
+begin
+  FreeAndNil(FOptions);
+  inherited Destroy;
 end;
 
 procedure TMapObject.Render(Frame: integer);
@@ -463,9 +473,13 @@ procedure TMapObject.SetTemplateID(AValue: integer);
 begin
   if FTemplateID = AValue then Exit;
 
-  FTemplate := TMapObjectTemplate((Collection as TMapObjects).Map.FTemplates.Items[AValue]);
+  FTemplate := (Collection as TMapObjects).Map.FTemplates.Items[AValue];
 
   FTemplateID := AValue;
+
+  FreeAndNil(FOptions);
+
+  FOptions := object_options.CreateByID(FTemplate.Id,FTemplate.SubId);
 end;
 
 procedure TMapObject.SetX(AValue: integer);
