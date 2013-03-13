@@ -35,7 +35,7 @@ type
   { TObjectOptions }
   TObjectOptions      = class;
   TObjectOptionsClass = class of TObjectOptions;
-  IObjectOptionReader = interface;
+  IObjectOptionVisitor = interface;
 
   TObjectOptions = class
   private
@@ -46,7 +46,7 @@ type
 
     class function MayBeOwned: Boolean; virtual;
 
-    procedure ReadBy(reader: IObjectOptionReader); virtual;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); virtual;
 
   published
     property Owner: TPlayer read FOwner write SetOwner stored MayBeOwned default TPlayer.none;
@@ -103,7 +103,7 @@ type
   TOwnedObjectOptions = class (TObjectOptions)
   public
     class function MayBeOwned: Boolean; override;
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TSignBottleOptions }
@@ -113,7 +113,7 @@ type
     FText: string;
     procedure SetText(AValue: string);
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   published
     property Text: string read FText write SetText;
   end;
@@ -126,7 +126,7 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   published
     property Creatures: TCreatureSet read FCreatures;
   end;
@@ -135,91 +135,91 @@ type
 
   TLocalEvenOptions = class(TPandorasOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { THeroOptions }
 
   THeroOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TMonsterOptions }
 
   TMonsterOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TSeerHutOptions }
 
   TSeerHutOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TWitchHutOptions }
 
   TWitchHutOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TScholarOptions }
 
   TScholarOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TGarrisonOptions }
 
   TGarrisonOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TArtifactOptions }
 
   TArtifactOptions = class(TGuardedObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TSpellScrollOptions }
 
   TSpellScrollOptions = class(TArtifactOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TResourceOptions }
 
   TResourceOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TTownOptions }
 
   TTownOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TShrineOptions }
 
   TShrineOptions = class(TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TGrailOptions }
 
   TGrailOptions = class (TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TBaseRandomDwellingOptions }
@@ -239,7 +239,7 @@ type
     procedure SetMinLevel(AValue: UInt8);
   public
 
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   published
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 0;
@@ -249,7 +249,7 @@ type
 
   TRandomDwellingLVLOptions = class (TBaseRandomDwellingOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { TRandomDwellingTownOptions }
@@ -261,7 +261,7 @@ type
     procedure SetMaxLevel(AValue: UInt8);
     procedure SetMinLevel(AValue: UInt8);
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   published
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 0;
@@ -271,7 +271,7 @@ type
 
   TQuestGuardOptions = class (TObjectOptions)
   public
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   end;
 
   { THeroPlaceholderOptions }
@@ -284,38 +284,38 @@ type
     procedure SetTypeID(AValue: TCustomID);
   public
     class function MayBeOwned: Boolean; override;
-    procedure ReadBy(reader: IObjectOptionReader); override;
+    procedure ApplyVisitor(AVisitor: IObjectOptionVisitor); override;
   published
     property TypeID: TCustomID read FTypeID write SetTypeID default -1;
     property Power: UInt8 read FPower write SetPower default 0;
   end;
 
 
-  { IObjectOptionReader }
+  { IObjectOptionVisitor }
 
-  IObjectOptionReader = interface
-    procedure ReadLocalEvent(AOptions: TLocalEvenOptions);
-    procedure ReadSignBottle(AOptions: TSignBottleOptions);
-    procedure ReadHero(AOptions: THeroOptions);
-    procedure ReadMonster(AOptions: TMonsterOptions);
-    procedure ReadSeerHut(AOptions: TSeerHutOptions);
-    procedure ReadWitchHut(AOptions: TWitchHutOptions);
-    procedure ReadScholar(AOptions: TScholarOptions);
-    procedure ReadGarrison(AOptions: TGarrisonOptions);
-    procedure ReadArtifact(AOptions: TArtifactOptions);
-    procedure ReadSpellScroll(AOptions: TSpellScrollOptions);
-    procedure ReadResource(AOptions: TResourceOptions);
-    procedure ReadTown(AOptions: TTownOptions);
-    procedure ReadShrine(AOptions: TShrineOptions);
-    procedure ReadPandorasBox(AOptions: TPandorasOptions);
-    procedure ReadGrail(AOptions: TGrailOptions);
-    procedure ReadRandomDwelling(AOptions: TRandomDwellingOptions);
-    procedure ReadRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
-    procedure ReadRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
-    procedure ReadQuestGuard(AOptions:TQuestGuardOptions);
-    procedure ReadHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+  IObjectOptionVisitor = interface
+    procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
+    procedure VisitSignBottle(AOptions: TSignBottleOptions);
+    procedure VisitHero(AOptions: THeroOptions);
+    procedure VisitMonster(AOptions: TMonsterOptions);
+    procedure VisitSeerHut(AOptions: TSeerHutOptions);
+    procedure VisitWitchHut(AOptions: TWitchHutOptions);
+    procedure VisitScholar(AOptions: TScholarOptions);
+    procedure VisitGarrison(AOptions: TGarrisonOptions);
+    procedure VisitArtifact(AOptions: TArtifactOptions);
+    procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
+    procedure VisitResource(AOptions: TResourceOptions);
+    procedure VisitTown(AOptions: TTownOptions);
+    procedure VisitShrine(AOptions: TShrineOptions);
+    procedure VisitPandorasBox(AOptions: TPandorasOptions);
+    procedure VisitGrail(AOptions: TGrailOptions);
+    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);
+    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
+    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
+    procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
+    procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 
-    procedure ReadOwnedObject(AOptions: TOwnedObjectOptions);
+    procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
 function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions;
@@ -432,9 +432,9 @@ begin
   Result := True;
 end;
 
-procedure THeroPlaceholderOptions.ReadBy(reader: IObjectOptionReader);
+procedure THeroPlaceholderOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadHeroPlaseholder(Self);
+  AVisitor.VisitHeroPlaseholder(Self);
 end;
 
 procedure THeroPlaceholderOptions.SetPower(AValue: UInt8);
@@ -456,16 +456,16 @@ begin
   result := True;
 end;
 
-procedure TOwnedObjectOptions.ReadBy(reader: IObjectOptionReader);
+procedure TOwnedObjectOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadOwnedObject(Self);
+  AVisitor.VisitOwnedObject(Self);
 end;
 
 { TQuestGuardOptions }
 
-procedure TQuestGuardOptions.ReadBy(reader: IObjectOptionReader);
+procedure TQuestGuardOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadQuestGuard(Self);
+  AVisitor.VisitQuestGuard(Self);
 end;
 
 { TBaseRandomDwellingOptions }
@@ -537,9 +537,9 @@ end;
 
 { TRandomDwellingOptions }
 
-procedure TRandomDwellingOptions.ReadBy(reader: IObjectOptionReader);
+procedure TRandomDwellingOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadRandomDwelling(Self);
+  AVisitor.VisitRandomDwelling(Self);
 end;
 
 procedure TRandomDwellingOptions.SetMaxLevel(AValue: UInt8);
@@ -556,16 +556,16 @@ end;
 
 { TRandomDwellingLVLOptions }
 
-procedure TRandomDwellingLVLOptions.ReadBy(reader: IObjectOptionReader);
+procedure TRandomDwellingLVLOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadRandomDwellingLVL(Self);
+  AVisitor.VisitRandomDwellingLVL(Self);
 end;
 
 { TRandomDwellingTownOptions }
 
-procedure TRandomDwellingTownOptions.ReadBy(reader: IObjectOptionReader);
+procedure TRandomDwellingTownOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadRandomDwellingTown(Self);
+  AVisitor.VisitRandomDwellingTown(Self);
 end;
 
 procedure TRandomDwellingTownOptions.SetMaxLevel(AValue: UInt8);
@@ -582,9 +582,9 @@ end;
 
 { TGrailOptions }
 
-procedure TGrailOptions.ReadBy(reader: IObjectOptionReader);
+procedure TGrailOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadGrail(Self);
+  AVisitor.VisitGrail(Self);
 end;
 
 { TPandorasOptions }
@@ -601,100 +601,100 @@ begin
   inherited Destroy;
 end;
 
-procedure TPandorasOptions.ReadBy(reader: IObjectOptionReader);
+procedure TPandorasOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadPandorasBox(Self);
+  AVisitor.VisitPandorasBox(Self);
 end;
 
 { TShrineOptions }
 
-procedure TShrineOptions.ReadBy(reader: IObjectOptionReader);
+procedure TShrineOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadShrine(Self);
+  AVisitor.VisitShrine(Self);
 end;
 
 { TTownOptions }
 
-procedure TTownOptions.ReadBy(reader: IObjectOptionReader);
+procedure TTownOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadTown(Self);
+  AVisitor.VisitTown(Self);
 end;
 
 { TResourceOptions }
 
-procedure TResourceOptions.ReadBy(reader: IObjectOptionReader);
+procedure TResourceOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadResource(Self);
+  AVisitor.VisitResource(Self);
 end;
 
 { TSpellScrollOptions }
 
-procedure TSpellScrollOptions.ReadBy(reader: IObjectOptionReader);
+procedure TSpellScrollOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadSpellScroll(Self);
+  AVisitor.VisitSpellScroll(Self);
 end;
 
 { TArtifactOptions }
 
-procedure TArtifactOptions.ReadBy(reader: IObjectOptionReader);
+procedure TArtifactOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadArtifact(Self);
+  AVisitor.VisitArtifact(Self);
 end;
 
 { TGarrisonOptions }
 
-procedure TGarrisonOptions.ReadBy(reader: IObjectOptionReader);
+procedure TGarrisonOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadGarrison(Self);
+  AVisitor.VisitGarrison(Self);
 end;
 
 { TScholarOptions }
 
-procedure TScholarOptions.ReadBy(reader: IObjectOptionReader);
+procedure TScholarOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadScholar(Self);
+  AVisitor.VisitScholar(Self);
 end;
 
 { TWitchHutOptions }
 
-procedure TWitchHutOptions.ReadBy(reader: IObjectOptionReader);
+procedure TWitchHutOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadWitchHut(Self);
+  AVisitor.VisitWitchHut(Self);
 end;
 
 { TSeerHutOptions }
 
-procedure TSeerHutOptions.ReadBy(reader: IObjectOptionReader);
+procedure TSeerHutOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadSeerHut(self);
+  AVisitor.VisitSeerHut(self);
 end;
 
 { TMonsterOptions }
 
-procedure TMonsterOptions.ReadBy(reader: IObjectOptionReader);
+procedure TMonsterOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadMonster(Self);
+  AVisitor.VisitMonster(Self);
 end;
 
 { THeroOptions }
 
-procedure THeroOptions.ReadBy(reader: IObjectOptionReader);
+procedure THeroOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadHero(Self);
+  AVisitor.VisitHero(Self);
 end;
 
 { TLocalEvenOptions }
 
-procedure TLocalEvenOptions.ReadBy(reader: IObjectOptionReader);
+procedure TLocalEvenOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadLocalEvent(Self);
+  AVisitor.VisitLocalEvent(Self);
 end;
 
 { TSignBottleOptions }
 
-procedure TSignBottleOptions.ReadBy(reader: IObjectOptionReader);
+procedure TSignBottleOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
-  reader.ReadSignBottle(Self);
+  AVisitor.VisitSignBottle(Self);
 end;
 
 procedure TSignBottleOptions.SetText(AValue: string);
@@ -718,7 +718,7 @@ begin
   Result := False;
 end;
 
-procedure TObjectOptions.ReadBy(reader: IObjectOptionReader);
+procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionVisitor);
 begin
   //do nothing here
 end;

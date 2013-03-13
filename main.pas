@@ -38,6 +38,8 @@ type
   TfMain = class(TForm)
     actHeroes: TAction;
     actArtifacts: TAction;
+    actDelete: TAction;
+    actProperties: TAction;
     actRivers: TAction;
     actRoads: TAction;
     actMonsters: TAction;
@@ -102,6 +104,8 @@ type
     ToolButton15: TToolButton;
     ToolButton16: TToolButton;
     ToolButton17: TToolButton;
+    ToolButton18: TToolButton;
+    ToolButton19: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
@@ -125,10 +129,13 @@ type
     tsTerrain: TTabSheet;
     vScrollBar: TScrollBar;
     procedure actCreateMapExecute(Sender: TObject);
+    procedure actDeleteExecute(Sender: TObject);
+    procedure actDeleteUpdate(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
+    procedure actPropertiesUpdate(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
     procedure actSaveMapAsExecute(Sender: TObject);
@@ -319,6 +326,17 @@ begin
 
 end;
 
+procedure TfMain.actDeleteExecute(Sender: TObject);
+begin
+  Fmap.Objects.Delete(FSelectedObject.Index);
+  FSelectedObject := nil;
+end;
+
+procedure TfMain.actDeleteUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FSelectedObject);
+end;
+
 procedure TfMain.actMapOptionsExecute(Sender: TObject);
 var
   f: TMapOptionsForm;
@@ -350,6 +368,11 @@ begin
     LoadMap(OpenMapDialog.FileName);
 
   end;
+end;
+
+procedure TfMain.actPropertiesUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FSelectedObject);
 end;
 
 procedure TfMain.actRedoExecute(Sender: TObject);
@@ -701,15 +724,6 @@ begin
     InvalidateMapContent;
     Key := VK_UNKNOWN;
     Exit;
-  end;
-
-  case Key of
-    VK_DELETE:begin
-      Fmap.Objects.Delete(FSelectedObject.Index);
-      FSelectedObject := nil;
-      Key := VK_UNKNOWN;
-      Exit;
-    end ;
   end;
 
 end;

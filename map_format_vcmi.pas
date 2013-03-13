@@ -115,17 +115,19 @@ procedure TMapWriterVCMI.Write(AStream: TStream; AMap: TVCMIMap);
 var
   json_text: string;
   map_o:     TJSONObject;
-  o: TJSONObject;
+  //o: TJSONObject;
+  d: TJSONData;
 begin
   map_o := FStreamer.ObjectToJSON(AMap);
   try
     //todo: use stored modifier
-    o := FStreamer.ObjectToJSON(AMap.Templates);
 
-    map_o.Objects['templates'] := o;
+    d := FStreamer.StreamCollection(AMap.Templates);
 
-    o := FStreamer.ObjectToJSON(AMap.Objects);
-    map_o.Objects['objects'] := o;
+    map_o.Add('templates', d);
+
+    d := FStreamer.StreamCollection(AMap.Objects);
+    map_o.Add('objects',d);
 
     StreamTiles(map_o, AMap);
 
