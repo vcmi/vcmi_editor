@@ -1,0 +1,60 @@
+object EditObjectOptions: TEditObjectOptions
+  Left = 291
+  Height = 369
+  Top = 165
+  Width = 502
+  Caption = 'EditObjectOptions'
+  ClientHeight = 369
+  ClientWidth = 502
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 300
+  LCLVersion = '1.0.7.0'
+  object pcMain: TPageControl
+    Left = 0
+    Height = 329
+    Top = 0
+    Width = 502
+    ActivePage = tsCommon
+    Align = alClient
+    BorderSpacing.Bottom = 40
+    TabIndex = 0
+    TabOrder = 0
+    object tsCommon: TTabSheet
+      Caption = 'Common options'
+      ClientHeight = 303
+      ClientWidth = 494
+      object lbNothingToEdit: TLabel
+        Left = 12
+        Height = 14
+        Top = 10
+        Width = 172
+        Caption = 'Object have no editable properties.'
+        ParentColor = False
+      end
+    end
+    object tsWog: TTabSheet
+      Caption = 'tsWog'
+    end
+  end
+  object btOk: TButton
+    Left = 332
+    Height = 25
+    Top = 337
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Save'
+    ModalResult = 1
+    OnClick = btOkClick
+    TabOrder = 1
+  end
+  object btCancel: TButton
+    Left = 420
+    Height = 25
+    Top = 337
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 2
+  end
+end

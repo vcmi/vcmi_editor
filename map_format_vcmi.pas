@@ -60,6 +60,9 @@ type
 
 implementation
 
+uses
+  typinfo;
+
 
 { TMapWriterVCMI }
 
@@ -100,13 +103,25 @@ var
   col: Integer;
 
   o: TJSONObject;
+  //s: string;
+  tile: TMapTile;
 begin
   for row := 0 to AMap.Height - 1 do
   begin
     for col := 0 to AMap.Width - 1 do
     begin
-      o:= FStreamer.ObjectToJSON(AMap.GetTile(Level,Col,Row));
+      //todo: string encoding
+      //o:= FStreamer.ObjectToJSON(AMap.GetTile(Level,Col,Row));
+      //gr55Rcb14
+      tile := AMap.GetTile(Level,Col,Row);
+      //s := Format('%d %d %d %d %d %d %d', [
+      //  Integer(tile.TerType), tile.TerSubType,
+      //  tile.RiverType,tile.RiverDir,
+      //  tile.RoadType, tile.RoadDir,
+      //  tile.Flags]);
+      o := FStreamer.ObjectToJSON(tile);
       AJson.Add(o);
+      //AJson.Add(s);
     end;
   end;
 end;
@@ -167,16 +182,36 @@ procedure TMapReaderVCMI.DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
 var
   row: Integer;
   col: Integer;
+  idx: Integer;
 
   o: TJSONObject;
+  d: TJSONData;
+  tile: TMapTile;
 begin
   for row := 0 to AMap.Height - 1 do
   begin
     for col := 0 to AMap.Width - 1 do
     begin
-      o := AJson.Objects[row*AMap.Height+col];
+      //todo: new format
+      tile := AMap.GetTile(Level,col,row);
+      idx := row*AMap.Height+col;
+      d := AJson.Items[idx];
 
-      FDestreamer.JSONToObject(o,AMap.GetTile(Level,col,row));
+      case d.JSONType of
+        jtObject:begin
+          o := d as TJSONObject;
+          FDestreamer.JSONToObject(o,tile);
+        end;
+        jtString:begin
+
+        end;
+      else
+        raise Exception.CreateFmt('Invalid tile format at  L: %d, row: %d, col: %d',[Level, row, col]);
+      end;
+
+      //o := AJson.Objects[idx];
+
+
     end;
   end;
 end;

@@ -1,0 +1,26 @@
+inherited SignBottleFrame: TSignBottleFrame
+  Height = 155
+  Width = 201
+  ClientHeight = 155
+  ClientWidth = 201
+  Constraints.MinHeight = 150
+  Constraints.MinWidth = 200
+  DesignLeft = 288
+  DesignTop = 179
+  object edDescription: TMemo[0]
+    Left = 8
+    Height = 117
+    Top = 32
+    Width = 183
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabOrder = 0
+  end
+  object lbDescription: TLabel[1]
+    Left = 8
+    Height = 14
+    Top = 11
+    Width = 47
+    Caption = 'Message:'
+    ParentColor = False
+  end
+end

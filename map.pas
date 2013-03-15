@@ -28,7 +28,7 @@ uses
   terrain, editor_classes, editor_graphics, objects, object_options;
 
 const
-  MAP_DEFAULT_SIZE = 512;
+  MAP_DEFAULT_SIZE = 36;
   MAP_DEFAULT_LEVELS = 1;
 
   MAP_PLAYER_COUNT = 8;
@@ -264,11 +264,14 @@ type
     FTemplateID: integer;
     FX: integer;
     FY: integer;
+    function GetPlayer: TPlayer; inline;
     procedure Render(Frame:integer); inline;
     procedure SetL(AValue: integer);
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
+  protected
+    procedure Changed;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -315,7 +318,7 @@ type
 
   { TVCMIMap }
 
-  TVCMIMap = class (TPersistent)
+  TVCMIMap = class (TPersistent, IFPObserver)
   private
     FCurrentLevel: Integer;
     FDescription: string;
@@ -345,6 +348,10 @@ type
     procedure SetHeroLevelLimit(AValue: Integer);
     procedure SetName(AValue: string);
     procedure SetTerrainManager(AValue: TTerrainManager);
+  private
+    procedure AttachTo(AObserved: IFPObserved);
+    procedure FPOObservedChanged(ASender: TObject;
+      Operation: TFPObservedOperation; Data: Pointer);
   public
     //create with default params
     constructor Create(tm: TTerrainManager);
@@ -395,7 +402,7 @@ type
 
 implementation
 
-uses FileUtil, editor_str_consts, editor_gl;
+uses FileUtil, editor_str_consts;
 
 { TObjPriorityCompare }
 
@@ -410,6 +417,12 @@ end;
 
 { TMapObject }
 
+procedure TMapObject.Changed;
+begin
+  Collection.BeginUpdate;
+  Collection.EndUpdate;
+end;
+
 function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
 begin
   //TODO: use MASK
@@ -420,6 +433,7 @@ constructor TMapObject.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FLastFrame := 0;
+  FTemplateID := -1;
 end;
 
 destructor TMapObject.Destroy;
@@ -428,9 +442,21 @@ begin
   inherited Destroy;
 end;
 
+function TMapObject.GetPlayer: TPlayer;
+begin
+  if Options.MayBeOwned then
+  begin
+    Result := Options.Owner;
+  end
+  else
+  begin
+    Result := TPlayer.none;
+  end;
+end;
+
 procedure TMapObject.Render(Frame: integer);
 begin
-  Template.FDef.RenderO(Frame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+  Template.FDef.RenderO(Frame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE,GetPlayer);
 end;
 
 procedure TMapObject.RenderAnim;
@@ -467,6 +493,7 @@ begin
   //TODO: ensure on map
   if FL = AValue then Exit;
   FL := AValue;
+  Changed;
 end;
 
 procedure TMapObject.SetTemplateID(AValue: integer);
@@ -480,6 +507,7 @@ begin
   FreeAndNil(FOptions);
 
   FOptions := object_options.CreateByID(FTemplate.Id,FTemplate.SubId);
+  Changed;
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -487,6 +515,7 @@ begin
     //TODO: ensure on map
   if FX = AValue then Exit;
   FX := AValue;
+  Changed;
 end;
 
 procedure TMapObject.SetY(AValue: integer);
@@ -494,6 +523,7 @@ begin
   //TODO: ensure on map
   if FY = AValue then Exit;
   FY := AValue;
+  Changed;
 end;
 
 { TMapObjects }
@@ -819,6 +849,11 @@ end;
 
 { TVCMIMap }
 
+procedure TVCMIMap.AttachTo(AObserved: IFPObserved);
+begin
+  AObserved.FPOAttachObserver(Self);
+end;
+
 procedure TVCMIMap.Changed;
 begin
   FIsDirty := True;
@@ -855,7 +890,7 @@ begin
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
-
+  AttachTo(FObjects);
 
 end;
 
@@ -904,6 +939,17 @@ begin
 
   end;
 
+end;
+
+procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+  if (ASender = FObjects) then
+  begin
+    case Operation of
+      ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
+    end;
+  end;
 end;
 
 function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;

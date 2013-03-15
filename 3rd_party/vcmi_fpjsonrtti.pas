@@ -53,7 +53,7 @@ Type
   TJSONFiler = Class abstract (TComponent)
   Protected
     function PreparePropName(PropName:AnsiString): AnsiString;
-    procedure DoPreparePropName(var PropName: AnsiString); virtual;
+    procedure DoPreparePropName(var {%H-}PropName: AnsiString); virtual;
 
     Procedure Error(Const Msg : String);
     Procedure Error(Const FMT : String;  Args : Array of const);
@@ -75,7 +75,7 @@ Type
 
   protected
     function NeedToStreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo): boolean;
-    procedure DoBeforeStreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo; var Skip: boolean); virtual;
+    procedure DoBeforeStreamProperty(Const {%H-}AObject : TObject; {%H-}PropertyInfo : PPropInfo; var {%H-}Skip: boolean); virtual;
 
     function StreamClassProperty(Const AObject: TObject): TJSONData; virtual;
     Function StreamProperty(Const AObject : TObject; Const PropertyName : String) : TJSONData;
@@ -370,7 +370,6 @@ Var
   PI : PPropInfo;
   TI : PTypeInfo;
   I,J,S : Integer;
-  D : Double;
   A : TJSONArray;
   JS : TJSONStringType;
 begin
@@ -514,7 +513,6 @@ procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONData;
 Var
   I : integer;
   A : TJSONArray;
-  O : TJSONObject;
 
 begin
   If (JSON.JSONType=jtArray) then
@@ -950,11 +948,6 @@ begin
 end;
 
 Function TJSONStreamer.StreamClassProperty(Const AObject : TObject): TJSONData;
-
-Var
-  C : TCollection;
-  I : integer;
-
 begin
   Result:=Nil;
   If (AObject=Nil) then

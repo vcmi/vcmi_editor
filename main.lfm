@@ -1039,6 +1039,7 @@ object fMain: TfMain
       Align = alClient
       AutoResizeViewport = True
       OnClick = MapViewClick
+      OnDblClick = MapViewDblClick
       OnDragDrop = MapViewDragDrop
       OnDragOver = MapViewDragOver
       OnMouseDown = MapViewMouseDown
@@ -1457,7 +1458,7 @@ object fMain: TfMain
       Top = 2
       Action = actObjects
     end
-    object ToolButton10: TToolButton
+    object tbSelectPlayer: TToolButton
       Left = 307
       Top = 2
       Caption = 'Player'
@@ -1806,6 +1807,7 @@ object fMain: TfMain
     object actProperties: TAction
       Caption = 'Properties ...'
       ImageIndex = 5
+      OnExecute = actPropertiesExecute
       OnUpdate = actPropertiesUpdate
     end
     object actDelete: TAction

@@ -17,56 +17,47 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit new_map;
+unit signbottle_frame;
 
-{$mode objfpc}{$H+}
+{$I compilersetup.inc}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Spin, Map;
+  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, object_options,
+  base_object_options_frame;
 
 type
 
-  { TNewMapForm }
+  { TSignBottleFrame }
 
-  TNewMapForm = class(TForm)
-    btOk: TButton;
-    btCancel: TButton;
-    cbSquare: TCheckBox;
-    lbWidth: TLabel;
-    lbHeight: TLabel;
-    lbLevels: TLabel;
-    pnButtons: TPanel;
-    edWidth: TSpinEdit;
-    edHeight: TSpinEdit;
-    edLevels: TSpinEdit;
-  private
-    { private declarations }
+  TSignBottleFrame = class(TBaseObjectOptionsFrame)
+    edDescription: TMemo;
+    lbDescription: TLabel;
+  strict private
+    FObject: TSignBottleOptions;
   public
-    { public declarations }
-
-    function Execute(out AParams: TMapCreateParams): boolean;
+    procedure VisitSignBottle(AOptions: TSignBottleOptions); override;
+  public
+    procedure Commit;override;
   end;
-
 
 implementation
 
 {$R *.lfm}
 
-{ TNewMapForm }
+{ TSignBottleFrame }
 
-function TNewMapForm.Execute(out AParams: TMapCreateParams): boolean;
+procedure TSignBottleFrame.Commit;
 begin
-  Result := ShowModal = btOk.ModalResult;
+  FObject.Text := edDescription.Text;
+end;
 
-  if Result then
-  begin
-    AParams.Height := edHeight.Value;
-    AParams.Width := edWidth.Value;
-    AParams.Levels := edLevels.Value;
-  end;
+procedure TSignBottleFrame.VisitSignBottle(AOptions: TSignBottleOptions);
+begin
+  inherited VisitSignBottle(AOptions);
+  FObject := AOptions;
+  edDescription.Text := FObject.Text;
 end;
 
 end.

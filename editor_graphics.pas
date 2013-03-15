@@ -556,7 +556,6 @@ var
   var
     C: TRBGAColor;
     i: Integer;
-    entry: TFlagTexture;
     flag: TPlayerColor;
   begin
     c := palette[ColorIndex];
@@ -607,7 +606,7 @@ var
 
   procedure ReadType1;
   var
-    RWEntriesLoc: Int32;
+    //RWEntriesLoc: Int32;
     row: Integer;
     TotalRowLength : Int32;
     RowAdd: UInt32;

@@ -171,13 +171,6 @@ type
 
   TTerrainManager = class (TGraphicsCosnumer)
   private
-    type
-      TValidationResult = record
-        result: Boolean;
-        replacement: string;
-      end;
-
-  private
     FTerrainDefs: array [TTerrainType] of TDef;
 
     FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TDef;

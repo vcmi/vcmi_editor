@@ -46,7 +46,7 @@ type
 
    { TMapReaderH3m }
 
-   TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader, IObjectOptionVisitor)
+   TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader, IObjectOptionsVisitor)
    strict private
      FSrc: TStreamReadAdapter;
      FMapVersion: DWord;
@@ -87,7 +87,7 @@ type
      procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);
 
      procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4);
-   public //IObjectOptionVisitor
+   public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);
      procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
      procedure VisitHero(AOptions: THeroOptions);
@@ -467,7 +467,7 @@ end;
 
 procedure TMapReaderH3m.VisitGrail(AOptions: TGrailOptions);
 begin
-  SkipNotImpl(4);
+  AOptions.Radius := FSrc.ReadDWord;
 end;
 
 procedure TMapReaderH3m.VisitHero(AOptions: THeroOptions);

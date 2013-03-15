@@ -96,7 +96,7 @@ type
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
     ToolBar2: TToolBar;
-    ToolButton10: TToolButton;
+    tbSelectPlayer: TToolButton;
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
     ToolButton13: TToolButton;
@@ -135,6 +135,7 @@ type
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
+    procedure actPropertiesExecute(Sender: TObject);
     procedure actPropertiesUpdate(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
@@ -172,6 +173,7 @@ type
     procedure hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure MapViewClick(Sender: TObject);
+    procedure MapViewDblClick(Sender: TObject);
     procedure MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -294,7 +296,8 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
-  editor_str_consts, root_manager, map_options, new_map, Math, lazutf8classes;
+  editor_str_consts, root_manager, map_options, new_map, edit_object_options,
+  Math, lazutf8classes;
 
 {$R *.lfm}
 
@@ -367,6 +370,19 @@ begin
   begin
     LoadMap(OpenMapDialog.FileName);
 
+  end;
+end;
+
+procedure TfMain.actPropertiesExecute(Sender: TObject);
+var
+  edit_form: TEditObjectOptions;
+begin
+  Assert(Assigned(FSelectedObject), 'actPropertiesExecute: No object selected');
+  edit_form := TEditObjectOptions.Create(Self);
+  try
+    edit_form.EditObject(FSelectedObject);
+  finally
+    edit_form.Free;
   end;
 end;
 
@@ -572,7 +588,7 @@ begin
     case res of
       mrYes:begin
         actSaveMap.Execute;
-        Result := True;
+        Result := not FMap.IsDirty;
       end;
       mrCancel:Result := False ;
     end;
@@ -919,6 +935,8 @@ end;
 
 procedure TfMain.MapChanded;
 begin
+  FSelectedObject := nil;
+  FDraggingTemplate := nil;
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
@@ -998,7 +1016,33 @@ begin
   finally
     q.Free;
   end;
-  //todo: select object
+
+end;
+
+procedure TfMain.MapViewDblClick(Sender: TObject);
+var
+  q: TMapObjectQueue;
+begin
+  if Assigned(FSelectedObject) then
+  begin
+    if FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY) then
+    begin
+      actProperties.Execute;
+      Exit;
+    end;
+  end;
+
+  q := TMapObjectQueue.Create;
+  FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
+  try
+    if not q.IsEmpty then
+    begin
+      FSelectedObject := q.Top;
+      actProperties.Execute;
+    end;
+  finally
+    q.Free;
+  end;
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1022,10 +1066,12 @@ begin
   o.X := FMouseTileX;
   o.Y := FMouseTileY;
 
-  //TODO: set owner
+  if o.Options.MayBeOwned then
+  begin
+    o.Options.Owner := FCurrentPlayer;
+  end;
 
   //TODO: undo
-
   FSelectedObject := o;
 
   InvalidateMapContent;
@@ -1517,7 +1563,7 @@ begin
   FCurrentPlayer := APlayer;
 
   InvalidateObjects;
-  InvalidateMap;
+
 end;
 
 procedure TfMain.SetMapViewMouse(x, y: integer);

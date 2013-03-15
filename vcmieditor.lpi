@@ -9,6 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <AutoCreateForms Value="False"/>
       <Title Value="VCMI Editor"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -91,7 +92,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="31">
+    <Units Count="35">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -262,6 +263,38 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="object_options"/>
       </Unit30>
+      <Unit31>
+        <Filename Value="forms\edit_object_options.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EditObjectOptions"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="edit_object_options"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="forms\signbottle_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SignBottleFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="signbottle_frame"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="forms\base_object_options_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="BaseObjectOptionsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="base_object_options_frame"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="forms\grail_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="GrailFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="grail_frame"/>
+      </Unit34>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
