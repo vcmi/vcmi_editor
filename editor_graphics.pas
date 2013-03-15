@@ -522,6 +522,8 @@ begin
   begin
     LoadSprite(AStream, i);
   end;
+
+  BindTextures;
 end;
 
 procedure TDef.LoadSprite(AStream: TStream; const SpriteIndex: UInt8);

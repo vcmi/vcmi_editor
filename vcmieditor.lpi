@@ -92,7 +92,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="35">
+    <Units Count="37">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -295,6 +295,19 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="grail_frame"/>
       </Unit34>
+      <Unit35>
+        <Filename Value="forms\flaggable_object_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FlaggableFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="flaggable_object_frame"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="lists_manager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lists_manager"/>
+      </Unit36>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

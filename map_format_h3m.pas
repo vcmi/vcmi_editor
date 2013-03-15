@@ -1339,13 +1339,13 @@ end;
 
 procedure TMapReaderH3m.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-          if IsNotROE then
-        begin
-          SkipNotImpl(4);
-        end
-        else begin
+  if IsNotROE then
+  begin
+    SkipNotImpl(4);
+  end
+  else begin
 
-        end;
+  end;
 end;
 
 procedure TMapReaderH3m.SkipNotImpl(count: Integer);

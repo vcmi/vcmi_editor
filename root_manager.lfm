@@ -2,7 +2,7 @@ object RootManager: TRootManager
   OnCreate = DataModuleCreate
   OldCreateOrder = False
   Height = 173
-  HorizontalOffset = 781
-  VerticalOffset = 302
+  HorizontalOffset = 393
+  VerticalOffset = 206
   Width = 302
 end

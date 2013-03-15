@@ -58,7 +58,7 @@ type
     procedure VisitQuestGuard({%H-}AOptions:TQuestGuardOptions);virtual;
     procedure VisitHeroPlaseholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
 
-    procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);virtual;
+    procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
   end;
 
   TBaseObjectOptionsFrameClass = class of TBaseObjectOptionsFrame;

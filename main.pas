@@ -215,7 +215,7 @@ type
 
   private
 
-    FResourceManager: TFSManager;
+    FResourceManager: IResourceLoader;
 
     glInited: Boolean;
 
@@ -319,7 +319,7 @@ begin
     begin
       FreeAndNil(FMap);
 
-      FMap := TVCMIMap.Create(FTerrianManager,params);
+      FMap := TVCMIMap.Create(RootManager.TerrainManager,params);
       MapChanded;
     end;
 
@@ -629,48 +629,22 @@ begin
   pnHAxis.DoubleBuffered := True;
   pnVAxis.DoubleBuffered := True;
   pnMinimap.DoubleBuffered := True;
-  ObjectsView.SharedControl := MapView;
+  MapView.SharedControl := RootManager.SharedContext;
+  ObjectsView.SharedControl := RootManager.SharedContext;
 
   FCurrentTerrain := TTerrainType.dirt;
   FTerrainBrushMode := TBrushMode.fixed;
   FTerrainBrushSize := 1;
   pcToolBox.ActivePage := tsTerrain;
 
-  RootManager.ProgressForm.StageCount := ifthen(Paramcount > 0, 5,4);
-
-  //stage 1
-
-  RootManager.ProgressForm.NextStage('Scanning filsystem.');
-
-  FResourceManager := TFSManager.Create(self);
-  FResourceManager.ScanFilesystem;
-
-  FGraphicsManager := TGraphicsManager.Create(FResourceManager);
-
-  FTerrianManager := TTerrainManager.Create(FGraphicsManager);
-
-  if not MapView.MakeCurrent() then
-  begin
-    Application.Terminate;
-    raise Exception.Create('Unable to switch GL context');
-  end;
-
-  //stage 2
-  RootManager.ProgressForm.NextStage('Loading terrain graphics.');
-  FTerrianManager.LoadConfig;
-  FTerrianManager.LoadTerrainGraphics;
-
+  FResourceManager := RootManager.ResourceManager;
+  FTerrianManager := RootManager.TerrainManager;
+  FObjManager := RootManager.ObjectsManager;
+  FGraphicsManager := RootManager.GraphicsManger;
 
   FUndoManager := TMapUndoManger.Create;
 
-  //stage 3
-  RootManager.ProgressForm.NextStage('Loading objects.');
-  FObjManager := TObjectsManager.Create(FGraphicsManager);
-  FObjManager.LoadObjects(RootManager.ProgressForm);
-
   FMinimap := TMinimap.Create(Self);
-
-
 
   FMap := TVCMIMap.Create(FTerrianManager);
 
@@ -688,9 +662,6 @@ begin
       LoadMap(map_filename);
 
   end;
-
-
-  //FMinimap.Map := FMap;
 
   MapChanded;
   InvalidateObjects;

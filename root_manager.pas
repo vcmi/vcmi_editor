@@ -28,7 +28,7 @@ uses
   forms, Controls,
 
   progress_form, filesystem_base,
-  filesystem;
+  filesystem, terrain, objects, editor_graphics, OpenGLContext;
 
 type
 
@@ -38,16 +38,34 @@ type
     procedure DataModuleCreate(Sender: TObject);
   private
     FProgressForm: TProgressForm;
+    FHiddenForm: TForm;
+    FResourceManager: TFSManager;
+
+    FTerrianManager: TTerrainManager;
+    FObjManager: TObjectsManager;
+    FGraphicsManager: TGraphicsManager;
+
+    FGLContext: TOpenGLControl;
+    function GetResourceManager: IResourceLoader;
   public
     procedure InitComplete;
 
     property ProgressForm:TProgressForm read FProgressForm;
+    property ResourceManager: IResourceLoader read GetResourceManager;
+
+    property GraphicsManger: TGraphicsManager read FGraphicsManager;
+    property ObjectsManager: TObjectsManager read FObjManager;
+    property TerrainManager: TTerrainManager read FTerrianManager;
+    property SharedContext: TOpenGLControl read FGLContext;
   end;
 
 var
   RootManager: TRootManager;
 
 implementation
+
+uses
+  Math;
 
 {$R *.lfm}
 
@@ -62,11 +80,53 @@ begin
   if FileExistsUTF8(log_name) then
     DeleteFileUTF8(log_name);
 
+  FHiddenForm := TForm.CreateNew(Self);
+
   DebugLogger.LogName := log_name;
 
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
   Application.ProcessMessages;
+
+  ProgressForm.StageCount := ifthen(Paramcount > 0, 5,4);
+
+  FGLContext := TOpenGLControl.Create(Self);
+  FGLContext.Parent := FHiddenForm;
+
+  //stage 1
+  ProgressForm.NextStage('Scanning filsystem.');
+
+  FResourceManager := TFSManager.Create(self);
+  FResourceManager.ScanFilesystem;
+
+  FGraphicsManager := TGraphicsManager.Create(FResourceManager);
+
+  FTerrianManager := TTerrainManager.Create(FGraphicsManager);
+
+  if not FGLContext.MakeCurrent() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Unable to switch GL context');
+  end;
+
+
+  //stage 2
+  ProgressForm.NextStage('Loading terrain graphics.');
+  FTerrianManager.LoadConfig;
+  FTerrianManager.LoadTerrainGraphics;
+
+  //stage 3
+  ProgressForm.NextStage('Loading objects.');
+
+  FObjManager := TObjectsManager.Create(FGraphicsManager);
+  FObjManager.LoadObjects(RootManager.ProgressForm);
+
+
+end;
+
+function TRootManager.GetResourceManager: IResourceLoader;
+begin
+  Result := FResourceManager;
 end;
 
 procedure TRootManager.InitComplete;
