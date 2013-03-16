@@ -58,15 +58,15 @@ type
   TCreatureInfo = class (TCollectionItem)
   private
     FCreCount: Integer;
-    FCreID: TCustomID;
+    FCreID: TCreatureID;
     FRandomCount: boolean;
     procedure SetCreCount(AValue: Integer);
-    procedure SetCreID(AValue: TCustomID);
+    procedure SetCreID(AValue: TCreatureID);
     procedure SetRandomCount(AValue: boolean);
   public
     constructor Create(ACollection: TCollection); override;
   published
-    property CreID: TCustomID read FCreID write SetCreID default -1;
+    property CreID: TCreatureID read FCreID write SetCreID default -1;
     property CreCount: Integer read FCreCount write SetCreCount default 0;
     property RandomCount: boolean read FRandomCount write SetRandomCount default False;
   end;
@@ -74,28 +74,36 @@ type
   { TCreatureSet }
 
   TCreatureSet = class (specialize TGArrayCollection<TCreatureInfo>)
-
   private
     FMaxSize: Integer;
   public
     constructor Create(AMaxSize: Integer);
     property MaxSize: Integer read FMaxSize;
+  end;
+
+
+{$push}
+{$m+}
+  { TQuest }
+
+  TQuest = class
 
   end;
+{$pop}
 
   { TGuardedObjectOptions }
 
   TGuardedObjectOptions = class abstract (TObjectOptions)
   private
-    FGuardMessage: string;
+    FGuardMessage: TLocalizedString;
     FGuards: TCreatureSet;
-    procedure SetGuardMessage(AValue: string);
+    procedure SetGuardMessage(AValue: TLocalizedString);
   public
     constructor Create; override;
     destructor Destroy; override;
   published
     property Guards: TCreatureSet read FGuards;
-    property GuardMessage:string read FGuardMessage write SetGuardMessage;
+    property GuardMessage:TLocalizedString read FGuardMessage write SetGuardMessage;
   end;
 
   { TOwnedObjectOptions }
@@ -110,12 +118,12 @@ type
 
   TSignBottleOptions = class(TObjectOptions)
   private
-    FText: string;
-    procedure SetText(AValue: string);
+    FText: TLocalizedString;
+    procedure SetText(AValue: TLocalizedString);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property Text: string read FText write SetText;
+    property Text: TLocalizedString read FText write SetText;
   end;
 
   { TPandorasOptions }
@@ -140,7 +148,7 @@ type
 
   { THeroOptions }
 
-  THeroOptions = class(TObjectOptions)
+  THeroOptions = class(TOwnedObjectOptions)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
@@ -155,15 +163,30 @@ type
   { TSeerHutOptions }
 
   TSeerHutOptions = class(TObjectOptions)
+  private
+    FQuest: TQuest;
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Quest: TQuest read FQuest;
   end;
 
   { TWitchHutOptions }
 
   TWitchHutOptions = class(TObjectOptions)
+  private
+    FAllowedSkills: TStringList;
+    function GetAllowedSkills: TStrings;
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+
+  published
+    //short string ids
+    property AllowedSkills: TStrings read GetAllowedSkills;
   end;
 
   { TScholarOptions }
@@ -190,20 +213,31 @@ type
   { TSpellScrollOptions }
 
   TSpellScrollOptions = class(TArtifactOptions)
+  private
+    FSpellID: TSpellID;
+    procedure SetSpellID(AValue: TSpellID);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property SpellID: TSpellID read FSpellID write SetSpellID;
+    //TODO: publish string ID
   end;
 
   { TResourceOptions }
 
-  TResourceOptions = class(TObjectOptions)
+  TResourceOptions = class(TGuardedObjectOptions)
+  private
+    FAmount: Integer;
+    procedure SetAmount(AValue: Integer);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Amount: Integer read FAmount write SetAmount;
   end;
 
   { TTownOptions }
 
-  TTownOptions = class(TObjectOptions)
+  TTownOptions = class(TOwnedObjectOptions)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
@@ -211,8 +245,14 @@ type
   { TShrineOptions }
 
   TShrineOptions = class(TObjectOptions)
+  private
+    FSpellID: TSpellID;
+    procedure SetSpellID(AValue: TSpellID);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property SpellID: TSpellID read FSpellID write SetSpellID;
+    //todo: publish string id
   end;
 
   { TGrailOptions }
@@ -275,8 +315,14 @@ type
   { TQuestGuardOptions }
 
   TQuestGuardOptions = class (TObjectOptions)
+  private
+    FQuest: TQuest;
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Quest: TQuest read FQuest;
   end;
 
   { THeroPlaceholderOptions }
@@ -284,14 +330,14 @@ type
   THeroPlaceholderOptions = class (TObjectOptions)
   private
     FPower: UInt8;
-    FTypeID: TCustomID;
+    FTypeID: THeroID;
     procedure SetPower(AValue: UInt8);
-    procedure SetTypeID(AValue: TCustomID);
+    procedure SetTypeID(AValue: THeroID);
   public
     class function MayBeOwned: Boolean; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property TypeID: TCustomID read FTypeID write SetTypeID default -1;
+    property TypeID: THeroID read FTypeID write SetTypeID default -1;
     property Power: UInt8 read FPower write SetPower default 0;
   end;
 
@@ -448,7 +494,7 @@ begin
   FPower := AValue;
 end;
 
-procedure THeroPlaceholderOptions.SetTypeID(AValue: TCustomID);
+procedure THeroPlaceholderOptions.SetTypeID(AValue: THeroID);
 begin
   if FTypeID = AValue then Exit;
   FTypeID := AValue;
@@ -473,6 +519,18 @@ begin
   AVisitor.VisitQuestGuard(Self);
 end;
 
+constructor TQuestGuardOptions.Create;
+begin
+  inherited Create;
+  FQuest := TQuest.Create;
+end;
+
+destructor TQuestGuardOptions.Destroy;
+begin
+  FQuest.Free;
+  inherited Destroy;
+end;
+
 { TBaseRandomDwellingOptions }
 
 class function TBaseRandomDwellingOptions.MayBeOwned: Boolean;
@@ -495,7 +553,7 @@ begin
   FCreCount := AValue;
 end;
 
-procedure TCreatureInfo.SetCreID(AValue: TCustomID);
+procedure TCreatureInfo.SetCreID(AValue: TCreatureID);
 begin
   if FCreID = AValue then Exit;
   FCreID := AValue;
@@ -526,7 +584,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TGuardedObjectOptions.SetGuardMessage(AValue: string);
+procedure TGuardedObjectOptions.SetGuardMessage(AValue: TLocalizedString);
 begin
   if FGuardMessage = AValue then Exit;
   FGuardMessage := AValue;
@@ -624,6 +682,13 @@ begin
   AVisitor.VisitShrine(Self);
 end;
 
+procedure TShrineOptions.SetSpellID(AValue: TSpellID);
+begin
+  //TODO: check spell level
+  if FSpellID = AValue then Exit;
+  FSpellID := AValue;
+end;
+
 { TTownOptions }
 
 procedure TTownOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -638,11 +703,23 @@ begin
   AVisitor.VisitResource(Self);
 end;
 
+procedure TResourceOptions.SetAmount(AValue: Integer);
+begin
+  if FAmount = AValue then Exit;
+  FAmount := AValue;
+end;
+
 { TSpellScrollOptions }
 
 procedure TSpellScrollOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitSpellScroll(Self);
+end;
+
+procedure TSpellScrollOptions.SetSpellID(AValue: TSpellID);
+begin
+  if FSpellID = AValue then Exit;
+  FSpellID := AValue;
 end;
 
 { TArtifactOptions }
@@ -673,11 +750,52 @@ begin
   AVisitor.VisitWitchHut(Self);
 end;
 
+constructor TWitchHutOptions.Create;
+var
+  i: Integer;
+begin
+  inherited Create;
+  FAllowedSkills := TStringList.Create;
+  FAllowedSkills.Sorted := True;
+  FAllowedSkills.Duplicates := dupIgnore;
+
+  //todo: make it configurable
+  for i := 0 to SKILL_QUANTITY - 1 do
+  begin
+    FAllowedSkills.Add(SKILL_NAMES[i]);
+  end;
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[6]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[12]));
+end;
+
+destructor TWitchHutOptions.Destroy;
+begin
+  FAllowedSkills.Free;
+  inherited Destroy;
+end;
+
+function TWitchHutOptions.GetAllowedSkills: TStrings;
+begin
+  Result := FAllowedSkills;
+end;
+
 { TSeerHutOptions }
 
 procedure TSeerHutOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitSeerHut(self);
+end;
+
+constructor TSeerHutOptions.Create;
+begin
+  inherited Create;
+  FQuest := TQuest.Create;
+end;
+
+destructor TSeerHutOptions.Destroy;
+begin
+  FQuest.Free;
+  inherited Destroy;
 end;
 
 { TMonsterOptions }
@@ -708,7 +826,7 @@ begin
   AVisitor.VisitSignBottle(Self);
 end;
 
-procedure TSignBottleOptions.SetText(AValue: string);
+procedure TSignBottleOptions.SetText(AValue: TLocalizedString);
 begin
   if FText = AValue then
   begin

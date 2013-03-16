@@ -51,8 +51,17 @@ type
 
   TObjectTypeID = type Integer;
   TCustomID = type integer;
+
+  TArtifactID = type Integer;
+  TCreatureID = type Integer;
+  TSkillID = type Integer;
+  TSpellID = type Integer;
+
+  TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
+
 const
   ID_RANDOM = -1;
+  ID_INVALID = -1000;
   FACTION_RANDOM = TFactionID(ID_RANDOM);
 
 const
@@ -72,6 +81,9 @@ const
   TTerrainType.sub,
   TTerrainType.lava,
   TTerrainType.water];
+
+type
+  TLocalizedString = AnsiString; //LCL use ansisring encode to UTF8
 
 implementation
 

@@ -47,6 +47,8 @@ type
     constructor Create(dest: TStream);
 
     procedure ReadBuffer(var Buffer; Count: Longint);
+
+    function ReadLocalizedString: TLocalizedString;
     function ReadString: AnsiString;
 
     function ReadDWord: DWord;inline;
@@ -126,6 +128,11 @@ begin
     Result := FACTION_RANDOM
   else
     Result := b;
+end;
+
+function TStreamReadAdapter.ReadLocalizedString: TLocalizedString;
+begin
+  Result := AnsiToUtf8(ReadString); //TODO: select localization
 end;
 
 function TStreamReadAdapter.ReadString: AnsiString;

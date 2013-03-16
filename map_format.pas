@@ -25,7 +25,7 @@ unit map_format;
 interface
 
 uses
-  Classes, SysUtils, Map, terrain;
+  Classes, SysUtils, Map, terrain, lists_manager;
 
 type
   //make it managed object
@@ -40,8 +40,9 @@ type
   TBaseMapFormatHandler = class abstract (TInterfacedObject)
   protected
     FTM: TTerrainManager;
+    FListsManager: TListsManager;
   public
-     constructor Create(tm: TTerrainManager); virtual;
+     constructor Create(tm: TTerrainManager; lm: TListsManager); virtual;
 
   end;
 
@@ -51,9 +52,11 @@ implementation
 
 { TBaseMapFormatHandler }
 
-constructor TBaseMapFormatHandler.Create(tm: TTerrainManager);
+constructor TBaseMapFormatHandler.Create(tm: TTerrainManager; lm: TListsManager
+  );
 begin
   FTM := tm;
+  FListsManager := lm;
 end;
 
 end.

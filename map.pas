@@ -87,7 +87,7 @@ type
     FGenerateHeroAtMainTown: boolean;
     FHasMainTown: boolean;
     FIsFactionRandom: boolean;
-    FMainHeroName: string;
+    FMainHeroName: TLocalizedString;
     FMainHeroPortrait: TCustomID;
     FMainTownL: Integer;
     FMainTownType: TFactionID;
@@ -103,7 +103,7 @@ type
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
     procedure SetHasMainTown(AValue: boolean);
     procedure SetIsFactionRandom(AValue: boolean);
-    procedure SetMainHeroName(AValue: string);
+    procedure SetMainHeroName(AValue: TLocalizedString);
     procedure SetMainHeroPortrait(AValue: TCustomID);
     procedure SetMainTownL(AValue: Integer);
     procedure SetMainTownType(AValue: TFactionID);
@@ -136,7 +136,7 @@ type
 
     property MainHeroClass: THeroClassID read FMainHeroClass write SetMainHeroClass;
     property MainHeroPortrait:TCustomID read FMainHeroPortrait write SetMainHeroPortrait;
-    property MainHeroName:string read FMainHeroName write SetMainHeroName;
+    property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero;
     property TeamId: Integer read FTeamId write SetTeamId default 0;
@@ -163,6 +163,26 @@ type
     property Purple:TPlayerAttr index Integer(TPlayerColor.Purple) read GetAttr;
     property Teal:TPlayerAttr index Integer(TPlayerColor.Teal) read GetAttr;
     property Pink:TPlayerAttr index Integer(TPlayerColor.Pink) read GetAttr;
+  end;
+
+  { TRumor }
+
+  TRumor = class(TCollectionItem)
+  private
+    FName: TLocalizedString;
+    FText: TLocalizedString;
+    procedure SetName(AValue: TLocalizedString);
+    procedure SetText(AValue: TLocalizedString);
+  published
+    property Name: TLocalizedString read FName write SetName;
+    property Text: TLocalizedString read FText write SetText;
+  end;
+
+  { TRumors }
+
+  TRumors = class(specialize TGArrayCollection<TRumor>)
+  public
+    constructor Create;
   end;
 
   { TMapObjectTemplate }
@@ -321,12 +341,12 @@ type
   TVCMIMap = class (TPersistent, IFPObserver)
   private
     FCurrentLevel: Integer;
-    FDescription: string;
+    FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
 
     FHeight: Integer;
     FHeroLevelLimit: Integer;
-    FName: string;
+    FName: TLocalizedString;
     FObjects: TMapObjects;
     FPlayerAttributes: TPlayerAttrs;
     FTemplates: TMapObjectTemplates;
@@ -334,24 +354,27 @@ type
     FWigth: Integer;
     FLevels: Integer;
 
+    FRumors: TRumors;
+
     FIsDirty: boolean;
 
     FTerrain: array of array of array of TMapTile; //levels, X, Y
 
     procedure Changed;
-
     procedure DestroyTiles();
     procedure RecreateTerrainArray;
-    procedure SetCurrentLevel(AValue: Integer);
-    procedure SetDescription(AValue: string);
-    procedure SetDifficulty(AValue: TDifficulty);
-    procedure SetHeroLevelLimit(AValue: Integer);
-    procedure SetName(AValue: string);
-    procedure SetTerrainManager(AValue: TTerrainManager);
-  private
+
     procedure AttachTo(AObserved: IFPObserved);
     procedure FPOObservedChanged(ASender: TObject;
       Operation: TFPObservedOperation; Data: Pointer);
+
+    procedure SetCurrentLevel(AValue: Integer);
+    procedure SetDifficulty(AValue: TDifficulty);
+    procedure SetHeroLevelLimit(AValue: Integer);
+    procedure SetDescription(AValue: TLocalizedString);
+    procedure SetName(AValue: TLocalizedString);
+    procedure SetTerrainManager(AValue: TTerrainManager);
+
   public
     //create with default params
     constructor Create(tm: TTerrainManager);
@@ -386,13 +409,15 @@ type
     property Width: Integer read FWigth;
     property Levels: Integer read FLevels;
 
-    property Name:string read FName write SetName;
-    property Description:string read FDescription write SetDescription;
+    property Name:TLocalizedString read FName write SetName;
+    property Description:TLocalizedString read FDescription write SetDescription;
 
     property Difficulty: TDifficulty read FDifficulty write SetDifficulty;
     property HeroLevelLimit: Integer read FHeroLevelLimit write SetHeroLevelLimit;
 
     property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
+
+    property Rumors: TRumors read FRumors;
   public //manual streamimg
     property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
@@ -403,6 +428,28 @@ type
 implementation
 
 uses FileUtil, editor_str_consts;
+
+
+{ TRumor }
+
+procedure TRumor.SetName(AValue: TLocalizedString);
+begin
+  if FName = AValue then Exit;
+  FName := AValue;
+end;
+
+procedure TRumor.SetText(AValue: TLocalizedString);
+begin
+  if FText = AValue then Exit;
+  FText := AValue;
+end;
+
+{ TRumors }
+
+constructor TRumors.Create;
+begin
+  inherited Create;
+end;
 
 { TObjPriorityCompare }
 
@@ -750,7 +797,7 @@ begin
   FMainHeroClass := AValue;
 end;
 
-procedure TPlayerAttr.SetMainHeroName(AValue: string);
+procedure TPlayerAttr.SetMainHeroName(AValue: TLocalizedString);
 begin
   if FMainHeroName = AValue then Exit;
   FMainHeroName := AValue;
@@ -890,13 +937,14 @@ begin
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
+  FRumors := TRumors.Create;
   AttachTo(FObjects);
 
 end;
 
 destructor TVCMIMap.Destroy;
 begin
-
+  FRumors.Free;
   FObjects.Free;
   FTemplates.Free;
   FPlayerAttributes.Free;
@@ -1092,7 +1140,7 @@ begin
   FCurrentLevel := AValue;
 end;
 
-procedure TVCMIMap.SetDescription(AValue: string);
+procedure TVCMIMap.SetDescription(AValue: TLocalizedString);
 begin
   if FDescription = AValue then Exit;
   FDescription := AValue;
@@ -1113,7 +1161,7 @@ begin
   Changed;
 end;
 
-procedure TVCMIMap.SetName(AValue: string);
+procedure TVCMIMap.SetName(AValue: TLocalizedString);
 begin
   if FName = AValue then Exit;
   FName := AValue;

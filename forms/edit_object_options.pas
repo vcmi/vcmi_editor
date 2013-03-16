@@ -56,7 +56,7 @@ type
     procedure VisitHero(AOptions: THeroOptions);
     procedure VisitMonster(AOptions: TMonsterOptions);
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
-    procedure VisitWitchHut(AOptions: TWitchHutOptions);
+    procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
     procedure VisitScholar(AOptions: TScholarOptions);
     procedure VisitGarrison(AOptions: TGarrisonOptions);
     procedure VisitArtifact(AOptions: TArtifactOptions);
@@ -72,7 +72,7 @@ type
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 
-    procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
+    procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
 
   public
     constructor Create(TheOwner: TComponent); override;
@@ -85,7 +85,8 @@ type
 implementation
 
 uses
-  signbottle_frame, grail_frame;
+  signbottle_frame, grail_frame, flaggable_object_frame, witchhut_frame,
+  root_manager;
 
 {$R *.lfm}
 
@@ -110,7 +111,8 @@ begin
   frame := AClass.Create(Self);
   frame.Parent := AParent;
   frame.Align := alClient;
-  AOptions.ApplyVisitor(frame);
+  frame.ListsManager := RootManager.ListsManager;
+  AOptions.ApplyVisitor(frame); //do AFTER assign properties
   FActiveEditors.PushBack(frame);
 end;
 
@@ -185,7 +187,7 @@ end;
 
 procedure TEditObjectOptions.VisitOwnedObject(AOptions: TOwnedObjectOptions);
 begin
-
+  CreateFrame(TFlaggableFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
@@ -253,7 +255,7 @@ end;
 
 procedure TEditObjectOptions.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-
+  CreateFrame(TWitchHutFrame,AOptions,tsCommon);
 end;
 
 end.

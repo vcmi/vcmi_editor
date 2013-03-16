@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, map, math, FileUtil, map_format, terrain, stream_adapter,
-  editor_types, object_options, editor_classes;
+  editor_types, object_options, editor_classes, lists_manager;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -57,28 +57,29 @@ type
 
      procedure SkipNotImpl(count: Integer);
    strict private
-     procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);
-     procedure ReadPlayerAttr(Attr: TPlayerAttr);
+     procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
+     procedure ReadPlayerAttr(Attr: TPlayerAttr);//+
      procedure ReadSVLC();
-     procedure ReadTeams();
+     procedure ReadTeams();//+
      procedure ReadAllowedHeros();
      procedure ReadDisposedHeros();
      procedure ReadAllowedArtifacts();
      procedure ReadAllowedSpells();
      procedure ReadAllowedAbilities();
-     procedure ReadRumors();
+     procedure ReadRumors();//+
      procedure ReadPredefinedHeroes();
 
-     procedure ReadTerrain();
+     procedure ReadTerrain();//+
 
-     procedure ReadObjMask(obj: TMapObjectTemplate);
-     procedure ReadDefInfo();
+     procedure ReadObjMask(obj: TMapObjectTemplate);//+
+     procedure ReadDefInfo();//+
 
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet; nomber: Integer);
      procedure ReadArtifactsOfHero(obj: TMapObject);
      procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
 
-     procedure ReadQuest(obj: TMapObject; out mis_type: integer);
+     //result = Mission type
+     function ReadQuest(obj: TQuest): integer;
 
      procedure ReadObjects();
      procedure ReadEvents();
@@ -88,29 +89,29 @@ type
 
      procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4);
    public //IObjectOptionsVisitor
-     procedure VisitSignBottle(AOptions: TSignBottleOptions);
+     procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
      procedure VisitHero(AOptions: THeroOptions);
      procedure VisitMonster(AOptions: TMonsterOptions);
      procedure VisitSeerHut(AOptions: TSeerHutOptions);
-     procedure VisitWitchHut(AOptions:TWitchHutOptions);
+     procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
      procedure VisitScholar(AOptions: TScholarOptions);
      procedure VisitGarrison(AOptions: TGarrisonOptions);
-     procedure VisitArtifact(AOptions: TArtifactOptions);
-     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
-     procedure VisitResource(AOptions: TResourceOptions);
+     procedure VisitArtifact(AOptions: TArtifactOptions);//+
+     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
+     procedure VisitResource(AOptions: TResourceOptions);//+
      procedure VisitTown(AOptions: TTownOptions);
-     procedure VisitShrine(AOptions: TShrineOptions);
+     procedure VisitShrine(AOptions: TShrineOptions);//+
      procedure VisitPandorasBox(AOptions: TPandorasOptions);
-     procedure VisitGrail(AOptions: TGrailOptions);
+     procedure VisitGrail(AOptions: TGrailOptions);//+
      procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);
      procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
-     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
+     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
      procedure VisitQuestGuard(AOptions: TQuestGuardOptions);
-     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
-     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
+     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);//+
    public
-     constructor Create(tm: TTerrainManager); override;
+     constructor Create(tm: TTerrainManager; lm: TListsManager); override;
      function Read(AStream: TStream): TVCMIMap;
    end;
 
@@ -133,9 +134,9 @@ begin
   end;
 end;
 
-constructor TMapReaderH3m.Create(tm: TTerrainManager);
+constructor TMapReaderH3m.Create(tm: TTerrainManager; lm: TListsManager);
 begin
-  inherited Create(tm);
+  inherited Create(tm, lm);
 end;
 
 function TMapReaderH3m.IsNotROE: boolean;
@@ -162,7 +163,7 @@ begin
   is_guard_msg := FSrc.ReadBoolean;
   if is_guard_msg then
   begin
-    AOptions.GuardMessage := FSrc.ReadString;
+    AOptions.GuardMessage := FSrc.ReadLocalizedString;
 
     MayBeReadGuards(AOptions);
 
@@ -195,8 +196,8 @@ begin
     //rest of header
     with FSrc do
     begin
-      Result.Name := ReadString;
-      Result.Description :=  ReadString;
+      Result.Name := ReadLocalizedString;
+      Result.Description := ReadLocalizedString;
 
       Result.Difficulty := TDifficulty(ReadByte);
 
@@ -507,7 +508,6 @@ begin
       begin
         exper := ReadDWord;
       end;
-
     end
     else
     begin
@@ -542,7 +542,7 @@ begin
     begin
       if ReadBoolean then
       begin
-        bio := ReadString;
+        bio := ReadLocalizedString;
       end;
       sex := ReadByte;
 
@@ -576,15 +576,18 @@ procedure TMapReaderH3m.VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 var
   htid: Byte;
 begin
-
   with FSrc do
   begin
     ReadOwner(AOptions,TOwnerSize.size1);
     htid := ReadByte;
-    AOptions.TypeID := htid;
     if htid = $ff then
     begin
       AOptions.Power := ReadByte;
+      AOptions.TypeID := ID_RANDOM;
+    end
+    else
+    begin
+      AOptions.TypeID := htid;
     end;
   end;
 end;
@@ -900,7 +903,7 @@ begin
     if MainHeroClass <> ID_RANDOM then
     begin
       MainHeroPortrait := ReadIDByte;
-      MainHeroName := ReadString;
+      MainHeroName := ReadLocalizedString;
     end;
   end;
 
@@ -930,7 +933,6 @@ begin
 end;
 
 procedure TMapReaderH3m.ReadPredefinedHeroes;
-
 var
   enabled: Boolean;
   experience: DWord;
@@ -988,18 +990,18 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadQuest(obj: TMapObject; out mis_type: integer);
+function TMapReaderH3m.ReadQuest(obj: TQuest): integer;
 var
   limit: DWord;
   temp: String;
   cnt: Byte;
   i: Integer;
 begin
-  mis_type := FSrc.ReadByte;
+  Result := FSrc.ReadByte;
 
   with FSrc do
   begin
-    case mis_type of
+    case Result of
       0: Exit;
       2:begin
         SkipNotImpl(4);
@@ -1032,17 +1034,15 @@ begin
 
     //
     limit := ReadDWord;
-    temp := ReadString;//firstVisitText
-    temp := ReadString;//nextVisitText
-    temp := ReadString;//completedText
+    temp := ReadLocalizedString;//firstVisitText
+    temp := ReadLocalizedString;//nextVisitText
+    temp := ReadLocalizedString;//completedText
   end;
 end;
 
 procedure TMapReaderH3m.VisitQuestGuard(AOptions: TQuestGuardOptions);
-var
-  j: integer;
 begin
-  ReadQuest(nil, j);
+  ReadQuest(AOptions.Quest);
 end;
 
 procedure TMapReaderH3m.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
@@ -1084,45 +1084,31 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitResource(AOptions: TResourceOptions);
-var
-  temp: String;
 begin
-  with FSrc do
-  begin
-    if ReadBoolean then
-    begin
-      temp := ReadString;
-      if ReadBoolean then
-      begin
-         ReadCreatureSet(nil,7);
-      end;
-      skip(4);//junk
-    end;
-    SkipNotImpl(4);
-    Skip(4);//junk
-
-  end;
+  MayBeReadGuardsWithMessage(AOptions);
+  AOptions.Amount := FSrc.ReadDWord;
+  FSrc.Skip(4);//junk
 end;
 
 procedure TMapReaderH3m.ReadRumors;
 var
   cnt: DWord;
-  name: String;
-  txt: String;
   i: Integer;
+  r: TRumor;
 begin
-  //TODO: ReadRumors
   cnt := FSrc.ReadDWord;
   for i := 0 to cnt - 1 do
   begin
-    name := FSrc.ReadString;
-    txt :=  FSrc.ReadString;
+    r := FMap.Rumors.Add;
+
+    r.Name := FSrc.ReadLocalizedString;
+    r.Text := FSrc.ReadLocalizedString;
   end;
 end;
 
 procedure TMapReaderH3m.VisitScholar(AOptions: TScholarOptions);
 begin
-  SkipNotImpl(2);
+  SkipNotImpl(2); //bonus type, bonus id
   FSrc.Skip(6); //junk
 end;
 
@@ -1135,7 +1121,7 @@ begin
   with FSrc do begin
     if IsNotROE then
     begin
-      ReadQuest(nil,mis_type);
+      mis_type := ReadQuest(AOptions.Quest);
     end
     else begin
       aid := FSrc.ReadByte;
@@ -1172,22 +1158,32 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitShrine(AOptions: TShrineOptions);
+var
+  raw_id: Byte;
 begin
-  SkipNotImpl(1);
+  raw_id := FSrc.ReadByte;
+
+  if raw_id = 255 then
+  begin
+    AOptions.SpellID := ID_RANDOM;
+  end
+  else begin
+    AOptions.SpellID := raw_id;
+  end;
+
   fsrc.skip(3); //junk
 end;
 
 procedure TMapReaderH3m.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-  AOptions.Text := FSrc.ReadString;
+  AOptions.Text := FSrc.ReadLocalizedString;
   FSrc.Skip(4);//junk
 end;
 
 procedure TMapReaderH3m.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
   VisitArtifact(AOptions);
-
-  SkipNotImpl(4) ;
+  AOptions.SpellID := FSrc.ReadDWord;
 end;
 
 procedure TMapReaderH3m.ReadSVLC;
@@ -1338,13 +1334,37 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitWitchHut(AOptions: TWitchHutOptions);
+var
+  i,byte_nom: Integer;
+  b: Byte;
+  bit: Integer;
+  id: Integer;
 begin
   if IsNotROE then
   begin
-    SkipNotImpl(4);
+    for byte_nom in [0..3] do
+    begin
+      b := FSrc.ReadByte;
+
+      for bit in [0..7] do
+      begin
+        id := byte_nom * 8 + bit;
+        if id < SKILL_QUANTITY then
+        begin
+          if (b and (1 shl bit)) > 0 then
+          begin
+            AOptions.AllowedSkills.Add(FListsManager.SkillNidToString(id));
+          end;
+        end;
+      end;
+    end;
   end
   else begin
-
+    //all skill allowed
+    for i := 0 to SKILL_QUANTITY - 1 do
+    begin
+      AOptions.AllowedSkills.Add(FListsManager.SkillNidToString(i));
+    end;
   end;
 end;
 

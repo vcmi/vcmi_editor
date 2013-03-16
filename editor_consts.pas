@@ -148,6 +148,27 @@ type //h3 object types
 const
   WOG_OBJECT = TObj.PYRAMID;//subtype > 0
 
+const
+  ARTIFACT_NAMESPACE = 'artifact';
+  CREATURE_NAMESPACE = 'creature';
+  RESORCE_NAMESPACE = 'resource';
+
+  SKILL_QUANTITY = 28;
+
+  SKILL_NAMESPACE = 'skill';
+
+  SKILL_NAMES: array[0..SKILL_QUANTITY - 1] of string =
+  (
+    'pathfinding',  'archery',      'logistics',    'scouting',     'diplomacy',    //  5
+    'navigation',   'leadership',   'wisdom',       'mysticism',    'luck',         // 10
+    'ballistics',   'eagleEye',     'necromancy',   'estates',      'fireMagic',    // 15
+    'airMagic',     'waterMagic',   'earthMagic',   'scholar',      'tactics',      // 20
+    'artillery',    'learning',     'offence',      'armorer',      'intelligence', // 25
+    'sorcery',      'resistance',   'firstAid'
+  );
+
+
+
 implementation
 
 end.

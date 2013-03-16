@@ -23,6 +23,20 @@ unit editor_utils;
 
 interface
 
+uses
+  sysutils, editor_types, gmap;
+
+type
+
+  { TStringCompare }
+
+  TStringCompare = class
+  public
+    class function c(a,b: AnsiString): boolean;
+  end;
+
+  TNameToIdMap = specialize TMap<AnsiString,TCustomID,TStringCompare>;
+
   procedure LeToNInPlase(var Val:UInt32); inline;
 
 implementation
@@ -30,6 +44,13 @@ implementation
 procedure LeToNInPlase(var Val:UInt32); inline;
 begin
   val := LEtoN(val);
+end;
+
+{ TStringCompare }
+
+class function TStringCompare.c(a, b: AnsiString): boolean;
+begin
+  Result := CompareText(a,b) > 0;
 end;
 
 

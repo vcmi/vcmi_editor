@@ -79,7 +79,8 @@ type
 
 implementation
 
-uses editor_utils, zlib_stream;
+uses
+  editor_utils, zlib_stream;
 
 const
   LOD_MAGIC: packed array[1..4] of char = ('L','O','D',#0);

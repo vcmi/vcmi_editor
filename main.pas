@@ -28,7 +28,7 @@ uses
   GL, GLext, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
-  minimap, filesystem, filesystem_base, types;
+  minimap, filesystem, filesystem_base, lists_manager, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -97,6 +97,7 @@ type
     AnimTimer: TTimer;
     ToolBar2: TToolBar;
     tbSelectPlayer: TToolButton;
+    ToolButton10: TToolButton;
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
     ToolButton13: TToolButton;
@@ -205,6 +206,7 @@ type
       var ScrollPos: Integer);
 
   private
+    FListsManager: TListsManager;
     procedure SetupPlayerSelection;
 
     function CheckUnsavedMap: boolean;
@@ -641,6 +643,7 @@ begin
   FTerrianManager := RootManager.TerrainManager;
   FObjManager := RootManager.ObjectsManager;
   FGraphicsManager := RootManager.GraphicsManger;
+  FListsManager := RootManager.ListsManager;
 
   FUndoManager := TMapUndoManger.Create;
 
@@ -864,13 +867,13 @@ begin
     case file_ext of
       FORMAT_VCMI_EXT:
         begin
-          reader := TMapReaderVCMI.Create(FTerrianManager);
+          reader := TMapReaderVCMI.Create(FTerrianManager, FListsManager);
           cstm := stm;
           set_filename := True; //support saving
         end;
       FORMAT_H3M_EXT:
         begin
-          reader := TMapReaderH3m.Create(FTerrianManager);
+          reader := TMapReaderH3m.Create(FTerrianManager, FListsManager);
           magic := 0;
           stm.Read(magic,SizeOf(magic));
           stm.Seek(0,soBeginning);
@@ -1515,9 +1518,9 @@ begin
   stm.Size := 0;
 
   try
-     writer := TMapWriterVCMI.Create(FTerrianManager);
-     FMap.SaveToStream(stm,writer);
-     FMapFilename := AFileName;
+    writer := TMapWriterVCMI.Create(FTerrianManager,FListsManager);
+    FMap.SaveToStream(stm,writer);
+    FMapFilename := AFileName;
   finally
     stm.Free;
   end;
@@ -1568,7 +1571,7 @@ begin
   m.OnClick := @PlayerMenuClick;
   m.Checked := True;
   menuPlayer.Items.Add(m);
-  m.Caption := 'No player';
+  m.Caption := FListsManager.PlayerName[TPlayer.none];
 
   for p in [TPlayer.RED..TPlayer.PINK] do
   begin
@@ -1576,7 +1579,7 @@ begin
 
     m.Tag := Integer(p);
     m.OnClick := @PlayerMenuClick;
-    m.Caption := 'Player '+IntToStr(Integer(p));
+    m.Caption := FListsManager.PlayerName[p];
     menuPlayer.Items.Add(m);
   end;
 

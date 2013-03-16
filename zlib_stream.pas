@@ -33,9 +33,6 @@ type
 
   TZlibInputStream = class (TStream)
   strict private
-    procedure PreInit(AInput: TStream; ADecompressedSize: SizeUInt);
-
-  strict private
     FInput: TStream;
     FDecompressedSize: SizeUInt;
 
@@ -46,7 +43,7 @@ type
     FState: TZStream;
 
     //FInflateFinished:  Boolean;
-
+    procedure PreInit(AInput: TStream; ADecompressedSize: SizeUInt);
     procedure DecompressTill(APosition: Int64);
 
   protected
@@ -60,9 +57,6 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
       overload;
-
-
-
   end;
 
 
@@ -89,6 +83,7 @@ begin
     raise Exception.Create('Error init decompression');
   end;
   //FInflateFinished := False;
+  //DecompressTill(-1);
 end;
 
 constructor TZlibInputStream.CreateGZip(AInput: TStream; ADecompressedSize: SizeUInt

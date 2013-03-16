@@ -28,7 +28,7 @@ uses
   forms, Controls,
 
   progress_form, filesystem_base,
-  filesystem, terrain, objects, editor_graphics, OpenGLContext;
+  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext;
 
 type
 
@@ -44,6 +44,7 @@ type
     FTerrianManager: TTerrainManager;
     FObjManager: TObjectsManager;
     FGraphicsManager: TGraphicsManager;
+    FListsManager: TListsManager;
 
     FGLContext: TOpenGLControl;
     function GetResourceManager: IResourceLoader;
@@ -57,6 +58,7 @@ type
     property ObjectsManager: TObjectsManager read FObjManager;
     property TerrainManager: TTerrainManager read FTerrianManager;
     property SharedContext: TOpenGLControl read FGLContext;
+    property ListsManager: TListsManager read FListsManager;
   end;
 
 var
@@ -99,8 +101,13 @@ begin
   FResourceManager := TFSManager.Create(self);
   FResourceManager.ScanFilesystem;
 
+  FListsManager := TListsManager.Create(FResourceManager);
+  FListsManager.Load;
+
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
 
+  //stage 2
+  ProgressForm.NextStage('Loading terrain graphics.');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 
   if not FGLContext.MakeCurrent() then
@@ -110,8 +117,7 @@ begin
   end;
 
 
-  //stage 2
-  ProgressForm.NextStage('Loading terrain graphics.');
+
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
 

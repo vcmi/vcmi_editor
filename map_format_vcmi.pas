@@ -24,7 +24,7 @@ unit map_format_vcmi;
 interface
 
 uses
-  Classes, SysUtils, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson;
+  Classes, SysUtils, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager;
 
 type
 
@@ -37,7 +37,7 @@ type
     procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
     procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
   public
-    constructor Create(tm: TTerrainManager); override;
+    constructor Create(tm: TTerrainManager; lm: TListsManager); override;
     destructor Destroy; override;
 
     function Read(AStream: TStream): TVCMIMap;
@@ -52,7 +52,7 @@ type
     procedure StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
     procedure StreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
   public
-    constructor Create(tm: TTerrainManager); override;
+    constructor Create(tm: TTerrainManager; lm: TListsManager); override;
     destructor Destroy; override;
     procedure Write(AStream: TStream; AMap: TVCMIMap);
   end;
@@ -66,9 +66,9 @@ uses
 
 { TMapWriterVCMI }
 
-constructor TMapWriterVCMI.Create(tm: TTerrainManager);
+constructor TMapWriterVCMI.Create(tm: TTerrainManager; lm: TListsManager);
 begin
-  inherited Create(tm);
+  inherited Create(tm, lm);
   FStreamer := TVCMIJSONStreamer.Create(nil);
   FStreamer.Options := [jsoTStringsAsArray];
 end;
@@ -156,9 +156,9 @@ end;
 
 { TMapReaderVCMI }
 
-constructor TMapReaderVCMI.Create(tm: TTerrainManager);
+constructor TMapReaderVCMI.Create(tm: TTerrainManager; lm: TListsManager);
 begin
-  inherited Create(tm);
+  inherited Create(tm, lm);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
 end;

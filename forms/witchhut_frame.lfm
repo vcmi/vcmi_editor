@@ -1,0 +1,25 @@
+inherited WitchHutFrame: TWitchHutFrame
+  DesignLeft = 324
+  DesignTop = 228
+  object edAllowedSkills: TCheckListBox[0]
+    Left = 8
+    Height = 208
+    Top = 24
+    Width = 304
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Columns = 2
+    ItemHeight = 0
+    OnClickCheck = edAllowedSkillsClickCheck
+    TabOrder = 0
+  end
+  object lbAllowedSkills: TLabel[1]
+    Left = 8
+    Height = 14
+    Top = 6
+    Width = 66
+    BidiMode = bdLeftToRight
+    Caption = 'Allowed skills:'
+    ParentBidiMode = False
+    ParentColor = False
+  end
+end

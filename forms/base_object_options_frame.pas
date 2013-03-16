@@ -24,7 +24,8 @@ unit base_object_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil, Forms, Controls, object_options;
+  Classes, SysUtils, gvector, FileUtil, Forms, Controls, object_options,
+  lists_manager;
 
 type
 
@@ -32,11 +33,14 @@ type
 
   TBaseObjectOptionsFrame = class(TFrame,IObjectOptionsVisitor)
   private
+    FListsManager: TListsManager;
+    procedure SetListsManager(AValue: TListsManager);
     { private declarations }
   public
+    constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
 
-  public
+  public //IObjectOptionsVisitor
     procedure VisitLocalEvent({%H-}AOptions: TLocalEvenOptions); virtual;
     procedure VisitSignBottle({%H-}AOptions: TSignBottleOptions);virtual;
     procedure VisitHero({%H-}AOptions: THeroOptions);virtual;
@@ -59,6 +63,8 @@ type
     procedure VisitHeroPlaseholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
 
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
+  public
+    property ListsManager: TListsManager read FListsManager write SetListsManager;
   end;
 
   TBaseObjectOptionsFrameClass = class of TBaseObjectOptionsFrame;
@@ -92,6 +98,17 @@ end;
 procedure TBaseObjectOptionsFrame.Commit;
 begin
 
+end;
+
+constructor TBaseObjectOptionsFrame.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+end;
+
+procedure TBaseObjectOptionsFrame.SetListsManager(AValue: TListsManager);
+begin
+  if FListsManager = AValue then Exit;
+  FListsManager := AValue;
 end;
 
 procedure TBaseObjectOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);
