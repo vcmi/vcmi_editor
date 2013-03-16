@@ -149,8 +149,14 @@ type
   { THeroOptions }
 
   THeroOptions = class(TOwnedObjectOptions)
+  private
+    FArmy: TCreatureSet;
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Army: TCreatureSet read FArmy;
   end;
 
   { TMonsterOptions }
@@ -198,9 +204,18 @@ type
 
   { TGarrisonOptions }
 
-  TGarrisonOptions = class(TObjectOptions)
+  TGarrisonOptions = class(TOwnedObjectOptions)
+  private
+    FGarrison: TCreatureSet;
+    FRemovableUnits: Boolean;
+    procedure SetRemovableUnits(AValue: Boolean);
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Garrison: TCreatureSet read FGarrison;
+    property RemovableUnits: Boolean read FRemovableUnits write SetRemovableUnits;
   end;
 
   { TArtifactOptions }
@@ -238,8 +253,20 @@ type
   { TTownOptions }
 
   TTownOptions = class(TOwnedObjectOptions)
+  private
+    FGarrison: TCreatureSet;
+    FName: TLocalizedString;
+    FQuestIdentifier: UInt32;
+    procedure SetName(AValue: TLocalizedString);
+    procedure SetQuestIdentifier(AValue: UInt32);
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Garrison: TCreatureSet read FGarrison;
+    property QuestIdentifier: UInt32 read FQuestIdentifier write SetQuestIdentifier;
+    property Name: TLocalizedString read FName write SetName;
   end;
 
   { TShrineOptions }
@@ -388,7 +415,7 @@ begin
     begin
       c := TLocalEvenOptions;
     end;
-    TObj.SIGN, TObj.BOAT:
+    TObj.SIGN, TObj.OCEAN_BOTTLE:
     begin
       c := TSignBottleOptions;
     end;
@@ -696,6 +723,30 @@ begin
   AVisitor.VisitTown(Self);
 end;
 
+constructor TTownOptions.Create;
+begin
+  inherited Create;
+  FGarrison := TCreatureSet.Create(7);
+end;
+
+destructor TTownOptions.Destroy;
+begin
+  FGarrison.Free;
+  inherited Destroy;
+end;
+
+procedure TTownOptions.SetName(AValue: TLocalizedString);
+begin
+  if FName = AValue then Exit;
+  FName := AValue;
+end;
+
+procedure TTownOptions.SetQuestIdentifier(AValue: UInt32);
+begin
+  if FQuestIdentifier = AValue then Exit;
+  FQuestIdentifier := AValue;
+end;
+
 { TResourceOptions }
 
 procedure TResourceOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -734,6 +785,24 @@ end;
 procedure TGarrisonOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitGarrison(Self);
+end;
+
+constructor TGarrisonOptions.Create;
+begin
+  inherited Create;
+  FGarrison := TCreatureSet.Create(7);
+end;
+
+destructor TGarrisonOptions.Destroy;
+begin
+  FGarrison.Free;
+  inherited Destroy;
+end;
+
+procedure TGarrisonOptions.SetRemovableUnits(AValue: Boolean);
+begin
+  if FRemovableUnits = AValue then Exit;
+  FRemovableUnits := AValue;
 end;
 
 { TScholarOptions }
@@ -810,6 +879,18 @@ end;
 procedure THeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitHero(Self);
+end;
+
+constructor THeroOptions.Create;
+begin
+  inherited Create;
+  FArmy := TCreatureSet.Create(7);
+end;
+
+destructor THeroOptions.Destroy;
+begin
+  FArmy.Free;
+  inherited Destroy;
 end;
 
 { TLocalEvenOptions }

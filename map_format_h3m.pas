@@ -96,7 +96,7 @@ type
      procedure VisitSeerHut(AOptions: TSeerHutOptions);
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
      procedure VisitScholar(AOptions: TScholarOptions);
-     procedure VisitGarrison(AOptions: TGarrisonOptions);
+     procedure VisitGarrison(AOptions: TGarrisonOptions);//+
      procedure VisitArtifact(AOptions: TArtifactOptions);//+
      procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
      procedure VisitResource(AOptions: TResourceOptions);//+
@@ -460,10 +460,19 @@ end;
 
 procedure TMapReaderH3m.VisitGarrison(AOptions: TGarrisonOptions);
 begin
-    SkipNotImpl(4);
-    ReadCreatureSet(nil,7);
-    if IsNotROE then SkipNotImpl(1);
-    FSrc.Skip(8);//junk
+  ReadOwner(AOptions,TOwnerSize.size1);
+  FSrc.Skip(3);
+  ReadCreatureSet(AOptions.Garrison,7);
+  if IsNotROE then
+  begin
+    AOptions.RemovableUnits := FSrc.ReadBoolean;
+  end
+  else
+  begin
+    AOptions.RemovableUnits := True;
+  end;
+
+  FSrc.Skip(8);//junk
 end;
 
 procedure TMapReaderH3m.VisitGrail(AOptions: TGrailOptions);
@@ -531,7 +540,7 @@ begin
 
     if ReadBoolean then
     begin
-      ReadCreatureSet(nil,7);
+      ReadCreatureSet(AOptions.Army,7);
     end;
 
     formation := ReadByte;
@@ -1276,18 +1285,18 @@ begin
   begin
     if IsNotROE then
     begin
-      SkipNotImpl(4);
+      AOptions.QuestIdentifier := ReadDWord;
     end;
-    SkipNotImpl(1); //owner
+    ReadOwner(AOptions,TOwnerSize.size1);
 
     if ReadBoolean then//name
     begin
-      temp := ReadString;
+      AOptions.Name := ReadLocalizedString;
     end;
 
     if ReadBoolean then
     begin
-      ReadCreatureSet(nil,7);
+      ReadCreatureSet(AOptions.Garrison,7);
     end;
 
     SkipNotImpl(1); //formation

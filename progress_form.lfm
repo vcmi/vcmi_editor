@@ -1,13 +1,12 @@
 object ProgressForm: TProgressForm
-  Left = 569
+  Left = 332
   Height = 159
-  Top = 549
+  Top = 232
   Width = 514
   BorderStyle = bsNone
   Caption = 'ProgressForm'
   ClientHeight = 159
   ClientWidth = 514
-  FormStyle = fsSplash
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.0.7.0'

@@ -142,7 +142,7 @@ begin
   L := ReadDWord;
   SetLength(Result,L);
   if L > 0 then ReadBuffer(Result[1],L);
-  Result := SysToUTF8(Result);
+  //Result := SysToUTF8(Result);
 end;
 
 function TStreamReadAdapter.ReadWord: Word;
