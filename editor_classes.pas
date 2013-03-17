@@ -30,6 +30,16 @@ uses
 
 type
 
+  { TNamedCollectionItem }
+
+  TNamedCollectionItem = class(TCollectionItem)
+  private
+    FDisplayName: string;
+  protected
+    function GetDisplayName: string; override;
+    procedure SetDisplayName(const Value: string); override;
+  end;
+
   { TGCollection }
 
   generic TGCollection <TItem> = class (TCollection)
@@ -61,6 +71,13 @@ type
 
   end;
 
+  { IEmbeddedCollection }
+
+  IEmbeddedCollection = interface ['{F3D6E58A-CA30-4030-B98B-5E75A5AB796A}']
+
+    function GetCollection: TCollection;
+  end;
+
   { TGArrayCollection }
 
   generic TGArrayCollection <TItem> = class (specialize TGCollection <TItem>, IArrayCollection)
@@ -86,6 +103,19 @@ type
 
 
 implementation
+
+{ TNamedCollectionItem }
+
+function TNamedCollectionItem.GetDisplayName: string;
+begin
+  Result := FDisplayName;
+end;
+
+procedure TNamedCollectionItem.SetDisplayName(const Value: string);
+begin
+  inherited SetDisplayName(Value);
+  FDisplayName := Value;
+end;
 
 { TGCollection }
 

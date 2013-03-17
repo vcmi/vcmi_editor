@@ -24,7 +24,7 @@ unit vcmi_json;
 interface
 
 uses
-  Classes, SysUtils, fpjson,vcmi_fpjsonrtti, typinfo;
+  Classes, SysUtils, fpjson,vcmi_fpjsonrtti, typinfo, filesystem_base;
 
 type
 
@@ -65,6 +65,21 @@ type
       override;
   end;
 
+
+  { TJsonResource }
+
+  TJsonResource = class (IResource)
+  private
+    FRoot: TJSONObject;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure LoadFromStream(AStream: TStream);
+    property Root: TJSONObject read FRoot;
+
+    procedure DestreamTo(AObject: TObject; AFieldName: string = '');
+  end;
+
 implementation
 
 uses editor_classes;
@@ -76,6 +91,50 @@ begin
   c := s[1];
   c := lowerCase(c);
   s[1] := c;
+end;
+
+{ TJsonResource }
+
+constructor TJsonResource.Create;
+begin
+
+end;
+
+procedure TJsonResource.DestreamTo(AObject: TObject; AFieldName: string);
+var
+  destreamer: TVCMIJSONDestreamer;
+begin
+  destreamer := TVCMIJSONDestreamer.Create(nil);
+  try
+
+    if AFieldName = '' then
+    begin
+      destreamer.JSONToObject(FRoot,AObject);
+    end
+    else begin
+      destreamer.JSONToObject(FRoot.Objects[AFieldName],AObject);
+    end;
+
+  finally
+    destreamer.Free;
+  end;
+end;
+
+destructor TJsonResource.Destroy;
+begin
+  FreeAndNil(FRoot);
+end;
+
+procedure TJsonResource.LoadFromStream(AStream: TStream);
+var
+  destreamer: TVCMIJSONDestreamer;
+begin
+  destreamer := TVCMIJSONDestreamer.Create(nil);
+  try
+    FRoot := destreamer.JSONStreamToJSONObject(AStream,'');
+  finally
+    destreamer.Free;
+  end;
 end;
 
 { TVCMIJSONStreamer }
@@ -200,15 +259,11 @@ begin
   new_item := ACollection.Add;
   new_item.DisplayName := AName;
 
-  if Item.JSONType = jtObject then
+  if Item.JSONType in [jtObject,jtArray] then
   begin
     O :=  TJSONObject(Item);
 
     JSONToObject(o,new_item);
-  end
-  else if Item.JSONType = jtArray then //collection of collections
-  begin
-     //todo: collection of collections
   end
   else begin
     Error('Not supported collection element type for item '+AName);
@@ -331,7 +386,15 @@ end;
 procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;
   AObject: TObject);
 begin
-  inherited JSONToObject(JSON, AObject);
+
+  if AObject is IEmbeddedCollection then
+  begin
+    JSONToCollection(JSON,(AObject as IEmbeddedCollection).GetCollection);
+  end
+  else begin
+    inherited JSONToObject(JSON, AObject);
+  end;
+
 end;
 
 
