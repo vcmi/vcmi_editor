@@ -33,9 +33,7 @@ const
   TILE_SIZE = 32; //in pixels
 
 type
-  TRBGAColor = packed record   //todo: optimise
-    r,g,b,a : UInt8;
-  end;
+  TRBGAColor = editor_gl.TRBGAColor;
 
   TRGBAPalette = array[0..255] of TRBGAColor;
 

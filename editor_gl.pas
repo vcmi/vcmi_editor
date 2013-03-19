@@ -27,6 +27,11 @@ interface
 uses
   Classes, SysUtils, math, GL, GLext, LazLoggerBase;
 
+type
+  TRBGAColor = packed record   //todo: optimise
+    r,g,b,a : UInt8;
+  end;
+
 const
 
   FRAGMENT_PALETTE_SHADER =
@@ -36,6 +41,21 @@ const
 
   'void main(){'+
     'gl_FragColor = texture1D(palette, texture2DRect(bitmap, ivec2(gl_FragCoord.xy)).r);'+
+  '}';
+
+   FRAGMENT_FLAG_SHADER =
+
+   '#version 120'#13#10 +
+   'uniform vec4 maskColor = vec4(1.0,1.0,0.0,0.0);'+
+   'uniform sampler2DRect bitmap;'+
+   'uniform vec4 flagColor;'+
+   'float eps = 0.0001f;'+
+
+   'void main(){'+
+     'vec4 pixel = texture2DRect(bitmap,gl_TexCoord[0].xy);'+
+     'if(all(greaterThanEqual(pixel,maskColor-eps)) && all(lessThanEqual(pixel,maskColor+eps)))'+
+     '  pixel = flagColor;'+
+     'gl_FragColor = pixel;'+
   '}';
 
 type
@@ -54,15 +74,19 @@ type
   TShaderContext = class
   private
     PaletteProgram: GLuint;
-    PaletteUniform: GLuint;
-    BitmapUniform:GLUint;
-    CoordUniform: GLUint;
+    PalettePaletteUniform: GLuint;
+    PaletteBitmapUniform: GLUint;
+
+    FlagProgram: GLuint;
+    FlagFlagColorUniform: GLuint;
+    FlagBitmapUniform: GLUint;
   public
     destructor Destroy; override;
     procedure Init;
 
     procedure UseNoShader();
-    procedure UseShader();
+    procedure UsePaletteShader();
+    procedure UseFlagShader(FlagColor: TRBGAColor);
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -331,8 +355,22 @@ begin
   if PaletteProgram = 0 then
     raise Exception.Create('Error compiling palette shader');
 
-  BitmapUniform := glGetUniformLocation(PaletteProgram, PChar('bitmap'));
-  PaletteUniform := glGetUniformLocation(PaletteProgram, PChar('palette'));
+  PaletteBitmapUniform := glGetUniformLocation(PaletteProgram, PChar('bitmap'));
+  PalettePaletteUniform := glGetUniformLocation(PaletteProgram, PChar('palette'));
+
+  FlagProgram := MakeShaderProgram(FRAGMENT_FLAG_SHADER);
+  if FlagProgram = 0 then
+    raise Exception.Create('Error compiling flag shader');
+
+  FlagFlagColorUniform := glGetUniformLocation(FlagProgram, PChar('flagColor'));
+  FlagBitmapUniform := glGetUniformLocation(FlagProgram, PChar('bitmap'));
+end;
+
+procedure TShaderContext.UseFlagShader(FlagColor: TRBGAColor);
+begin
+  glUseProgram(FlagProgram);
+  glUniform1i(FlagBitmapUniform, 0); //texture unit0
+  glUniform4f(FlagFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
 end;
 
 procedure TShaderContext.UseNoShader;
@@ -340,11 +378,11 @@ begin
     glUseProgram(0);
 end;
 
-procedure TShaderContext.UseShader;
+procedure TShaderContext.UsePaletteShader;
 begin
   glUseProgram(PaletteProgram);
-  glUniform1i(BitmapUniform, 0); //texture unit0
-  glUniform1i(PaletteUniform, 1);//texture unit1
+  glUniform1i(PaletteBitmapUniform, 0); //texture unit0
+  glUniform1i(PalettePaletteUniform, 1);//texture unit1
 end;
 
 
