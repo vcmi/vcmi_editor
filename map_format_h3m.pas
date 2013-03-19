@@ -483,7 +483,6 @@ end;
 procedure TMapReaderH3m.VisitHero(AOptions: THeroOptions);
 var
   ident: DWord;
-  owner: Byte;
   subid: Byte;
   hname: String;
   cnt: DWord;
@@ -503,7 +502,9 @@ begin
     begin
       ident := ReadDWord;
     end;
-    owner := ReadByte;
+
+    ReadOwner(AOptions,TOwnerSize.size1);
+
     subid := ReadByte;
 
     if ReadBoolean then

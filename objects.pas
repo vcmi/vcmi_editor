@@ -64,13 +64,6 @@ type
 
   TDefVector = specialize TFPGObjectList<TObjTemplate>;
 
-  { TDefIdHash }
-
-  TDefIdHash = class
-    class function hash(a:TdefId; n:longint):longint;
-  end;
-
-  TIdToDefMap = specialize THashmap<TDefId, TObjTemplate, TDefIdHash>;
 
   { TObjectsManager }
 
@@ -79,9 +72,7 @@ type
 
     FDefs: TDefVector; //all aviable defs
 
-    FDefIdMap : TIdToDefMap;
-
-    function TypToId(Typ,SubType: uint32):TDefId; inline;
+   function TypToId(Typ,SubType: uint32):TDefId; inline;
 
 
   private
@@ -121,13 +112,6 @@ begin
   FDef := AValue;
 end;
 
-{ TDefIdHash }
-
-class function TDefIdHash.hash(a: TdefId; n: longint): longint;
-begin
-  result := (Int64Rec(a).Hi xor Int64Rec(a).Lo) mod Cardinal(n);
-end;
-
 { TObjectsManager }
 
 constructor TObjectsManager.Create(AOwner: TComponent);
@@ -135,14 +119,10 @@ begin
   inherited Create(AOwner);
 
   FDefs := TDefVector.Create(True);
-
-
-  FDefIdMap := TIdToDefMap.Create;
 end;
 
 destructor TObjectsManager.Destroy;
 begin
-  FDefIdMap.Free;
   FDefs.Free;
 
   inherited Destroy;
@@ -235,6 +215,7 @@ var
   s_tmp: string;
   progess_delta: Integer;
 begin
+
   //todo: suppport for custom object lists
 
   stm := TStringStream.Create('');
@@ -285,7 +266,6 @@ begin
       def.FIsOverlay := CellToInt;
 
       id := TypToId(def.FTyp,def.FSubType);
-      FDefIdMap.Insert(id,def);
       def.Def := GraphicsManager.GetGraphics(def.FFilename);
       FDefs.Add(def);
 

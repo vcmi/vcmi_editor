@@ -147,6 +147,8 @@ type
   private
     FNameToDefMap: TDefMap;
 
+    FHeroFlagDefs: array[TPlayerColor] of TDef;
+
     FBuffer: TMemoryStream;
 
     procedure LoadDef(const AResourceName:string; ADef: TDef);
@@ -158,6 +160,8 @@ type
     function GetGraphics (const AResourceName:string): TDef;
 
     procedure BindTextures;  deprecated;
+
+    function GetHeroFlagDef(APlayer: TPlayer): TDef;
   end;
 
   { TGraphicsCosnumer }
@@ -318,10 +322,19 @@ begin
 end;
 
 constructor TGraphicsManager.Create(AOwner: TComponent);
+const
+  FMT = 'AF0%dE';
+var
+  i: TPlayer;
 begin
   inherited Create(AOwner);
   FNameToDefMap := TDefMap.Create;
   FBuffer := TMemoryStream.Create;
+
+  for i in TPlayerColor do
+  begin
+    FHeroFlagDefs[i] := GetGraphics(Format(FMT,[Integer(i)]));
+  end;
 end;
 
 destructor TGraphicsManager.Destroy;
@@ -348,6 +361,11 @@ begin
     FNameToDefMap.Add(AResourceName,Result);
   end;
 
+end;
+
+function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TDef;
+begin
+  Result := FHeroFlagDefs[APlayer];
 end;
 
 procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef);

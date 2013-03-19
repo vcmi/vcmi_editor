@@ -24,7 +24,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types,
+  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types, editor_consts,
   terrain, editor_classes, editor_graphics, objects, object_options;
 
 const
@@ -285,7 +285,7 @@ type
     FX: integer;
     FY: integer;
     function GetPlayer: TPlayer; inline;
-    procedure Render(Frame:integer); inline;
+    procedure Render(Frame:integer);
     procedure SetL(AValue: integer);
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
@@ -427,7 +427,7 @@ type
 
 implementation
 
-uses FileUtil, editor_str_consts;
+uses FileUtil, editor_str_consts, root_manager;
 
 
 { TRumor }
@@ -502,8 +502,16 @@ begin
 end;
 
 procedure TMapObject.Render(Frame: integer);
+var
+  owner : TPlayer;
 begin
+  owner := GetPlayer;
   Template.FDef.RenderO(Frame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE,GetPlayer);
+
+  if (owner <> TPlayer.none) and (TObj(Template.Id) in [TObj.HERO, TObj.RANDOM_HERO, TObj.HERO_PLACEHOLDER]) then
+  begin
+    RootManager.GraphicsManger.GetHeroFlagDef(owner).RenderO(0, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+  end;
 end;
 
 procedure TMapObject.RenderAnim;

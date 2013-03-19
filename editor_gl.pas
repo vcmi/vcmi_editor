@@ -30,14 +30,12 @@ uses
 const
 
   FRAGMENT_PALETTE_SHADER =
-  '#version 150'#13#10 +
-  'uniform usampler2DRect bitmap;'+
+  '#version 120'#13#10 +
+  'uniform sampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
-  'uniform ivec2 coordOffs;'+
-  'layout (origin_upper_left) in vec4 gl_FragCoord;'+
 
   'void main(){'+
-    'gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_FragCoord.xy) - coordOffs).r), 0);'+
+    'gl_FragColor = texture1D(palette, texture2DRect(bitmap, ivec2(gl_FragCoord.xy)).r);'+
   '}';
 
 type
@@ -54,7 +52,7 @@ type
   { TShaderContext }
 
   TShaderContext = class
-  public
+  private
     PaletteProgram: GLuint;
     PaletteUniform: GLuint;
     BitmapUniform:GLUint;
@@ -64,7 +62,7 @@ type
     procedure Init;
 
     procedure UseNoShader();
-    procedure UseShader(offs_x,offs_y: int32);
+    procedure UseShader();
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -270,6 +268,9 @@ function MakeShaderProgram(const AShaderSource: AnsiString): GLuint;
 var
   shader_object, program_object: GLuint;
   status: GLint;
+  info_log_len: GLint;
+
+  info_log: string;
 begin
   Result := 0;
   shader_object := glCreateShader(GL_FRAGMENT_SHADER);
@@ -282,12 +283,23 @@ begin
 
   glShaderSource(shader_object,1,@(AShaderSource),nil);
   glCompileShader(shader_object);
+  status := GL_FALSE;
   glGetShaderiv(shader_object,GL_COMPILE_STATUS,@status);
-  //todo: print log
+
+  if status <> GL_TRUE then
+  begin
+    glGetShaderiv(shader_object,GL_INFO_LOG_LENGTH, @info_log_len);
+    SetLength(info_log,info_log_len);
+    glGetShaderInfoLog(shader_object,info_log_len,@info_log_len,@info_log[1]);
+
+    DebugLn('Shader compile log:');
+    DebugLn(info_log);
+  end;
+
 
   if status = GL_TRUE then
   begin
-    program_object := glCreateProgram;
+    program_object := glCreateProgram();
     glAttachShader(program_object, shader_object);
 
     glLinkProgram(program_object);
@@ -307,7 +319,7 @@ end;
 
 destructor TShaderContext.Destroy;
 begin
-  UseShader(false);
+  UseNoShader;
   glDeleteProgram(PaletteProgram);
   //TODO: delete shader?
   inherited Destroy;
@@ -320,7 +332,6 @@ begin
     raise Exception.Create('Error compiling palette shader');
 
   BitmapUniform := glGetUniformLocation(PaletteProgram, PChar('bitmap'));
-  CoordUniform := glGetUniformLocation(PaletteProgram, PChar('coordOffs'));
   PaletteUniform := glGetUniformLocation(PaletteProgram, PChar('palette'));
 end;
 
@@ -329,12 +340,11 @@ begin
     glUseProgram(0);
 end;
 
-procedure TShaderContext.UseShader(offs_x, offs_y: int32);
+procedure TShaderContext.UseShader;
 begin
   glUseProgram(PaletteProgram);
   glUniform1i(BitmapUniform, 0); //texture unit0
   glUniform1i(PaletteUniform, 1);//texture unit1
-  glUniform2i(CoordUniform, offs_x,offs_y);
 end;
 
 

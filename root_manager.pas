@@ -25,10 +25,9 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LazLogger,
-  forms, Controls,
-
+  Forms, Controls,
   progress_form, filesystem_base,
-  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext;
+  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl, GLext;
 
 type
 
@@ -37,21 +36,24 @@ type
   TRootManager = class(TDataModule)
     procedure DataModuleCreate(Sender: TObject);
   private
-    FProgressForm: TProgressForm;
-    FHiddenForm: TForm;
+    FProgressForm:    TProgressForm;
+    FHiddenForm:      TForm;
     FResourceManager: TFSManager;
 
-    FTerrianManager: TTerrainManager;
-    FObjManager: TObjectsManager;
+    FTerrianManager:  TTerrainManager;
+    FObjManager:      TObjectsManager;
     FGraphicsManager: TGraphicsManager;
-    FListsManager: TListsManager;
+    FListsManager:    TListsManager;
 
     FGLContext: TOpenGLControl;
+
+    FShaderContext: TShaderContext;
+
     function GetResourceManager: IResourceLoader;
   public
     procedure InitComplete;
 
-    property ProgressForm:TProgressForm read FProgressForm;
+    property ProgressForm: TProgressForm read FProgressForm;
     property ResourceManager: IResourceLoader read GetResourceManager;
 
     property GraphicsManger: TGraphicsManager read FGraphicsManager;
@@ -75,25 +77,45 @@ uses
 
 procedure TRootManager.DataModuleCreate(Sender: TObject);
 var
-  log_name: String;
+  log_name: string;
 begin
   log_name := ExtractFilePath(ParamStr(0)) + 'editor.log';
 
   if FileExistsUTF8(log_name) then
+  begin
     DeleteFileUTF8(log_name);
+  end;
 
   FHiddenForm := TForm.CreateNew(Self);
 
   DebugLogger.LogName := log_name;
 
+
+  FGLContext := TOpenGLControl.Create(Self);
+  FGLContext.Parent := FHiddenForm;
+
+  if not FGLContext.MakeCurrent() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Unable to switch GL context');
+  end;
+
+  if not Load_GL_VERSION_2_1() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Error loading OpenGL 2.1');
+  end;
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
   Application.ProcessMessages;
 
-  ProgressForm.StageCount := ifthen(Paramcount > 0, 5,4);
+  ProgressForm.StageCount := ifthen(Paramcount > 0, 5, 4);
 
-  FGLContext := TOpenGLControl.Create(Self);
-  FGLContext.Parent := FHiddenForm;
+
+  Application.ProcessMessages;
+
+  FShaderContext := TShaderContext.Create;
+  FShaderContext.Init;
 
   //stage 1
   ProgressForm.NextStage('Scanning filsystem.');
@@ -101,20 +123,16 @@ begin
   FResourceManager := TFSManager.Create(self);
   FResourceManager.Load(FProgressForm);
 
+  FGraphicsManager := TGraphicsManager.Create(FResourceManager);
+
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.Load;
 
-  FGraphicsManager := TGraphicsManager.Create(FResourceManager);
+
 
   //stage 2
   ProgressForm.NextStage('Loading terrain graphics.');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
-
-  if not FGLContext.MakeCurrent() then
-  begin
-    Application.Terminate;
-    raise Exception.Create('Unable to switch GL context');
-  end;
 
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
@@ -124,7 +142,6 @@ begin
 
   FObjManager := TObjectsManager.Create(FGraphicsManager);
   FObjManager.LoadObjects(RootManager.ProgressForm);
-
 
 end;
 
