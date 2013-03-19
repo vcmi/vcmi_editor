@@ -24,7 +24,7 @@ unit lod;
 interface
 
 uses
-  SysUtils, Classes, filesystem_base;
+  SysUtils, Classes, fgl, filesystem_base;
 
 //Format Specifications
 //
@@ -76,6 +76,8 @@ type
 
     procedure LoadResource(AResource: IResource; constref AItem:TLodItem);
   end;
+
+  TLodList = specialize TFPGObjectList<TLod>;
 
 implementation
 

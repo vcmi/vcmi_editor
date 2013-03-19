@@ -25,7 +25,8 @@ interface
 
 uses
   Classes, SysUtils,FileUtil,
-  gmap, fgl,
+  gmap, gqueue, fgl,
+  lazutf8classes,
   vcmi_json,
   editor_classes,
   filesystem_base, lod ;
@@ -80,8 +81,6 @@ const
   //TODO: mod support
 
 type
-  {$push}
-  {$m+}
 
   { TFilesystemConfigItem }
 
@@ -130,7 +129,81 @@ type
     destructor Destroy; override;
   end;
 
-  {$pop}
+  TModId = AnsiString;
+
+{$push}
+{$M+}
+  { TModConfig }
+
+  TModConfig =class
+  private
+    FArtifacts: TStringList;
+    FConflicts: TStringList;
+    FCreatures: TStringList;
+    FDepends: TStringList;
+    FDescription: string;
+    FDisabled: Boolean;
+    FFactions: TStringList;
+    FFilesystem: TFilesystemConfig;
+    FHeroClasses: TStringList;
+    FHeroes: TStringList;
+    FID: TModId;
+    FName: string;
+    FPath: String;
+    function GetArtifacts: TStrings;
+    function GetConflicts: TStrings;
+    function GetCreatures: TStrings;
+    function GetDepends: TStrings;
+    function GetFactions: TStrings;
+    function GetHeroClasses: TStrings;
+    function GetHeroes: TStrings;
+    procedure SetDescription(AValue: string);
+    procedure SetDisabled(AValue: Boolean);
+    procedure SetID(AValue: TModId);
+    procedure SetName(AValue: string);
+    procedure SetPath(AValue: String);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property Disabled:Boolean read FDisabled write SetDisabled;
+    property ID: TModId read FID write SetID;
+    property Path: String read FPath write SetPath;
+    procedure MayBeSetDefaultFSConfig;
+  published
+    //short decription
+    property Name: string read FName write SetName;
+    //long description
+    property Description: string read FDescription write SetDescription;
+    //list of IDs
+    property Depends: TStrings read GetDepends;
+    //list of IDs
+    property Conflicts: TStrings read GetConflicts;
+
+    property Factions: TStrings read GetFactions ;
+    property HeroClasses: TStrings read GetHeroClasses ;
+    property Heroes: TStrings read GetHeroes ;
+    property Creatures: TStrings read GetCreatures ;
+    property Artifacts: TStrings read GetArtifacts ;
+    //TODO: Spells
+    //TODO: ObjectTypes
+    //TODO: Objects
+
+    property Filesystem: TFilesystemConfig read FFilesystem;
+
+  end;
+{$pop}
+
+  TModConfigs = specialize TFPGObjectList<TModConfig>;
+
+  TIdToModMap = specialize TFPGMap<TModId,TModConfig>;
+
+  TModQueue = specialize TQueue<TModConfig>;
+
+  //index = index in TModConfigs
+  //TModDependencyMatrix[i,j] === TModConfigs[i] depends on TModConfigs[j]
+  TModDependencyMatrix = array of array of boolean;
+
 
   TLocationType = (InLod, InFile);
 
@@ -162,7 +235,6 @@ type
 
   TResIDToLcationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
 
-  TLodList = specialize TFPGObjectList<TLod>;
 
   { TFSManager }
 
@@ -173,35 +245,54 @@ type
     FResMap: TResIDToLcationMap;
     FLodList: TLodList;
 
+    FModMap: TIdToModMap;
+    FMods: TModConfigs;
+
     FGamePath: string;
 
     FCurrentFilter:TResourceTypes;
     FCurrentVFSPath: string;
     FCurrentRelPath: string;
+    FCurrentRootPath: string;
+
+
+    function GetPrivateConfigPath: string;
 
     procedure SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
     procedure SetCurrentVFSPath(ACurrentVFSPath: string);
 
-    function MakeFullPath(RelPath: string):string;
+    function MakeFullPath(ARootPath: string; RelPath: string):string;
 
     function MatchFilter(AExt: string; out AType: TResourceType): boolean;
     function VCMIRelPathToRelPath(APath: string): string;
 
     procedure OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
-    procedure ScanLod(LodRelPath: string);
+    procedure ScanLod(LodRelPath: string; ARootPath: string);
 
     procedure OnFileFound(FileIterator: TFileIterator);
-    procedure ScanDir(RelDir: string);
+    procedure ScanDir(RelDir: string; ARootPath: string);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
 
+    procedure ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: string);
+    procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: string);
+
     procedure LoadFSConfig;
+    procedure ScanFilesystem;
+
+    function GetModPath: string;
+    procedure OnModDirFound(FileIterator: TFileIterator);
+    procedure OnModConfigFound(FileIterator: TFileIterator);
+
+    procedure ScanMods;
+
+    class function NormailizeModId(AModId: TModId): TModId; static;
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure ScanFilesystem;
+    procedure Load(AProgress: IProgressCallback);
 
     procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string);  deprecated;
     procedure LoadResource(AResource: IResource; AResType: TResourceType;
@@ -226,6 +317,11 @@ const
 
   MOD_CONFIG = 'mod.json';
   MOD_ROOT = 'Content';
+
+function ComapreModId(const a, b: TModId): integer;
+begin
+  Result := CompareText(a,b);
+end;
 
 { TResLocation }
 
@@ -313,6 +409,120 @@ begin
 end;
 
 
+{ TModConfig }
+
+constructor TModConfig.Create;
+begin
+  FFilesystem := TFilesystemConfig.Create;
+
+  FConflicts := TStringList.Create;
+  FDepends := TStringList.Create;
+
+  FArtifacts := TStringList.Create;
+  FCreatures := TStringList.Create;
+  FFactions := TStringList.Create;
+  FHeroClasses := TStringList.Create;
+  FHeroes := TStringList.Create;
+end;
+
+destructor TModConfig.Destroy;
+begin
+  FHeroes.Free;
+  FHeroClasses.Free;
+  FFactions.Free;
+  FCreatures.Free;
+  FArtifacts.Free;
+
+  FDepends.Free;
+  FConflicts.Free;
+
+  FFilesystem.Free;
+  inherited Destroy;
+end;
+
+function TModConfig.GetArtifacts: TStrings;
+begin
+  Result := FArtifacts;
+end;
+
+function TModConfig.GetConflicts: TStrings;
+begin
+  Result := FConflicts;
+end;
+
+function TModConfig.GetCreatures: TStrings;
+begin
+  Result := FCreatures;
+end;
+
+function TModConfig.GetDepends: TStrings;
+begin
+  Result := FDepends;
+end;
+
+function TModConfig.GetFactions: TStrings;
+begin
+  Result := FFactions;
+end;
+
+function TModConfig.GetHeroClasses: TStrings;
+begin
+  Result := FHeroClasses;
+end;
+
+function TModConfig.GetHeroes: TStrings;
+begin
+  Result := FHeroes;
+end;
+
+procedure TModConfig.MayBeSetDefaultFSConfig;
+var
+  cur_path: TFilesystemConfigPath;
+  item: TFilesystemConfigItem;
+begin
+  if Filesystem.Count = 0 then
+  begin
+    cur_path := Filesystem.Add;
+    cur_path.DisplayName := '';
+
+    item :=  cur_path.Items.Add;
+    item.&Type := 'dir';
+    item.Path := '/Content';
+  end;
+end;
+
+procedure TModConfig.SetDescription(AValue: string);
+begin
+  if FDescription = AValue then Exit;
+  FDescription := AValue;
+end;
+
+procedure TModConfig.SetDisabled(AValue: Boolean);
+begin
+  if FDisabled = AValue then Exit;
+  FDisabled := AValue;
+end;
+
+procedure TModConfig.SetID(AValue: TModId);
+begin
+  if FID = AValue then Exit;
+  FID := AValue;
+end;
+
+procedure TModConfig.SetName(AValue: string);
+begin
+  if FName = AValue then Exit;
+  FName := AValue;
+end;
+
+procedure TModConfig.SetPath(AValue: String);
+begin
+  if FPath = AValue then Exit;
+  FPath := AValue;
+end;
+
+
+
 { TFSManager }
 
 constructor TFSManager.Create(AOwner: TComponent);
@@ -321,14 +531,36 @@ begin
   FConfig := TFilesystemConfig.Create;
   FResMap := TResIDToLcationMap.Create;
   FLodList := TLodList.Create(True);
+  FMods := TModConfigs.Create(True);
+  FModMap := TIdToModMap.Create;
+  FModMap.OnKeyCompare := @ComapreModId;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FModMap.Free;
+  FMods.Free;
   FLodList.Free;
   FResMap.Free;
   FConfig.Free;
   inherited Destroy;
+end;
+
+function TFSManager.GetModPath: string;
+begin
+  Result := FGamePath + 'Mods';
+
+end;
+
+function TFSManager.GetPrivateConfigPath: string;
+begin
+  Result := ExtractFilePath(ParamStr(0));
+end;
+
+procedure TFSManager.Load(AProgress: IProgressCallback);
+begin
+  ScanFilesystem;
+  ScanMods;
 end;
 
 procedure TFSManager.LoadFileResource(AResource: IResource; APath: TFilename);
@@ -387,7 +619,7 @@ begin
   end;
 end;
 
-procedure TFSManager.ScanLod(LodRelPath: string);
+procedure TFSManager.ScanLod(LodRelPath: string; ARootPath: string);
 var
   lod: TLod;
 begin
@@ -395,11 +627,67 @@ begin
 
   LodRelPath := SetDirSeparators(LodRelPath);
 
-  lod := TLod.Create(MakeFullPath(LodRelPath));
+  lod := TLod.Create(MakeFullPath(ARootPath, LodRelPath));
 
   lod.Scan(@OnLodItemFound);
 
   FLodList.Add(lod);
+end;
+
+procedure TFSManager.ScanMods;
+var
+  searcher: TFileSearcher;
+
+  sl: TStringListUTF8;
+  mod_paths_config: String;
+  mod_id: String;
+  mod_idx: Integer;
+  i: Integer;
+begin
+  //find mods
+  searcher := TFileSearcher.Create;
+  searcher.OnFileFound := @OnModConfigFound;
+
+  sl := TStringListUTF8.Create;
+  try
+    mod_paths_config := GetPrivateConfigPath + 'modpath.txt';
+    if FileExistsUTF8(mod_paths_config) then
+      sl.LoadFromFile(mod_paths_config);
+
+    sl.Insert(0,GetModPath);
+
+    for i := 0 to sl.Count - 1 do
+    begin
+      searcher.Search(sl[i],MOD_CONFIG)
+    end;
+
+    //<STUB>
+
+    sl.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');
+
+    for i := 0 to sl.Count - 1 do
+    begin
+      mod_id := NormailizeModId(sl[i]);
+
+      mod_idx := FModMap.IndexOf(mod_id);
+
+      if mod_idx >=0 then
+      begin
+        ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,FModMap.Data[mod_idx].Path);
+      end;
+    end;
+
+    //</STUB>
+    //TODO:determine load order
+  finally
+    sl.Free;
+    searcher.Free;
+  end;
+
+  //configs loaded at this point
+
+
+
 end;
 
 procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: string);
@@ -428,6 +716,9 @@ begin
     'GLOBAL': begin
       Result := Copy(APath,p+1,MaxInt);
     end;
+    'LOCAL':;
+  else
+    Result := APath;
   end;
 
 end;
@@ -471,9 +762,9 @@ begin
 
 end;
 
-function TFSManager.MakeFullPath(RelPath: string): string;
+function TFSManager.MakeFullPath(ARootPath: string; RelPath: string): string;
 begin
-  Result := IncludeTrailingPathDelimiter(FGamePath)+RelPath;
+  Result := IncludeTrailingPathDelimiter(ARootPath)+RelPath;
 end;
 
 function TFSManager.MatchFilter(AExt: string; out AType: TResourceType
@@ -494,6 +785,11 @@ begin
       Exit;
     end;
   end;
+end;
+
+class function TFSManager.NormailizeModId(AModId: TModId): TModId;
+begin
+  Result := Trim(LowerCase(AModId));
 end;
 
 class function TFSManager.NormalizeResName(const AName: string): string;
@@ -521,7 +817,7 @@ begin
   if not MatchFilter(file_ext,res_typ) then
     Exit;
 
-  rel_path := CreateRelativePath(FileIterator.Path, MakeFullPath(FCurrentRelPath)); //???
+  rel_path := CreateRelativePath(FileIterator.Path, MakeFullPath(FCurrentRootPath, FCurrentRelPath)); //???
 
   file_name := ExtractFileNameOnly(FileIterator.FileName);
 
@@ -564,7 +860,87 @@ begin
 
 end;
 
-procedure TFSManager.ScanDir(RelDir: string);
+procedure TFSManager.OnModConfigFound(FileIterator: TFileIterator);
+var
+  stm: TFileStreamUTF8;
+  destreamer: TVCMIJSONDestreamer;
+  mod_path: String;
+  mod_id: String;
+  mod_config: TModConfig;
+begin
+  //iterator points to mod.json
+  destreamer := TVCMIJSONDestreamer.Create(nil);
+
+  mod_path := FileIterator.Path;
+
+  mod_id := NormailizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
+
+  stm := TFileStreamUTF8.Create(FileIterator.FileName,fmOpenRead or fmShareDenyWrite);
+  try
+    mod_config := TModConfig.Create;
+    mod_config.ID := mod_id;
+    mod_config.Path := mod_path;
+    destreamer.JSONStreamToObject(stm, mod_config,'');
+    mod_config.MayBeSetDefaultFSConfig;
+    FMods.Add(mod_config);
+    FModMap.Add(mod_config.ID,mod_config);
+  finally
+    stm.Free;
+    destreamer.Free;
+  end;
+end;
+
+procedure TFSManager.OnModDirFound(FileIterator: TFileIterator);
+begin
+
+end;
+
+procedure TFSManager.ProcessConfigItem(APath: TFilesystemConfigPath;
+  ARootPath: string);
+var
+  vfs_path: String;
+  item: TFilesystemConfigItem ;
+  rel_path: String;
+  i: Integer;
+begin
+  vfs_path := APath.DisplayName;
+
+  SetCurrentVFSPath(vfs_path);
+
+  FCurrentFilter := [TResourceType.Text,TResourceType.Animation,TResourceType.Json];
+
+  for i := 0 to APath.Items.Count - 1 do
+  begin
+    item := APath.Items.Items[i];
+
+    rel_path := VCMIRelPathToRelPath(item.Path);
+
+    if rel_path = '' then
+      Continue;
+
+    case item.&Type of
+      'lod':begin
+        ScanLod(rel_path,ARootPath);
+      end;
+      'dir':begin
+         ScanDir(rel_path,ARootPath);
+      end;
+    end;
+  end;
+end;
+
+procedure TFSManager.ProcessFSConfig(AConfig: TFilesystemConfig;
+  ARootPath: string);
+var
+  i: Integer;
+begin
+  for i := 0 to AConfig.Count - 1 do
+  begin
+    ProcessConfigItem(AConfig[i],ARootPath);
+  end;
+end;
+
+procedure TFSManager.ScanDir(RelDir: string; ARootPath: string);
 var
   srch: TFileSearcher;
   p: string;
@@ -573,7 +949,8 @@ begin
   srch.OnFileFound := @OnFileFound;
   try
     FCurrentRelPath := RelDir;
-    p := IncludeTrailingPathDelimiter(MakeFullPath(RelDir));
+    FCurrentRootPath := ARootPath;
+    p := IncludeTrailingPathDelimiter(MakeFullPath(ARootPath,RelDir));
     srch.Search(p);
   finally
     srch.Free;
@@ -581,49 +958,14 @@ begin
 end;
 
 procedure TFSManager.ScanFilesystem;
-  procedure ProcessConfigItem(APath: TFilesystemConfigPath);
-  var
-    vfs_path: String;
-    item: TFilesystemConfigItem ;
-    rel_path: String;
-    i: Integer;
-  begin
-    vfs_path := APath.DisplayName;
-
-    SetCurrentVFSPath(vfs_path);
-
-    FCurrentFilter := [TResourceType.Text,TResourceType.Animation,TResourceType.Json];
-
-    for i := 0 to APath.Items.Count - 1 do
-    begin
-      item := APath.Items.Items[i];
-
-      rel_path := VCMIRelPathToRelPath(item.Path);
-
-      if rel_path = '' then
-        Continue;
-
-      case item.&Type of
-        'lod':begin
-          ScanLod(rel_path);
-        end;
-        'dir':begin
-           ScanDir(rel_path);
-        end;
-      end;
-    end;
-
-
-  end;
 var
   s: String;
   sl: TStringList;
-  i: Integer;
 
 begin
   sl := TStringList.Create;  //TODO: platform handling
   try
-    s := ExtractFilePath(ParamStr(0))+GAME_PATH_CONFIG;
+    s := GetPrivateConfigPath+GAME_PATH_CONFIG;
     if FileUtil.FileExistsUTF8(s) then
     begin
       sl.LoadFromFile(s);
@@ -639,20 +981,7 @@ begin
   FGamePath := IncludeTrailingPathDelimiter(FGamePath);
 
   LoadFSConfig;
-
-  for i := 0 to FConfig.Count - 1 do
-  begin
-    ProcessConfigItem(FConfig[i]);
-  end;
-
-  //TODO: use mod config
-
-  SetCurrentVFSPath(TVFSDir.DATA);
-  ScanLod('Mods/WoG/Data/hmm35wog.pac');
-
-  SetCurrentVFSPath(TVFSDir.SPRITES);
-  ScanLod('Mods/WoG/Data/hmm35wog.pac');
-
+  ProcessFSConfig(FConfig,FGamePath);
 
 end;
 

@@ -99,7 +99,7 @@ begin
   ProgressForm.NextStage('Scanning filsystem.');
 
   FResourceManager := TFSManager.Create(self);
-  FResourceManager.ScanFilesystem;
+  FResourceManager.Load(FProgressForm);
 
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.Load;

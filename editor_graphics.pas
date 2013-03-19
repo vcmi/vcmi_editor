@@ -212,17 +212,28 @@ type
     LeftMargin: UInt32;
     TopMargin: UInt32;
   end;
+const
+
+  H3_SPECAIL_COLORS: array[0..7] of TH3DefColor = (
+   {0} (r: 0; g: 255; b:255),
+   {1} (r: 255; g: 150; b:255),
+   {2} (r: 255; g: 100; b:255),
+   {3} (r: 255; g: 50; b:255),
+   {4} (r: 255; g: 0; b:255),
+   {5} (r: 255; g: 255; b:0),
+   {6} (r: 180; g: 0; b:255),
+   {7} (r: 0; g: 255; b:0));
 
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
-    (r: 0; g: 0; b:0; a: 0),
-    (r: 0; g: 0; b:0; a: 64),
-    (r: 0; g: 0; b:0; a: 128), //???
-    (r: 0; g: 0; b:0; a: 128), //???
-    (r: 0; g: 0; b:0; a: 128),
-    (r: 128; g: 128; b:128; a: 255),  //player color
-    (r: 0; g: 0; b:0; a: 128),
-    (r: 0; g: 0; b:0; a: 64));
+    (r: 0; g: 0; b:0; a: 0), //Transparency
+    (r: 0; g: 0; b:0; a: 64),//Shadow border (75% transparent)
+    (r: 0; g: 0; b:0; a: 128), //shadow
+    (r: 0; g: 0; b:0; a: 128), //shadow
+    (r: 0; g: 0; b:0; a: 128), //shadow 50%
+    (r: 128; g: 128; b:128; a: 255),  //player color | Selection highlight (creatures)
+    (r: 0; g: 0; b:0; a: 128), //Selection + shadow body
+    (r: 0; g: 0; b:0; a: 64)); // Selection + shadow border
 
   PLAYER_COLOR_INDEX = 5;
 

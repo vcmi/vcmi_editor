@@ -308,19 +308,23 @@ function TVCMIJSONDestreamer.JSONStreamToJSONObject(AStream: TStream;
 var
   root: TJSONObject;
   dt, res_dt:TJSONData;
+  free_dt: boolean;
 begin
   dt := nil;
+  free_dt := true;
   try
     dt := JSONStreamToJson(AStream);
 
-    if not (dt.JSONType = jtObject) then Error('Root data shall be object');
+    if not (dt.JSONType = jtObject) then
+      Error('Root data shall be object');
 
     root := TJSONObject(dt);
 
     if AName = '' then
     begin
       //use root
-      Result := TJSONObject(dt.Clone);
+      Result := TJSONObject(dt);
+      free_dt := False;
     end
     else begin
       res_dt := root.Extract(AName);
@@ -336,7 +340,8 @@ begin
 
 
   finally
-    dt.Free;
+    if free_dt then
+      dt.Free;
   end;
 
 end;
