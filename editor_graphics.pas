@@ -32,6 +32,18 @@ uses
 const
   TILE_SIZE = 32; //in pixels
 
+  PLAYER_FLAG_COLORS: array[TPlayer] of TRBGAColor = (
+    (r: 128; g: 128; b:128; a: 255),//NONE
+    (r: 255; g: 0;   b:0;   a: 255),//RED
+    (r: 0;   g: 0;   b:255; a: 255),//BLUE
+    (r: 120; g: 180; b:140; a: 255),//TAN
+    (r: 0;   g: 255; b:0;   a: 255),//GREEN
+    (r: 255; g: 165; b:0;   a: 255),//ORANGE
+    (r: 128; g: 0;   b:128; a: 255),//PURPLE
+    (r: 0;   g: 255; b:255; a: 255),//TEAL
+    (r: 255; g: 192; b:203; a: 255) //PINK
+  );
+
 type
   TRBGAColor = editor_gl.TRBGAColor;
 
@@ -87,18 +99,9 @@ type
     palette: TRGBAPalette;
     entries: TDefEntries;
 
-    flag_entries: TFlagTextures;
-
-    flag_entry_h_ofc, flag_entry_v_ofc, flag_entry_w, flag_entry_h: int32;
-
-    FFlaggable: Boolean;
-
     FTexturesBinded: boolean;
 
     function GetFrameCount: Integer; inline;
-
-    procedure PreInitFlagEntries(w,h: Int32);
-    procedure CompressFlagEntries();
 
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8);
     procedure MayBeUnBindTextures; inline;
@@ -108,7 +111,6 @@ type
     procedure LoadFromStream(AStream: TStream);
     procedure BindTextures;
 
-    procedure RenderFlag (var Sprite: TGLSprite; dim:integer; color: TPlayer); inline;
   public
     constructor Create;
     destructor Destroy; override;
@@ -122,8 +124,6 @@ type
     procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;
-
-    property Flaggable: Boolean read FFlaggable;
 
     procedure RenderBorder(TileX,TileY: Integer);
   end;
@@ -233,22 +233,13 @@ const
     (r: 0; g: 0; b:0; a: 128), //shadow
     (r: 0; g: 0; b:0; a: 128), //shadow
     (r: 0; g: 0; b:0; a: 128), //shadow 50%
-    (r: 128; g: 128; b:128; a: 255),  //player color | Selection highlight (creatures)
+    (r: 255; g: 255; b:0; a: 0),  //player color | Selection highlight (creatures)
     (r: 0; g: 0; b:0; a: 128), //Selection + shadow body
     (r: 0; g: 0; b:0; a: 64)); // Selection + shadow border
 
   PLAYER_COLOR_INDEX = 5;
 
-  PLAYER_FLAG_COLORS: array[TPlayerColor] of TRBGAColor = (
-    (r: 255; g: 0;   b:0;   a: 255),//RED
-    (r: 0;   g: 0;   b:255; a: 255),//BLUE
-    (r: 120; g: 180; b:140; a: 255),//TAN
-    (r: 0;   g: 255; b:0;   a: 255),//GREEN
-    (r: 255; g: 165; b:0;   a: 255),//ORANGE
-    (r: 128; g: 0;   b:128; a: 255),//PURPLE
-    (r: 0;   g: 255; b:255; a: 255),//TEAL
-    (r: 255; g: 192; b:203; a: 255) //PINK
-  );
+
 
   //DEF_TYPE_MAP_OBJECT = $43;
 
@@ -430,29 +421,19 @@ begin
     entries.Mutable[SpriteIndex]^.Bind(id_s[SpriteIndex]);
   end;
 
-  if FFlaggable then
-  begin
-    count := 8;
-    Regen;
-    for flag in TPlayerColor do
-    begin
-      flag_entries[flag].Bind(id_s[Integer(flag)], width,height );
-    end;
-  end;
+  //if FFlaggable then
+  //begin
+  //  count := 8;
+  //  Regen;
+  //  for flag in TPlayerColor do
+  //  begin
+  //    flag_entries[flag].Bind(id_s[Integer(flag)], width,height );
+  //  end;
+  //end;
 
   FTexturesBinded := True;
 end;
 
-procedure TDef.CompressFlagEntries;
-var
-  flag: TPlayerColor;
-begin
-  //TODO: CompressFlagEntries
-  for flag in TPlayerColor do
-  begin
-    //flag_entries[flag].SetRaw(ofc+i, PLAYER_FLAG_COLORS[flag]);
-  end;
-end;
 
 constructor TDef.Create;
 begin
@@ -493,7 +474,6 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := false;
-  FFlaggable := False;
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
@@ -594,25 +574,21 @@ var
       PEntry^.SetRaw(ofc+i,c)
     end;
 
-    if (ColorIndex = PLAYER_COLOR_INDEX) and (SpriteIndex = 0) then
-    begin
-      if (not FFlaggable) then
-      begin
-        PreInitFlagEntries(h.FullWidth,h.FullHeight);
-      end;
-
-      for flag in TPlayerColor do
-      begin
-        for i := 0 to len - 1 do
-        begin
-          flag_entries[flag].SetRaw(ofc+i, PLAYER_FLAG_COLORS[flag]);
-        end;
-      end;
-      //row := ofc div h.FullWidth;
-      //col := ofc mod h.FullWidth;
-
-      //todo: update flag dimentions
-    end;
+    //if (ColorIndex = PLAYER_COLOR_INDEX) and (SpriteIndex = 0) then
+    //begin
+    //  if (not FFlaggable) then
+    //  begin
+    //    PreInitFlagEntries(h.FullWidth,h.FullHeight);
+    //  end;
+    //
+    //  for flag in TPlayerColor do
+    //  begin
+    //    for i := 0 to len - 1 do
+    //    begin
+    //      flag_entries[flag].SetRaw(ofc+i, PLAYER_FLAG_COLORS[flag]);
+    //    end;
+    //  end;
+    //end;
 
   end;
 
@@ -871,9 +847,6 @@ begin
     raise Exception.Create('Unknown sprite compression format');
   end;
 
-  if FFlaggable then
-    CompressFlagEntries;
-
 end;
 
 procedure TDef.MayBeUnBindTextures;
@@ -881,23 +854,6 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := False;
-end;
-
-procedure TDef.PreInitFlagEntries(w, h: Int32);
-var
-  flag: TPlayerColor;
-begin
-  FFlaggable := True;
-  for flag in TPlayerColor do
-  begin
-    flag_entries[flag].Resize(w,h);
-  end;
-
-  flag_entry_h := 0;
-  flag_entry_h_ofc := 0;
-  flag_entry_v_ofc := 0;
-  flag_entry_w := 0;
-
 end;
 
 procedure TDef.Render(const SpriteIndex: UInt8; X, Y: Integer; dim: integer;
@@ -911,9 +867,11 @@ begin
   Sprite.Height := height;
   Sprite.Width := width;
 
+  ShaderContext.UseFlagShader();
+  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+
   editor_gl.RenderSprite(Sprite, dim);
 
-  RenderFlag(Sprite, dim, color);
 end;
 
 procedure TDef.RenderBorder(TileX, TileY: Integer);
@@ -940,18 +898,8 @@ begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
 
   mir := flags mod 4;
-
+  ShaderContext.UseNoShader();
   editor_gl.RenderSprite(Sprite,-1,mir);
-
-end;
-
-procedure TDef.RenderFlag(var Sprite: TGLSprite; dim: integer; color: TPlayer);
-begin
-  if Flaggable and (color in [TPlayer.RED..TPlayer.PINK]) then
-  begin
-    Sprite.TextureID := flag_entries[color].TextureId;
-    editor_gl.RenderSprite(Sprite, dim);
-  end;
 
 end;
 
@@ -965,9 +913,11 @@ begin
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
 
+  ShaderContext.UseFlagShader();
+  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+
   editor_gl.RenderSprite(Sprite);
 
-  RenderFlag(Sprite,-1,color);
 end;
 
 procedure TDef.UnBindTextures;
@@ -978,14 +928,6 @@ begin
   for SpriteIndex := 0 to entries.Size - 1 do
   begin
     entries.Mutable[SpriteIndex]^.UnBind();
-  end;
-
-  if FFlaggable then
-  begin
-    for flag in TPlayerColor do
-    begin
-      flag_entries[flag].UnBind();
-    end;
   end;
 end;
 

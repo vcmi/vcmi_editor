@@ -35,6 +35,7 @@ type
 
   TRootManager = class(TDataModule)
     procedure DataModuleCreate(Sender: TObject);
+    procedure DataModuleDestroy(Sender: TObject);
   private
     FProgressForm:    TProgressForm;
     FHiddenForm:      TForm;
@@ -47,7 +48,7 @@ type
 
     FGLContext: TOpenGLControl;
 
-    FShaderContext: TShaderContext;
+    //FShaderContext: TShaderContext;
 
     function GetResourceManager: IResourceLoader;
   public
@@ -69,7 +70,7 @@ var
 implementation
 
 uses
-  Math;
+  Math, editor_types;
 
 {$R *.lfm}
 
@@ -114,8 +115,9 @@ begin
 
   Application.ProcessMessages;
 
-  FShaderContext := TShaderContext.Create;
-  FShaderContext.Init;
+  ShaderContext := TShaderContext.Create;
+  ShaderContext.Init;
+  ShaderContext.UseFlagShader();
 
   //stage 1
   ProgressForm.NextStage('Scanning filsystem.');
@@ -143,6 +145,12 @@ begin
   FObjManager := TObjectsManager.Create(FGraphicsManager);
   FObjManager.LoadObjects(RootManager.ProgressForm);
 
+end;
+
+procedure TRootManager.DataModuleDestroy(Sender: TObject);
+begin
+  ShaderContext.Free;
+  ShaderContext := nil;
 end;
 
 function TRootManager.GetResourceManager: IResourceLoader;

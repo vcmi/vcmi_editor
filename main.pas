@@ -298,8 +298,8 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
-  editor_str_consts, root_manager, map_options, new_map, edit_object_options,
-  Math, lazutf8classes;
+  editor_str_consts, root_manager, editor_gl, map_options, new_map,
+  edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
 
@@ -1210,11 +1210,12 @@ begin
 
   //todo: render passability
 
+  ShaderContext.UseNoShader();
+
   if Assigned(FSelectedObject) then
   begin
     FSelectedObject.RenderSelectionRect;
   end;
-
 
   RenderCursor;
 
@@ -1361,7 +1362,11 @@ begin
             glEnd();
             glPopAttrib();
 
+            ShaderContext.UseFlagShader();
+
             o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
+
+            ShaderContext.UseNoShader();
 
       end;
     end;
@@ -1497,8 +1502,10 @@ begin
   if FMapDragging then
   begin
     Assert(Assigned(FDraggingTemplate));
+    ShaderContext.UseFlagShader();
 
     FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
+    ShaderContext.UseNoShader();
   end;
 end;
 

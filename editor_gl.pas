@@ -86,7 +86,9 @@ type
 
     procedure UseNoShader();
     procedure UsePaletteShader();
-    procedure UseFlagShader(FlagColor: TRBGAColor);
+    procedure UseFlagShader();
+
+    procedure SetFlagColor(FlagColor: TRBGAColor);
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -103,6 +105,10 @@ procedure RenderRect(x,y: Integer; dimx,dimy:integer);
 procedure CheckGLErrors(Stage: string);
 
 function MakeShaderProgram(const AShaderSource: AnsiString):GLuint;
+
+var
+  ShaderContext: TShaderContext;
+
 
 implementation
 
@@ -184,6 +190,7 @@ begin
   end;
 
   glEnable(GL_TEXTURE_RECTANGLE);
+    glActiveTexture(0);
     glBindTexture(GL_TEXTURE_RECTANGLE,ASprite.TextureID);
     glBegin(GL_POLYGON);
 
@@ -366,11 +373,15 @@ begin
   FlagBitmapUniform := glGetUniformLocation(FlagProgram, PChar('bitmap'));
 end;
 
-procedure TShaderContext.UseFlagShader(FlagColor: TRBGAColor);
+procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
+begin
+  glUniform4f(FlagFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
+end;
+
+procedure TShaderContext.UseFlagShader;
 begin
   glUseProgram(FlagProgram);
   glUniform1i(FlagBitmapUniform, 0); //texture unit0
-  glUniform4f(FlagFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
 end;
 
 procedure TShaderContext.UseNoShader;
