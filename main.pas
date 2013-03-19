@@ -757,9 +757,7 @@ begin
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
   glDisable(GL_DITHER);
-  glDisable(GL_TEXTURE_2D);
-
-  FGraphicsManager.BindTextures;
+  //glDisable(GL_TEXTURE_2D);
 
   glInited := True;
 end;
@@ -903,7 +901,6 @@ begin
   FMap := new_map;
   if set_filename then FMapFilename := AFileName;
 
-  if glInited then FGraphicsManager.BindTextures; //???
   MapChanded;
 end;
 

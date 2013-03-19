@@ -53,10 +53,6 @@ type
 
   TBaseSprite = object
     TextureId: GLuint;
-    raw_image: packed array of TRBGAColor;
-
-    procedure Resize(w,h: Integer);
-    procedure SetRaw (Ofs: Int32; color: TRBGAColor); inline;
     procedure UnBind; inline;
   end;
 
@@ -65,27 +61,15 @@ type
   { TDefEntry }
 
   TDefEntry = object (TBaseSprite)
-
     offcet: UInt32;
     group: Integer;
 
     FullWidth: UInt32;
     FullHeight: UInt32;
-
-    procedure Bind(ATextureId: GLuint);
   end;
 
   TDefEntries = specialize gvector.TVector<TDefEntry>;
 
-  { TFlagTexture }
-
-  TFlagTexture = object (TBaseSprite)
-    //h_ofc, v_ofc: Int32;
-    //w,h: Int32;
-    procedure Bind(ATextureId: GLuint; w,h: Int32);
-  end;
-
-  TFlagTextures = array[TPlayerColor] of TFlagTexture;
 
   { TDef }
 
@@ -101,15 +85,18 @@ type
 
     FTexturesBinded: boolean;
 
+    FBuffer: packed array of TRBGAColor;
+    procedure ResizeBuffer(w,h: Integer);
+
+
     function GetFrameCount: Integer; inline;
 
-    procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8);
+    procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint);
     procedure MayBeUnBindTextures; inline;
     procedure UnBindTextures;
   private //for internal use
      (*H3 def format*)
     procedure LoadFromStream(AStream: TStream);
-    procedure BindTextures;
 
   public
     constructor Create;
@@ -157,7 +144,6 @@ type
 
     function GetGraphics (const AResourceName:string): TDef;
 
-    procedure BindTextures;  deprecated;
 
     function GetHeroFlagDef(APlayer: TPlayer): TDef;
   end;
@@ -251,33 +237,9 @@ end;
 
 { TBaseSprite }
 
-procedure TBaseSprite.Resize(w, h: Integer);
-begin
-  SetLength(raw_image, h * w);
-  FillChar(raw_image[0],Length(raw_image)*SizeOf(TRBGAColor),#0);
-end;
-
-procedure TBaseSprite.SetRaw(Ofs: Int32; color: TRBGAColor);
-begin
-  //if Ofs < Length(raw_image) then //todo: investigate range overflow in type2
-  raw_image[ofs] := color;
-end;
-
 procedure TBaseSprite.UnBind;
 begin
   editor_gl.Unbind(TextureId);
-end;
-
-{ TFlagTexture }
-
-procedure TFlagTexture.Bind(ATextureId: GLuint; w, h: Int32);
-begin
-  TextureId := ATextureId;
-
-  BindCompressedRGBA(TextureId,w,h, raw_image[0]);
-
-  SetLength(raw_image,0); //clear
-
 end;
 
 { TGraphicsCosnumer }
@@ -299,16 +261,6 @@ begin
 end;
 
 { TGraphicsManager }
-
-procedure TGraphicsManager.BindTextures;
-var
-  i: Integer;
-begin
-  for i := 0 to FNameToDefMap.Count - 1 do
-  begin
-    FNameToDefMap.Data[i].BindTextures;
-  end;
-end;
 
 constructor TGraphicsManager.Create(AOwner: TComponent);
 const
@@ -381,59 +333,7 @@ begin
   TDef(Pointer(PByte(Item)+KeySize)^).Free;
 end;
 
-{ TDefEntry }
-
-procedure TDefEntry.Bind(ATextureId: GLuint);
-begin
-  TextureId := ATextureId;
-
-  BindUncompressedRGBA(TextureId,FullWidth,FullHeight, raw_image[0]);
-
-  SetLength(raw_image,0); //clear
-end;
-
-
-
-
 { TDef }
-
-procedure TDef.BindTextures;
-var
-  id_s: array of GLuint;
-  count: GLsizei;
-  SpriteIndex: Integer;
-  flag: TPlayerColor;
-
-  procedure Regen; inline;
-  begin
-    SetLength(id_s,count);
-    glGenTextures(count, @id_s[0]);
-  end;
-
-begin
-  if FTexturesBinded then Exit;
-  count := entries.Size;
-
-  Regen;
-
-  for SpriteIndex := 0 to count - 1 do
-  begin
-    entries.Mutable[SpriteIndex]^.Bind(id_s[SpriteIndex]);
-  end;
-
-  //if FFlaggable then
-  //begin
-  //  count := 8;
-  //  Regen;
-  //  for flag in TPlayerColor do
-  //  begin
-  //    flag_entries[flag].Bind(id_s[Integer(flag)], width,height );
-  //  end;
-  //end;
-
-  FTexturesBinded := True;
-end;
-
 
 constructor TDef.Create;
 begin
@@ -456,6 +356,17 @@ end;
 
 procedure TDef.LoadFromStream(AStream: TStream);
 var
+  id_s: array of GLuint;
+
+  procedure GenerateTextureIds;
+    var
+      count: LongWord;
+    begin
+      count := entries.Size;
+      SetLength(id_s,count);
+      glGenTextures(count, @id_s[0]);
+    end;
+var
   total_entries: Integer;
   block_nomber: Integer;
 
@@ -474,6 +385,7 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := false;
+
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
@@ -482,6 +394,8 @@ begin
   height := LEtoN(header.height);
   blockCount := LEtoN(header.blockCount);
   width := LEtoN(header.width);
+
+  //TODO: use color comparison instead of index
 
   for i := 0 to 7 do
   begin
@@ -525,15 +439,18 @@ begin
      total_entries += total_in_block;
   end;
 
+  GenerateTextureIds;
+
   for i := 0 to entries.Size - 1 do
   begin
-    LoadSprite(AStream, i);
+    LoadSprite(AStream, i, id_s[i]);
   end;
 
-  BindTextures;
+  SetLength(FBuffer,0); //clear
 end;
 
-procedure TDef.LoadSprite(AStream: TStream; const SpriteIndex: UInt8);
+procedure TDef.LoadSprite(AStream: TStream; const SpriteIndex: UInt8;
+  ATextureID: GLuint);
 var
   ftcp: Int32;
   procedure Skip(Count: Int32); inline;
@@ -565,30 +482,13 @@ var
   var
     C: TRBGAColor;
     i: Integer;
-    flag: TPlayerColor;
   begin
     c := palette[ColorIndex];
 
     for i := 0 to len - 1 do
     begin
-      PEntry^.SetRaw(ofc+i,c)
+      FBuffer[ofc+i] := c;
     end;
-
-    //if (ColorIndex = PLAYER_COLOR_INDEX) and (SpriteIndex = 0) then
-    //begin
-    //  if (not FFlaggable) then
-    //  begin
-    //    PreInitFlagEntries(h.FullWidth,h.FullHeight);
-    //  end;
-    //
-    //  for flag in TPlayerColor do
-    //  begin
-    //    for i := 0 to len - 1 do
-    //    begin
-    //      flag_entries[flag].SetRaw(ofc+i, PLAYER_FLAG_COLORS[flag]);
-    //    end;
-    //  end;
-    //end;
 
   end;
 
@@ -796,6 +696,7 @@ begin
 
   PEntry^.FullHeight := h.FullHeight;
   PEntry^.FullWidth := h.FullWidth;
+  PEntry^.TextureId := ATextureID;
 
   LeftMargin := h.LeftMargin;
   TopMargin := h.TopMargin;
@@ -815,12 +716,11 @@ begin
   if add = 4 then
      add :=0;
 
-  PEntry^.Resize(h.FullWidth,h.FullHeight);
-
+  ResizeBuffer(h.FullWidth,h.FullHeight);
 
 
   if (TopMargin > 0) or (BottomMargin > 0) or (LeftMargin > 0) or (RightMargin > 0) then
-    FillDWord(PEntry^.raw_image[0], Length(PEntry^.raw_image) ,$00000000);
+    FillDWord(FBuffer[0], Length(FBuffer) ,$00000000); //todo: use marging in texture coords
 
   ftcp := 0;
 
@@ -846,6 +746,8 @@ begin
   else
     raise Exception.Create('Unknown sprite compression format');
   end;
+
+  BindUncompressedRGBA(ATextureID,h.FullWidth,h.FullHeight, FBuffer[0]);
 
 end;
 
@@ -918,6 +820,16 @@ begin
 
   editor_gl.RenderSprite(Sprite);
 
+end;
+
+procedure TDef.ResizeBuffer(w, h: Integer);
+var
+  old_len, new_len: Integer;
+begin
+  old_len := Length(FBuffer);
+  new_len := h * w;
+  new_len := Max(old_len,new_len);
+  SetLength(FBuffer, new_len);
 end;
 
 procedure TDef.UnBindTextures;

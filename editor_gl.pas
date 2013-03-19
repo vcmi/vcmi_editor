@@ -46,12 +46,12 @@ const
    FRAGMENT_FLAG_SHADER =
 
    '#version 120'#13#10 +
-   'uniform vec4 maskColor = vec4(1.0,1.0,0.0,0.0);'+
+   'uniform vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
    'uniform sampler2DRect bitmap;'+
    'uniform vec4 flagColor;'+
-   'float eps = 0.0001f;'+
 
    'void main(){'+
+     'vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
      'vec4 pixel = texture2DRect(bitmap,gl_TexCoord[0].xy);'+
      'if(all(greaterThanEqual(pixel,maskColor-eps)) && all(lessThanEqual(pixel,maskColor+eps)))'+
      '  pixel = flagColor;'+
