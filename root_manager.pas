@@ -116,8 +116,6 @@ begin
     raise Exception.Create('Unable to switch GL context');
   end;
 
-
-
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
 

@@ -281,12 +281,9 @@ type
     procedure ScanFilesystem;
 
     function GetModPath: string;
-    procedure OnModDirFound(FileIterator: TFileIterator);
     procedure OnModConfigFound(FileIterator: TFileIterator);
 
     procedure ScanMods;
-
-    class function NormailizeModId(AModId: TModId): TModId; static;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -299,6 +296,7 @@ type
       AName: string);
 
   public
+    class function NormalizeModId(AModId: TModId): TModId; static;
     class function NormalizeResName(const AName: string): string; static;
   end;
 
@@ -316,7 +314,7 @@ const
   FS_CONFIG_FIELD = 'filesystem';
 
   MOD_CONFIG = 'mod.json';
-  MOD_ROOT = 'Content';
+  MOD_ROOT = '/Content';
 
 function ComapreModId(const a, b: TModId): integer;
 begin
@@ -487,7 +485,7 @@ begin
 
     item :=  cur_path.Items.Add;
     item.&Type := 'dir';
-    item.Path := '/Content';
+    item.Path := MOD_ROOT;
   end;
 end;
 
@@ -667,7 +665,7 @@ begin
 
     for i := 0 to sl.Count - 1 do
     begin
-      mod_id := NormailizeModId(sl[i]);
+      mod_id := NormalizeModId(sl[i]);
 
       mod_idx := FModMap.IndexOf(mod_id);
 
@@ -787,7 +785,7 @@ begin
   end;
 end;
 
-class function TFSManager.NormailizeModId(AModId: TModId): TModId;
+class function TFSManager.NormalizeModId(AModId: TModId): TModId;
 begin
   Result := Trim(LowerCase(AModId));
 end;
@@ -873,7 +871,7 @@ begin
 
   mod_path := FileIterator.Path;
 
-  mod_id := NormailizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
+  mod_id := NormalizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
 
   stm := TFileStreamUTF8.Create(FileIterator.FileName,fmOpenRead or fmShareDenyWrite);
   try
@@ -888,11 +886,6 @@ begin
     stm.Free;
     destreamer.Free;
   end;
-end;
-
-procedure TFSManager.OnModDirFound(FileIterator: TFileIterator);
-begin
-
 end;
 
 procedure TFSManager.ProcessConfigItem(APath: TFilesystemConfigPath;
