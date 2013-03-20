@@ -1167,6 +1167,8 @@ begin
     Init;
   end;
 
+  ShaderContext.UseNoShader();
+
   glEnable(GL_SCISSOR_TEST);
 
 
@@ -1213,6 +1215,8 @@ begin
   begin
     FSelectedObject.RenderSelectionRect;
   end;
+
+  ShaderContext.UseNoShader();
 
   RenderCursor;
 
@@ -1341,29 +1345,26 @@ begin
             cy := row * OBJ_CELL_SIZE;
 
             glPushAttrib(GL_CURRENT_BIT);
+            glLineWidth(1);
 
             glBegin(GL_LINE_LOOP);
 
-            glColor4ub(200, 200, 200, 255);
-            glLineWidth(1);
+              glColor4ub(200, 200, 200, 255);
 
-            dim := OBJ_CELL_SIZE;
 
-            glVertex2i(cx, cy);
-            glVertex2i(cx + dim, cy);
+              dim := OBJ_CELL_SIZE;
 
-            glVertex2i(cx + dim, cy + dim);
-            glVertex2i(cx, cy + dim);
+              glVertex2i(cx, cy);
+              glVertex2i(cx + dim, cy);
+
+              glVertex2i(cx + dim, cy + dim);
+              glVertex2i(cx, cy + dim);
 
 
             glEnd();
             glPopAttrib();
 
-            ShaderContext.UseFlagShader();
-
             o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
-
-            ShaderContext.UseNoShader();
 
       end;
     end;
@@ -1471,25 +1472,23 @@ var
 
   cx,cy: Integer;
 begin
-
   cx := FMouseTileX * TILE_SIZE;
   cy := FMouseTileY * TILE_SIZE;
 
   if FHightLightTile and (FTerrainBrushMode = TBrushMode.fixed) then
   begin
     glPushAttrib(GL_CURRENT_BIT);
+    glLineWidth(1);
     glBegin(GL_LINE_LOOP);
 
-    glColor4ub(200, 200, 200, 255);
-    glLineWidth(1);
+      glColor4ub(200, 200, 200, 255);
+      dim := TILE_SIZE * FTerrainBrushSize;
 
-    dim := TILE_SIZE * FTerrainBrushSize;
+      glVertex2i(cx, cy);
+      glVertex2i(cx + dim, cy);
 
-    glVertex2i(cx, cy);
-    glVertex2i(cx + dim, cy);
-
-    glVertex2i(cx + dim, cy + dim);
-    glVertex2i(cx, cy + dim);
+      glVertex2i(cx + dim, cy + dim);
+      glVertex2i(cx, cy + dim);
 
 
     glEnd();
@@ -1499,8 +1498,6 @@ begin
   if FMapDragging then
   begin
     Assert(Assigned(FDraggingTemplate));
-    ShaderContext.UseFlagShader();
-
     FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
     ShaderContext.UseNoShader();
   end;

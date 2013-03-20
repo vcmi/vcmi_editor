@@ -106,6 +106,16 @@ begin
     Application.Terminate;
     raise Exception.Create('Error loading OpenGL 2.1');
   end;
+
+  if not Load_GL_EXT_texture_rectangle() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Error loading required extension EXT_texture_rectangle');
+  end;
+
+
+
+
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
   Application.ProcessMessages;
@@ -117,7 +127,7 @@ begin
 
   ShaderContext := TShaderContext.Create;
   ShaderContext.Init;
-  ShaderContext.UseFlagShader();
+  //ShaderContext.UseFlagShader();
 
   //stage 1
   ProgressForm.NextStage('Scanning filsystem.');

@@ -47,7 +47,7 @@ const
 type
   TRBGAColor = editor_gl.TRBGAColor;
 
-  TRGBAPalette = array[0..255] of TRBGAColor;
+  TRGBAPalette = packed array[0..255] of TRBGAColor;
 
   { TBaseSprite }
 
@@ -61,11 +61,10 @@ type
   { TDefEntry }
 
   TDefEntry = object (TBaseSprite)
-    offcet: UInt32;
-    group: Integer;
-
-    FullWidth: UInt32;
-    FullHeight: UInt32;
+    TopMagin: int32;
+    LeftMargin: int32;
+    SpriteWidth: Int32;
+    SpriteHeight: Int32;
   end;
 
   TDefEntries = specialize gvector.TVector<TDefEntry>;
@@ -75,6 +74,7 @@ type
 
   TDef = class (IResource)
   strict private
+    FPaletteID: GLuint;
 
     typ: UInt32;
     width: UInt32;
@@ -85,13 +85,13 @@ type
 
     FTexturesBinded: boolean;
 
-    FBuffer: packed array of TRBGAColor;
+    //FBuffer: packed array of TRBGAColor;
+    FBuffer: packed array of byte;
     procedure ResizeBuffer(w,h: Integer);
-
 
     function GetFrameCount: Integer; inline;
 
-    procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint);
+    procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
     procedure MayBeUnBindTextures; inline;
     procedure UnBindTextures;
   private //for internal use
@@ -367,6 +367,7 @@ var
       glGenTextures(count, @id_s[0]);
     end;
 var
+  offsets : packed array of UInt32;
   total_entries: Integer;
   block_nomber: Integer;
 
@@ -375,7 +376,6 @@ var
 
   current_offcet: UInt32;
 
-  current_name: packed array [1..13] of char;
   i: Uint8;
 
 
@@ -410,6 +410,9 @@ begin
     palette[i].r := header.palette[i].r;
   end;
 
+  glGenTextures(1,@FPaletteID);
+  BindPalette(FPaletteID,@palette);
+
   total_entries := 0;
 
   for block_nomber := 0 to header.blockCount - 1 do
@@ -418,39 +421,41 @@ begin
 
      total_in_block := current_block_head.totalInBlock;
 
-     entries.Resize(total_entries + total_in_block);
+     SetLength(offsets, total_entries + total_in_block);
+
+     //entries.Resize(total_entries + total_in_block);
 
      //names
-     for i := 0 to total_in_block - 1 do
-     begin
-       AStream.Read(current_name{%H-},SizeOf(current_name));
-       //entries.Mutable[total_entries+i]^.name := current_name;
-     end;
+     AStream.Seek(13*total_in_block,soCurrent);
 
      //offcets
      for i := 0 to total_in_block - 1 do
      begin
        AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
-       entries.Mutable[total_entries+i]^.offcet := current_offcet+UInt32(orig_position);
+       offsets[total_entries+i] := current_offcet+UInt32(orig_position);
 
-       entries.Mutable[total_entries+i]^.group := block_nomber;
+       //todo: use block_nomber to load heroes defs from mods
+
+       //entries.Mutable[total_entries+i]^.group := block_nomber;
      end;
 
      total_entries += total_in_block;
   end;
 
+  entries.Resize(total_entries);
+
   GenerateTextureIds;
 
   for i := 0 to entries.Size - 1 do
   begin
-    LoadSprite(AStream, i, id_s[i]);
+    LoadSprite(AStream, i, id_s[i], offsets[i]);
   end;
 
   SetLength(FBuffer,0); //clear
 end;
 
 procedure TDef.LoadSprite(AStream: TStream; const SpriteIndex: UInt8;
-  ATextureID: GLuint);
+  ATextureID: GLuint; offset: Uint32);
 var
   ftcp: Int32;
   procedure Skip(Count: Int32); inline;
@@ -480,14 +485,12 @@ var
 
   procedure SetRaw(const ColorIndex: Byte; ofc: int32; len: integer = 1); inline;
   var
-    C: TRBGAColor;
     i: Integer;
   begin
-    c := palette[ColorIndex];
-
     for i := 0 to len - 1 do
     begin
-      FBuffer[ofc+i] := c;
+      //FBuffer[ofc+i] := c;
+      FBuffer[ofc+i] := ColorIndex;
     end;
 
   end;
@@ -672,7 +675,7 @@ var
 begin
   PEntry := entries.Mutable[SpriteIndex];
 
-  BaseOffset := PEntry^.offcet;
+  BaseOffset := offset;
 
   AStream.Seek(BaseOffset,soBeginning);
   AStream.Read(h{%H-},SizeOf(h));
@@ -694,9 +697,11 @@ begin
 
   //TODO: use margins to decrease decompressed sprite size
 
-  PEntry^.FullHeight := h.FullHeight;
-  PEntry^.FullWidth := h.FullWidth;
+  PEntry^.LeftMargin := h.LeftMargin;
+  PEntry^.TopMagin := h.TopMargin;
   PEntry^.TextureId := ATextureID;
+  PEntry^.SpriteHeight := h.SpriteHeight;
+  PEntry^.SpriteWidth := h.SpriteWidth;
 
   LeftMargin := h.LeftMargin;
   TopMargin := h.TopMargin;
@@ -720,7 +725,7 @@ begin
 
 
   if (TopMargin > 0) or (BottomMargin > 0) or (LeftMargin > 0) or (RightMargin > 0) then
-    FillDWord(FBuffer[0], Length(FBuffer) ,$00000000); //todo: use marging in texture coords
+    FillChar(FBuffer[0], Length(FBuffer) ,0); //todo: use marging in texture coords
 
   ftcp := 0;
 
@@ -747,7 +752,8 @@ begin
     raise Exception.Create('Unknown sprite compression format');
   end;
 
-  BindUncompressedRGBA(ATextureID,h.FullWidth,h.FullHeight, FBuffer[0]);
+  BindUncompressedPaletted(ATextureID,h.FullWidth,h.FullHeight, @FBuffer[0]);
+  //BindUncompressedRGBA(ATextureID,h.FullWidth,h.FullHeight, FBuffer[0]);
 
 end;
 
@@ -764,16 +770,18 @@ var
   Sprite: TGLSprite;
 begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
+  Sprite.PaletteID := FPaletteID;
   Sprite.X := X;
   Sprite.Y := Y;
   Sprite.Height := height;
   Sprite.Width := width;
 
-  ShaderContext.UseFlagShader();
+  ShaderContext.UsePaletteShader();
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
 
   editor_gl.RenderSprite(Sprite, dim);
 
+  ShaderContext.UseNoShader();
 end;
 
 procedure TDef.RenderBorder(TileX, TileY: Integer);
@@ -781,7 +789,6 @@ var
   cx: Integer;
   cy: Integer;
 begin
-
   cx := (TileX+1) * TILE_SIZE;
   cy := (TileY+1) * TILE_SIZE;
 
@@ -798,10 +805,19 @@ begin
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
+  Sprite.PaletteID := FPaletteID;
+
+  CheckGLErrors('RenderF enter');
 
   mir := flags mod 4;
-  ShaderContext.UseNoShader();
+  //ShaderContext.UseNoShader();
+  ShaderContext.UsePaletteShader();
+  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[TPlayer.none]);
+
+
+
   editor_gl.RenderSprite(Sprite,-1,mir);
+
 
 end;
 
@@ -814,9 +830,14 @@ begin
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
+  Sprite.PaletteID := FPaletteID;
 
-  ShaderContext.UseFlagShader();
+  ShaderContext.UsePaletteShader();
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+
+
+  //ShaderContext.UseFlagShader();
+  //ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
 
   editor_gl.RenderSprite(Sprite);
 
@@ -835,12 +856,12 @@ end;
 procedure TDef.UnBindTextures;
 var
   SpriteIndex: Integer;
-  flag: TPlayerColor;
 begin
   for SpriteIndex := 0 to entries.Size - 1 do
   begin
     entries.Mutable[SpriteIndex]^.UnBind();
   end;
+  glDeleteTextures(1,@FPaletteID);
 end;
 
 end.
