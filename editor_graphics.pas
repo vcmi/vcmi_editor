@@ -776,12 +776,10 @@ begin
   Sprite.Height := height;
   Sprite.Width := width;
 
-  ShaderContext.UsePaletteShader();
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
 
   editor_gl.RenderSprite(Sprite, dim);
 
-  ShaderContext.UseNoShader();
 end;
 
 procedure TDef.RenderBorder(TileX, TileY: Integer);
@@ -810,11 +808,8 @@ begin
   CheckGLErrors('RenderF enter');
 
   mir := flags mod 4;
-  //ShaderContext.UseNoShader();
-  ShaderContext.UsePaletteShader();
+
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[TPlayer.none]);
-
-
 
   editor_gl.RenderSprite(Sprite,-1,mir);
 
@@ -832,12 +827,7 @@ begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
   Sprite.PaletteID := FPaletteID;
 
-  ShaderContext.UsePaletteShader();
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
-
-
-  //ShaderContext.UseFlagShader();
-  //ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
 
   editor_gl.RenderSprite(Sprite);
 

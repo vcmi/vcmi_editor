@@ -1154,6 +1154,8 @@ var
   scissor_w: Integer;
   scissor_h: Integer;
   scissor_y: Integer;
+  cx: Integer;
+  cy: Integer;
 
 begin
   c := TOpenGLControl(Sender);
@@ -1167,7 +1169,7 @@ begin
     Init;
   end;
 
-  ShaderContext.UseNoShader();
+  //ShaderContext.UseNoShader();
 
   glEnable(GL_SCISSOR_TEST);
 
@@ -1200,12 +1202,23 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  ShaderContext.UsePaletteShader();
+
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   //glEnable (GL_BLEND);
   //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+
+
+  if FMapDragging then
+  begin
+    Assert(Assigned(FDraggingTemplate));
+    cx := FMouseTileX * TILE_SIZE;
+    cy := FMouseTileY * TILE_SIZE;
+    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
+  end;
 
   //todo: render passability
 
@@ -1215,8 +1228,6 @@ begin
   begin
     FSelectedObject.RenderSelectionRect;
   end;
-
-  ShaderContext.UseNoShader();
 
   RenderCursor;
 
@@ -1330,44 +1341,63 @@ begin
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-    for row := 0 to FViewObjectRowsH + 1 do
+  ShaderContext.UseNoShader();
+
+  for row := 0 to FViewObjectRowsH + 1 do
+  begin
+    for col := 0 to OBJ_PER_ROW - 1 do
     begin
-      for col := 0 to OBJ_PER_ROW - 1 do
-      begin
-        o_idx := GetObjIdx(col, row);
+      o_idx := GetObjIdx(col, row);
 
-        if o_idx >= FObjectCount then
-          break;
+      if o_idx >= FObjectCount then
+        break;
+      cx := col * OBJ_CELL_SIZE;
+      cy := row * OBJ_CELL_SIZE;
 
-            o_def := FObjManager.Objcts[o_idx];
+      glPushAttrib(GL_CURRENT_BIT);
+      glLineWidth(1);
 
-            cx := col * OBJ_CELL_SIZE;
-            cy := row * OBJ_CELL_SIZE;
+      glBegin(GL_LINE_LOOP);
 
-            glPushAttrib(GL_CURRENT_BIT);
-            glLineWidth(1);
-
-            glBegin(GL_LINE_LOOP);
-
-              glColor4ub(200, 200, 200, 255);
+        glColor4ub(200, 200, 200, 255);
 
 
-              dim := OBJ_CELL_SIZE;
+        dim := OBJ_CELL_SIZE;
 
-              glVertex2i(cx, cy);
-              glVertex2i(cx + dim, cy);
+        glVertex2i(cx, cy);
+        glVertex2i(cx + dim, cy);
 
-              glVertex2i(cx + dim, cy + dim);
-              glVertex2i(cx, cy + dim);
+        glVertex2i(cx + dim, cy + dim);
+        glVertex2i(cx, cy + dim);
 
 
-            glEnd();
-            glPopAttrib();
+      glEnd();
+      glPopAttrib();
 
-            o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
 
-      end;
     end;
+  end;
+
+  ShaderContext.UsePaletteShader();
+  //ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[FCurrentPlayer]);
+
+  for row := 0 to FViewObjectRowsH + 1 do
+  begin
+    for col := 0 to OBJ_PER_ROW - 1 do
+    begin
+      o_idx := GetObjIdx(col, row);
+
+      if o_idx >= FObjectCount then
+        break;
+      cx := col * OBJ_CELL_SIZE;
+      cy := row * OBJ_CELL_SIZE;
+
+      o_def := FObjManager.Objcts[o_idx];
+      o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
+
+    end;
+  end;
+
   glDisable (GL_BLEND);
   glDisable(GL_SCISSOR_TEST);
 
@@ -1495,12 +1525,6 @@ begin
     glPopAttrib();
   end;
 
-  if FMapDragging then
-  begin
-    Assert(Assigned(FDraggingTemplate));
-    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
-    ShaderContext.UseNoShader();
-  end;
 end;
 
 procedure TfMain.SaveMap(AFileName: string);

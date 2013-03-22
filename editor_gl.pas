@@ -34,6 +34,12 @@ type
 
 const
 
+  FRAGMENT_DEFAULT_SHADER =
+  '#version 120'#13#10+
+  'void main(){'+
+      'gl_FragColor = gl_Color;'+
+  '}';
+
   FRAGMENT_PALETTE_SHADER =
   '#version 120'#13#10 +
   'uniform vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
@@ -94,6 +100,8 @@ type
     FlagProgram: GLuint;
     FlagFlagColorUniform: GLuint;
     FlagBitmapUniform: GLUint;
+
+    DefaultProgarm: GLuint;
   public
     destructor Destroy; override;
     procedure Init;
@@ -206,8 +214,6 @@ begin
     h := round(Double(ASprite.Height) * factor);
     w := round(Double(ASprite.Width) * factor);
   end;
-
-  //CheckGLErrors('render sprite0 mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 
   glEnable(GL_TEXTURE_RECTANGLE);
   glEnable(GL_TEXTURE_1D);
@@ -400,6 +406,10 @@ begin
 
   FlagFlagColorUniform := glGetUniformLocation(FlagProgram, PChar('flagColor'));
   FlagBitmapUniform := glGetUniformLocation(FlagProgram, PChar('bitmap'));
+
+  DefaultProgarm := MakeShaderProgram(FRAGMENT_DEFAULT_SHADER);
+  if DefaultProgarm = 0 then
+    raise Exception.Create('Error compiling default shader');
 end;
 
 procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
@@ -424,8 +434,8 @@ end;
 
 procedure TShaderContext.UseNoShader;
 begin
-  FCurrentProgram := 0;
-  glUseProgram(FCurrentProgram);
+  FCurrentProgram := DefaultProgarm;
+  glUseProgram(DefaultProgarm);
 end;
 
 procedure TShaderContext.UsePaletteShader;
