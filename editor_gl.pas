@@ -50,6 +50,7 @@ const
 
   'void main(){'+
     'float idx_f = texture2DRect(bitmap,gl_TexCoord[0].xy).r;'+
+    'idx_f = idx_f * 255.0 / 256.0 + 0.002;'+
     'vec4 texel = texture1D(palette, idx_f);'+
     'if(all(greaterThanEqual(texel,maskColor-eps)) && all(lessThanEqual(texel,maskColor+eps)))'+
     '  texel = flagColor;'+
