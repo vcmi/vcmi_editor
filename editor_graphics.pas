@@ -77,8 +77,8 @@ type
     FPaletteID: GLuint;
 
     typ: UInt32;
-    width: UInt32;
-    height: UInt32;
+    FWidth: UInt32;
+    FHeight: UInt32;
     blockCount: UInt32;
     palette: TRGBAPalette;
     entries: TDefEntries;
@@ -113,6 +113,9 @@ type
     property FrameCount: Integer read GetFrameCount;
 
     procedure RenderBorder(TileX,TileY: Integer);
+
+    property Width: UInt32 read FWidth;
+    property Height: UInt32 read FHeight;
   end;
 
   TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
@@ -391,9 +394,9 @@ begin
   AStream.Read(header{%H-},SizeOf(header));
 
   typ := LEtoN(header.typ);
-  height := LEtoN(header.height);
+  FHeight := LEtoN(header.height);
   blockCount := LEtoN(header.blockCount);
-  width := LEtoN(header.width);
+  FWidth := LEtoN(header.width);
 
   //TODO: use color comparison instead of index
 

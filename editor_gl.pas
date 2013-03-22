@@ -198,8 +198,9 @@ procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);
 var
   factor: Double;
   cur_dim: integer;
-  H: Int32;
-  W: Int32;
+  H,W,
+  x,
+  y: Int32;
 begin
 
   if dim <=0 then //render real size w|o scale
@@ -216,6 +217,9 @@ begin
     w := round(Double(ASprite.Width) * factor);
   end;
 
+  x := ASprite.x;
+  y := ASprite.y;
+
   glEnable(GL_TEXTURE_RECTANGLE);
   glEnable(GL_TEXTURE_1D);
     glActiveTexture(GL_TEXTURE0);
@@ -229,55 +233,55 @@ begin
       case mir of
         0:begin
           glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-          glVertex2i(ASprite.X,  ASprite.Y);
+          glVertex2i(X,  Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-          glVertex2i(ASprite.X+W,ASprite.Y);
+          glVertex2i(X+W,Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-          glVertex2i(ASprite.X+W,ASprite.Y+H);
+          glVertex2i(X+W,Y+H);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-          glVertex2i(ASprite.X,  ASprite.Y+H);
+          glVertex2i(X,  Y+H);
         end;
         1: begin
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-          glVertex2i(ASprite.X,  ASprite.Y);
+          glVertex2i(X,  Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-          glVertex2i(ASprite.X+W,ASprite.Y);
+          glVertex2i(X+W,Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-          glVertex2i(ASprite.X+W,ASprite.Y+H);
+          glVertex2i(X+W,Y+H);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-          glVertex2i(ASprite.X,  ASprite.Y+H);
+          glVertex2i(X,  Y+H);
           end;
         2: begin
           glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-          glVertex2i(ASprite.X,  ASprite.Y);
+          glVertex2i(X,  Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-          glVertex2i(ASprite.X+W,ASprite.Y);
+          glVertex2i(X+W,Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-          glVertex2i(ASprite.X+W,ASprite.Y+H);
+          glVertex2i(X+W,Y+H);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-          glVertex2i(ASprite.X,  ASprite.Y+H);
+          glVertex2i(X,  Y+H);
           end;
         3:begin
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-          glVertex2i(ASprite.X,  ASprite.Y);
+          glVertex2i(X,  Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-          glVertex2i(ASprite.X+W,ASprite.Y);
+          glVertex2i(X+W,Y);
 
           glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-          glVertex2i(ASprite.X+W,ASprite.Y+H);
+          glVertex2i(X+W,Y+H);
 
           glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-          glVertex2i(ASprite.X,  ASprite.Y+H);
+          glVertex2i(X,  Y+H);
           end;
       end;
 

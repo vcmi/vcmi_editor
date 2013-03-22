@@ -471,9 +471,16 @@ begin
 end;
 
 function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
+var
+  w: UInt32;
+  h: UInt32;
 begin
   //TODO: use MASK
-  Result := (FL = ALevel) and (FX=AX) and (FY=AY);
+  w := Template.FDef.Width div TILE_SIZE;
+  h := Template.FDef.Height div TILE_SIZE;
+  Result := (FL = ALevel)
+    and (X>=AX) and (Y>=AY)
+    and (X-w<AX) and (Y-h<AY);
 end;
 
 constructor TMapObject.Create(ACollection: TCollection);
