@@ -72,8 +72,6 @@ type
 
     procedure Scan(ACallback: TOnItemFound);
 
-    procedure LoadToStream(AStream: TStream; constref AItem:TLodItem); deprecated;
-
     procedure LoadResource(AResource: IResource; constref AItem:TLodItem);
   end;
 
@@ -118,21 +116,6 @@ begin
 
 end;
 
-procedure TLod.LoadToStream(AStream: TStream; constref AItem: TLodItem);
-var
-  stm: TZlibInputStream;
-begin
-  FFileStream.Seek(AItem.FileOffset,soBeginning);
-  if AItem.FileLength <> 0 then
-  begin
-    stm := TZlibInputStream.Create(FFileStream,AItem.UncompressedFileSize);
-    AStream.CopyFrom(stm,AItem.UncompressedFileSize);
-    stm.free;
-  end
-  else begin
-    AStream.CopyFrom(FFileStream,AItem.UncompressedFileSize);
-  end;
-end;
 
 procedure TLod.Scan(ACallback: TOnItemFound);
 var

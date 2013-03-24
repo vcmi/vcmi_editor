@@ -24,8 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, editor_types,
-  filesystem_base, editor_graphics, editor_classes;
+  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil,
+  editor_types,
+  filesystem_base, editor_graphics, editor_classes, h3_txt;
 
 type
 
@@ -139,18 +140,17 @@ begin
 end;
 
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback);
-
 var
-  stm: TStringStream;
-  doc: TCSVDocument;
   row, col: Integer;
+
+  objects_txt: TTextResource;
 
   procedure CellToStr(var s: string);
   begin
-    if not doc.HasCell(col, row) then
+    if not objects_txt.HasCell(col, row) then
        raise Exception.CreateFmt('OBJTXT error cell not exists. row:%d, col:%d',[row,col]);
 
-    s := doc.Cells[col,row];
+    s := objects_txt.Value[col,row];
     inc(col);
   end;
 
@@ -204,7 +204,7 @@ var
 
   function CellToInt: uint32;
   begin
-    result := StrToIntDef(doc.Cells[col,row],0);
+    result := StrToIntDef(objects_txt.Value[col,row],0);
     inc(col);
   end;
 
@@ -216,27 +216,21 @@ var
   progess_delta: Integer;
 begin
 
-  //todo: suppport for custom object lists
+  //todo: suppport for custom (ERA) object lists
 
-  stm := TStringStream.Create('');
-  doc := TCSVDocument.Create;
-  doc.Delimiter := #$20; //space
-  doc.EqualColCountPerRow := False;
-  doc.IgnoreOuterWhitespace := False;
-  doc.QuoteOuterWhitespace := False;
-  doc.LineEnding := #13#10;
+  //todo: support for vcmi object lists
+
+  objects_txt := TTextResource.Create;
+  objects_txt.Delimiter := TTextResource.TDelimiter.Space;
 
   try
-    ResourceLoader.LoadToStream(stm,TResourceType.Text,OBJECT_LIST);
-    stm.Seek(0,soBeginning);
-
-    doc.CSVText := stm.DataString;
+    ResourceLoader.LoadResource(objects_txt,TResourceType.Text,OBJECT_LIST);
 
     AProgressCallback.Max := 200;
 
-    progess_delta := doc.RowCount div 200;
+    progess_delta := objects_txt.RowCount div 200;
 
-    for row := 1 to doc.RowCount-1 do //first row contains no data, so start with 1
+    for row := 1 to objects_txt.RowCount-1 do //first row contains no data, so start with 1
     begin
 
       if (row mod progess_delta) = 0 then
@@ -272,8 +266,7 @@ begin
     end;
 
   finally
-    stm.Free;
-    doc.Free;
+    objects_txt.Free;
   end;
 
 end;

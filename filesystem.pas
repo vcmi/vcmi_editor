@@ -291,7 +291,6 @@ type
 
     procedure Load(AProgress: IProgressCallback);
 
-    procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string);  deprecated;
     procedure LoadResource(AResource: IResource; AResType: TResourceType;
       AName: string);
 
@@ -721,44 +720,6 @@ begin
 
 end;
 
-procedure TFSManager.LoadToStream(AStream: TStream;
-  AResType: TResourceType; AName: string);
-var
-  stm: TFileStream;
-
-  res_id: TResId;
-  res_loc: TResLocation;
-  it : TResIDToLcationMap.TIterator;
-begin
-  AName := NormalizeResName(AName);
-
-  res_id.VFSPath := AName;
-  res_id.Typ := AResType;
-
-  it := FResMap.Find(res_id);
-
-  if not Assigned(it) then
-  begin
-    raise Exception.Create('Res not found '+AName);
-  end;
-
-  res_loc := it.Value;
-  it.Free;
-
-  case res_loc.lt of
-    TLocationType.InLod: res_loc.lod.LoadToStream(AStream,res_loc.FileHeader) ;
-    TLocationType.InFile: begin
-      stm := TFileStream.Create(res_loc.path,fmOpenRead or fmShareDenyWrite);
-      try
-        stm.Seek(0,soBeginning);
-        AStream.CopyFrom(stm,stm.Size);
-      finally
-        stm.Free;
-      end;
-    end;
-  end;
-
-end;
 
 function TFSManager.MakeFullPath(ARootPath: string; RelPath: string): string;
 begin

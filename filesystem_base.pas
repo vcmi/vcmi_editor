@@ -41,11 +41,10 @@ type
 
   IResourceLoader = interface ['{6BBEC2EA-75F4-4836-B25B-2F68B25091F2}']
     (*
-       AStream - stream to write to (f.e. memory stream)
-       AResType - type of resourse to load
+       AResource - resource object to load
+       AResType - type of resourse
        AName - relative path + filename .w\o ext
     *)
-    procedure LoadToStream(AStream: TStream; AResType: TResourceType; AName: string); deprecated;
     procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
   end;
 

@@ -28,25 +28,10 @@ uses
   Classes, SysUtils,
   gmap, fgl,
   fpjson,
-  CsvDocument,
   filesystem_base, editor_types, editor_utils,
-  vcmi_json;
+  vcmi_json,h3_txt;
 
 type
-
-  { TTextResource }
-
-  TTextResource = class (IResource)
-  private
-    FDoc: TCSVDocument;
-    function GetValue(Col, Row: Integer): TLocalizedString;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure LoadFromStream(AStream: TStream);
-
-    property Value[Col,Row: Integer]:TLocalizedString read GetValue;
-  end;
 
   { TSkillInfo }
 
@@ -180,33 +165,6 @@ begin
   FName := AValue;
 end;
 
-{ TTextResource }
-
-constructor TTextResource.Create;
-begin
-  FDoc := TCSVDocument.Create;
-  FDoc.Delimiter := #9; //tab
-  FDoc.EqualColCountPerRow := False;
-  FDoc.IgnoreOuterWhitespace := False;
-  FDoc.QuoteOuterWhitespace := False;
-  FDoc.LineEnding := #13#10;
-end;
-
-destructor TTextResource.Destroy;
-begin
-  FDoc.Free;
-end;
-
-function TTextResource.GetValue(Col, Row: Integer): TLocalizedString;
-begin
-  Result := AnsiToUtf8(FDoc.Cells[Col,Row]);
-end;
-
-procedure TTextResource.LoadFromStream(AStream: TStream);
-begin
-  FDoc.LoadFromStream(AStream);
-end;
-
 { TListsManager }
 
 constructor TListsManager.Create(AOwner: TComponent);
@@ -254,7 +212,7 @@ begin
   try
     ResourceLoader.LoadResource(sstraits,TResourceType.Text, SEC_SKILL_TRAITS);
 
-    for i := 2 to sstraits.FDoc.RowCount - 1 do
+    for i := 2 to sstraits.RowCount - 1 do
     begin
       info := TSkillInfo.Create;
       info.ID := 'skill.'+SKILL_NAMES[i-2];

@@ -94,7 +94,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="38">
+    <Units Count="39">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -318,6 +318,11 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="witchhut_frame"/>
       </Unit37>
+      <Unit38>
+        <Filename Value="h3_txt.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="h3_txt"/>
+      </Unit38>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
