@@ -90,6 +90,7 @@ begin
   FHiddenForm := TForm.CreateNew(Self);
 
   DebugLogger.LogName := log_name;
+  DebugLogger.CloseLogFileBetweenWrites := True;
 
 
   FGLContext := TOpenGLControl.Create(Self);

@@ -25,8 +25,8 @@ interface
 
 uses
   Classes, SysUtils,
-  gvector,
-  editor_types, editor_graphics, fpjson, vcmi_json,
+   fgl,
+  editor_types, editor_graphics, vcmi_json,
   filesystem_base, editor_classes;
 
 const
@@ -60,19 +60,21 @@ type
 
   { TWeightedRule }
 
-  TWeightedRule = object
+  TWeightedRule = class
     name : string;
     points: Integer;
     constructor Create();
+    destructor Destroy; override;
     function IsStandartRule: boolean;
     function IsDirt: boolean; inline;
     function IsSand: boolean; inline;
     function IsTrans: boolean; inline;
     function IsAny: boolean; inline;
 
+    function Clone: TWeightedRule;
   end;
 
-  TRules = specialize TVector<TWeightedRule>;
+  TRules = specialize TFPGObjectList<TWeightedRule>;
 
   TRulesArray =  array[0..8] of TRules ;
 
@@ -89,10 +91,9 @@ type
   { TPattern }
 
   TPattern = class (TCollectionItem)
-  private
+  strict private
     FData: TRulesArray;
     FMappings: TMappings;
-  private
     FFlipMode: TFlipMode;
     FGroup: TTerrainGroup;
     FStrData: TStringList;
@@ -104,6 +105,9 @@ type
     procedure SetID(AValue: string);
     procedure SetMapping(AValue: string);
     procedure SetMinPoints(AValue: integer);
+  private
+    function GetRData(idx: Integer): TRules;
+    procedure SwapRules(idx1,idx2: Integer);
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -113,9 +117,9 @@ type
     procedure Loaded;
 
     property Mappings: TMappings read FMappings;
-    property RData: TRulesArray read FData;
+    property RData[idx:Integer]: TRules read GetRData;
 
-    property Group: TTerrainGroup read FGroup;
+    property Group: TTerrainGroup read FGroup write FGroup;
   published
     property Data: TStrings read GetData;
     property Mapping: string read FMapping write SetMapping;
@@ -178,7 +182,6 @@ type
     FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TDef;
 
     FPatternConfig: TTerrainPatternConfig;
-    FDestreamer: TVCMIJSONDestreamer;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -203,7 +206,7 @@ type
 implementation
 
 uses
-  strutils,RegExpr;
+  RegExpr, LazLogger;
 
 
 
@@ -248,10 +251,22 @@ end;
 
 { TWeightedRule }
 
+function TWeightedRule.Clone: TWeightedRule;
+begin
+  Result := TWeightedRule.Create();
+  Result.name := name;
+  Result.points := points;
+end;
+
 constructor TWeightedRule.Create;
 begin
   points := 0;
   name := '';
+end;
+
+destructor TWeightedRule.Destroy;
+begin
+  inherited Destroy;
 end;
 
 function TWeightedRule.IsAny: boolean;
@@ -344,7 +359,6 @@ function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
   flip: Integer): TPattern;
 var
   i: Integer;
-  tmp: TRules;
   y: Integer;
 
 begin
@@ -357,10 +371,7 @@ begin
     for i := 0 to 3 - 1 do
     begin
       y := i*3;
-
-      tmp := Result.FData[Y+2];
-      Result.FData[Y+2] := Result.FData[Y];
-      Result.FData[Y] := tmp;
+      Result.SwapRules(Y+2,Y);
     end;
   end;
 
@@ -368,9 +379,7 @@ begin
   begin
     for i := 0 to 3 - 1 do
     begin
-      tmp := Result.FData[i+6];
-      Result.FData[i+6] := Result.FData[i];
-      Result.FData[i] := tmp;
+      Result.SwapRules(i,i+6);
     end;
   end;
 end;
@@ -428,7 +437,7 @@ var
 begin
   for i := 0 to Count - 1 do
   begin
-    Items[i].FGroup := g;
+    Items[i].Group := g;
   end;
 end;
 
@@ -437,6 +446,7 @@ end;
 procedure TPattern.AssignTo(Dest: TPersistent);
 var
   dest_o: TPattern;
+  tmp: TWeightedRule;
   i: Integer;
   j: Integer;
 begin
@@ -453,9 +463,11 @@ begin
 
     for i := 0 to 9 - 1 do
     begin
-      for j := 0 to FData[i].Size - 1 do
+      for j := 0 to RData[i].Count - 1 do
       begin
-        dest_o.FData[i].PushBack(FData[i][j]);
+        tmp := RData[i].Items[j].Clone();
+
+        dest_o.RData[i].Add(tmp);
       end;
     end;
 
@@ -481,7 +493,7 @@ begin
 
   for i := Low(FData) to High(FData) do
   begin
-    FData[i] := TRules.Create;
+    FData[i] := TRules.Create(True);
   end;
 
 
@@ -505,10 +517,14 @@ begin
   Result := FStrData;
 end;
 
+function TPattern.GetRData(idx: Integer): TRules;
+begin
+  Result := FData[idx];
+end;
+
 procedure TPattern.Loaded;
 var
   i: Integer;
-  cell: String;
 
   tmp:TStringList;
 
@@ -516,67 +532,93 @@ var
   m: TMapping;
   j: Integer;
   p: SizeInt;
+
+  rexp: TRegExpr;
+
+ procedure Split (const AInputStr : RegExprString; APieces : TStrings);
+ var
+   PrevPos : PtrInt;
+   s : string;
+ begin
+  PrevPos := 1;
+  if rexp.Exec (AInputStr) then
+   REPEAT
+    s := Copy (AInputStr, PrevPos, rexp.MatchPos [0] - PrevPos);
+    APieces.Add (s);
+    PrevPos := rexp.MatchPos [0] + rexp.MatchLen [0];
+   UNTIL not rexp.ExecNext;
+  if PrevPos <= Length(AInputStr) then
+  begin
+    s :=  Copy (AInputStr, PrevPos, MaxInt);
+
+    APieces.Add(s);
+   end;
+ end;
+
+
 begin
   if not FStrData.Count = 9 then raise Exception.Create('terrain config invalid');
 
   tmp := TStringList.Create;
+  rexp := TRegExpr.Create;
+  try
+    rexp.Expression := '\s*,\s*';
 
-  for I := Low(FData) to High(FData) do
-  begin
-    tmp.Clear;
-    FData[i].Clear;
-
-    rule.Create();
-    cell := FStrData[i];
-    //cell := ReplaceStr(cell,#20,'');
-
-    SplitRegExpr('\s*,\s*',cell,tmp);
-
-    for j := 0 to tmp.Count - 1 do
+    for I := Low(FData) to High(FData) do
     begin
-      p := Pos('-',tmp[j]);
+      tmp.Clear;
+      FData[i].Clear;
+      Split(FStrData[i],tmp);
 
-      if p <> 0 then
+      for j := 0 to tmp.Count - 1 do
       begin
-        rule.name := Copy(tmp[j],1,p-1);
+        rule := TWeightedRule.Create();
+        p := Pos('-',tmp[j]);
 
-        rule.points := StrToInt(Copy(tmp[j],p+1,MaxInt));
-      end
-      else
-      begin
-        rule.name := tmp[j];
+        if p <> 0 then
+        begin
+          rule.name := Copy(tmp[j],1,p-1);
+
+          rule.points := StrToInt(Copy(tmp[j],p+1,MaxInt));
+        end
+        else
+        begin
+          rule.name := tmp[j];
+        end;
+
+        FData[i].Add(rule);
       end;
 
-      FData[i].PushBack(rule);
+      tmp.Clear;
+
+      //FMapping := ReplaceStr(FMapping,#20,'');
+      Split(FMapping,tmp);
+
+      if tmp.Count > 2 then raise Exception.Create('terrain config invalid. too many mappings');
+
+      for j := 0 to tmp.Count - 1 do
+      begin
+        p := Pos('-',tmp[j]);
+
+        if p <> 0 then
+        begin
+          m.Lower := StrToInt(Copy(tmp[j],1,p-1));
+          m.Upper := StrToInt(Copy(tmp[j],p+1,MaxInt));
+        end
+        else
+        begin
+          m.Lower := StrToInt(tmp[j]);
+          m.Upper := StrToInt(tmp[j]);
+        end;
+        FMappings[j] := m;
+      end
+
     end;
-
-    tmp.Clear;
-
-    //FMapping := ReplaceStr(FMapping,#20,'');
-    SplitRegExpr('\s*,\s*',FMapping,tmp);
-
-    if tmp.Count > 2 then raise Exception.Create('terrain config invalid. too many mappings');
-
-    for j := 0 to tmp.Count - 1 do
-    begin
-      p := Pos('-',tmp[j]);
-
-      if p <> 0 then
-      begin
-        m.Lower := StrToInt(Copy(tmp[j],1,p-1));
-        m.Upper := StrToInt(Copy(tmp[j],p+1,MaxInt));
-      end
-      else
-      begin
-        m.Lower := StrToInt(tmp[j]);
-        m.Upper := StrToInt(tmp[j]);
-      end;
-      FMappings[j] := m;
-    end
-
+  finally
+   rexp.Free;
+   tmp.Free;
   end;
 
-  tmp.Free;
 end;
 
 procedure TPattern.SetFlipMode(AValue: TFlipMode);
@@ -603,6 +645,15 @@ begin
   FMinPoints := AValue;
 end;
 
+procedure TPattern.SwapRules(idx1, idx2: Integer);
+var
+  tmp: TRules;
+begin
+  tmp := FData[idx1];
+  FData[idx1] := FData[idx2];
+  FData[idx2] := tmp;
+end;
+
 { TTerrainManager }
 
 constructor TTerrainManager.Create(AOwner: TComponent);
@@ -610,7 +661,6 @@ begin
   inherited Create(AOwner);
 
   FPatternConfig := TTerrainPatternConfig.Create;
-  FDestreamer := TVCMIJSONDestreamer.Create(Self);
 end;
 
 destructor TTerrainManager.Destroy;
@@ -657,16 +707,15 @@ end;
 
 procedure TTerrainManager.LoadConfig;
 var
-  stm: TMemoryStream;
-
+  config: TJsonResource;
 begin
-  stm := TMemoryStream.Create;
+  config := TJsonResource.Create;
   try
-    ResourceLoader.LoadToStream(stm,TResourceType.Json,TERRAIN_CONFIG_FILE);
-    stm.Seek(0,soBeginning);
-    FDestreamer.JSONStreamToObject(stm,FPatternConfig,'');
+    ResourceLoader.LoadResource (config,TResourceType.Json,TERRAIN_CONFIG_FILE);
+    config.DestreamTo(FPatternConfig,'');
+
   finally
-    stm.Free;
+    config.Free;
   end;
   FPatternConfig.ConvertConfig;
 end;

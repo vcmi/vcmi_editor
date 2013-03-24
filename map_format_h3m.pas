@@ -341,7 +341,7 @@ var
   creid,crecnt: Integer;
   version: Boolean;
   i: Integer;
-  info: TCreatureInfo;
+  info: TCreatureInstInfo;
 begin
   version := IsNotROE;
 

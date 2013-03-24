@@ -53,9 +53,9 @@ type
   end;
 {$pop}
 
-  { TCreatureInfo }
+  { TCreatureInstInfo }
 
-  TCreatureInfo = class (TCollectionItem)
+  TCreatureInstInfo = class (TCollectionItem)
   private
     FCreCount: Integer;
     FCreID: TCreatureID;
@@ -66,6 +66,7 @@ type
   public
     constructor Create(ACollection: TCollection); override;
   published
+    //todo: use string id
     property CreID: TCreatureID read FCreID write SetCreID default -1;
     property CreCount: Integer read FCreCount write SetCreCount default 0;
     property RandomCount: boolean read FRandomCount write SetRandomCount default False;
@@ -73,7 +74,7 @@ type
 
   { TCreatureSet }
 
-  TCreatureSet = class (specialize TGArrayCollection<TCreatureInfo>)
+  TCreatureSet = class (specialize TGArrayCollection<TCreatureInstInfo>)
   private
     FMaxSize: Integer;
   public
@@ -566,27 +567,27 @@ begin
 end;
 
 
-{ TCreatureInfo }
+{ TCreatureInstInfo }
 
-constructor TCreatureInfo.Create(ACollection: TCollection);
+constructor TCreatureInstInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FCreID := -1;
 end;
 
-procedure TCreatureInfo.SetCreCount(AValue: Integer);
+procedure TCreatureInstInfo.SetCreCount(AValue: Integer);
 begin
   if FCreCount = AValue then Exit;
   FCreCount := AValue;
 end;
 
-procedure TCreatureInfo.SetCreID(AValue: TCreatureID);
+procedure TCreatureInstInfo.SetCreID(AValue: TCreatureID);
 begin
   if FCreID = AValue then Exit;
   FCreID := AValue;
 end;
 
-procedure TCreatureInfo.SetRandomCount(AValue: boolean);
+procedure TCreatureInstInfo.SetRandomCount(AValue: boolean);
 begin
   if FRandomCount = AValue then Exit;
   FRandomCount := AValue;
@@ -831,10 +832,10 @@ begin
   //todo: make it configurable
   for i := 0 to SKILL_QUANTITY - 1 do
   begin
-    FAllowedSkills.Add(SKILL_NAMES[i]);
+    FAllowedSkills.Add(SKILL_NAMESPACE + '.'+ SKILL_NAMES[i]);
   end;
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[6]));
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[12]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMESPACE + '.'+ SKILL_NAMES[6]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMESPACE + '.'+ SKILL_NAMES[12]));
 end;
 
 destructor TWitchHutOptions.Destroy;

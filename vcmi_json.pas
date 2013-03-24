@@ -24,7 +24,7 @@ unit vcmi_json;
 interface
 
 uses
-  Classes, SysUtils, fpjson,vcmi_fpjsonrtti, typinfo, filesystem_base;
+  Classes, SysUtils, fpjson, fgl, vcmi_fpjsonrtti, typinfo, filesystem_base;
 
 type
 
@@ -80,6 +80,13 @@ type
     procedure DestreamTo(AObject: TObject; AFieldName: string = '');
   end;
 
+  TJsonObjectList = specialize TFPGObjectList<TJSONObject>;
+
+  procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
+
+  procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); overload ;
+  procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); overload ;
+
 implementation
 
 uses editor_classes;
@@ -91,6 +98,61 @@ begin
   c := s[1];
   c := lowerCase(c);
   s[1] := c;
+end;
+
+procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
+begin
+  if not (ASrc.JSONType = ADest.JSONType) then
+  begin
+    raise EJSON.Create('Incompatible JSON values');
+  end;
+
+  case ASrc.JSONType of
+    jtNull: ;//nothing to do
+    jtArray: MergeJsonStruct(ASrc as TJSONArray, ADest as TJSONArray) ;
+    jtBoolean: ADest.AsBoolean := ASrc.AsBoolean ;
+    jtNumber:begin
+      case TJSONNumber(ASrc).NumberType of
+        ntFloat: ADest.AsFloat := ASrc.AsFloat ;
+        ntInt64: ADest.AsInt64 := ASrc.AsInt64;
+        ntInteger: ADest.AsInteger := ASrc.AsInteger;
+      end;
+    end;
+    jtObject:MergeJsonStruct(ASrc as TJSONObject, ADest as TJSONObject) ;
+    jtString:ADest.AsString := ASrc.AsString;
+  else
+    begin
+      raise EJSON.Create('Unknown JSON type');
+    end;
+  end;
+
+end;
+
+procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject);
+var
+  src_idx, dest_idx: Integer;
+  name: TJSONStringType;
+begin
+  for src_idx := 0 to ASrc.Count - 1 do
+  begin
+    name := ASrc.Names[src_idx];
+
+    dest_idx := ADest.IndexOfName(name);
+
+    if dest_idx >=0 then
+    begin
+      MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
+    end
+    else begin
+      ADest.Add(name,ASrc.Items[src_idx].Clone()); //todo: use safe extract?
+    end;
+
+  end;
+end;
+
+procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
+begin
+  Assert(false,'MergeJsonStruct for arrays Not implemented');
 end;
 
 { TJsonResource }
@@ -259,11 +321,18 @@ begin
   new_item := ACollection.Add;
   new_item.DisplayName := AName;
 
-  if Item.JSONType in [jtObject,jtArray] then
+  if Item.JSONType in [jtObject] then
   begin
     O :=  TJSONObject(Item);
 
     JSONToObject(o,new_item);
+  end
+  else if Item.JSONType in [jtArray] then
+  begin
+    if new_item is IEmbeddedCollection then
+    begin
+      JSONToCollection(Item,(new_item as IEmbeddedCollection).GetCollection);
+    end
   end
   else begin
     Error('Not supported collection element type for item '+AName);

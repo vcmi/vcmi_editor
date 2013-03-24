@@ -507,7 +507,7 @@ begin
 
     topPoints := -1;
 
-    for j := 0 to pattern.RData[i].Size - 1 do
+    for j := 0 to pattern.RData[i].Count - 1 do
     begin
       rule := pattern.RData[i][j];
 

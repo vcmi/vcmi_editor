@@ -128,7 +128,7 @@ begin
 
   for i := 0 to AOptions.AllowedSkills.Count - 1 do
   begin
-    skill_id := ListsManager.SkillStringToNid(AOptions.AllowedSkills[i]);
+    skill_id := ListsManager.SIDIdNID(AOptions.AllowedSkills[i]);
     edAllowedSkills.State[skill_id] := cbChecked;
   end;
 

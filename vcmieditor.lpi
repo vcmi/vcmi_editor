@@ -77,6 +77,11 @@
         <CommandLineParams Value="VCMI_Tests_2011b.h3m"/>
         <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
       </local>
+      <environment>
+        <UserOverrides Count="1">
+          <Variable0 Name="HEAPTRC" Value="log=d:\projects\vcmi\editor\bin\heap.txt"/>
+        </UserOverrides>
+      </environment>
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
@@ -331,7 +336,9 @@
         <IOChecks Value="True"/>
         <RangeChecks Value="True"/>
         <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
       </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Linking>
       <Options>

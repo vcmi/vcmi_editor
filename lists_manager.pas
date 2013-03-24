@@ -25,8 +25,12 @@ unit lists_manager;
 interface
 
 uses
-  Classes, SysUtils, filesystem_base, editor_types, editor_utils, CsvDocument,
-  gmap, fgl;
+  Classes, SysUtils,
+  gmap, fgl,
+  fpjson,
+  CsvDocument,
+  filesystem_base, editor_types, editor_utils,
+  vcmi_json;
 
 type
 
@@ -59,13 +63,42 @@ type
 
   TSkillInfos = specialize TFPGObjectList<TSkillInfo>;
 
+  TSpellType = (Adventure, Combat, Ability);
+
+  { TSpellInfo }
+
+  TSpellInfo = class
+  private
+    Ftype: TSpellType;
+    FID: AnsiString;
+    FLevel: integer;
+    FName: TLocalizedString;
+    procedure setType(AValue: TSpellType);
+    procedure SetID(AValue: AnsiString);
+    procedure SetLevel(AValue: integer);
+    procedure SetName(AValue: TLocalizedString);
+  public
+    property ID: AnsiString read FID write SetID;
+    property Level: integer read FLevel write SetLevel;
+    property Name: TLocalizedString read FName write SetName;
+    property SpellType: TSpellType read FType write SetType;
+  end;
+
+  TSpellInfos = specialize TFPGObjectList<TSpellInfo>;
+
   { TListsManager }
 
   TListsManager = class (TFSConsumer)
   strict private
-    FSkillNameMap: TNameToIdMap;
+    FNameMap: TNameToIdMap;
     FSkillInfos: TSkillInfos;
+    FSpellInfos: TSpellInfos;
     procedure LoadSkills;
+
+    procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
+      Data: TObject; var Continue: Boolean);
+
+    procedure LoadSpells;
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TlocalizedString;
   public
@@ -76,10 +109,13 @@ type
   public
     property PlayerName[const APlayer: TPlayer]: TlocalizedString read GetPlayerName;
 
-    //Skill helpers
+    function SIDIdNID(AID: AnsiString): TCustomID;
+
     function SkillNidToString (ASkill: TSkillID): AnsiString;
-    function SkillStringToNid(AID: AnsiString): TSkillID;
     property SkillInfos: TSkillInfos read FSkillInfos;
+
+    function SpellNidToString (ASpell: TSpellID): AnsiString;
+    property SpellInfos: TSpellInfos read FSpellInfos;
   end;
 
 implementation
@@ -88,6 +124,9 @@ uses FileUtil, editor_consts;
 
 const
   SEC_SKILL_TRAITS = 'data\sstraits';
+  SPELL_TRAITS     = 'data\sptraits';
+
+  SPELL_INFO_NAME       = 'config\spell_info';
 
 const
   PLAYER_NAMES: array[TPlayer] of AnsiString = (
@@ -100,6 +139,32 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TSpellInfo }
+
+procedure TSpellInfo.SetType(AValue: TSpellType);
+begin
+  if Ftype = AValue then Exit;
+  Ftype := AValue;
+end;
+
+procedure TSpellInfo.SetID(AValue: AnsiString);
+begin
+  if FID = AValue then Exit;
+  FID := AValue;
+end;
+
+procedure TSpellInfo.SetLevel(AValue: integer);
+begin
+  if FLevel = AValue then Exit;
+  FLevel := AValue;
+end;
+
+procedure TSpellInfo.SetName(AValue: TLocalizedString);
+begin
+  if FName = AValue then Exit;
+  FName := AValue;
+end;
 
 { TSkillInfo }
 
@@ -147,15 +212,17 @@ end;
 constructor TListsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSkillNameMap := TNameToIdMap.Create;
+  FNameMap := TNameToIdMap.Create;
 
   FSkillInfos := TSkillInfos.Create(True);
+  FSpellInfos := TSpellInfos.Create(True);
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FSpellInfos.Free;
   FSkillInfos.Free;
-  FSkillNameMap.Free;
+  FNameMap.Free;
   inherited Destroy;
 end;
 
@@ -168,6 +235,7 @@ end;
 procedure TListsManager.Load;
 begin
   LoadSkills;
+  LoadSpells;
 end;
 
 procedure TListsManager.LoadSkills;
@@ -178,7 +246,7 @@ var
 begin
   for i := 0 to SKILL_QUANTITY - 1 do
   begin
-    FSkillNameMap.Insert(SKILL_NAMES[i], i);
+    FNameMap.Insert('skill.' + SKILL_NAMES[i], i);
   end;
 
   FSkillInfos.Clear;
@@ -189,7 +257,7 @@ begin
     for i := 2 to sstraits.FDoc.RowCount - 1 do
     begin
       info := TSkillInfo.Create;
-      info.ID := SKILL_NAMES[i-2];
+      info.ID := 'skill.'+SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
       FSkillInfos.Add(info);
     end;
@@ -199,27 +267,120 @@ begin
   end;
 end;
 
-function TListsManager.SkillNidToString(ASkill: TSkillID): AnsiString;
+procedure TListsManager.LoadSpells;
+var
+  sptrairs: TTextResource;
+
+  row: Integer;
+
+  legacy_config: TJsonObjectList; //index = lecacy ID
+  i: integer;
+  spell_config: TJSONObject;
+  spell_info: TJsonResource;
+  loc_name: String;
 begin
-  Result := editor_consts.SKILL_NAMES[ASkill];
+  sptrairs := TTextResource.Create;
+  legacy_config := TJsonObjectList.Create(True);
+  spell_info := TJsonResource.Create;
+
+  try
+    //load sptraits
+    ResourceLoader.LoadResource(sptrairs,TResourceType.Text,SPELL_TRAITS);
+
+    row := 2;
+
+    for i in [1..3] do
+    begin
+      row +=3;
+
+      repeat
+        spell_config := TJSONObject.Create;
+        loc_name := sptrairs.Value[0,row];
+        spell_config.Strings['name'] := loc_name;
+        spell_config.Integers['level'] := StrToIntDef(sptrairs.Value[2,row],0);
+        spell_config.Integers['type'] := i;
+        legacy_config.Add(spell_config);
+        inc(row);
+      until sptrairs.Value[0,row] = '';
+    end;
+
+    legacy_config.Add(legacy_config[legacy_config.Count-1].Clone as TJSONObject);
+
+    ResourceLoader.LoadResource(spell_info,TResourceType.Json,SPELL_INFO_NAME);
+
+    spell_config := spell_info.Root.Objects['spells'];
+
+    spell_config.Iterate(@ProcessSpellConfig,legacy_config);
+
+
+  finally
+    spell_info.Free;
+    legacy_config.Free;
+    sptrairs.Free;
+  end;
 end;
 
-function TListsManager.SkillStringToNid(AID: AnsiString): TSkillID;
+procedure TListsManager.ProcessSpellConfig(const AName: TJSONStringType;
+  Item: TJSONData; Data: TObject; var Continue: Boolean);
+const
+  SPELL_TYPES: array[1..3] of TSpellType =
+    (TSpellType.Adventure,TSpellType.Combat, TSpellType.Ability);
+
+var
+  legacy_config: TJsonObjectList absolute Data;
+
+  info: TSpellInfo;
+  nid: LongInt;
+  lc: TJSONObject;
+begin
+  Assert(Data is TJsonObjectList);
+
+  //Aname - spell ID
+  //Item - object spell config
+
+  info := TSpellInfo.Create;
+
+  nid := (Item as TJSONObject).Integers['id'];
+
+  lc := legacy_config.Items[nid];
+
+  info.ID := 'spell.'+AName;
+  info.Level := lc.Integers['level'];
+  info.Name := lc.Strings['name'];
+  info.SpellType := SPELL_TYPES[lc.Integers['type']];
+
+  FNameMap.Insert(info.ID,nid);
+
+  FSpellInfos.Add(info);
+end;
+
+function TListsManager.SIDIdNID(AID: AnsiString): TCustomID;
 var
   it: TNameToIdMap.TIterator;
 begin
-  it := FSkillNameMap.Find(AID);
+
+  it := FNameMap.Find(AID);
 
   if Assigned(it) then
   begin
     Result := it.Value;
-
   end
   else
   begin
     Result := ID_INVALID;
-    raise Exception.Create('Invalid secondary skill name '+AID);
+    raise Exception.Create('Invalid string id '+AID);
   end;
+
+end;
+
+function TListsManager.SkillNidToString(ASkill: TSkillID): AnsiString;
+begin
+  Result := 'skill.' + editor_consts.SKILL_NAMES[ASkill];
+end;
+
+function TListsManager.SpellNidToString(ASpell: TSpellID): AnsiString;
+begin
+
 end;
 
 end.
