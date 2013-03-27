@@ -164,15 +164,6 @@ begin
 end;
 
 procedure TMinimap.Paint(pb: TPaintBox);
-var
-  ctx: TCanvas;
-  level: Integer;
-  scale: Double;
-  row, col: Integer;
-  tile_size: Integer;
-
-  tile: TMapTile;
-  tile_rect: TRect;
 begin
   if not Assigned(FMap) then
     Exit;
