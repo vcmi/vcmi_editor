@@ -486,30 +486,15 @@ var
 
   PEntry: PDefEntry;
 
-  procedure SetRaw(const ColorIndex: Byte; ofc: int32; len: integer = 1); inline;
-  var
-    i: Integer;
-  begin
-    for i := 0 to len - 1 do
-    begin
-      //FBuffer[ofc+i] := c;
-      FBuffer[ofc+i] := ColorIndex;
-    end;
-
-  end;
-
   procedure ReadType0;
   var
-    i,j: Int32;
+    row: Int32;
   begin
-    for i:=0 to SpriteHeight - 1 do
+    for row:=0 to SpriteHeight - 1 do
     begin
       SkipIfPositive(LeftMargin);
 
-      for j := 0 to SpriteWidth - 1 do
-      begin
-        SetRaw(AStream.ReadByte(), i * Int32(h.FullWidth) + j + ftcp );
-      end;
+      AStream.Read(FBuffer[ftcp+row * Int32(h.FullWidth)],SpriteWidth);
 
       SkipIfPositive(RightMargin);
     end;
@@ -518,12 +503,11 @@ var
   procedure ReadType1;
   var
     //RWEntriesLoc: Int32;
-    row: Integer;
+    row: Int32;
     TotalRowLength : Int32;
     RowAdd: UInt32;
     SegmentLength: Int32;
     SegmentType: UInt8;
-    i: Int32;
   begin
     //const ui32 * RWEntriesLoc = reinterpret_cast<const ui32 *>(FDef+BaseOffset);
 
@@ -543,14 +527,11 @@ var
          if SegmentType = $FF then
          begin
            AStream.Seek(BaseOffsetor+Int32(BaseOffset), soFromBeginning);
-           for i := 0 to SegmentLength - 1 do
-           begin
-             SetRaw(AStream.ReadByte(), i + ftcp);
-           end;
+           AStream.Read(FBuffer[ftcp],SegmentLength);
            BaseOffset += SegmentLength;
          end
          else begin
-           SetRaw(SegmentType, ftcp, SegmentLength);
+           FillChar(FBuffer[ftcp],SegmentLength,SegmentType);
          end;
 
          Skip(SegmentLength);
@@ -571,7 +552,6 @@ var
     row: Integer;
     TotalRowLength: Integer;
     SegmentType, code, value: Byte;
-    i: Integer;
     RowAdd: Int32;
   begin
     BaseOffset := BaseOffsetor + AStream.ReadWord();
@@ -589,16 +569,10 @@ var
 
          if code=7 then
          begin
-           for i := 0 to value - 1 do
-           begin
-             SetRaw(AStream.ReadByte(), i + ftcp);
-           end;
+           AStream.Read(FBuffer[ftcp],value);
          end
          else begin
-           for i := 0 to value - 1 do
-           begin
-             SetRaw(Code, i + ftcp);
-           end;
+           FillChar(FBuffer[ftcp],value,code);
          end;
          Skip(Value);
          TotalRowLength+=value;
@@ -623,8 +597,6 @@ var
 
     SegmentType, code, value: UInt8;
     len: Integer;
-
-    i: Int32;
     RowAdd: Int32;
   begin
     for row := 0 to SpriteHeight - 1 do
@@ -648,16 +620,10 @@ var
 
          if code = 7 then
          begin
-           for i := 0 to len - 1 do
-           begin
-             SetRaw(AStream.ReadByte(), i + ftcp);
-           end;
+           AStream.Read(FBuffer[ftcp],len);
          end
          else begin
-           for i := 0 to len - 1 do
-           begin
-             SetRaw(Code, i + ftcp);
-           end;
+           FillChar(FBuffer[ftcp],len,code);
          end;
          Skip(len);
 
