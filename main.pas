@@ -28,7 +28,7 @@ uses
   GL, GLext, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
-  minimap, filesystem, filesystem_base, lists_manager, types;
+  minimap, filesystem, filesystem_base, lists_manager, zlib_stream, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -216,6 +216,7 @@ type
       OBJ_CELL_SIZE = 60;
 
   private
+    FZbuffer: TZBuffer;
 
     FResourceManager: IResourceLoader;
 
@@ -297,7 +298,7 @@ var
 implementation
 
 uses
-  undo_map, map_format, map_format_h3m, zlib_stream, map_format_vcmi,
+  undo_map, map_format, map_format_h3m, map_format_vcmi,
   editor_str_consts, root_manager, editor_gl, map_options, new_map,
   edit_object_options, Math, lazutf8classes;
 
@@ -628,6 +629,7 @@ var
   dir: String;
   map_filename: String;
 begin
+  FZbuffer := TZBuffer.Create;
   pnHAxis.DoubleBuffered := True;
   pnVAxis.DoubleBuffered := True;
   pnMinimap.DoubleBuffered := True;
@@ -679,7 +681,7 @@ end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
 begin
-
+  FZbuffer.Free;
   FMap.Free;
 
   FUndoManager.Free;
@@ -877,7 +879,7 @@ begin
 
           if (magic and $ffffff) = $00088B1F then
           begin
-             cstm := TZlibInputStream.CreateGZip(stm,0);
+             cstm := TZlibInputStream.CreateGZip(FZbuffer, stm,0);
              is_compressed := true;
           end
           else begin

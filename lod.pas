@@ -24,7 +24,7 @@ unit lod;
 interface
 
 uses
-  SysUtils, Classes, fgl, filesystem_base;
+  SysUtils, Classes, fgl, filesystem_base, zlib_stream;
 
 //Format Specifications
 //
@@ -65,7 +65,7 @@ type
   TLod = class
   private
     FFileStream: TFileStream;
-
+    FBuffer: TZBuffer;
   public
     constructor Create(AFullPath: string);
     destructor Destroy; override;
@@ -80,7 +80,7 @@ type
 implementation
 
 uses
-  editor_utils, zlib_stream;
+  editor_utils;
 
 const
   LOD_MAGIC: packed array[1..4] of char = ('L','O','D',#0);
@@ -91,10 +91,12 @@ const
 constructor TLod.Create(AFullPath: string);
 begin
   FFileStream := TFileStream.Create(AFullPath, fmOpenRead+fmShareDenyWrite);
+  FBuffer := TZBuffer.Create;
 end;
 
 destructor TLod.Destroy;
 begin
+  FBuffer.Free;
   FFileStream.Free;
   inherited Destroy;
 end;
@@ -106,7 +108,7 @@ begin
   FFileStream.Seek(AItem.FileOffset,soBeginning);
   if AItem.FileLength <> 0 then
   begin
-    stm := TZlibInputStream.Create(FFileStream,AItem.UncompressedFileSize);
+    stm := TZlibInputStream.Create(FBuffer, FFileStream,AItem.UncompressedFileSize);
     AResource.LoadFromStream(stm);
     stm.free;
   end

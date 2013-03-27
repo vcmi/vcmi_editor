@@ -29,6 +29,18 @@ uses
 
 type
 
+  { TZBuffer }
+
+  TZBuffer = class
+  private
+    FOutputBuffer: TBytes;
+    FInputBuffer: TBytes;
+  public
+    constructor Create;
+
+    procedure IncreaseOut(ANewSize: SizeInt);
+  end;
+
   { TZlibInputStream }
 
   TZlibInputStream = class (TStream)
@@ -37,21 +49,23 @@ type
     FDecompressedSize: SizeUInt;
 
     FPosition: Int64;
-    FOutputBuffer: TBytes;
-    FInputBuffer: TBytes;
+    //FOutputBuffer: TBytes;
+    //FInputBuffer: TBytes;
+
+    FBuffer: TZBuffer;
 
     FState: TZStream;
 
     //FInflateFinished:  Boolean;
-    procedure PreInit(AInput: TStream; ADecompressedSize: SizeUInt);
+    procedure PreInit(ABuffer: TZBuffer; AInput: TStream; ADecompressedSize: SizeUInt);
     procedure DecompressTill(APosition: Int64);
 
   protected
     function GetPosition: Int64; override;
     function GetSize: Int64; override;
   public
-    constructor Create(AInput: TStream; ADecompressedSize: SizeUInt);
-    constructor CreateGZip(AInput: TStream; ADecompressedSize: SizeUInt);
+    constructor Create(ABuffer: TZBuffer; AInput: TStream; ADecompressedSize: SizeUInt);
+    constructor CreateGZip(ABuffer: TZBuffer; AInput: TStream; ADecompressedSize: SizeUInt);
     destructor Destroy; override;
 
     function Read(var Buffer; Count: Longint): Longint; override;
@@ -67,15 +81,32 @@ uses
 
 const
   INFLATE_BLOCK_SIZE = 10240;
+  DEFAULT_OUT_BUFFER_SIZE = 32768;
+
+{ TZBuffer }
+
+constructor TZBuffer.Create;
+begin
+  SetLength(FInputBuffer,INFLATE_BLOCK_SIZE);
+  SetLength(FOutputBuffer,DEFAULT_OUT_BUFFER_SIZE);
+end;
+
+procedure TZBuffer.IncreaseOut(ANewSize: SizeInt);
+begin
+  if ANewSize > Length(FOutputBuffer) then
+  begin
+    SetLength(FOutputBuffer,ANewSize);
+  end;
+end;
 
 { TZlibInputStream }
 
-constructor TZlibInputStream.Create(AInput: TStream; ADecompressedSize: SizeUInt);
+constructor TZlibInputStream.Create(ABuffer: TZBuffer; AInput: TStream;
+  ADecompressedSize: SizeUInt);
 var
   ret: cint;
 begin
-
-  PreInit(AInput,ADecompressedSize);
+  PreInit(ABuffer, AInput,ADecompressedSize);
 
   ret := inflateInit(FState);
   if not ret = Z_OK then
@@ -86,13 +117,13 @@ begin
   //DecompressTill(-1);
 end;
 
-constructor TZlibInputStream.CreateGZip(AInput: TStream; ADecompressedSize: SizeUInt
-  );
+constructor TZlibInputStream.CreateGZip(ABuffer: TZBuffer; AInput: TStream;
+  ADecompressedSize: SizeUInt);
 var
   ret: cint;
   bits: Integer;
 begin
-  PreInit(AInput,ADecompressedSize);
+  PreInit(ABuffer, AInput,ADecompressedSize);
 
   bits := 31;
 
@@ -121,19 +152,21 @@ begin
 
   to_end := APosition < 0;
 
-  if to_end and (Length(FOutputBuffer) = 0) then
-    SetLength(FOutputBuffer, 16*1024);
+  //if to_end and (Length(FOutputBuffer) = 0) then
+  //  SetLength(FOutputBuffer, 16*1024);
 
-  if (not to_end) and (Length(FOutputBuffer) < APosition) then
-    SetLength(FOutputBuffer,APosition);
+  FBuffer.IncreaseOut(APosition);
 
+  //if (not to_end) and (Length(FOutputBuffer) < APosition) then
+  //  SetLength(FOutputBuffer,APosition);
+  //
   //file_ended := False;
   end_loop := False;
 
   repeat
     if FState.avail_in = 0 then
     begin
-      read_amount := FInput.Read( FInputBuffer[0], Length(FInputBuffer));
+      read_amount := FInput.Read(FBuffer.FInputBuffer[0], Length(FBuffer.FInputBuffer));
 
       //if read_amount <> Length(FInputBuffer) then
       //begin
@@ -141,12 +174,12 @@ begin
       //end;
 
       FState.avail_in := read_amount;
-      FState.next_in := @FInputBuffer[0];
+      FState.next_in := @FBuffer.FInputBuffer[0];
     end;
 
-    FState.avail_out := Length(FOutputBuffer) - FState.total_out;
+    FState.avail_out := Length(FBuffer.FOutputBuffer) - FState.total_out;
     {$push}{$r-}
-    FState.next_out := @FOutputBuffer[FState.total_out];
+    FState.next_out := @FBuffer.FOutputBuffer[FState.total_out];
     {$pop}
 
     ret := inflate(FState, Z_NO_FLUSH);
@@ -157,7 +190,8 @@ begin
       Z_BUF_ERROR:begin
         if to_end then
         begin
-          SetLength(FOutputBuffer,Length(FOutputBuffer)*2);
+          FBuffer.IncreaseOut(Length(FBuffer.FOutputBuffer)*2);
+          //SetLength(FOutputBuffer,Length(FOutputBuffer)*2);
           end_loop := True;
         end
         else begin
@@ -202,13 +236,18 @@ begin
   Result := FDecompressedSize;
 end;
 
-procedure TZlibInputStream.PreInit(AInput: TStream; ADecompressedSize: SizeUInt);
+procedure TZlibInputStream.PreInit(ABuffer: TZBuffer; AInput: TStream;
+  ADecompressedSize: SizeUInt);
 begin
-  FInput := AInput;
-  Assert(Assigned(AInput), 'TZlibStream: nil input stream');
 
-  SetLength(FInputBuffer, INFLATE_BLOCK_SIZE);
-  SetLength(FOutputBuffer, ADecompressedSize);
+  Assert(Assigned(AInput), 'TZlibStream: nil input stream');
+  Assert(Assigned(ABuffer), 'TZlibStream: nil buffer');
+
+  FBuffer := ABuffer;
+  FInput := AInput;
+
+  //SetLength(FInputBuffer, INFLATE_BLOCK_SIZE);
+  //SetLength(FOutputBuffer, ADecompressedSize);
 
   FDecompressedSize := 0;
   FPosition := 0;
@@ -222,7 +261,7 @@ begin
 
   Result := Min(Count,FDecompressedSize - FPosition);
 
-  Move(FOutputBuffer[FPosition], Buffer,Result);
+  Move(FBuffer.FOutputBuffer[FPosition], Buffer,Result);
 
   inc(FPosition,Count)
 end;
