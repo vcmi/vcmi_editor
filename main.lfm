@@ -1380,7 +1380,7 @@ object fMain: TfMain
       end
     end
   end
-  object ToolBar1: TToolBar
+  object MainToolBar: TToolBar
     Left = 0
     Height = 24
     Top = 0
@@ -1438,13 +1438,13 @@ object fMain: TfMain
       Action = actDelete
     end
   end
-  object ToolBar2: TToolBar
+  object ActionsToolBar: TToolBar
     Left = 0
     Height = 24
     Top = 24
     Width = 822
     AutoSize = True
-    Caption = 'ToolBar2'
+    Caption = 'ActionsToolBar'
     Images = imlMainActions
     ShowCaptions = True
     TabOrder = 3

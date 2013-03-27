@@ -95,7 +95,7 @@ type
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
-    ToolBar2: TToolBar;
+    ActionsToolBar: TToolBar;
     tbSelectPlayer: TToolButton;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
@@ -113,7 +113,7 @@ type
     ToolButton8: TToolButton;
     ToolButton9: TToolButton;
     tsObjects: TTabSheet;
-    ToolBar1: TToolBar;
+    MainToolBar: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
     ToolButton3: TToolButton;
