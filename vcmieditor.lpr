@@ -25,6 +25,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
+  sysutils,
   Interfaces, // this includes the LCL widgetset
   Forms, csvdocument_package, lazopenglcontext, main, lod, editor_graphics, Map,
   editor_types, terrain, undo_base, undo_map, map_actions, zlib_stream, objects,
@@ -38,6 +39,12 @@ uses
 {$R *.res}
 
 begin
+
+  {$IFDEF DEBUG}
+  if FileExists('heap.trc') then
+    DeleteFile('heap.trc');
+  SetHeapTraceOutput('heap.trc');
+  {$ENDIF DEBUG}
 
   Application.Title := 'VCMI Editor';
   RequireDerivedFormResource := True;
