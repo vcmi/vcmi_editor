@@ -1076,6 +1076,8 @@ begin
     end;
   end;
 
+  Top := Max(0,Top-1);
+
   for i := Left to Right do
   begin
     for j := Top to Bottom do

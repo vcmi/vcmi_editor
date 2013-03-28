@@ -823,8 +823,6 @@ begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
   Sprite.PaletteID := FPaletteID;
 
-  CheckGLErrors('RenderF enter');
-
   mir := flags mod 4;
 
   ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[TPlayer.none]);
