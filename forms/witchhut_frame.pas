@@ -55,14 +55,9 @@ var
   i: Integer;
 begin
   inherited Commit;
-  FObject.AllowedSkills.Clear;
-  for i := 0 to edAllowedSkills.Count - 1 do
-  begin
-    if edAllowedSkills.State[i] = cbChecked then
-    begin
-      FObject.AllowedSkills.Add(ListsManager.SkillNidToString(i));
-    end;
-  end;
+
+  edAllowedSkills.SaveToList(FObject.AllowedSkills);
+
 end;
 
 constructor TWitchHutFrame.Create(TheOwner: TComponent);
@@ -117,20 +112,7 @@ begin
   inherited VisitWitchHut(AOptions);
   FObject := AOptions;
 
-  edAllowedSkills.Items.Clear;
-
-  for i := 0 to ListsManager.SkillInfos.Count - 1 do
-  begin
-    edAllowedSkills.AddItem(ListsManager.SkillInfos[i].Name, ListsManager.SkillInfos[i]);
-
-    edAllowedSkills.State[i] := cbUnchecked;
-  end;
-
-  for i := 0 to AOptions.AllowedSkills.Count - 1 do
-  begin
-    skill_id := ListsManager.SIDIdNID(AOptions.AllowedSkills[i]);
-    edAllowedSkills.State[skill_id] := cbChecked;
-  end;
+  edAllowedSkills.FillFromList(ListsManager.SkillMap, AOptions.AllowedSkills);
 
   edAllowedSkillsClickCheck(nil);
 end;
