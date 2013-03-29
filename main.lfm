@@ -1017,6 +1017,7 @@ object fMain: TfMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
+  Position = poDefault
   LCLVersion = '1.0.9.0'
   object pnMap: TPanel
     Left = 0

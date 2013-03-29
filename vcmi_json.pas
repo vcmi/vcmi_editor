@@ -61,6 +61,7 @@ type
       PropertyInfo: PPropInfo; var Skip: boolean); override;
     procedure DoPreparePropName(var PropName: AnsiString); override;
   public
+    constructor Create(AOwner: TComponent); override;
     function StreamCollection(const ACollection: TCollection): TJSONData;
       override;
   end;
@@ -201,6 +202,11 @@ end;
 
 { TVCMIJSONStreamer }
 
+constructor TVCMIJSONStreamer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
 procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
   PropertyInfo: PPropInfo; var Skip: boolean);
 var
@@ -219,17 +225,7 @@ begin
   end;
 
   case PropType^.Kind of
-    tkInteger, tkChar, tkEnumeration, tkWChar: begin
-      Value := GetOrdProp(AObject, PropertyInfo);
-      DefValue := PropertyInfo^.Default;
-
-      if (Value = DefValue) and (DefValue<>longint($80000000)) then
-      begin
-        Skip := True;
-      end;
-    end;
-
-     tkSet: begin
+    tkInteger, tkChar, tkEnumeration, tkWChar,tkSet: begin
       Value := GetOrdProp(AObject, PropertyInfo);
       DefValue := PropertyInfo^.Default;
 

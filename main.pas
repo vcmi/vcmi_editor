@@ -496,7 +496,8 @@ end;
 
 procedure TfMain.AnimTimerTimer(Sender: TObject);
 begin
-  MapView.Invalidate;
+  if Visible and (WindowState<>wsMinimized) then
+    MapView.Invalidate;
 end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
