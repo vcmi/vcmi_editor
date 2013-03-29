@@ -654,6 +654,12 @@ begin
 
   FMap := TVCMIMap.CreateDefault(FEnv);
 
+
+  FCurrentPlayer := TPlayer.none;
+
+  SetupPlayerSelection;
+
+
   //load map if specified
 
   if Paramcount > 0 then
@@ -661,20 +667,23 @@ begin
     //stage 4
     RootManager.ProgressForm.NextStage('Loading map.');
 
-    dir := GetCurrentDirUTF8();
-    dir := IncludeTrailingPathDelimiter(dir);
-    map_filename:= dir + ParamStr(1);
-    if FileExistsUTF8(map_filename) then
-      LoadMap(map_filename);
+    try
+      dir := GetCurrentDirUTF8();
+      dir := IncludeTrailingPathDelimiter(dir);
+      map_filename:= dir + ParamStr(1);
+      if FileExistsUTF8(map_filename) then
+        LoadMap(map_filename);
+    except
+      on e: Exception do
+      begin
+        Application.ShowException(e);
+      end;
+    end;
 
   end;
 
   MapChanded;
   InvalidateObjects;
-
-  FCurrentPlayer := TPlayer.none;
-
-  SetupPlayerSelection;
 
   if MapView.MakeCurrent() then
     Init;
@@ -1381,7 +1390,6 @@ begin
   end;
 
   ShaderContext.UsePaletteShader();
-  //ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[FCurrentPlayer]);
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin

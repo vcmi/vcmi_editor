@@ -36,7 +36,14 @@ uses Math, editor_types;
 procedure TFlaggableFrame.Commit;
 begin
   inherited Commit;
-  FObject.Owner := TPlayer(edOwnerRG.ItemIndex-1);
+
+  if edOwnerRG.ItemIndex = 0 then
+  begin
+    FObject.Owner := TPlayer.NONE;
+  end
+  else begin
+    FObject.Owner := TPlayer(edOwnerRG.ItemIndex-1);
+  end;
 end;
 
 procedure TFlaggableFrame.SetupControls;
@@ -44,7 +51,8 @@ var
   p: TPlayer;
 begin
   edOwnerRG.Items.Clear;
-  for p in TPlayer do
+  edOwnerRG.Items.Add(ListsManager.PlayerName[TPlayer.NONE]);
+  for p in TPlayerColor do
   begin
     edOwnerRG.Items.Add(ListsManager.PlayerName[p]);
   end;
@@ -55,7 +63,14 @@ begin
   SetupControls;
   inherited VisitOwnedObject(AOptions);
   FObject := AOptions;
-  edOwnerRG.ItemIndex := Integer(AOptions.Owner)+1; //no player = -1 -> index 0
+  if AOptions.Owner = TPlayer.NONE then
+  begin
+    edOwnerRG.ItemIndex := 0; //no player = 255 -> index 0
+  end
+  else begin
+    edOwnerRG.ItemIndex := Integer(AOptions.Owner)+1;
+  end;
+
 end;
 
 end.

@@ -32,8 +32,10 @@ uses
 const
   TILE_SIZE = 32; //in pixels
 
-  PLAYER_FLAG_COLORS: array[TPlayer] of TRBGAColor = (
-    (r: 128; g: 128; b:128; a: 255),//NONE
+  NEWTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
+
+  PLAYER_FLAG_COLORS: array[TPlayerColor] of TRBGAColor = (
+    //(r: 128; g: 128; b:128; a: 255),//NONE
     (r: 255; g: 0;   b:0;   a: 255),//RED
     (r: 0;   g: 0;   b:255; a: 255),//BLUE
     (r: 120; g: 180; b:140; a: 255),//TAN
@@ -88,7 +90,7 @@ type
 
     procedure MayBeUnBindTextures; inline;
     procedure UnBindTextures;
-
+    class procedure SetPalyerColor(color: TPlayer); static;
   public
     constructor Create;
     destructor Destroy; override;
@@ -794,7 +796,7 @@ begin
   Sprite.Height := height;
   Sprite.Width := width;
 
-  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+  SetPalyerColor(color);
 
   editor_gl.RenderSprite(Sprite, dim);
 
@@ -825,7 +827,7 @@ begin
 
   mir := flags mod 4;
 
-  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[TPlayer.none]);
+  ShaderContext.SetFlagColor(NEWTRAL_PLAYER_COLOR);
 
   editor_gl.RenderSprite(Sprite,-1,mir);
 
@@ -843,9 +845,21 @@ begin
   Sprite.TextureID := entries[SpriteIndex].TextureId;
   Sprite.PaletteID := FPaletteID;
 
-  ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+  SetPalyerColor(color);
 
   editor_gl.RenderSprite(Sprite);
+
+end;
+
+class procedure TDef.SetPalyerColor(color: TPlayer);
+begin
+  if color = TPlayer.NONE then
+  begin
+    ShaderContext.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+  end
+  else begin
+    ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+  end;
 
 end;
 

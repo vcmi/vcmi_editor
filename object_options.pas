@@ -496,12 +496,22 @@ begin
     end;
     RANDOM_TOWN, TOWN:
       c := TTownOptions;
-    MINE,
+
     CREATURE_GENERATOR1,
     CREATURE_GENERATOR2,
     CREATURE_GENERATOR3,
     CREATURE_GENERATOR4:
       c := TOwnedObjectOptions;
+    MINE:
+    begin
+      if SubID = 7 then
+      begin
+        c := TAbandonedOptions;
+      end else
+      begin
+        c := TOwnedObjectOptions;
+      end;
+    end;
 
     ABANDONED_MINE:
       c := TAbandonedOptions;
@@ -977,6 +987,10 @@ end;
 
 procedure TObjectOptions.SetOwner(AValue: TPlayer);
 begin
+  if not (AValue in [TPlayer.RED..TPlayer.PINK,TPlayer.NONE]) then
+  begin
+    raise Exception.CreateFmt('Invalid player color %d',[Integer(AValue)]);
+  end;
   FOwner := AValue;
 end;
 

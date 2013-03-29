@@ -136,8 +136,9 @@ const
   SPELL_INFO_NAME       = 'config\spell_info';
 
 const
-  PLAYER_NAMES: array[TPlayer] of AnsiString = (
-    'No player',
+  NEWTRAL_PLAYER_NAME = 'No player';
+  PLAYER_NAMES: array[TPlayerColor] of AnsiString = (
+    //'No player',
     'Player 1 (red)',
     'Player 2 (blue)',
     'Player 3 (tan)',
@@ -240,7 +241,14 @@ end;
 function TListsManager.GetPlayerName(const APlayer: TPlayer): TLocalizedString;
 begin
   //TODO: get localized name;
-  Result := PLAYER_NAMES[APlayer];
+  if APlayer = TPlayer.NONE then
+  begin
+    Result := NEWTRAL_PLAYER_NAME;
+  end
+  else begin
+    Result := PLAYER_NAMES[APlayer];
+  end;
+
 end;
 
 function TListsManager.GetSpell(const AID: AnsiString): TSpellInfo;

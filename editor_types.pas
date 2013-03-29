@@ -33,7 +33,7 @@ type
   TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
-  TPlayer = (NONE = -1, RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK);
+  TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK, NONE = 255);
 
   TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
 
@@ -42,6 +42,8 @@ type
 {$pop}
 
   TPlayerColor = TPlayer.RED..TPlayer.PINK;
+  TPlayers = set of TPlayerColor;
+
   TDefFrame = UInt8;
 
   TFactionID = type integer;
