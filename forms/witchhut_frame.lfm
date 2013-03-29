@@ -17,7 +17,6 @@ inherited WitchHutFrame: TWitchHutFrame
     Height = 14
     Top = 6
     Width = 66
-    BidiMode = bdLeftToRight
     Caption = 'Allowed skills:'
     ParentBidiMode = False
     ParentColor = False

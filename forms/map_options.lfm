@@ -8,7 +8,7 @@ object MapOptionsForm: TMapOptionsForm
   ClientWidth = 300
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
-  LCLVersion = '1.0.5.0'
+  LCLVersion = '1.0.9.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
@@ -51,13 +51,13 @@ object MapOptionsForm: TMapOptionsForm
     Height = 299
     Top = 3
     Width = 294
-    ActivePage = tsMain
+    ActivePage = tsSpells
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -168,6 +168,35 @@ object MapOptionsForm: TMapOptionsForm
           'edDescription'
         )
         TabOrder = 4
+      end
+    end
+    object tsAbilities: TTabSheet
+      Caption = 'Abilities'
+      ClientHeight = 273
+      ClientWidth = 286
+      object edAbilities: TCheckListBox
+        Left = 0
+        Height = 273
+        Top = 0
+        Width = 286
+        Align = alClient
+        Columns = 2
+        ItemHeight = 0
+        TabOrder = 0
+      end
+    end
+    object tsSpells: TTabSheet
+      Caption = 'Spells'
+      ClientHeight = 273
+      ClientWidth = 286
+      object edSpells: TCheckListBox
+        Left = 0
+        Height = 273
+        Top = 0
+        Width = 286
+        Align = alClient
+        ItemHeight = 0
+        TabOrder = 0
       end
     end
   end

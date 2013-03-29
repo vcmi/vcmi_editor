@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, editor_types, gmap, gutil;
+  sysutils, Classes, editor_types, gmap, gutil;
 
 type
 
@@ -43,11 +43,21 @@ type
 
   procedure LeToNInPlase(var Val:UInt32); inline;
 
+  function CrStrList: TStringList;
+
 implementation
 
 procedure LeToNInPlase(var Val:UInt32); inline;
 begin
   val := LEtoN(val);
+end;
+
+
+function CrStrList: TStringList;
+begin
+  Result := TStringList.Create;
+  Result.Sorted := True;
+  Result.Duplicates := dupIgnore;
 end;
 
 { TStringCompare }

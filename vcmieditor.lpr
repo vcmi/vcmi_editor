@@ -34,7 +34,7 @@ uses
   map_format_vcmi, vcmi_fpjsonrtti, map_options, editor_classes, editor_consts,
   root_manager, progress_form, editor_gl, object_options, edit_object_options,
   signbottle_frame, base_object_options_frame, grail_frame,
-  flaggable_object_frame, lists_manager, witchhut_frame, h3_txt;
+  flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers;
 
 {$R *.res}
 

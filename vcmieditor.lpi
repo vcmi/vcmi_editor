@@ -89,7 +89,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="39">
+    <Units Count="40">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -318,6 +318,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="h3_txt"/>
       </Unit38>
+      <Unit39>
+        <Filename Value="forms\gui_helpers.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gui_helpers"/>
+      </Unit39>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

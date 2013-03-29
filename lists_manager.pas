@@ -33,17 +33,26 @@ uses
 
 type
 
-  { TSkillInfo }
+  { TBaseInfo }
 
-  TSkillInfo = class
+  TBaseInfo = class abstract
   private
     FID: AnsiString;
     FName: TLocalizedString;
+    FNid: TCustomID;
     procedure SetID(AValue: AnsiString);
     procedure SetName(AValue: TLocalizedString);
+    procedure SetNid(AValue: TCustomID);
   public
+    constructor Create;
     property ID: AnsiString read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
+    property Nid: TCustomID read FNid write SetNid;
+  end;
+
+  { TSkillInfo }
+
+  TSkillInfo = class (TBaseInfo)
   end;
 
   { TSkillInfos }
@@ -57,24 +66,14 @@ type
 
   { TSpellInfo }
 
-  TSpellInfo = class
+  TSpellInfo = class (TBaseInfo)
   private
-    FNid: TSpellID;
     Ftype: TSpellType;
-    FID: AnsiString;
     FLevel: integer;
-    FName: TLocalizedString;
-    procedure SetNid(AValue: TSpellID);
     procedure setType(AValue: TSpellType);
-    procedure SetID(AValue: AnsiString);
     procedure SetLevel(AValue: integer);
-    procedure SetName(AValue: TLocalizedString);
   public
-    constructor Create;
-    property Nid: TSpellID read FNid write SetNid;
-    property ID: AnsiString read FID write SetID;
     property Level: integer read FLevel write SetLevel;
-    property Name: TLocalizedString read FName write SetName;
     property SpellType: TSpellType read FType write SetType;
   end;
 
@@ -93,7 +92,10 @@ type
   strict private
     FNameMap: TNameToIdMap;
     FSkillInfos: TSkillInfos;
+    FSkillMap: TStringList;
+
     FSpellInfos: TSpellInfos;
+    FSpellMap: TStringList;
     procedure LoadSkills;
 
     procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
@@ -101,23 +103,26 @@ type
 
     procedure LoadSpells;
   strict private //Accesors
-    function GetPlayerName(const APlayer: TPlayer): TlocalizedString;
+    function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Load;
   public
-    property PlayerName[const APlayer: TPlayer]: TlocalizedString read GetPlayerName;
+    property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
     function SIDIdNID(AID: AnsiString): TCustomID;
 
     function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
+    property SkillMap:TStringList read FSkillMap;
 
     //convert legacy id to vcmi id
     function SpellNidToString (ASpell: TCustomID): AnsiString;
     property SpellInfos: TSpellInfos read FSpellInfos;
+    function GetSpell(const AID: AnsiString): TSpellInfo;
+    property SpellMap: TStringList read FSpellMap;
   end;
 
 implementation
@@ -141,6 +146,31 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TBaseInfo }
+
+constructor TBaseInfo.Create;
+begin
+  FNid := ID_INVALID;
+end;
+
+procedure TBaseInfo.SetID(AValue: AnsiString);
+begin
+  if FID = AValue then Exit;
+  FID := AValue;
+end;
+
+procedure TBaseInfo.SetName(AValue: TLocalizedString);
+begin
+  if FName = AValue then Exit;
+  FName := AValue;
+end;
+
+procedure TBaseInfo.SetNid(AValue: TCustomID);
+begin
+  if FNid = AValue then Exit;
+  FNid := AValue;
+end;
 
 { TSkillInfos }
 
@@ -175,47 +205,10 @@ begin
   Ftype := AValue;
 end;
 
-constructor TSpellInfo.Create;
-begin
-  FNid := -1;
-end;
-
-procedure TSpellInfo.SetID(AValue: AnsiString);
-begin
-  if FID = AValue then Exit;
-  FID := AValue;
-end;
-
 procedure TSpellInfo.SetLevel(AValue: integer);
 begin
   if FLevel = AValue then Exit;
   FLevel := AValue;
-end;
-
-procedure TSpellInfo.SetName(AValue: TLocalizedString);
-begin
-  if FName = AValue then Exit;
-  FName := AValue;
-end;
-
-procedure TSpellInfo.SetNid(AValue: TSpellID);
-begin
-  if FNid = AValue then Exit;
-  FNid := AValue;
-end;
-
-{ TSkillInfo }
-
-procedure TSkillInfo.SetID(AValue: AnsiString);
-begin
-  if FID = AValue then Exit;
-  FID := AValue;
-end;
-
-procedure TSkillInfo.SetName(AValue: TLocalizedString);
-begin
-  if FName = AValue then Exit;
-  FName := AValue;
 end;
 
 { TListsManager }
@@ -226,21 +219,43 @@ begin
   FNameMap := TNameToIdMap.Create;
 
   FSkillInfos := TSkillInfos.Create(True);
+  FSkillMap := CrStrList;
+
   FSpellInfos := TSpellInfos.Create(True);
+  FSpellMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FSpellMap.Free;
   FSpellInfos.Free;
+
+  FSkillMap.Free;
   FSkillInfos.Free;
+
   FNameMap.Free;
   inherited Destroy;
 end;
 
-function TListsManager.GetPlayerName(const APlayer: TPlayer): TlocalizedString;
+function TListsManager.GetPlayerName(const APlayer: TPlayer): TLocalizedString;
 begin
   //TODO: get localized name;
   Result := PLAYER_NAMES[APlayer];
+end;
+
+function TListsManager.GetSpell(const AID: AnsiString): TSpellInfo;
+var
+  idx: Integer;
+begin
+
+  idx := FSpellMap.IndexOf(AID);
+
+  if idx < 0 then
+  begin
+    raise Exception.CreateFmt('Spell not found "%s"',[AID]);
+  end;
+
+  Result := TSpellInfo(FSpellMap.Objects[idx]);
 end;
 
 procedure TListsManager.Load;
@@ -271,6 +286,7 @@ begin
       info.ID := 'skill.'+SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
       FSkillInfos.Add(info);
+      FSkillMap.AddObject(info.ID,info);
     end;
 
   finally
@@ -343,27 +359,32 @@ var
   info: TSpellInfo;
   nid: LongInt;
   lc: TJSONObject;
+  sp_type: TSpellType;
 begin
   Assert(Data is TJsonObjectList);
 
   //Aname - spell ID
   //Item - object spell config
 
-  info := TSpellInfo.Create;
-
   nid := (Item as TJSONObject).Integers['id'];
 
   lc := legacy_config.Items[nid];
 
-  info.ID := 'spell.'+AName;
-  info.Level := lc.Integers['level'];
-  info.Name := lc.Strings['name'];
-  info.SpellType := SPELL_TYPES[lc.Integers['type']];
-  info.Nid := nid;
+  sp_type := SPELL_TYPES[lc.Integers['type']];
+  if sp_type <>TSpellType.Ability then
+  begin
+    info := TSpellInfo.Create;
+    info.ID := 'spell.'+AName;
+    info.Level := lc.Integers['level'];
+    info.Name := lc.Strings['name'];
+    info.SpellType := sp_type;
+    info.Nid := nid;
 
-  FNameMap.Insert(info.ID,nid);
+    FNameMap.Insert(info.ID,nid);
 
-  FSpellInfos.Add(info);
+    FSpellInfos.Add(info);
+    FSpellMap.AddObject(info.ID,info);
+  end;
 end;
 
 function TListsManager.SIDIdNID(AID: AnsiString): TCustomID;

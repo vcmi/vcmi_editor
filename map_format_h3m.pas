@@ -356,7 +356,7 @@ begin
       id := byte_idx*8+bit;
       if flag and (id < ACount) then
       begin
-        ADest.Add(ACallback(byte_idx*8+bit));
+        ADest.Add(ACallback(id));
       end;
     end;
   end;

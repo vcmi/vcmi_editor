@@ -414,6 +414,7 @@ type
     property IsDirty: Boolean read FIsDirty;
 
     property TerrainManager: TTerrainManager read FTerrainManager;
+    property ListsManager: TListsManager read FListsManager;
 
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
   published
@@ -443,7 +444,7 @@ type
 
 implementation
 
-uses FileUtil, editor_str_consts, root_manager;
+uses FileUtil, editor_str_consts, root_manager, editor_utils;
 
 
 { TRumor }
@@ -959,14 +960,6 @@ end;
 
 constructor TVCMIMap.CreateExisting(env: TMapEnvironment;
   Params: TMapCreateParams);
-
-  function CrStrList: TStringList;
-  begin
-    Result := TStringList.Create;
-    Result.Sorted := True;
-    Result.Duplicates := dupIgnore;
-  end;
-
 begin
   FTerrainManager := env.tm;
   FListsManager := env.lm;
