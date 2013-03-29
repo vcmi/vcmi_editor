@@ -57,6 +57,11 @@ type
 
      procedure SkipNotImpl(count: Integer);
    strict private
+     type
+       TIdToString = function(AId: TCustomID): AnsiString of object;
+     procedure ReadBitmask(ADest: TStrings;AMaskSize: SizeInt; ACount: SizeInt;
+       ACallback: TIdToString; Negate: Boolean = True);
+   strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+
      procedure ReadSVLC();
@@ -64,8 +69,8 @@ type
      procedure ReadAllowedHeros();
      procedure ReadDisposedHeros();
      procedure ReadAllowedArtifacts();
-     procedure ReadAllowedSpells();
-     procedure ReadAllowedAbilities();
+     procedure ReadAllowedSpells();//+
+     procedure ReadAllowedAbilities();//+
      procedure ReadRumors();//+
      procedure ReadPredefinedHeroes();
 
@@ -111,7 +116,7 @@ type
      procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
      procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);//+
    public
-     constructor Create(tm: TTerrainManager; lm: TListsManager); override;
+     constructor Create(AMapEnv: TMapEnvironment); override;
      function Read(AStream: TStream): TVCMIMap;
    end;
 
@@ -134,9 +139,9 @@ begin
   end;
 end;
 
-constructor TMapReaderH3m.Create(tm: TTerrainManager; lm: TListsManager);
+constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
-  inherited Create(tm, lm);
+  inherited Create(AMapEnv);
 end;
 
 function TMapReaderH3m.IsNotROE: boolean;
@@ -175,7 +180,6 @@ function TMapReaderH3m.Read(AStream: TStream): TVCMIMap;
 var
   cr_params: TMapCreateParams;
   AreAnyPalyers: boolean;
-
 begin
   AStream.Seek(0,soBeginning);
   FSrc.Create(AStream);
@@ -190,7 +194,7 @@ begin
     cr_params.Levels := ReadByte + 1; //one level = 0
   end;
 
-  FMap := TVCMIMap.Create(FTM,cr_params);
+  FMap := TVCMIMap.CreateExisting(FMapEnv,cr_params);
   Result := FMap;
   try
     //rest of header
@@ -235,10 +239,9 @@ end;
 
 procedure TMapReaderH3m.ReadAllowedAbilities;
 begin
-  //TODO: ReadAllowedAbilities
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    FSrc.Skip(4);
+    ReadBitmask(FMap.AllowedAbilities,4,SKILL_QUANTITY,@(FMapEnv.lm.SkillNidToString));
   end;
 end;
 
@@ -272,10 +275,9 @@ end;
 
 procedure TMapReaderH3m.ReadAllowedSpells;
 begin
-  //TODO: ReadAllowedSpells
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    SkipNotImpl(9);
+    ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY,@(FMapEnv.lm.SpellNidToString));
   end;
 end;
 
@@ -332,6 +334,32 @@ begin
     aid := FSrc.ReadByte;
   end;
 
+end;
+
+procedure TMapReaderH3m.ReadBitmask(ADest: TStrings; AMaskSize: SizeInt;
+  ACount: SizeInt; ACallback: TIdToString; Negate: Boolean);
+var
+  byte_idx: SizeInt;
+  mask_byte: Byte;
+  bit: UInt8;
+  flag: Boolean;
+  id: TCustomID;
+begin
+  for byte_idx := 0 to AMaskSize - 1 do
+  begin
+    mask_byte := FSrc.ReadByte;
+
+    for bit in [0..7] do
+    begin
+      flag := (mask_byte and (1 shl bit)) > 0;
+      flag := flag xor Negate;
+      id := byte_idx*8+bit;
+      if flag and (id < ACount) then
+      begin
+        ADest.Add(ACallback(byte_idx*8+bit));
+      end;
+    end;
+  end;
 end;
 
 procedure TMapReaderH3m.ReadCreatureSet(ACreatureSet: TCreatureSet;
@@ -1363,7 +1391,7 @@ begin
         begin
           if (b and (1 shl bit)) > 0 then
           begin
-            AOptions.AllowedSkills.Add(FListsManager.SkillNidToString(id));
+            AOptions.AllowedSkills.Add(FMapEnv.lm.SkillNidToString(id));
           end;
         end;
       end;
@@ -1373,7 +1401,7 @@ begin
     //all skill allowed
     for i := 0 to SKILL_QUANTITY - 1 do
     begin
-      AOptions.AllowedSkills.Add(FListsManager.SkillNidToString(i));
+      AOptions.AllowedSkills.Add(FMapEnv.lm.SkillNidToString(i));
     end;
   end;
 end;

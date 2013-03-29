@@ -24,8 +24,9 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types, editor_consts,
-  terrain, editor_classes, editor_graphics, objects, object_options;
+  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types,
+  editor_consts, terrain, editor_classes, editor_graphics, objects,
+  object_options, lists_manager;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -336,6 +337,11 @@ type
     property Map: TVCMIMap read FMap;
   end;
 
+  TMapEnvironment = record
+    tm: TTerrainManager;
+    lm: TListsManager;
+  end;
+
   { TVCMIMap }
 
   TVCMIMap = class (TPersistent, IFPObserver)
@@ -351,8 +357,12 @@ type
     FPlayerAttributes: TPlayerAttrs;
     FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
+    FListsManager: TListsManager;
     FWigth: Integer;
     FLevels: Integer;
+
+    FAllowedSpells: TStringList;
+    FAllowedAbilities: TStringList;
 
     FRumors: TRumors;
 
@@ -362,6 +372,8 @@ type
 
     procedure Changed;
     procedure DestroyTiles();
+    function GetAllowedAbilities: TStrings;
+    function GetAllowedSpells: TStrings;
     procedure RecreateTerrainArray;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -373,13 +385,14 @@ type
     procedure SetHeroLevelLimit(AValue: Integer);
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetName(AValue: TLocalizedString);
-    procedure SetTerrainManager(AValue: TTerrainManager);
 
   public
     //create with default params
-    constructor Create(tm: TTerrainManager);
-    //create with specified params
-    constructor Create(tm: TTerrainManager; Params: TMapCreateParams);
+    constructor CreateDefault(env: TMapEnvironment);
+    //create with specified params and set default options
+    constructor Create(env: TMapEnvironment; Params: TMapCreateParams);
+    //create for deserialize
+    constructor CreateExisting(env: TMapEnvironment; Params: TMapCreateParams);
     destructor Destroy; override;
 
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set default terrain
@@ -403,7 +416,6 @@ type
     property TerrainManager: TTerrainManager read FTerrainManager;
 
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
-
   published
     property Height: Integer read FHeight;
     property Width: Integer read FWigth;
@@ -418,6 +430,10 @@ type
     property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
 
     property Rumors: TRumors read FRumors;
+
+    property AllowedSpells: TStrings read GetAllowedSpells;
+    property AllowedAbilities: TStrings read GetAllowedAbilities;
+
   public //manual streamimg
     property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
@@ -921,7 +937,15 @@ begin
   FIsDirty := True;
 end;
 
-constructor TVCMIMap.Create(tm: TTerrainManager);
+constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
+begin
+  CreateExisting(env,Params);
+
+  FListsManager.SpellInfos.FillWithAllIds(FAllowedSpells);
+  FListsManager.SkillInfos.FillWithAllIds(FAllowedAbilities);
+end;
+
+constructor TVCMIMap.CreateDefault(env: TMapEnvironment);
 var
   params: TMapCreateParams;
 begin
@@ -929,14 +953,23 @@ begin
   params.Width := MAP_DEFAULT_SIZE;
   params.Levels := MAP_DEFAULT_LEVELS;
 
-  Create(tm,params);
-
+  Create(env,params);
 
 end;
 
-constructor TVCMIMap.Create(tm: TTerrainManager; Params: TMapCreateParams);
+constructor TVCMIMap.CreateExisting(env: TMapEnvironment;
+  Params: TMapCreateParams);
+
+  function CrStrList: TStringList;
+  begin
+    Result := TStringList.Create;
+    Result.Sorted := True;
+    Result.Duplicates := dupIgnore;
+  end;
+
 begin
-  SetTerrainManager(tm);
+  FTerrainManager := env.tm;
+  FListsManager := env.lm;
 
   FHeight := Params.Height;
   FWigth := Params.Width;
@@ -949,16 +982,21 @@ begin
 
   FIsDirty := False;
 
+  FAllowedAbilities := CrStrList;
+  FAllowedSpells := CrStrList;
+
   FPlayerAttributes := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
   AttachTo(FObjects);
-
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FAllowedAbilities.Free;
+  FAllowedSpells.Free;
+
   FRumors.Free;
   FObjects.Free;
   FTemplates.Free;
@@ -1013,6 +1051,16 @@ begin
       ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
     end;
   end;
+end;
+
+function TVCMIMap.GetAllowedAbilities: TStrings;
+begin
+  Result := FAllowedAbilities;
+end;
+
+function TVCMIMap.GetAllowedSpells: TStrings;
+begin
+  Result := FAllowedSpells;
 end;
 
 function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;
@@ -1201,12 +1249,6 @@ end;
 procedure TVCMIMap.SetTerrain(X, Y: Integer; TT: TTerrainType);
 begin
   SetTerrain(CurrentLevel,X,Y,TT,FTerrainManager.GetRandomNormalSubtype(TT));
-end;
-
-procedure TVCMIMap.SetTerrainManager(AValue: TTerrainManager);
-begin
-  if FTerrainManager = AValue then Exit;
-  FTerrainManager := AValue;
 end;
 
 end.

@@ -39,10 +39,9 @@ type
 
   TBaseMapFormatHandler = class abstract (TInterfacedObject)
   protected
-    FTM: TTerrainManager;
-    FListsManager: TListsManager;
+    FMapEnv: TMapEnvironment;
   public
-     constructor Create(tm: TTerrainManager; lm: TListsManager); virtual;
+     constructor Create(AMapEnv: TMapEnvironment); virtual;
 
   end;
 
@@ -52,11 +51,9 @@ implementation
 
 { TBaseMapFormatHandler }
 
-constructor TBaseMapFormatHandler.Create(tm: TTerrainManager; lm: TListsManager
-  );
+constructor TBaseMapFormatHandler.Create(AMapEnv: TMapEnvironment);
 begin
-  FTM := tm;
-  FListsManager := lm;
+  FMapEnv := AMapEnv;
 end;
 
 end.

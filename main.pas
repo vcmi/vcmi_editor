@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil,
-  GL, GLext, OpenGLContext, LCLType, Forms, Controls,
+  GL, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
   minimap, filesystem, filesystem_base, lists_manager, zlib_stream, types;
@@ -206,7 +206,7 @@ type
       var ScrollPos: Integer);
 
   private
-    FListsManager: TListsManager;
+    FEnv: TMapEnvironment;
     procedure SetupPlayerSelection;
 
     function CheckUnsavedMap: boolean;
@@ -227,7 +227,6 @@ type
 
     FMap: TVCMIMap;
     FMapFilename: string;
-    FTerrianManager: TTerrainManager;
     FObjManager: TObjectsManager;
     FGraphicsManager: TGraphicsManager;
 
@@ -311,6 +310,7 @@ procedure TfMain.actCreateMapExecute(Sender: TObject);
 var
   frm: TNewMapForm;
   params: TMapCreateParams;
+
 begin
   if not CheckUnsavedMap then
     Exit;
@@ -322,7 +322,7 @@ begin
     begin
       FreeAndNil(FMap);
 
-      FMap := TVCMIMap.Create(RootManager.TerrainManager,params);
+      FMap := TVCMIMap.Create(fenv,params);
       MapChanded;
     end;
 
@@ -642,16 +642,16 @@ begin
   pcToolBox.ActivePage := tsTerrain;
 
   FResourceManager := RootManager.ResourceManager;
-  FTerrianManager := RootManager.TerrainManager;
+  FEnv.tm := RootManager.TerrainManager;
   FObjManager := RootManager.ObjectsManager;
   FGraphicsManager := RootManager.GraphicsManger;
-  FListsManager := RootManager.ListsManager;
+  FEnv.lm := RootManager.ListsManager;
 
   FUndoManager := TMapUndoManger.Create;
 
   FMinimap := TMinimap.Create(Self);
 
-  FMap := TVCMIMap.Create(FTerrianManager);
+  FMap := TVCMIMap.CreateDefault(FEnv);
 
   //load map if specified
 
@@ -866,13 +866,13 @@ begin
     case file_ext of
       FORMAT_VCMI_EXT:
         begin
-          reader := TMapReaderVCMI.Create(FTerrianManager, FListsManager);
+          reader := TMapReaderVCMI.Create(FEnv);
           cstm := stm;
           set_filename := True; //support saving
         end;
       FORMAT_H3M_EXT:
         begin
-          reader := TMapReaderH3m.Create(FTerrianManager, FListsManager);
+          reader := TMapReaderH3m.Create(FEnv);
           magic := 0;
           stm.Read(magic,SizeOf(magic));
           stm.Seek(0,soBeginning);
@@ -1544,7 +1544,7 @@ begin
   stm.Size := 0;
 
   try
-    writer := TMapWriterVCMI.Create(FTerrianManager,FListsManager);
+    writer := TMapWriterVCMI.Create(FEnv);
     FMap.SaveToStream(stm,writer);
     FMapFilename := AFileName;
   finally
@@ -1597,7 +1597,7 @@ begin
   m.OnClick := @PlayerMenuClick;
   m.Checked := True;
   menuPlayer.Items.Add(m);
-  m.Caption := FListsManager.PlayerName[TPlayer.none];
+  m.Caption := FEnv.lm.PlayerName[TPlayer.none];
 
   for p in [TPlayer.RED..TPlayer.PINK] do
   begin
@@ -1605,7 +1605,7 @@ begin
 
     m.Tag := Integer(p);
     m.OnClick := @PlayerMenuClick;
-    m.Caption := FListsManager.PlayerName[p];
+    m.Caption := FEnv.lm.PlayerName[p];
     menuPlayer.Items.Add(m);
   end;
 

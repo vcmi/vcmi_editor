@@ -167,7 +167,7 @@ const
     'sorcery',      'resistance',   'firstAid'
   );
 
-
+  SPELL_QUANTITY = 70;
 
 implementation
 

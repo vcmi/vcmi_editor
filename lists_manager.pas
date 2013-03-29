@@ -46,7 +46,12 @@ type
     property Name: TLocalizedString read FName write SetName;
   end;
 
-  TSkillInfos = specialize TFPGObjectList<TSkillInfo>;
+  { TSkillInfos }
+
+  TSkillInfos = class (specialize TFPGObjectList<TSkillInfo>)
+  public
+    procedure FillWithAllIds(AList: TStrings);
+  end;
 
   TSpellType = (Adventure, Combat, Ability);
 
@@ -54,22 +59,33 @@ type
 
   TSpellInfo = class
   private
+    FNid: TSpellID;
     Ftype: TSpellType;
     FID: AnsiString;
     FLevel: integer;
     FName: TLocalizedString;
+    procedure SetNid(AValue: TSpellID);
     procedure setType(AValue: TSpellType);
     procedure SetID(AValue: AnsiString);
     procedure SetLevel(AValue: integer);
     procedure SetName(AValue: TLocalizedString);
   public
+    constructor Create;
+    property Nid: TSpellID read FNid write SetNid;
     property ID: AnsiString read FID write SetID;
     property Level: integer read FLevel write SetLevel;
     property Name: TLocalizedString read FName write SetName;
     property SpellType: TSpellType read FType write SetType;
   end;
 
-  TSpellInfos = specialize TFPGObjectList<TSpellInfo>;
+  { TSpellInfos }
+
+  TSpellInfos = class (specialize TFPGObjectList<TSpellInfo>)
+  public
+    //all except abilities
+    procedure FillWithAllIds(AList: TStrings);
+  end;
+
 
   { TListsManager }
 
@@ -96,10 +112,11 @@ type
 
     function SIDIdNID(AID: AnsiString): TCustomID;
 
-    function SkillNidToString (ASkill: TSkillID): AnsiString;
+    function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
 
-    function SpellNidToString (ASpell: TSpellID): AnsiString;
+    //convert legacy id to vcmi id
+    function SpellNidToString (ASpell: TCustomID): AnsiString;
     property SpellInfos: TSpellInfos read FSpellInfos;
   end;
 
@@ -125,12 +142,42 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TSkillInfos }
+
+procedure TSkillInfos.FillWithAllIds(AList: TStrings);
+var
+  skill: TSkillInfo;
+begin
+  for skill in Self do
+  begin
+    AList.Add(skill.ID);
+  end;
+end;
+
+{ TSpellInfos }
+
+procedure TSpellInfos.FillWithAllIds(AList: TStrings);
+var
+  spell: TSpellInfo;
+begin
+  for spell in Self do
+  begin
+    if spell.SpellType <> TSpellType.Ability then
+      AList.Add(spell.ID);
+  end;
+end;
+
 { TSpellInfo }
 
 procedure TSpellInfo.SetType(AValue: TSpellType);
 begin
   if Ftype = AValue then Exit;
   Ftype := AValue;
+end;
+
+constructor TSpellInfo.Create;
+begin
+  FNid := -1;
 end;
 
 procedure TSpellInfo.SetID(AValue: AnsiString);
@@ -149,6 +196,12 @@ procedure TSpellInfo.SetName(AValue: TLocalizedString);
 begin
   if FName = AValue then Exit;
   FName := AValue;
+end;
+
+procedure TSpellInfo.SetNid(AValue: TSpellID);
+begin
+  if FNid = AValue then Exit;
+  FNid := AValue;
 end;
 
 { TSkillInfo }
@@ -306,6 +359,7 @@ begin
   info.Level := lc.Integers['level'];
   info.Name := lc.Strings['name'];
   info.SpellType := SPELL_TYPES[lc.Integers['type']];
+  info.Nid := nid;
 
   FNameMap.Insert(info.ID,nid);
 
@@ -331,14 +385,29 @@ begin
 
 end;
 
-function TListsManager.SkillNidToString(ASkill: TSkillID): AnsiString;
+function TListsManager.SkillNidToString(ASkill: TCustomID): AnsiString;
 begin
   Result := 'skill.' + editor_consts.SKILL_NAMES[ASkill];
 end;
 
-function TListsManager.SpellNidToString(ASpell: TSpellID): AnsiString;
+function TListsManager.SpellNidToString(ASpell: TCustomID): AnsiString;
+var
+  info: TSpellInfo;
+  i: Integer;
 begin
+  //todo:  optimize
+  Result := '';
+  for i := 0 to FSpellInfos.Count - 1 do
+  begin
+    info := FSpellInfos[i];
+    if info.Nid = ASpell then
+    begin
+      Result := info.ID;
+      Exit;
+    end;
+  end;
 
+  raise Exception.CreateFmt('Spell not found: %d',[ASpell]);
 end;
 
 end.

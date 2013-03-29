@@ -292,10 +292,11 @@ begin
         bestPattern := i;
         bestFlip := flip;
         tr_repl := vr.transitionReplacement;
+        FreeAndNil(FlippedPattern);
         Break;
       end;
 
-      FlippedPattern.Free;
+      FreeAndNil(FlippedPattern);
     end;
   end;
 

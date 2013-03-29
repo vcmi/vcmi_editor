@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, editor_types, gmap;
+  sysutils, editor_types, gmap, gutil;
 
 type
 
@@ -35,7 +35,11 @@ type
     class function c(a,b: AnsiString): boolean;
   end;
 
+  //TCustomIDCompare = specialize gutil.TLess<TCustomID>;
+
   TNameToIdMap = specialize TMap<AnsiString,TCustomID,TStringCompare>;
+
+  //TIdToNameMap = specialize TMap<TCustomID,AnsiString,TCustomIDCompare>;
 
   procedure LeToNInPlase(var Val:UInt32); inline;
 
