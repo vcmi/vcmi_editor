@@ -63,6 +63,7 @@ type
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
+    procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
     procedure VisitShrine(AOptions: TShrineOptions);
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
@@ -147,6 +148,11 @@ procedure TEditObjectOptions.SaveChanges;
 begin
   FActiveEditors.Commit;
   //TODO: free all editors and use cashed form
+end;
+
+procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
+begin
+
 end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);

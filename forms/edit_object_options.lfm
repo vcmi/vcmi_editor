@@ -8,7 +8,7 @@ object EditObjectOptions: TEditObjectOptions
   ClientWidth = 502
   Constraints.MinHeight = 200
   Constraints.MinWidth = 300
-  LCLVersion = '1.0.7.0'
+  LCLVersion = '1.0.9.0'
   object pcMain: TPageControl
     Left = 0
     Height = 329

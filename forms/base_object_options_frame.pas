@@ -53,6 +53,7 @@ type
     procedure VisitSpellScroll({%H-}AOptions: TSpellScrollOptions);virtual;
     procedure VisitResource({%H-}AOptions: TResourceOptions);virtual;
     procedure VisitTown({%H-}AOptions: TTownOptions);virtual;
+    procedure VisitAbandonedMine({%H-}AOptions: TAbandonedOptions); virtual;
     procedure VisitShrine({%H-}AOptions: TShrineOptions);virtual;
     procedure VisitPandorasBox({%H-}AOptions: TPandorasOptions);virtual;
     procedure VisitGrail({%H-}AOptions: TGrailOptions);virtual;
@@ -109,6 +110,12 @@ procedure TBaseObjectOptionsFrame.SetListsManager(AValue: TListsManager);
 begin
   if FListsManager = AValue then Exit;
   FListsManager := AValue;
+end;
+
+procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
+  );
+begin
+
 end;
 
 procedure TBaseObjectOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);

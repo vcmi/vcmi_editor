@@ -106,6 +106,7 @@ type
      procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
      procedure VisitResource(AOptions: TResourceOptions);//+
      procedure VisitTown(AOptions: TTownOptions);
+     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
      procedure VisitShrine(AOptions: TShrineOptions);//+
      procedure VisitPandorasBox(AOptions: TPandorasOptions);
      procedure VisitGrail(AOptions: TGrailOptions);//+
@@ -773,7 +774,15 @@ begin
 
   Assert(AOptions.MayBeOwned, 'Attempt to read owner of not ownable object');
 
-  AOptions.Owner := TPlayer(tmp);
+  if tmp = 255 then
+  begin
+    AOptions.Owner := TPlayer.NONE;
+  end
+  else begin
+    AOptions.Owner := TPlayer(tmp);
+  end;
+
+
 end;
 
 procedure TMapReaderH3m.VisitPandorasBox(AOptions: TPandorasOptions);
@@ -1407,6 +1416,12 @@ end;
 procedure TMapReaderH3m.SkipNotImpl(count: Integer);
 begin
   FSrc.Skip(count);
+end;
+
+procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);
+begin
+  SkipNotImpl(1);
+  FSrc.Skip(3);
 end;
 
 

@@ -33,14 +33,15 @@ type
   TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
+  TPlayer = (NONE = -1, RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK);
 
-  TPlayer = (none = -1, RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK);
-  TPlayerColor = TPlayer.RED..TPlayer.PINK;
   TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
 
   TDifficulty = (Easy = 0, Normal, Hard, Expert, Impossible);
 
 {$pop}
+
+  TPlayerColor = TPlayer.RED..TPlayer.PINK;
   TDefFrame = UInt8;
 
   TFactionID = type integer;
@@ -58,6 +59,8 @@ type
   TSpellID = type Integer;
 
   TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
+
+  TSex = (Male, Female);
 
 const
   ID_RANDOM = -1;

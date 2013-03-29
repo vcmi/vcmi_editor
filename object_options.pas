@@ -210,7 +210,6 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
   published
-    //short string ids
     property AllowedSkills: TStrings read GetAllowedSkills;
   end;
 
@@ -286,6 +285,13 @@ type
     property Garrison: TCreatureSet read FGarrison;
     property QuestIdentifier: UInt32 read FQuestIdentifier write SetQuestIdentifier;
     property Name: TLocalizedString read FName write SetName;
+  end;
+
+  { TAbandonedOptions }
+
+  TAbandonedOptions = class(TObjectOptions)
+  public
+    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
 
   { TShrineOptions }
@@ -403,6 +409,7 @@ type
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
+    procedure VisitAbandonedMine(AOptions:TAbandonedOptions);
     procedure VisitShrine(AOptions: TShrineOptions);
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions);
@@ -490,12 +497,14 @@ begin
     RANDOM_TOWN, TOWN:
       c := TTownOptions;
     MINE,
-    ABANDONED_MINE,
     CREATURE_GENERATOR1,
     CREATURE_GENERATOR2,
     CREATURE_GENERATOR3,
     CREATURE_GENERATOR4:
       c := TOwnedObjectOptions;
+
+    ABANDONED_MINE:
+      c := TAbandonedOptions;
 
     SHRINE_OF_MAGIC_GESTURE,
     SHRINE_OF_MAGIC_INCANTATION,
@@ -520,6 +529,13 @@ begin
 
 
   Result := c.Create;
+end;
+
+{ TAbandonedOptions }
+
+procedure TAbandonedOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  AVisitor.VisitAbandonedMine(Self);
 end;
 
 { TQuest }
