@@ -112,7 +112,7 @@ type
      procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);
      procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
      procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
-     procedure VisitQuestGuard(AOptions: TQuestGuardOptions);
+     procedure VisitQuestGuard(AOptions: TQuestGuardOptions);//+
      procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
      procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);//+
    public
@@ -531,7 +531,7 @@ begin
       ident := ReadDWord;
     end;
 
-    ReadOwner(AOptions,TOwnerSize.size1);
+    ReadOwner(AOptions, TOwnerSize.size1);
 
     subid := ReadByte;
 
@@ -654,8 +654,6 @@ var
   ident: DWord;
   count: Word;
   character: Byte;
-  never_flees: Boolean;
-  not_growing: Boolean;
 begin
   with FSrc do
   begin
@@ -676,8 +674,8 @@ begin
       SkipNotImpl(ifthen(IsNotROE,2,1));
 
     end;
-    never_flees := ReadBoolean;
-    not_growing := ReadBoolean;
+    AOptions.NeverFlees := ReadBoolean;
+    AOptions.NoGrowing := ReadBoolean;
 
     Skip(2);//junk
   end;
@@ -1031,7 +1029,6 @@ end;
 function TMapReaderH3m.ReadQuest(obj: TQuest): integer;
 var
   limit: DWord;
-  temp: String;
   cnt: Byte;
   i: Integer;
 begin
@@ -1072,9 +1069,10 @@ begin
 
     //
     limit := ReadDWord;
-    temp := ReadLocalizedString;//firstVisitText
-    temp := ReadLocalizedString;//nextVisitText
-    temp := ReadLocalizedString;//completedText
+
+    obj.FirstVisitText := ReadLocalizedString;
+    obj.NextVisitText := ReadLocalizedString;
+    obj.CompletedText := ReadLocalizedString;
   end;
 end;
 

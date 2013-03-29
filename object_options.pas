@@ -88,7 +88,17 @@ type
   { TQuest }
 
   TQuest = class
-
+  private
+    FCompletedText: TLocalizedString;
+    FFirstVisitText: TLocalizedString;
+    FNextVisitText: TLocalizedString;
+    procedure SetCompletedText(AValue: TLocalizedString);
+    procedure SetFirstVisitText(AValue: TLocalizedString);
+    procedure SetNextVisitText(AValue: TLocalizedString);
+  published
+    property FirstVisitText: TLocalizedString read FFirstVisitText write SetFirstVisitText;
+    property NextVisitText: TLocalizedString read FNextVisitText write SetNextVisitText;
+    property CompletedText: TLocalizedString read FCompletedText write SetCompletedText;
   end;
 {$pop}
 
@@ -163,8 +173,16 @@ type
   { TMonsterOptions }
 
   TMonsterOptions = class(TObjectOptions)
+  private
+    FNeverFlees: boolean;
+    FNoGrowing: boolean;
+    procedure SetNeverFlees(AValue: boolean);
+    procedure SetNoGrowing(AValue: boolean);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
+    property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
   end;
 
   { TSeerHutOptions }
@@ -504,6 +522,23 @@ begin
   Result := c.Create;
 end;
 
+{ TQuest }
+
+procedure TQuest.SetCompletedText(AValue: TLocalizedString);
+begin
+  FCompletedText := AValue;
+end;
+
+procedure TQuest.SetFirstVisitText(AValue: TLocalizedString);
+begin
+  FFirstVisitText := AValue;
+end;
+
+procedure TQuest.SetNextVisitText(AValue: TLocalizedString);
+begin
+  FNextVisitText := AValue;
+end;
+
 { THeroPlaceholderOptions }
 
 class function THeroPlaceholderOptions.MayBeOwned: Boolean;
@@ -518,13 +553,11 @@ end;
 
 procedure THeroPlaceholderOptions.SetPower(AValue: UInt8);
 begin
-  if FPower = AValue then Exit;
   FPower := AValue;
 end;
 
 procedure THeroPlaceholderOptions.SetTypeID(AValue: THeroID);
 begin
-  if FTypeID = AValue then Exit;
   FTypeID := AValue;
 end;
 
@@ -577,13 +610,11 @@ end;
 
 procedure TCreatureInstInfo.SetCreCount(AValue: Integer);
 begin
-  if FCreCount = AValue then Exit;
   FCreCount := AValue;
 end;
 
 procedure TCreatureInstInfo.SetCreID(AValue: TCreatureID);
 begin
-  if FCreID = AValue then Exit;
   FCreID := AValue;
 end;
 
@@ -614,7 +645,6 @@ end;
 
 procedure TGuardedObjectOptions.SetGuardMessage(AValue: TLocalizedString);
 begin
-  if FGuardMessage = AValue then Exit;
   FGuardMessage := AValue;
 end;
 
@@ -635,13 +665,11 @@ end;
 
 procedure TRandomDwellingOptions.SetMaxLevel(AValue: UInt8);
 begin
-  if FMaxLevel = AValue then Exit;
   FMaxLevel := AValue;
 end;
 
 procedure TRandomDwellingOptions.SetMinLevel(AValue: UInt8);
 begin
-  if FMinLevel = AValue then Exit;
   FMinLevel := AValue;
 end;
 
@@ -661,13 +689,11 @@ end;
 
 procedure TRandomDwellingTownOptions.SetMaxLevel(AValue: UInt8);
 begin
-  if FMaxLevel = AValue then Exit;
   FMaxLevel := AValue;
 end;
 
 procedure TRandomDwellingTownOptions.SetMinLevel(AValue: UInt8);
 begin
-  if FMinLevel = AValue then Exit;
   FMinLevel := AValue;
 end;
 
@@ -680,7 +706,6 @@ end;
 
 procedure TGrailOptions.SetRadius(AValue: Integer);
 begin
-  if FRadius = AValue then Exit;
   FRadius := AValue;
 end;
 
@@ -713,7 +738,6 @@ end;
 procedure TShrineOptions.SetSpellID(AValue: TSpellID);
 begin
   //TODO: check spell level
-  if FSpellID = AValue then Exit;
   FSpellID := AValue;
 end;
 
@@ -738,13 +762,11 @@ end;
 
 procedure TTownOptions.SetName(AValue: TLocalizedString);
 begin
-  if FName = AValue then Exit;
   FName := AValue;
 end;
 
 procedure TTownOptions.SetQuestIdentifier(AValue: UInt32);
 begin
-  if FQuestIdentifier = AValue then Exit;
   FQuestIdentifier := AValue;
 end;
 
@@ -757,7 +779,6 @@ end;
 
 procedure TResourceOptions.SetAmount(AValue: Integer);
 begin
-  if FAmount = AValue then Exit;
   FAmount := AValue;
 end;
 
@@ -770,7 +791,6 @@ end;
 
 procedure TSpellScrollOptions.SetSpellID(AValue: TSpellID);
 begin
-  if FSpellID = AValue then Exit;
   FSpellID := AValue;
 end;
 
@@ -802,7 +822,6 @@ end;
 
 procedure TGarrisonOptions.SetRemovableUnits(AValue: Boolean);
 begin
-  if FRemovableUnits = AValue then Exit;
   FRemovableUnits := AValue;
 end;
 
@@ -875,6 +894,16 @@ begin
   AVisitor.VisitMonster(Self);
 end;
 
+procedure TMonsterOptions.SetNeverFlees(AValue: boolean);
+begin
+  FNeverFlees := AValue;
+end;
+
+procedure TMonsterOptions.SetNoGrowing(AValue: boolean);
+begin
+  FNoGrowing := AValue;
+end;
+
 { THeroOptions }
 
 procedure THeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -910,10 +939,6 @@ end;
 
 procedure TSignBottleOptions.SetText(AValue: TLocalizedString);
 begin
-  if FText = AValue then
-  begin
-    Exit;
-  end;
   FText := AValue;
 end;
 
@@ -936,10 +961,6 @@ end;
 
 procedure TObjectOptions.SetOwner(AValue: TPlayer);
 begin
-  if FOwner = AValue then
-  begin
-    Exit;
-  end;
   FOwner := AValue;
 end;
 
