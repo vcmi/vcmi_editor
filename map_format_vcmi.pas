@@ -63,6 +63,12 @@ implementation
 uses
   typinfo;
 
+const
+
+  TILES_FIELD = 'tiles';
+  TEMPLATES_FIELD = 'templates';
+  OBJECTS_FIELD = 'objects';
+
 
 { TMapWriterVCMI }
 
@@ -93,7 +99,7 @@ begin
     main_array.Add(level_array);
   end;
 
-  ARoot.Add('tiles',main_array);
+  ARoot.Add(TILES_FIELD,main_array);
 end;
 
 procedure TMapWriterVCMI.StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
@@ -139,10 +145,10 @@ begin
 
     d := FStreamer.StreamCollection(AMap.Templates);
 
-    map_o.Add('templates', d);
+    map_o.Add(TEMPLATES_FIELD, d);
 
     d := FStreamer.StreamCollection(AMap.Objects);
-    map_o.Add('objects',d);
+    map_o.Add(OBJECTS_FIELD,d);
 
     StreamTiles(map_o, AMap);
 
@@ -168,7 +174,7 @@ var
   main_array, level_array: TJSONArray;
   i: Integer;
 begin
-  main_array := ARoot.Arrays['tiles'];
+  main_array := ARoot.Arrays[TILES_FIELD];
 
   for i := 0 to AMap.Levels - 1 do
   begin
@@ -232,18 +238,19 @@ begin
 
   map_o := FDestreamer.JSONStreamToJson(AStream) as TJSONObject;
 
-  cp.Levels := map_o.Integers['Levels'];
-  cp.Height := map_o.Integers['Height'];
-  cp.Width  := map_o.Integers['Width'];
+  cp.Levels := map_o.Integers['levels'];
+  cp.Height := map_o.Integers['height'];
+  cp.Width  := map_o.Integers['width'];
 
   Result := TVCMIMap.CreateExisting(FMapEnv, cp);
   try
     try
+      DeStreamTiles(map_o,Result);
 
       FDestreamer.JSONToObject(map_o, Result);
 
-      FDestreamer.JSONToObject(map_o.Objects['templates'],Result.Templates);
-      FDestreamer.JSONToObject(map_o.Objects['objects'],Result.Objects);
+      FDestreamer.JSONToCollection(map_o.Elements[TEMPLATES_FIELD],Result.Templates);
+      FDestreamer.JSONToCollection(map_o.Elements[OBJECTS_FIELD],Result.Objects);
 
     finally
       map_o.Free;
