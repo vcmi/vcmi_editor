@@ -189,6 +189,8 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure MapViewPaint(Sender: TObject);
     procedure MapViewResize(Sender: TObject);
+    procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
@@ -270,6 +272,8 @@ type
     procedure InvalidateMapAxis;
     procedure InvalidateMap;
     procedure InvalidateMapContent;
+
+    procedure SetMapPosition(APosition:TPoint);
 
     procedure SetMapViewMouse(x,y: integer);
 
@@ -1255,6 +1259,35 @@ begin
   InvalidateMapDimensions;
 end;
 
+procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  cx,cy: Double;
+  pos: TPoint;
+begin
+  if not Assigned(FMap) then
+  begin
+    Exit;
+  end;
+
+  if (Button = TMouseButton.mbLeft) and ([ssShift,ssCtrl,ssAlt] * Shift = []) then
+  begin
+    //set map view center position to mouse pos
+
+    cx := X / (Minimap.Width);
+    cy := Y / (Minimap.Height);
+
+    pos.x := round(cx * FMap.Width);
+    pos.y := round(cy * FMap.Height);
+
+    pos.x := pos.x- (FViewTilesH div 2);
+    pos.y := pos.y- (FViewTilesV div 2);
+
+    SetMapPosition(pos);;
+
+  end;
+end;
+
 procedure TfMain.PlayerMenuClick(Sender: TObject);
 var
   m, mc : TMenuItem;
@@ -1573,6 +1606,25 @@ begin
 
   InvalidateObjects;
 
+end;
+
+procedure TfMain.SetMapPosition(APosition: TPoint);
+   procedure UpdateScrollbar(sb: TCustomScrollBar; var APosition: Integer);
+   begin
+     APosition := Max(APosition,0);
+     APosition := Min(sb.Max-sb.PageSize+1,APosition);
+     sb.Position := APosition;
+   end;
+begin
+
+  UpdateScrollbar(hScrollBar,APosition.x);
+  FMapHPos := APosition.x;
+
+
+  UpdateScrollbar(vScrollBar,APosition.y);
+  FMapVPos := APosition.y;
+
+  InvalidateMapAxis;
 end;
 
 procedure TfMain.SetMapViewMouse(x, y: integer);

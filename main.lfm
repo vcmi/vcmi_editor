@@ -1145,6 +1145,7 @@ object fMain: TfMain
         Top = 0
         Width = 204
         Align = alClient
+        OnMouseDown = MinimapMouseDown
         OnPaint = MinimapPaint
       end
     end
