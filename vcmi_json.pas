@@ -30,12 +30,16 @@ type
 
   { TVCMIJSONDestreamer }
 
+  TOnBeforeReadObject = procedure (const JSON: TJSONObject; AObject: TObject) of object;
+
   TVCMIJSONDestreamer = class (TJSONDeStreamer)
   private
+    FOnBeforeReadObject: TOnBeforeReadObject;
     procedure CollectionObjCallback(Const AName : TJSONStringType; Item: TJSONData;
       Data: TObject; var Continue: Boolean);
 
     procedure CollectionArrayCallback(Item: TJSONData; Data: TObject; var Continue: Boolean);
+    procedure SetOnBeforeReadObject(AValue: TOnBeforeReadObject);
   protected
     procedure DoPreparePropName(var PropName: AnsiString); override;
     //preprocess comments
@@ -51,6 +55,8 @@ type
 
     function JSONStreamToJson(AStream: TStream): TJSONData;
     function JSONStreamToJSONObject(AStream: TStream; AName: string): TJSONObject;
+
+    property OnBeforeReadObject:TOnBeforeReadObject read FOnBeforeReadObject write SetOnBeforeReadObject;
   end;
 
   { TVCMIJSONStreamer }
@@ -456,6 +462,8 @@ end;
 procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;
   AObject: TObject);
 begin
+  if Assigned(FOnBeforeReadObject) then
+    FOnBeforeReadObject(JSON,AObject);
 
   if AObject is IEmbeddedCollection then
   begin
@@ -504,6 +512,13 @@ begin
   end;
 
 
+end;
+
+procedure TVCMIJSONDestreamer.SetOnBeforeReadObject(AValue: TOnBeforeReadObject
+  );
+begin
+  if FOnBeforeReadObject = AValue then Exit;
+  FOnBeforeReadObject := AValue;
 end;
 
 end.

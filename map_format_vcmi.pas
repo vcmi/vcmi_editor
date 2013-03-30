@@ -36,6 +36,8 @@ type
 
     procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
     procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
+
+    procedure BeforeReadObject(const JSON: TJSONObject; AObject: TObject);
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
     destructor Destroy; override;
@@ -162,11 +164,23 @@ end;
 
 { TMapReaderVCMI }
 
+procedure TMapReaderVCMI.BeforeReadObject(const JSON: TJSONObject;
+  AObject: TObject);
+begin
+  if AObject is TMapObject then
+  begin
+    //hack to read TemplateID before other properties
+
+    TMapObject(AObject).TemplateID := JSON.Integers['templateID'];
+  end;
+end;
+
 constructor TMapReaderVCMI.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
+  FDestreamer.OnBeforeReadObject := @BeforeReadObject;
 end;
 
 procedure TMapReaderVCMI.DestreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
@@ -233,9 +247,6 @@ var
   map_o: TJSONObject;
   cp:    TMapCreateParams;
 begin
-
-  //TODO: !!! Read object template ID before options
-
   map_o := FDestreamer.JSONStreamToJson(AStream) as TJSONObject;
 
   cp.Levels := map_o.Integers['levels'];

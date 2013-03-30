@@ -577,7 +577,7 @@ end;
 
 procedure TMapObject.SetTemplateID(AValue: integer);
 begin
-  if FTemplateID = AValue then Exit;
+  if FTemplateID = AValue then Exit; //dont remove
 
   FTemplate := (Collection as TMapObjects).Map.FTemplates.Items[AValue];
 
