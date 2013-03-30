@@ -304,6 +304,8 @@ type
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
 
+    function HasOptions: boolean;
+
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -311,7 +313,7 @@ type
 
     property TemplateID: integer read FTemplateID write SetTemplateID;
 
-    property Options: TObjectOptions read FOptions;
+    property Options: TObjectOptions read FOptions stored HasOptions;
   end;
 
   { TObjPriorityCompare }
@@ -523,6 +525,11 @@ begin
   begin
     Result := TPlayer.none;
   end;
+end;
+
+function TMapObject.HasOptions: boolean;
+begin
+  Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
 end;
 
 procedure TMapObject.Render(Frame: integer);
