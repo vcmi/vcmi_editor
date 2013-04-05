@@ -114,15 +114,9 @@ begin
     raise Exception.Create('Error loading required extension EXT_texture_rectangle');
   end;
 
-
-
-
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
-  Application.ProcessMessages;
-
   ProgressForm.StageCount := ifthen(Paramcount > 0, 5, 4);
-
 
   Application.ProcessMessages;
 
@@ -131,7 +125,7 @@ begin
   //ShaderContext.UseFlagShader();
 
   //stage 1
-  ProgressForm.NextStage('Scanning filsystem.');
+  ProgressForm.NextStage('Scanning filesystem.');
 
   FResourceManager := TFSManager.Create(self);
   FResourceManager.Load(FProgressForm);
