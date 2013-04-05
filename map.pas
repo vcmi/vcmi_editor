@@ -344,6 +344,36 @@ type
     lm: TListsManager;
   end;
 
+  ///WIP, MULTILEVEL MAP
+
+  { TMapLevel }
+
+  TMapLevel = class(TCollectionItem)
+  strict private
+    FHeight: Integer;
+    FTerrain: array of array of TMapTile; //X, Y
+    FObjects: TMapObjects;
+    FWidth: Integer;
+    function GetTile(X, Y: Integer): TMapTile; inline;
+    procedure SetHeight(AValue: Integer);
+    procedure SetWidth(AValue: Integer);
+
+    procedure Resize;
+  public
+    destructor Destroy; override;
+
+    property Tile[X, Y: Integer]: TMapTile read GetTile;
+  published
+    property Height: Integer read FHeight write SetHeight;
+    property Width: Integer read FWidth write SetWidth;
+  end;
+
+  { TMapLevels }
+
+  TMapLevels = class(specialize TGArrayCollection<TMapLevel>)
+
+  end;
+
   { TVCMIMap }
 
   TVCMIMap = class (TPersistent, IFPObserver)
@@ -376,6 +406,7 @@ type
     procedure DestroyTiles();
     function GetAllowedAbilities: TStrings;
     function GetAllowedSpells: TStrings;
+    function GetCurrentLevel: Integer; inline;
     procedure RecreateTerrainArray;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -409,7 +440,7 @@ type
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
     procedure RenderObjects(Left, Right, Top, Bottom: Integer);
 
-    property CurrentLevel: Integer read FCurrentLevel write SetCurrentLevel;
+    property CurrentLevel: Integer read GetCurrentLevel write SetCurrentLevel;
 
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
@@ -447,7 +478,6 @@ type
 implementation
 
 uses FileUtil, editor_str_consts, root_manager, editor_utils;
-
 
 { TRumor }
 
@@ -933,6 +963,52 @@ begin
   FTerType := AValue;
 end;
 
+
+{ TMapLevel }
+
+destructor TMapLevel.Destroy;
+var
+  X: SizeInt;
+  Y: SizeInt;
+begin
+  for X := 0 to Length(FTerrain) - 1 do
+  begin
+    for Y := 0 to Length(FTerrain[X]) - 1 do
+    begin
+      FTerrain[X][Y].Free();
+    end;
+  end;
+  inherited Destroy;
+end;
+
+function TMapLevel.GetTile(X, Y: Integer): TMapTile;
+begin
+  Result := FTerrain[x,y];
+end;
+
+procedure TMapLevel.Resize;
+begin
+  Assert(Height>=0, 'Invalid height');
+  Assert(Width>=0, 'Invalid width');
+  if (Height=0) or (Width=0) then Exit;
+
+
+end;
+
+procedure TMapLevel.SetHeight(AValue: Integer);
+begin
+  if FHeight = AValue then Exit;
+  FHeight := AValue;
+  Resize();
+end;
+
+procedure TMapLevel.SetWidth(AValue: Integer);
+begin
+  if FWidth = AValue then Exit;
+  FWidth := AValue;
+  Resize();
+end;
+
 { TVCMIMap }
 
 procedure TVCMIMap.AttachTo(AObserved: IFPObserved);
@@ -1061,6 +1137,11 @@ end;
 function TVCMIMap.GetAllowedSpells: TStrings;
 begin
   Result := FAllowedSpells;
+end;
+
+function TVCMIMap.GetCurrentLevel: Integer;
+begin
+  Result := FCurrentLevel;
 end;
 
 function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;
