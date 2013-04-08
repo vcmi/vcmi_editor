@@ -296,15 +296,44 @@ type
 
   { TShrineOptions }
 
-  TShrineOptions = class(TObjectOptions)
+  TShrineOptions = class abstract (TObjectOptions)
   private
-    FSpellID: TSpellID;
-    procedure SetSpellID(AValue: TSpellID);
+    FIsRandom: Boolean;
+    FSpellID: AnsiString;
+    FSpellLevel: Integer;
+
+    function IsSpellIDStored: Boolean;
+    procedure SetIsRandom(AValue: Boolean);
+    procedure SetSpellID(AValue: AnsiString);
+  strict protected
+    class function GetSpellLevel: Integer; virtual; abstract;
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    property SpellLevel: Integer read GetSpellLevel;
   published
-    property SpellID: TSpellID read FSpellID write SetSpellID;
-    //todo: publish string id
+    property IsRandom: Boolean read FIsRandom write SetIsRandom default False;
+    property SpellID: AnsiString read FSpellID write SetSpellID stored IsSpellIDStored;
+  end;
+
+  { TShrine1Options }
+
+  TShrine1Options = class (TShrineOptions)
+  strict protected
+    class function GetSpellLevel: Integer; override;
+  end;
+
+  { TShrine2Options }
+
+  TShrine2Options = class (TShrineOptions)
+  strict protected
+    class function GetSpellLevel: Integer; override;
+  end;
+
+  { TShrine3Options }
+
+  TShrine3Options = class (TShrineOptions)
+  strict protected
+    class function GetSpellLevel: Integer; override;
   end;
 
   { TGrailOptions }
@@ -516,10 +545,19 @@ begin
     ABANDONED_MINE:
       c := TAbandonedOptions;
 
-    SHRINE_OF_MAGIC_GESTURE,
-    SHRINE_OF_MAGIC_INCANTATION,
+    //SHRINE_OF_MAGIC_GESTURE,
+    //SHRINE_OF_MAGIC_INCANTATION,
+    //SHRINE_OF_MAGIC_THOUGHT:
+    //  c := TShrineOptions;
+    SHRINE_OF_MAGIC_GESTURE:
+      c := TShrine1Options;
+
+    SHRINE_OF_MAGIC_INCANTATION:
+      c := TShrine2Options;
+
     SHRINE_OF_MAGIC_THOUGHT:
-      c := TShrineOptions;
+      c := TShrine3Options;
+
     PANDORAS_BOX:
       c := TPandorasOptions;
     GRAIL:
@@ -536,9 +574,30 @@ begin
     SHIPYARD,LIGHTHOUSE:
       c := TOwnedObjectOptions;
   end;
-
-
   Result := c.Create;
+
+end;
+
+
+{ TShrine1Options }
+
+class function TShrine1Options.GetSpellLevel: Integer;
+begin
+  Result := 1;
+end;
+
+{ TShrine2Options }
+
+class function TShrine2Options.GetSpellLevel: Integer;
+begin
+  Result := 2;
+end;
+
+{ TShrine3Options }
+
+class function TShrine3Options.GetSpellLevel: Integer;
+begin
+  Result := 3;
 end;
 
 { TAbandonedOptions }
@@ -761,9 +820,20 @@ begin
   AVisitor.VisitShrine(Self);
 end;
 
-procedure TShrineOptions.SetSpellID(AValue: TSpellID);
+function TShrineOptions.IsSpellIDStored: Boolean;
 begin
-  //TODO: check spell level
+  Result := not IsRandom;
+end;
+
+procedure TShrineOptions.SetIsRandom(AValue: Boolean);
+begin
+  if FIsRandom = AValue then Exit;
+  FIsRandom := AValue;
+end;
+
+procedure TShrineOptions.SetSpellID(AValue: AnsiString);
+begin
+    //TODO: check spell level
   FSpellID := AValue;
 end;
 

@@ -1210,10 +1210,10 @@ begin
 
   if raw_id = 255 then
   begin
-    AOptions.SpellID := ID_RANDOM;
+    AOptions.IsRandom := True;
   end
   else begin
-    AOptions.SpellID := raw_id;
+    AOptions.SpellID := FMapEnv.lm.SpellNidToString(raw_id);
   end;
 
   fsrc.skip(3); //junk
