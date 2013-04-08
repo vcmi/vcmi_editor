@@ -131,32 +131,58 @@ type
 
   TModId = AnsiString;
 
-{$push}
-{$M+}
-  { TModConfig }
+  {$push}
+  {$M+}
 
-  TModConfig =class
+  { TBaseConfig }
+
+  TBaseConfig = class abstract
   private
     FArtifacts: TStringList;
-    FConflicts: TStringList;
     FCreatures: TStringList;
-    FDepends: TStringList;
-    FDescription: string;
-    FDisabled: Boolean;
     FFactions: TStringList;
-    FFilesystem: TFilesystemConfig;
     FHeroClasses: TStringList;
     FHeroes: TStringList;
-    FID: TModId;
-    FName: string;
-    FPath: String;
     function GetArtifacts: TStrings;
-    function GetConflicts: TStrings;
     function GetCreatures: TStrings;
-    function GetDepends: TStrings;
     function GetFactions: TStrings;
     function GetHeroClasses: TStrings;
     function GetHeroes: TStrings;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Artifacts: TStrings read GetArtifacts ;
+    property Creatures: TStrings read GetCreatures ;
+    property Factions: TStrings read GetFactions ;
+    property HeroClasses: TStrings read GetHeroClasses ;
+    property Heroes: TStrings read GetHeroes ;
+
+  end;
+
+  { TGameConfig }
+
+  TGameConfig = class (TBaseConfig)
+  public
+    constructor Create;
+  end;
+
+
+  { TModConfig }
+
+  TModConfig =class (TBaseConfig)
+  private
+    FConflicts: TStringList;
+    FDepends: TStringList;
+    FDescription: string;
+    FDisabled: Boolean;
+    FFilesystem: TFilesystemConfig;
+    FID: TModId;
+    FName: string;
+    FPath: String;
+
+    function GetConflicts: TStrings;
+    function GetDepends: TStrings;
     procedure SetDescription(AValue: string);
     procedure SetDisabled(AValue: Boolean);
     procedure SetID(AValue: TModId);
@@ -180,11 +206,6 @@ type
     //list of IDs
     property Conflicts: TStrings read GetConflicts;
 
-    property Factions: TStrings read GetFactions ;
-    property HeroClasses: TStrings read GetHeroClasses ;
-    property Heroes: TStrings read GetHeroes ;
-    property Creatures: TStrings read GetCreatures ;
-    property Artifacts: TStrings read GetArtifacts ;
     //TODO: Spells
     //TODO: ObjectTypes
     //TODO: Objects
@@ -241,7 +262,7 @@ type
   TFSManager = class (TComponent,IResourceLoader)
   private
     FConfig: TFilesystemConfig;
-
+    FGameConfig: TGameConfig;
     FResMap: TResIDToLcationMap;
     FLodList: TLodList;
 
@@ -285,6 +306,8 @@ type
 
     procedure ScanMods;
 
+    procedure LoadGameConfig;
+
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -309,8 +332,12 @@ const
     'TXT','JSON','DEF'
   );
 
-  FS_CONFIG = 'config'+DirectorySeparator+'filesystem.json';
+  CONFIG = 'config';
+
+  FS_CONFIG = CONFIG+DirectorySeparator+'filesystem.json';
   FS_CONFIG_FIELD = 'filesystem';
+
+  GAME_CONFIG = CONFIG+DirectorySeparator+'gameConfig';
 
   MOD_CONFIG = 'mod.json';
   MOD_ROOT = '/Content';
@@ -318,6 +345,62 @@ const
 function ComapreModId(const a, b: TModId): integer;
 begin
   Result := CompareText(a,b);
+end;
+
+{ TGameConfig }
+
+constructor TGameConfig.Create;
+begin
+  inherited;
+  FHeroClasses.Add('CONFIG\heroClasses');
+end;
+
+{ TBaseConfig }
+
+constructor TBaseConfig.Create;
+begin
+  FArtifacts := TStringList.Create;
+  FCreatures := TStringList.Create;
+  FFactions := TStringList.Create;
+  FHeroClasses := TStringList.Create;
+  FHeroes := TStringList.Create;
+
+end;
+
+destructor TBaseConfig.Destroy;
+begin
+  FHeroes.Free;
+  FHeroClasses.Free;
+  FFactions.Free;
+  FCreatures.Free;
+  FArtifacts.Free;
+
+  inherited Destroy;
+end;
+
+function TBaseConfig.GetArtifacts: TStrings;
+begin
+  Result := FArtifacts;
+end;
+
+function TBaseConfig.GetCreatures: TStrings;
+begin
+  Result := FCreatures;
+end;
+
+function TBaseConfig.GetFactions: TStrings;
+begin
+  Result := FFactions;
+end;
+
+function TBaseConfig.GetHeroClasses: TStrings;
+begin
+  Result := FHeroClasses;
+end;
+
+function TBaseConfig.GetHeroes: TStrings;
+begin
+  Result := FHeroes;
 end;
 
 { TResLocation }
@@ -410,26 +493,16 @@ end;
 
 constructor TModConfig.Create;
 begin
+  inherited;
   FFilesystem := TFilesystemConfig.Create;
 
   FConflicts := TStringList.Create;
   FDepends := TStringList.Create;
 
-  FArtifacts := TStringList.Create;
-  FCreatures := TStringList.Create;
-  FFactions := TStringList.Create;
-  FHeroClasses := TStringList.Create;
-  FHeroes := TStringList.Create;
 end;
 
 destructor TModConfig.Destroy;
 begin
-  FHeroes.Free;
-  FHeroClasses.Free;
-  FFactions.Free;
-  FCreatures.Free;
-  FArtifacts.Free;
-
   FDepends.Free;
   FConflicts.Free;
 
@@ -437,39 +510,14 @@ begin
   inherited Destroy;
 end;
 
-function TModConfig.GetArtifacts: TStrings;
-begin
-  Result := FArtifacts;
-end;
-
 function TModConfig.GetConflicts: TStrings;
 begin
   Result := FConflicts;
 end;
 
-function TModConfig.GetCreatures: TStrings;
-begin
-  Result := FCreatures;
-end;
-
 function TModConfig.GetDepends: TStrings;
 begin
   Result := FDepends;
-end;
-
-function TModConfig.GetFactions: TStrings;
-begin
-  Result := FFactions;
-end;
-
-function TModConfig.GetHeroClasses: TStrings;
-begin
-  Result := FHeroClasses;
-end;
-
-function TModConfig.GetHeroes: TStrings;
-begin
-  Result := FHeroes;
 end;
 
 procedure TModConfig.MayBeSetDefaultFSConfig;
@@ -531,10 +579,13 @@ begin
   FMods := TModConfigs.Create(True);
   FModMap := TIdToModMap.Create;
   FModMap.OnKeyCompare := @ComapreModId;
+
+  FGameConfig := TGameConfig.Create;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FGameConfig.Free;
   FModMap.Free;
   FMods.Free;
   FLodList.Free;
@@ -557,7 +608,9 @@ end;
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   ScanFilesystem;
+
   ScanMods;
+  LoadGameConfig;
 end;
 
 procedure TFSManager.LoadFileResource(AResource: IResource; APath: TFilename);
@@ -583,6 +636,19 @@ begin
     config_res.DestreamTo(FConfig,FS_CONFIG_FIELD);
   finally
     config_res.Free;
+  end;
+end;
+
+procedure TFSManager.LoadGameConfig;
+var
+  res: TJsonResource;
+begin
+  res := TJsonResource.Create;
+  try
+    LoadResource(res,TResourceType.Json,GAME_CONFIG);
+    res.DestreamTo(FGameConfig);
+  finally
+    res.Free;
   end;
 end;
 

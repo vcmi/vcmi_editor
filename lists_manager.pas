@@ -40,19 +40,26 @@ type
     FID: AnsiString;
     FName: TLocalizedString;
     FNid: TCustomID;
+
     procedure SetID(AValue: AnsiString);
     procedure SetName(AValue: TLocalizedString);
     procedure SetNid(AValue: TCustomID);
+  protected
+    function GetFullID: AnsiString; virtual;
+
   public
     constructor Create;
     property ID: AnsiString read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
     property Nid: TCustomID read FNid write SetNid;
+    property FullID: AnsiString read GetFullID;
   end;
 
   { TSkillInfo }
 
   TSkillInfo = class (TBaseInfo)
+  protected
+    function GetFullID: AnsiString; override;
   end;
 
   { TSkillInfos }
@@ -72,6 +79,8 @@ type
     FLevel: integer;
     procedure setType(AValue: TSpellType);
     procedure SetLevel(AValue: integer);
+  protected
+    function GetFullID: AnsiString; override;
   public
     property Level: integer read FLevel write SetLevel;
     property SpellType: TSpellType read FType write SetType;
@@ -148,11 +157,23 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TSkillInfo }
+
+function TSkillInfo.GetFullID: AnsiString;
+begin
+  Result := 'skill.'+ID
+end;
+
 { TBaseInfo }
 
 constructor TBaseInfo.Create;
 begin
   FNid := ID_INVALID;
+end;
+
+function TBaseInfo.GetFullID: AnsiString;
+begin
+  Result := ID;
 end;
 
 procedure TBaseInfo.SetID(AValue: AnsiString);
@@ -204,6 +225,11 @@ procedure TSpellInfo.SetType(AValue: TSpellType);
 begin
   if Ftype = AValue then Exit;
   Ftype := AValue;
+end;
+
+function TSpellInfo.GetFullID: AnsiString;
+begin
+  Result := 'spell.'+ID;
 end;
 
 procedure TSpellInfo.SetLevel(AValue: integer);
@@ -291,7 +317,7 @@ begin
     for i := 2 to sstraits.RowCount - 1 do
     begin
       info := TSkillInfo.Create;
-      info.ID := 'skill.'+SKILL_NAMES[i-2];
+      info.ID := SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
       FSkillInfos.Add(info);
       FSkillMap.AddObject(info.ID,info);
@@ -382,7 +408,7 @@ begin
   if sp_type <>TSpellType.Ability then
   begin
     info := TSpellInfo.Create;
-    info.ID := 'spell.'+AName;
+    info.ID := AName;
     info.Level := lc.Integers['level'];
     info.Name := lc.Strings['name'];
     info.SpellType := sp_type;
@@ -416,7 +442,7 @@ end;
 
 function TListsManager.SkillNidToString(ASkill: TCustomID): AnsiString;
 begin
-  Result := 'skill.' + editor_consts.SKILL_NAMES[ASkill];
+  Result := {'skill.' + }editor_consts.SKILL_NAMES[ASkill];
 end;
 
 function TListsManager.SpellNidToString(ASpell: TCustomID): AnsiString;

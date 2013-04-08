@@ -122,7 +122,6 @@ begin
 
   ShaderContext := TShaderContext.Create;
   ShaderContext.Init;
-  //ShaderContext.UseFlagShader();
 
   //stage 1
   ProgressForm.NextStage('Scanning filesystem.');
