@@ -25,7 +25,7 @@ unit gui_helpers;
 interface
 
 uses
-  Classes, SysUtils, {Controls, StdCtrls,} CheckLst,
+  Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
   editor_types, lists_manager;
 
@@ -39,20 +39,37 @@ type
     procedure SaveToList(ADest: TStrings);
   end;
 
+  { TListBoxHelper }
+
+  TListBoxHelper = class helper for TCustomListBox
+  public
+    procedure FillFromList(AFullList: TStrings; ASelected: TBaseInfo);
+    function SelectedInfo: TBaseInfo;
+  end;
+
+
 
 implementation
+
+procedure FillItems(ATarget: TStrings; AFullList: TStrings);
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Objects[i] as TBaseInfo;
+    ATarget.AddObject(info.Name,info);
+  end;
+end;
 
 procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ASrc: TStrings);
 var
   i: Integer;
   info: TBaseInfo;
 begin
-  ATarget.Items.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Objects[i] as TBaseInfo;
-    ATarget.Items.AddObject(info.Name,info);
-  end;
+  FillItems(ATarget.Items, AFullList);
 
   for i := 0 to ATarget.Items.Count - 1 do
   begin
@@ -87,6 +104,25 @@ end;
 procedure TCheckListBoxHelper.SaveToList(ADest: TStrings);
 begin
   SaveCheckListBox(Self,ADest);
+end;
+
+
+{ TListBoxHelper }
+
+procedure TListBoxHelper.FillFromList(AFullList: TStrings; ASelected: TBaseInfo
+  );
+begin
+  FillItems(Self.Items, AFullList);
+  if Assigned(ASelected) then
+  begin
+    ItemIndex := Items.IndexOfObject(ASelected);
+  end;
+
+end;
+
+function TListBoxHelper.SelectedInfo: TBaseInfo;
+begin
+  Result := Items.Objects[ItemIndex] as TBaseInfo;
 end;
 
 end.

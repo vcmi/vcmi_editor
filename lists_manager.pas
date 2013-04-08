@@ -94,6 +94,12 @@ type
     procedure FillWithAllIds(AList: TStrings);
   end;
 
+  { TFactionInfo }
+
+  TFactionInfo = class(TBaseInfo)
+
+  end;
+
 
   { TListsManager }
 

@@ -20,6 +20,8 @@ resourcestring
   rsRedo = 'Redo';
   rsUndo = 'Undo';
 
+
+
 implementation
 
 end.

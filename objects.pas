@@ -94,7 +94,7 @@ type
 implementation
 
 uses
-  CsvDocument;
+  CsvDocument, editor_consts;
 
 const
   OBJECT_LIST = 'DATA/ZEOBJTS';
@@ -258,6 +258,14 @@ begin
       def.FSubType := CellToInt;
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
+
+      {$ifdef QUICK_OBJECT_LOAD}
+      if def.FTyp in [112..211] then
+      begin
+        def.Free;
+        Continue;
+      end;
+      {$endif}
 
       id := TypToId(def.FTyp,def.FSubType);
       def.Def := GraphicsManager.GetGraphics(def.FFilename);

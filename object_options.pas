@@ -578,28 +578,6 @@ begin
 
 end;
 
-
-{ TShrine1Options }
-
-class function TShrine1Options.GetSpellLevel: Integer;
-begin
-  Result := 1;
-end;
-
-{ TShrine2Options }
-
-class function TShrine2Options.GetSpellLevel: Integer;
-begin
-  Result := 2;
-end;
-
-{ TShrine3Options }
-
-class function TShrine3Options.GetSpellLevel: Integer;
-begin
-  Result := 3;
-end;
-
 { TAbandonedOptions }
 
 procedure TAbandonedOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -836,6 +814,30 @@ begin
     //TODO: check spell level
   FSpellID := AValue;
 end;
+
+
+{ TShrine1Options }
+
+class function TShrine1Options.GetSpellLevel: Integer;
+begin
+  Result := 1;
+end;
+
+{ TShrine2Options }
+
+class function TShrine2Options.GetSpellLevel: Integer;
+begin
+  Result := 2;
+end;
+
+{ TShrine3Options }
+
+class function TShrine3Options.GetSpellLevel: Integer;
+begin
+  Result := 3;
+end;
+
+
 
 { TTownOptions }
 
