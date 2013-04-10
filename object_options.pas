@@ -956,10 +956,10 @@ begin
   //todo: make it configurable
   for i := 0 to SKILL_QUANTITY - 1 do
   begin
-    FAllowedSkills.Add(SKILL_NAMESPACE + '.'+ SKILL_NAMES[i]);
+    FAllowedSkills.Add(SKILL_NAMES[i]);
   end;
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMESPACE + '.'+ SKILL_NAMES[6]));
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMESPACE + '.'+ SKILL_NAMES[12]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[6]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[12]));
 end;
 
 destructor TWitchHutOptions.Destroy;

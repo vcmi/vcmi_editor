@@ -260,7 +260,7 @@ begin
       def.FIsOverlay := CellToInt;
 
       {$ifdef QUICK_OBJECT_LOAD}
-      if def.FTyp in [112..211] then
+      if def.FTyp in [114..211] then
       begin
         def.Free;
         Continue;
