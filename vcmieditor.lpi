@@ -89,7 +89,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="41">
+    <Units Count="42">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -331,6 +331,14 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="shrine_frame"/>
       </Unit40>
+      <Unit41>
+        <Filename Value="forms\spellscroll_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SpellScrollFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="spellscroll_frame"/>
+      </Unit41>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

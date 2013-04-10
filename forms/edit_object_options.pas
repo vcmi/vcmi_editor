@@ -87,7 +87,7 @@ implementation
 
 uses
   signbottle_frame, grail_frame, flaggable_object_frame, witchhut_frame,
-  shrine_frame, root_manager;
+  shrine_frame, spellscroll_frame, root_manager;
 
 {$R *.lfm}
 
@@ -251,7 +251,7 @@ end;
 
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
-
+  CreateFrame(TSpellScrollFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitTown(AOptions: TTownOptions);

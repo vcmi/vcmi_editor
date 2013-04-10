@@ -247,13 +247,13 @@ type
 
   TSpellScrollOptions = class(TArtifactOptions)
   private
-    FSpellID: TSpellID;
-    procedure SetSpellID(AValue: TSpellID);
+    FSpellID: AnsiString;
+    procedure SetSpellID(AValue: AnsiString);
   public
+    constructor Create; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property SpellID: TSpellID read FSpellID write SetSpellID;
-    //TODO: publish string ID
+    property SpellID: AnsiString read FSpellID write SetSpellID;
   end;
 
   { TResourceOptions }
@@ -887,8 +887,15 @@ begin
   AVisitor.VisitSpellScroll(Self);
 end;
 
-procedure TSpellScrollOptions.SetSpellID(AValue: TSpellID);
+constructor TSpellScrollOptions.Create;
 begin
+  inherited Create;
+  FSpellID := 'magicArrow';
+end;
+
+procedure TSpellScrollOptions.SetSpellID(AValue: AnsiString);
+begin
+  if FSpellID = AValue then Exit;
   FSpellID := AValue;
 end;
 

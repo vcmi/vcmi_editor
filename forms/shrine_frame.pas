@@ -52,6 +52,9 @@ end;
 procedure TShrineFrame.UpdateControls;
 begin
   edSpell.Enabled := rbSpecified.Checked;
+
+  if (edSpell.ItemIndex < 0) and (edSpell.Items.Count > 0) then
+    edSpell.ItemIndex := 0;
 end;
 
 procedure TShrineFrame.VisitShrine(AOptions: TShrineOptions);

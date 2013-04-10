@@ -734,7 +734,6 @@ begin
   FDefLoader.CurrentDef := ADef;
   ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+AResourceName);
 
-  //ResourceLoader.LoadResource(Adef,TResourceType.Animation,'SPRITES/'+AResourceName);
 end;
 
 

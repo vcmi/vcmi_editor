@@ -1226,9 +1226,15 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitSpellScroll(AOptions: TSpellScrollOptions);
+var
+  nid : TSpellID;
+  sid: AnsiString;
 begin
   VisitArtifact(AOptions);
-  AOptions.SpellID := FSrc.ReadDWord;
+
+  nid := FSrc.ReadDWord;
+  sid := FMapEnv.lm.SpellNidToString(nid);
+  AOptions.SpellID := sid;
 end;
 
 procedure TMapReaderH3m.ReadSVLC;

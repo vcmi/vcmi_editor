@@ -95,6 +95,7 @@ procedure TZBuffer.IncreaseOut(ANewSize: SizeInt);
 begin
   if ANewSize > Length(FOutputBuffer) then
   begin
+    ANewSize := (ANewSize div DEFAULT_OUT_BUFFER_SIZE + 1) * DEFAULT_OUT_BUFFER_SIZE;
     SetLength(FOutputBuffer,ANewSize);
   end;
 end;

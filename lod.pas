@@ -65,7 +65,7 @@ type
   TLod = class
   private
     FFileStream: TFileStream;
-    FBuffer: TZBuffer;
+    //FBuffer: TZBuffer;
   public
     constructor Create(AFullPath: string);
     destructor Destroy; override;
@@ -86,17 +86,20 @@ const
   LOD_MAGIC: packed array[1..4] of char = ('L','O','D',#0);
   LOD_HEADER_SIZE = 4+4+4+80;
 
+var
+  GlobalZBuffer: TZBuffer;
+
 { TLod }
 
 constructor TLod.Create(AFullPath: string);
 begin
   FFileStream := TFileStream.Create(AFullPath, fmOpenRead+fmShareDenyWrite);
-  FBuffer := TZBuffer.Create;
+  //FBuffer := TZBuffer.Create;
 end;
 
 destructor TLod.Destroy;
 begin
-  FBuffer.Free;
+  //FBuffer.Free;
   FFileStream.Free;
   inherited Destroy;
 end;
@@ -108,7 +111,7 @@ begin
   FFileStream.Seek(AItem.FileOffset,soBeginning);
   if AItem.FileLength <> 0 then
   begin
-    stm := TZlibInputStream.Create(FBuffer, FFileStream,AItem.UncompressedFileSize);
+    stm := TZlibInputStream.Create(GlobalZBuffer, FFileStream,AItem.UncompressedFileSize);
     AResource.LoadFromStream(stm);
     stm.free;
   end
@@ -158,4 +161,10 @@ begin
   end;
 end;
 
+initialization
+
+  GlobalZBuffer := TZBuffer.Create;
+
+finalization
+  FreeAndNil(GlobalZBuffer);
 end.

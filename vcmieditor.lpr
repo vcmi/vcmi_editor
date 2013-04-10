@@ -35,7 +35,7 @@ uses
   root_manager, progress_form, editor_gl, object_options, edit_object_options,
   signbottle_frame, base_object_options_frame, grail_frame,
   flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers,
-  shrine_frame;
+  shrine_frame, spellscroll_frame;
 
 {$R *.res}
 

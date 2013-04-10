@@ -1,0 +1,12 @@
+inherited SpellScrollFrame: TSpellScrollFrame
+  object edSpell: TListBox[0]
+    Left = 0
+    Height = 240
+    Top = 0
+    Width = 320
+    Align = alClient
+    Columns = 2
+    ItemHeight = 0
+    TabOrder = 0
+  end
+end
