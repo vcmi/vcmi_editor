@@ -134,6 +134,7 @@ begin
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.Load;
 
+  FListsManager.LoadFactions(FResourceManager.GameConfig.Factions);
 
 
   //stage 2

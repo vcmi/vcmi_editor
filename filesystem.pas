@@ -269,7 +269,7 @@ type
     FModMap: TIdToModMap;
     FMods: TModConfigs;
 
-    FGamePath: string;
+    FGamePath: TStringList;
 
     FCurrentFilter:TResourceTypes;
     FCurrentVFSPath: string;
@@ -288,20 +288,21 @@ type
     function VCMIRelPathToRelPath(APath: string): string;
 
     procedure OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
-    procedure ScanLod(LodRelPath: string; ARootPath: string);
+    procedure ScanLod(LodRelPath: string; ARootPath: TStrings);
 
     procedure OnFileFound(FileIterator: TFileIterator);
-    procedure ScanDir(RelDir: string; ARootPath: string);
+    procedure ScanDir(RelDir: string; ARootPath: TStrings);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
 
-    procedure ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: string);
-    procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: string);
+    procedure ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: TStrings);
+    procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
 
     procedure LoadFSConfig;
     procedure ScanFilesystem;
 
-    function GetModPath: string;
+    procedure AddModPathsTo(sl:TStrings);
+
     procedure OnModConfigFound(FileIterator: TFileIterator);
 
     procedure ScanMods;
@@ -320,6 +321,9 @@ type
   public
     class function NormalizeModId(AModId: TModId): TModId; static;
     class function NormalizeResName(const AName: string): string; static;
+  public
+    property GameConfig: TGameConfig read FGameConfig;
+
   end;
 
 
@@ -353,6 +357,7 @@ constructor TGameConfig.Create;
 begin
   inherited;
   FHeroClasses.Add('CONFIG\heroClasses');
+  FArtifacts.Add('CONFIG\artifacts');
 end;
 
 { TBaseConfig }
@@ -573,6 +578,8 @@ end;
 constructor TFSManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  FGamePath := TStringList.Create;
   FConfig := TFilesystemConfig.Create;
   FResMap := TResIDToLcationMap.Create;
   FLodList := TLodList.Create(True);
@@ -591,13 +598,18 @@ begin
   FLodList.Free;
   FResMap.Free;
   FConfig.Free;
+  FGamePath.Free;
   inherited Destroy;
 end;
 
-function TFSManager.GetModPath: string;
+procedure TFSManager.AddModPathsTo(sl: TStrings);
+var
+  s: String;
 begin
-  Result := FGamePath + 'Mods';
-
+  for s in FGamePath do
+  begin
+    sl.Append(IncludeTrailingPathDelimiter(s)+ 'Mods');
+  end;
 end;
 
 function TFSManager.GetPrivateConfigPath: string;
@@ -632,7 +644,7 @@ var
 begin
   config_res := TJsonResource.Create;
   try
-    LoadFileResource(config_res, FGamePath+FS_CONFIG);
+    LoadFileResource(config_res, FGamePath[0]+FS_CONFIG);
     config_res.DestreamTo(FConfig,FS_CONFIG_FIELD);
   finally
     config_res.Free;
@@ -682,69 +694,112 @@ begin
   end;
 end;
 
-procedure TFSManager.ScanLod(LodRelPath: string; ARootPath: string);
+procedure TFSManager.ScanLod(LodRelPath: string; ARootPath: TStrings);
 var
   lod: TLod;
+  root_path: String;
+  lod_file_exists: Boolean;
+  current_path: String;
 begin
   //TODO: no duplicates
 
   LodRelPath := SetDirSeparators(LodRelPath);
 
-  lod := TLod.Create(MakeFullPath(ARootPath, LodRelPath));
+  //find lod in all paths
 
-  lod.Scan(@OnLodItemFound);
+  lod_file_exists := false;
 
-  FLodList.Add(lod);
+  for root_path in ARootPath do
+  begin
+
+    current_path := MakeFullPath(root_path, LodRelPath);
+
+    if FileExistsUTF8(current_path) then
+    begin
+      if lod_file_exists then
+        raise Exception.Create('Duplicated lod file '+LodRelPath);
+
+      lod_file_exists:=true;
+
+      lod := TLod.Create(current_path);
+
+      lod.Scan(@OnLodItemFound);
+
+      FLodList.Add(lod);
+    end;
+  end;
+
+  if not lod_file_exists then
+  begin
+     raise Exception.Create('Lod file not found '+LodRelPath);
+  end;
+
 end;
 
 procedure TFSManager.ScanMods;
 var
   searcher: TFileSearcher;
 
-  sl: TStringListUTF8;
+  mod_roots, mod_paths, mod_list: TStringListUTF8;
   mod_paths_config: String;
   mod_id: String;
   mod_idx: Integer;
   i: Integer;
+  APath: String;
 begin
   //find mods
   searcher := TFileSearcher.Create;
   searcher.OnFileFound := @OnModConfigFound;
 
-  sl := TStringListUTF8.Create;
+  mod_roots := TStringListUTF8.Create;
+  mod_paths := TStringListUTF8.Create;
+  mod_list := TStringListUTF8.Create;
+
   try
     mod_paths_config := GetPrivateConfigPath + 'modpath.txt';
     if FileExistsUTF8(mod_paths_config) then
-      sl.LoadFromFile(mod_paths_config);
+      mod_roots.LoadFromFile(mod_paths_config);
+    AddModPathsTo(mod_roots);
 
-    sl.Insert(0,GetModPath);
-
-    for i := 0 to sl.Count - 1 do
+    for i := 0 to mod_roots.Count - 1 do
     begin
-      searcher.Search(sl[i],MOD_CONFIG)
+      searcher.Search(mod_roots[i],MOD_CONFIG)
     end;
 
     //<STUB>
 
-    sl.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');
+    mod_list.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');
 
-    for i := 0 to sl.Count - 1 do
+    for i := 0 to mod_list.Count - 1 do
     begin
-      mod_id := NormalizeModId(sl[i]);
+      mod_id := NormalizeModId(mod_list[i]);
 
       mod_idx := FModMap.IndexOf(mod_id);
 
       if mod_idx >=0 then
       begin
-        ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,FModMap.Data[mod_idx].Path);
+        mod_paths.Clear;
+
+        for APath in mod_roots do
+        begin
+          mod_paths.Append( IncludeTrailingPathDelimiter(APath) + mod_id );
+        end;
+
+
+        for APath in mod_roots do
+        begin
+          ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,mod_paths);
+        end;
       end;
     end;
 
     //</STUB>
     //TODO:determine load order
   finally
-    sl.Free;
+    mod_roots.Free;
     searcher.Free;
+    mod_paths.Free;
+    mod_list.Free;
   end;
 
   //configs loaded at this point
@@ -789,7 +844,8 @@ end;
 
 function TFSManager.MakeFullPath(ARootPath: string; RelPath: string): string;
 begin
-  Result := IncludeTrailingPathDelimiter(ARootPath)+RelPath;
+  Result := IncludeTrailingPathDelimiter(ARootPath)+ ExcludeLeadingPathDelimiter(RelPath);
+  //Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 function TFSManager.MatchFilter(AExt: string; out AType: TResourceType
@@ -916,7 +972,7 @@ begin
 end;
 
 procedure TFSManager.ProcessConfigItem(APath: TFilesystemConfigPath;
-  ARootPath: string);
+  ARootPath: TStrings);
 var
   vfs_path: String;
   item: TFilesystemConfigItem ;
@@ -950,7 +1006,7 @@ begin
 end;
 
 procedure TFSManager.ProcessFSConfig(AConfig: TFilesystemConfig;
-  ARootPath: string);
+  ARootPath: TStrings);
 var
   i: Integer;
 begin
@@ -960,45 +1016,47 @@ begin
   end;
 end;
 
-procedure TFSManager.ScanDir(RelDir: string; ARootPath: string);
+procedure TFSManager.ScanDir(RelDir: string; ARootPath: TStrings);
 var
   srch: TFileSearcher;
   p: string;
+  root_path: String;
 begin
-  srch := TFileSearcher.Create;
-  srch.OnFileFound := @OnFileFound;
-  try
-    FCurrentRelPath := RelDir;
-    FCurrentRootPath := ARootPath;
-    p := IncludeTrailingPathDelimiter(MakeFullPath(ARootPath,RelDir));
-    srch.Search(p);
-  finally
-    srch.Free;
+
+  for root_path in ARootPath do
+  begin
+    srch := TFileSearcher.Create;
+    srch.OnFileFound := @OnFileFound;
+    try
+      FCurrentRelPath := RelDir;
+      FCurrentRootPath := root_path;
+      p := IncludeTrailingPathDelimiter(MakeFullPath(root_path,RelDir));
+      srch.Search(p);
+    finally
+      srch.Free;
+    end;
   end;
 end;
 
 procedure TFSManager.ScanFilesystem;
 var
   s: String;
-  sl: TStringList;
+  i: Integer;
 
 begin
-  sl := TStringList.Create;  //TODO: platform handling
-  try
-    s := GetPrivateConfigPath+GAME_PATH_CONFIG;
-    if FileUtil.FileExistsUTF8(s) then
-    begin
-      sl.LoadFromFile(s);
-      FGamePath := sl[0];
-    end
-    else begin
-      FGamePath := ExtractFilePath(ParamStr(0));
-    end;
-  finally
-    sl.Free;
+  s := GetPrivateConfigPath+GAME_PATH_CONFIG;
+  if FileUtil.FileExistsUTF8(s) then
+  begin
+    FGamePath .LoadFromFile(s);
+  end
+  else begin
+    FGamePath.Append(ParamStr(0));
   end;
 
-  FGamePath := IncludeTrailingPathDelimiter(FGamePath);
+  for i := 0 to FGamePath.Count - 1 do
+  begin
+    FGamePath[i] := IncludeTrailingPathDelimiter(FGamePath[i]);
+  end;
 
   LoadFSConfig;
   ProcessFSConfig(FConfig,FGamePath);

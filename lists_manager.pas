@@ -97,8 +97,29 @@ type
   { TFactionInfo }
 
   TFactionInfo = class(TBaseInfo)
+  private
+    FCapitolDefName: AnsiString;
+    FCastleDefName: AnsiString;
+    FGuildLevel: Integer;
+    FVillageDefName: AnsiString;
+    procedure SetCapitolDefName(AValue: AnsiString);
+    procedure SetCastleDefName(AValue: AnsiString);
+    procedure SetGuildLevel(AValue: Integer);
+    procedure SetVillageDefName(AValue: AnsiString);
+  public
+    property VillageDefName: AnsiString read FVillageDefName write SetVillageDefName;
+    property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
+    property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
+    property GuildLevel: Integer read FGuildLevel write SetGuildLevel;
+  end;
+
+  { TFactionInfos }
+
+  TFactionInfos = class (specialize TFPGObjectList<TFactionInfo>)
+  public
 
   end;
+
 
 
   { TListsManager }
@@ -111,6 +132,9 @@ type
 
     FSpellInfos: TSpellInfos;
     FSpellMap: TStringList;
+
+    FFactionInfos: TFactionInfos;
+
     procedure LoadSkills;
 
     procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
@@ -124,6 +148,8 @@ type
     destructor Destroy; override;
 
     procedure Load;
+
+    procedure LoadFactions(APaths: TStrings);
   public
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
@@ -162,6 +188,32 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TFactionInfo }
+
+procedure TFactionInfo.SetCapitolDefName(AValue: AnsiString);
+begin
+  if FCapitolDefName = AValue then Exit;
+  FCapitolDefName := AValue;
+end;
+
+procedure TFactionInfo.SetCastleDefName(AValue: AnsiString);
+begin
+  if FCastleDefName = AValue then Exit;
+  FCastleDefName := AValue;
+end;
+
+procedure TFactionInfo.SetGuildLevel(AValue: Integer);
+begin
+  if FGuildLevel = AValue then Exit;
+  FGuildLevel := AValue;
+end;
+
+procedure TFactionInfo.SetVillageDefName(AValue: AnsiString);
+begin
+  if FVillageDefName = AValue then Exit;
+  FVillageDefName := AValue;
+end;
 
 { TSkillInfo }
 
@@ -256,6 +308,8 @@ begin
 
   FSpellInfos := TSpellInfos.Create(True);
   FSpellMap := CrStrList;
+
+  FFactionInfos := TFactionInfos.Create(True);
 end;
 
 destructor TListsManager.Destroy;
@@ -302,6 +356,11 @@ procedure TListsManager.Load;
 begin
   LoadSkills;
   LoadSpells;
+end;
+
+procedure TListsManager.LoadFactions(APaths: TStrings);
+begin
+
 end;
 
 procedure TListsManager.LoadSkills;
@@ -375,7 +434,7 @@ begin
 
     ResourceLoader.LoadResource(spell_info,TResourceType.Json,SPELL_INFO_NAME);
 
-    spell_config := spell_info.Root.Objects['spells'];
+    spell_config := spell_info.Root;
 
     spell_config.Iterate(@ProcessSpellConfig,legacy_config);
 
@@ -406,7 +465,7 @@ begin
   //Aname - spell ID
   //Item - object spell config
 
-  nid := (Item as TJSONObject).Integers['id'];
+  nid := (Item as TJSONObject).Integers['index'];
 
   lc := legacy_config.Items[nid];
 

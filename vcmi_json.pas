@@ -115,7 +115,7 @@ begin
   end;
 
   case ASrc.JSONType of
-    jtNull: ;//nothing to do
+    jtNull: ;//todo: clear dest?
     jtArray: MergeJsonStruct(ASrc as TJSONArray, ADest as TJSONArray) ;
     jtBoolean: ADest.AsBoolean := ASrc.AsBoolean ;
     jtNumber:begin
@@ -482,9 +482,13 @@ var
   prepase_buffer: TStringList;
   stm: TStringStream;
 
-  s: AnsiString;
-  commentpos: Integer;
+  s, s1: AnsiString;
+  commentpos, quotepos: Integer;
   i: Integer;
+  char_nomber: Integer;
+  in_string: Boolean;
+  may_be_comment: Boolean;
+  len: Integer;
 begin
 
   stm := TStringStream.Create(JSON);
@@ -496,12 +500,54 @@ begin
     for i := 0 to prepase_buffer.Count - 1 do
     begin
       s := prepase_buffer[i];
-      commentpos := Pos('//',s);
 
-      if commentpos > 0 then
+      char_nomber := 1;
+
+      len := Length(s);
+
+      in_string := false;
+      may_be_comment := false;
+
+      commentpos := 0;
+
+      while char_nomber <= len do
       begin
-        s := Copy(s,1,commentpos - 1);
-        prepase_buffer[i] := s;
+        case s[char_nomber] of
+          '/': begin
+            if may_be_comment then
+            begin
+              if not in_string then
+              begin
+                commentpos := char_nomber - 1; //prev char
+                break;
+              end;
+              may_be_comment := false;
+            end
+            else
+            begin
+              may_be_comment := true;
+            end;
+
+
+          end;
+          '"': begin
+            if in_string then
+            begin
+              in_string:=false;
+            end
+            else begin
+              in_string:=true;
+            end;
+
+          end ;
+        end;
+        inc(char_nomber);
+      end;
+
+      //TODO: parse properly
+      if (commentpos > 0) then
+      begin
+        prepase_buffer[i] := Copy(s,1,commentpos - 1);
       end;
     end;
 

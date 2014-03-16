@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -35,7 +35,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="forms;3rd_party"/>
+            <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl"/>
             <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\release"/>
           </SearchPaths>
           <CodeGeneration>
@@ -75,7 +75,7 @@
       <local>
         <FormatVersion Value="1"/>
         <CommandLineParams Value="VCMI_Tests_2011b.h3m"/>
-        <WorkingDirectory Value="D:\projects\vcmi\editor\bin"/>
+        <WorkingDirectory Value="C:\projects\vcmi\editor\bin"/>
       </local>
     </RunParams>
     <RequiredPackages Count="3">
@@ -349,7 +349,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="forms;3rd_party"/>
+      <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl"/>
       <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\debug"/>
     </SearchPaths>
     <CodeGeneration>
@@ -359,7 +359,6 @@
         <OverflowChecks Value="True"/>
         <StackChecks Value="True"/>
       </Checks>
-      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Linking>
       <Debugging>
