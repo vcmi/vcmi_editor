@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, LazLogger,
   Forms, Controls,
   progress_form, filesystem_base,
-  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl, GLext;
+  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl, {GLext,}glext40;
 
 type
 
@@ -102,17 +102,17 @@ begin
     raise Exception.Create('Unable to switch GL context');
   end;
 
-  if not Load_GL_VERSION_2_1() then
+  if not Load_GL_VERSION_3_3() or not Load_GL_VERSION_2_1_DEPRECATED() then
   begin
     Application.Terminate;
-    raise Exception.Create('Error loading OpenGL 2.1');
+    raise Exception.Create('Error initializing OpenGL');
   end;
 
-  if not Load_GL_EXT_texture_rectangle() then
-  begin
-    Application.Terminate;
-    raise Exception.Create('Error loading required extension EXT_texture_rectangle');
-  end;
+  //if not Load_GL_EXT_texture_rectangle() then
+  //begin
+  //  Application.Terminate;
+  //  raise Exception.Create('Error loading required extension EXT_texture_rectangle');
+  //end;
 
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;

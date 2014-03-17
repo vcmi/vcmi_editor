@@ -1217,7 +1217,7 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  ShaderContext.UsePaletteShader();
+  ShaderContext.UsePaletteFlagShader();
 
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
@@ -1422,7 +1422,7 @@ begin
     end;
   end;
 
-  ShaderContext.UsePaletteShader();
+  ShaderContext.UsePaletteFlagShader();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin

@@ -89,7 +89,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="42">
+    <Units Count="43">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -339,6 +339,11 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="spellscroll_frame"/>
       </Unit41>
+      <Unit42>
+        <Filename Value="3rd_party\glext40.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="glext40"/>
+      </Unit42>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
