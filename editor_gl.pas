@@ -25,7 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, GL, {GLext,} glext40, LazLoggerBase;
+  Classes, SysUtils, math, GL, glext40, LazLoggerBase;
 
 type
   TRBGAColor = packed record   //todo: optimise
@@ -33,6 +33,14 @@ type
   end;
 
 const
+  VERTEX_DEFAULT_SHADER =
+  '#version 150'#13#10+
+  'uniform mat4 viewMatrix, projMatrix;'#13#10+
+  'in ivec2 coords;'+
+  'void main(){'+
+
+  	'gl_Position = projMatrix * viewMatrix * vec4(coords,0,0);'#13#10+
+  '}';
 
   FRAGMENT_DEFAULT_SHADER =
   '#version 120'#13#10+
@@ -40,23 +48,16 @@ const
       'gl_FragColor = gl_Color;'+
   '}';
 
-  //FRAGMENT_PALETTE_SHADER =
-  //'#version 150'#13#10 +
-  //'uniform vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
-  //'uniform sampler2DRect bitmap;'+
-  //'uniform sampler1D palette;'+
-  //'uniform vec4 flagColor;'+
-  //'uniform vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
-  //
-  //'void main(){'+
-  //
-  //  'float idx_f = texture2DRect(bitmap,gl_TexCoord[0].xy).r;'+
-  //  'idx_f = idx_f * 255.0 / 256.0 + 0.002;'+
-  //  'vec4 texel = texture1D(palette, idx_f);'+
-  //  'if(all(greaterThanEqual(texel,maskColor-eps)) && all(lessThanEqual(texel,maskColor+eps)))'+
-  //  '  texel = flagColor;'+
-  //  'gl_FragColor = texel;'+
-  //'}';
+  FRAGMENT_PALETTE_SHADER =
+  '#version 150'#13#10 +
+  'uniform usampler2DRect bitmap;'+
+  'uniform sampler1D palette;'+
+  'layout (origin_upper_left) in vec4 gl_FragCoord;'+
+
+  'void main(){'+
+    'gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_TexCoord[0].xy)).r), 0);'+
+  '}';
+
 
   FRAGMENT_PALETTE_FLAG_SHADER =
   '#version 150'#13#10 +
@@ -68,20 +69,13 @@ const
   'layout (origin_upper_left) in vec4 gl_FragCoord;'+
 
   'void main(){'+
-
-    //'float idx_f = texture2DRect(bitmap,gl_TexCoord[0].xy).r;'+
-    //'idx_f = idx_f * 255.0 / 256.0 + 0.002;'+
-    //'vec4 texel = texture1D(palette, idx_f);'+
     'gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_TexCoord[0].xy)).r), 0);'+
     'if(all(greaterThanEqual(gl_FragColor,maskColor-eps)) && all(lessThanEqual(gl_FragColor,maskColor+eps)))'+
     '  gl_FragColor = flagColor;'+
-    //'gl_FragColor = texel;'+
   '}';
 
 
-//"void main(){"
-//"gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_FragCoord.xy) - coordOffs).r), 0);"
-//"}"
+
 
    FRAGMENT_FLAG_SHADER =
 
@@ -135,7 +129,7 @@ type
     destructor Destroy; override;
     procedure Init;
 
-    procedure UseNoShader();
+    procedure UseNoPaletteShader();
     procedure UsePaletteFlagShader();
     //procedure UseFlagShader();
 
@@ -254,8 +248,6 @@ begin
   x := ASprite.x;
   y := ASprite.y;
 
-  glEnable(GL_TEXTURE_RECTANGLE);
-  glEnable(GL_TEXTURE_1D);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_RECTANGLE,ASprite.TextureID);
     glActiveTexture(GL_TEXTURE1);
@@ -323,14 +315,13 @@ begin
 
     glEnd();
 
-  glDisable(GL_TEXTURE_1D);
-  glDisable(GL_TEXTURE_RECTANGLE);
-
   CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 end;
 
 procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 begin
+
+
   glLineWidth(1);
   glPushAttrib(GL_CURRENT_BIT);
   glBegin(GL_LINE_LOOP);
@@ -398,10 +389,8 @@ begin
 
     DebugLn('Shader compile log:');
     DebugLn(info_log);
-  end;
-
-
-  if status = GL_TRUE then
+  end
+  else
   begin
     program_object := glCreateProgram();
     glAttachShader(program_object, shader_object);
@@ -423,7 +412,7 @@ end;
 
 destructor TShaderContext.Destroy;
 begin
-  UseNoShader;
+  UseNoPaletteShader;
   glDeleteProgram(PaletteFlagProgram);
   //TODO: delete shader?
   inherited Destroy;
@@ -472,7 +461,7 @@ end;
 //  glUniform1i(FlagBitmapUniform, 0); //texture unit0
 //end;
 
-procedure TShaderContext.UseNoShader;
+procedure TShaderContext.UseNoPaletteShader;
 begin
   FCurrentProgram := DefaultProgarm;
   glUseProgram(DefaultProgarm);

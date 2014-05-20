@@ -436,7 +436,7 @@ type
 
     function IsOnMap(Level, X, Y: Integer): boolean;
 
-    //Left, Right, top, Bottom - clip rect in Tiles
+    //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
     procedure RenderObjects(Left, Right, Top, Bottom: Integer);
 

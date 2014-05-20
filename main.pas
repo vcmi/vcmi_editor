@@ -1184,7 +1184,7 @@ begin
     Init;
   end;
 
-  //ShaderContext.UseNoShader();
+  //ShaderContext.UseNoPaletteShader();
 
   glEnable(GL_SCISSOR_TEST);
 
@@ -1237,7 +1237,7 @@ begin
 
   //todo: render passability
 
-  ShaderContext.UseNoShader();
+  ShaderContext.UseNoPaletteShader();
 
   if Assigned(FSelectedObject) then
   begin
@@ -1385,7 +1385,7 @@ begin
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  ShaderContext.UseNoShader();
+  ShaderContext.UseNoPaletteShader();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
