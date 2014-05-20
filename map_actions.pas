@@ -20,6 +20,7 @@
 unit map_actions;
 
 {$I compilersetup.inc}
+{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
@@ -31,6 +32,37 @@ type
   { TEditTerrain }
 
   TBrushMode = (none,fixed, area, fill);
+
+  { TMapCoord }
+
+  TMapCoord = record
+    X,Y: integer;
+
+    procedure Clear();
+  end;
+
+  { TMapRect }
+
+  TMapRect = record
+    FTopLeft: TMapCoord;
+    FWidth,FHeight: Integer;
+
+    function Left(): integer;
+    function Right(): integer;
+    function Top(): integer;
+    function Bottom(): integer;
+
+    function TopLeft():TMapCoord;
+    function TopRight():TMapCoord;
+    function BottomLeft():TMapCoord;
+    function BottomRight():TMapCoord;
+
+    function Intersect(Other: TMapRect):TMapRect;
+
+    procedure Clear();
+  end;
+
+
 
   TTileInfo = record
     X,Y: integer;
@@ -104,6 +136,88 @@ implementation
 
 uses
   LazLogger;
+
+{ TMapCoord }
+
+procedure TMapCoord.Clear;
+begin
+  X:=0;
+  Y:=0;
+end;
+
+{ TMapRect }
+
+function TMapRect.Left: integer;
+begin
+  Result := FTopLeft.x;
+end;
+
+function TMapRect.Right: integer;
+begin
+  Result := FTopLeft.x + FWidth;
+end;
+
+function TMapRect.Top: integer;
+begin
+  Result := FTopLeft.y;
+end;
+
+function TMapRect.Bottom: integer;
+begin
+  Result := FTopLeft.y + FHeight;
+end;
+
+function TMapRect.TopLeft: TMapCoord;
+begin
+  Result := FTopLeft;
+end;
+
+function TMapRect.TopRight: TMapCoord;
+begin
+  Result.X := Top();
+  Result.Y := Right();
+end;
+
+function TMapRect.BottomLeft: TMapCoord;
+begin
+  Result.X := Bottom();
+  Result.Y := Left();
+
+end;
+
+function TMapRect.BottomRight: TMapCoord;
+begin
+  Result.X := Bottom();
+  Result.Y := Right();
+end;
+
+function TMapRect.Intersect(Other: TMapRect): TMapRect;
+var
+  intersects: Boolean;
+begin
+  intersects := (Right() > Other.Left())
+    and (Other.Right() > Left())
+    and (Bottom()>Other.Top())
+    and (Other.Bottom()>Top());
+
+  Result.Clear();
+
+  if intersects then
+  begin
+    Result.FTopLeft.X:= max(Left(),Other.Left());
+    Result.FTopLeft.Y:= max(Top(),Other.Top());
+
+    Result.FWidth:= Min(Right(),Other.Right()) - Result.FTopLeft.X;
+    Result.FHeight:= Min(Bottom(),Other.Bottom()) - Result.FTopLeft.Y;
+  end;
+end;
+
+procedure TMapRect.Clear;
+begin
+  FTopLeft.Clear();
+  FHeight:=0;
+  FWidth:=0;
+end;
 
 
 { TTileCompare }
