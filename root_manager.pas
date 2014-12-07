@@ -135,7 +135,7 @@ begin
   FListsManager.Load;
 
   FListsManager.LoadFactions(FResourceManager.GameConfig.Factions);
-
+  FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
   //stage 2
   ProgressForm.NextStage('Loading terrain graphics.');

@@ -143,11 +143,13 @@ type
     FFactions: TStringList;
     FHeroClasses: TStringList;
     FHeroes: TStringList;
+    FSpells: TStringList;
     function GetArtifacts: TStrings;
     function GetCreatures: TStrings;
     function GetFactions: TStrings;
     function GetHeroClasses: TStrings;
     function GetHeroes: TStrings;
+    function GetSpells: TStrings;
   public
     constructor Create;
     destructor Destroy; override;
@@ -156,8 +158,8 @@ type
     property Creatures: TStrings read GetCreatures ;
     property Factions: TStrings read GetFactions ;
     property HeroClasses: TStrings read GetHeroClasses ;
-    property Heroes: TStrings read GetHeroes ;
-
+    property Heroes: TStrings read GetHeroes;
+    property Spells: TStrings read GetSpells;
   end;
 
   { TGameConfig }
@@ -260,6 +262,7 @@ type
   { TFSManager }
 
   TFSManager = class (TComponent,IResourceLoader)
+
   private
     FConfig: TFilesystemConfig;
     FGameConfig: TGameConfig;
@@ -291,6 +294,7 @@ type
     procedure ScanLod(LodRelPath: string; ARootPath: TStrings);
 
     procedure OnFileFound(FileIterator: TFileIterator);
+    procedure OnDirectoryFound(FileIterator: TFileIterator);
     procedure ScanDir(RelDir: string; ARootPath: TStrings);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
@@ -369,11 +373,12 @@ begin
   FFactions := TStringList.Create;
   FHeroClasses := TStringList.Create;
   FHeroes := TStringList.Create;
-
+  FSpells := TStringList.Create;
 end;
 
 destructor TBaseConfig.Destroy;
 begin
+  FSpells.Free;
   FHeroes.Free;
   FHeroClasses.Free;
   FFactions.Free;
@@ -406,6 +411,11 @@ end;
 function TBaseConfig.GetHeroes: TStrings;
 begin
   Result := FHeroes;
+end;
+
+function TBaseConfig.GetSpells: TStrings;
+begin
+  Result := FSpells;
 end;
 
 { TResLocation }
@@ -610,6 +620,24 @@ begin
   begin
     sl.Append(IncludeTrailingPathDelimiter(s)+ 'Mods');
   end;
+end;
+
+procedure TFSManager.OnDirectoryFound(FileIterator: TFileIterator);
+var
+  srch: TFileSearcher;
+  p: string;
+
+begin
+    srch := TFileSearcher.Create;
+    srch.OnFileFound := @OnFileFound;
+    srch.OnDirectoryFound:=@OnDirectoryFound;
+    try
+      p := IncludeTrailingPathDelimiter(FileIterator.FileName);
+      srch.Search(p);
+    finally
+      srch.Free;
+    end;
+
 end;
 
 function TFSManager.GetPrivateConfigPath: string;
@@ -900,6 +928,9 @@ begin
 
   rel_path := CreateRelativePath(FileIterator.Path, MakeFullPath(FCurrentRootPath, FCurrentRelPath)); //???
 
+  if rel_path <> '' then
+     rel_path := IncludeTrailingPathDelimiter(rel_path);
+
   file_name := ExtractFileNameOnly(FileIterator.FileName);
 
   res_id.Typ := res_typ;
@@ -1027,6 +1058,7 @@ begin
   begin
     srch := TFileSearcher.Create;
     srch.OnFileFound := @OnFileFound;
+    //srch.OnDirectoryFound:=@OnDirectoryFound;
     try
       FCurrentRelPath := RelDir;
       FCurrentRootPath := root_path;

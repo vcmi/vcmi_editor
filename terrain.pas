@@ -90,7 +90,7 @@ type
 
   { TMappingTemplate }
 
-  TMappingTemplate = class (TCollectionItem)
+  TMappingTemplate = class (TNamedCollectionItem)
   private
     FValue: string;
     procedure SetValue(AValue: string);
@@ -439,6 +439,7 @@ constructor TPatternTemplate.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FData := TStringList.Create;
+  FMapping := TMappingTemplates.Create;
 end;
 
 destructor TPatternTemplate.Destroy;
@@ -569,7 +570,7 @@ begin
 
         for k := 0 to MappingsList.Count - 1 do
         begin
-          RexpSplit2('\s*,\s*', MappingsList[k], Lower, Upper);
+          RexpSplit2('\s*-\s*', MappingsList[k], Lower, Upper);
 
           m.Lower:=StrToInt(Lower);
 
@@ -676,19 +677,15 @@ end;
 function TTerrainPatternConfig.GetTerrainViewPatternById(AGroup: TTerrainGroup;
   AId: string): TPattern;
 var
-  vector: TPatternsVector;
   item : TPattern;
 begin
-  vector := GetTerrainViewPatternsForGroup(AGroup);
-
-  for item in vector do
+  for item in GetTerrainViewPatternsForGroup(AGroup) do
   begin
     if item.Id = AID then
-       Exit(item)
+       Exit(item);
   end;
 
   Exit(nil);
-
 end;
 
 function TTerrainPatternConfig.GetTerrainTypePatternById(AId: string): TPattern;
@@ -709,35 +706,6 @@ begin
   end;
 end;
 
-//function TTerrainPatternConfig.GetGroupConfig(AGroup: TTerrainGroup
-//  ): TPatterns;
-//begin
-//  case AGroup of
-//    TTerrainGroup.DIRT: Result := FDirt;
-//    TTerrainGroup.NORMAL: Result := FNormal;
-//    TTerrainGroup.ROCK: Result := FRock;
-//    TTerrainGroup.SAND: Result := FSand;
-//    TTerrainGroup.WATER: Result := FWater;
-//  end;
-//end;
-
-//function TTerrainPatternConfig.GetTerrainConfig(ATerrain: TTerrainType
-//  ): TPatterns;
-//const
-//  TERRAIN_GROUPS: array[TTerrainType] of TTerrainGroup =
-//    (TTerrainGroup.DIRT,
-//    TTerrainGroup.SAND,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.NORMAL,
-//    TTerrainGroup.WATER,
-//    TTerrainGroup.ROCK);
-//begin
-//  Result := GetGroupConfig(TERRAIN_GROUPS[ATerrain]);
-//end;
 
 { TPattern }
 

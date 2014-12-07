@@ -140,7 +140,6 @@ type
     procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
       Data: TObject; var Continue: Boolean);
 
-    procedure LoadSpells;
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   public
@@ -150,6 +149,7 @@ type
     procedure Load;
 
     procedure LoadFactions(APaths: TStrings);
+    procedure LoadSpells(APaths: TStrings);
   public
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
@@ -355,7 +355,6 @@ end;
 procedure TListsManager.Load;
 begin
   LoadSkills;
-  LoadSpells;
 end;
 
 procedure TListsManager.LoadFactions(APaths: TStrings);
@@ -393,7 +392,7 @@ begin
   end;
 end;
 
-procedure TListsManager.LoadSpells;
+procedure TListsManager.LoadSpells(APaths: TStrings);
 var
   sptrairs: TTextResource;
 
@@ -407,7 +406,7 @@ var
 begin
   sptrairs := TTextResource.Create;
   legacy_config := TJsonObjectList.Create(True);
-  spell_info := TJsonResource.Create;
+
 
   try
     //load sptraits
@@ -432,11 +431,15 @@ begin
 
     legacy_config.Add(legacy_config[legacy_config.Count-1].Clone as TJSONObject);
 
-    ResourceLoader.LoadResource(spell_info,TResourceType.Json,SPELL_INFO_NAME);
+    for i := 0 to APaths.Count - 1 do
+    begin
+      spell_info := TJsonResource.Create;
+      ResourceLoader.LoadResource(spell_info,TResourceType.Json,APaths[i]);
+      spell_config := spell_info.Root;
+      spell_config.Iterate(@ProcessSpellConfig,legacy_config);
+    end;
 
-    spell_config := spell_info.Root;
 
-    spell_config.Iterate(@ProcessSpellConfig,legacy_config);
 
 
   finally
@@ -444,6 +447,7 @@ begin
     legacy_config.Free;
     sptrairs.Free;
   end;
+
 end;
 
 procedure TListsManager.ProcessSpellConfig(const AName: TJSONStringType;

@@ -152,6 +152,7 @@ const
   ARTIFACT_NAMESPACE = 'artifact';
   CREATURE_NAMESPACE = 'creature';
   RESORCE_NAMESPACE = 'resource';
+  SPELL_NAMESPACE = 'spell';
 
   SKILL_QUANTITY = 28;
 
