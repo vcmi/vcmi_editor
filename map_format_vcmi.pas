@@ -24,7 +24,7 @@ unit map_format_vcmi;
 interface
 
 uses
-  Classes, SysUtils, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager;
+  Classes, SysUtils, editor_types, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager;
 
 type
 
@@ -51,6 +51,8 @@ type
   private
     FStreamer: TVCMIJSONStreamer;
 
+    procedure StreamTile(AJson: TJSONArray; tile: TMapTile);
+
     procedure StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
     procedure StreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
   public
@@ -70,6 +72,10 @@ const
   TILES_FIELD = 'tiles';
   TEMPLATES_FIELD = 'templates';
   OBJECTS_FIELD = 'objects';
+
+  TERRAIN_CODES: array[TTerrainType] of string = ('dt', 'sa', 'gr', 'sn', 'sw', 'ro', 'sb', 'lv', 'wt', 'ro');
+  ROAD_CODES: array[TRoadType] of String = ('', 'pd','pg', 'pc');
+  RIVER_CODES: array[TRiverType] of string = ('', 'rw', 'ri', 'rm', 'rl');
 
 
 { TMapWriterVCMI }
@@ -104,6 +110,28 @@ begin
   ARoot.Add(TILES_FIELD,main_array);
 end;
 
+procedure TMapWriterVCMI.StreamTile(AJson: TJSONArray; tile: TMapTile);
+var
+  s: string;
+begin
+//  [terrain code][terrain index]
+//[P][path type][path index]
+//[R][river type][river index]
+  s := TERRAIN_CODES[tile.TerType]+IntToStr(tile.TerSubType);
+
+  if tile.RoadType <> 0 then
+  begin
+    s := s + ROAD_CODES[TRoadType(tile.RoadType)]+IntToStr(tile.RoadDir);
+  end;
+
+  if tile.RiverType <> 0 then
+  begin
+    s := s + RIVER_CODES[TRiverType(tile.RiverType)]+IntToStr(tile.RiverDir);
+  end;
+
+  AJson.Add(s);
+end;
+
 procedure TMapWriterVCMI.StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
   const Level: Integer);
 var
@@ -113,24 +141,17 @@ var
   o: TJSONObject;
   //s: string;
   tile: TMapTile;
+
+  ARowArray: TJSONArray;
 begin
   for row := 0 to AMap.Height - 1 do
   begin
+    ARowArray := TJSONArray.Create;
     for col := 0 to AMap.Width - 1 do
     begin
-      //todo: string encoding
-      //o:= FStreamer.ObjectToJSON(AMap.GetTile(Level,Col,Row));
-      //gr55Rcb14
-      tile := AMap.GetTile(Level,Col,Row);
-      //s := Format('%d %d %d %d %d %d %d', [
-      //  Integer(tile.TerType), tile.TerSubType,
-      //  tile.RiverType,tile.RiverDir,
-      //  tile.RoadType, tile.RoadDir,
-      //  tile.Flags]);
-      o := FStreamer.ObjectToJSON(tile);
-      AJson.Add(o);
-      //AJson.Add(s);
+      StreamTile(ARowArray, AMap.GetTile(Level,Col,Row));
     end;
+    AJson.Add(ARowArray);
   end;
 end;
 
