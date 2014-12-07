@@ -24,9 +24,13 @@ unit map_format_vcmi;
 interface
 
 uses
-  Classes, SysUtils, editor_types, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager;
+  Classes, SysUtils, fgl, RegExpr, editor_types, map, map_format, terrain, vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager;
 
 type
+
+  TTerrainTypeMap = specialize TFPGMap<string, TTerrainType>;
+  TRoadTypeMap = specialize TFPGMap<string, TRoadType>;
+  TRiverTypeMap = specialize TFPGMap<string, TRiverType>;
 
   { TMapReaderVCMI }
 
@@ -34,6 +38,13 @@ type
   private
     FDestreamer: TVCMIJSONDestreamer;
 
+    FTerrainTypeMap:TTerrainTypeMap;
+    FRoadTypeMap: TRoadTypeMap;
+    FRiverTypeMap: TRiverTypeMap;
+
+    FTileExpression : TRegExpr;
+
+    procedure DeStreamTile(Encoded: string; Tile:TMapTile);
     procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
     procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
 
@@ -129,6 +140,11 @@ begin
     s := s + RIVER_CODES[TRiverType(tile.RiverType)]+IntToStr(tile.RiverDir);
   end;
 
+  if tile.Flags <> 0 then
+  begin
+    s := s + 'f' + IntToStr(tile.Flags);
+  end;
+
   AJson.Add(s);
 end;
 
@@ -197,14 +213,77 @@ begin
 end;
 
 constructor TMapReaderVCMI.Create(AMapEnv: TMapEnvironment);
+var
+  tt: TTerrainType;
+  rdt: TRoadType;
+  rvt: TRiverType;
 begin
   inherited Create(AMapEnv);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
   FDestreamer.OnBeforeReadObject := @BeforeReadObject;
+
+  FTerrainTypeMap := TTerrainTypeMap.Create;
+  FRoadTypeMap := TRoadTypeMap.Create;
+  FRiverTypeMap := TRiverTypeMap.Create;
+
+  for tt in TTerrainType do
+    FTerrainTypeMap.Add(TERRAIN_CODES[tt], tt);
+
+  for rdt in TRoadType do
+    FRoadTypeMap.Add(ROAD_CODES[rdt], rdt);
+
+  for rvt in TRiverType do
+    FRiverTypeMap.Add(RIVER_CODES[rvt], rvt);
+
+  FTileExpression := TRegExpr.Create;
+
+  //1-tt, 2 - tst ,  4-pt, 5-pst, 7-rt, 8 - rst , 10- flags
+
+  FTileExpression.Expression:='^(\w{2,2})(\d+)((p\w)(\d+))?((r\w)(\d+))?(f(\d+))?$';
+  FTileExpression.Compile;
 end;
 
-procedure TMapReaderVCMI.DestreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
+procedure TMapReaderVCMI.DeStreamTile(Encoded: string; Tile: TMapTile);
+var
+  terrainCode: String;
+  tt: TTerrainType;
+begin
+
+  if not FTileExpression.Exec(Encoded) then
+     raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
+
+  terrainCode := FTileExpression.Match[1];
+  tt := FTerrainTypeMap.KeyData[terrainCode];
+  Tile.TerType:=tt;
+  Tile.TerSubType:= StrToInt(FTileExpression.Match[2]);
+
+  if FTileExpression.MatchLen[3]>0 then
+  begin
+    Assert(FTileExpression.MatchLen[4]>0);
+    Assert(FTileExpression.MatchLen[5]>0);
+
+    Tile.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[4]]);
+    Tile.RoadDir:= StrToInt(FTileExpression.Match[5]);;
+  end;
+
+  if FTileExpression.MatchLen[6]>0 then
+  begin
+    Assert(FTileExpression.MatchLen[7]>0);
+    Assert(FTileExpression.MatchLen[8]>0);
+
+    Tile.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[7]]);
+    Tile.RiverDir:= StrToInt(FTileExpression.Match[8]);
+  end;
+
+  if FTileExpression.MatchLen[9]>0 then
+  begin
+    Assert(FTileExpression.MatchLen[10]>0);
+    Tile.Flags:=StrToInt(FTileExpression.Match[10]);
+  end;
+end;
+
+procedure TMapReaderVCMI.DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
 var
   main_array, level_array: TJSONArray;
   i: Integer;
@@ -228,30 +307,27 @@ var
   o: TJSONObject;
   d: TJSONData;
   tile: TMapTile;
+
+  ARow:TJSONArray;
 begin
   for row := 0 to AMap.Height - 1 do
   begin
+    //todo: more error checking
+    ARow := AJson.Arrays[row];
     for col := 0 to AMap.Width - 1 do
     begin
-      //todo: new format
       tile := AMap.GetTile(Level,col,row);
-      idx := row*AMap.Height+col;
-      d := AJson.Items[idx];
+
+      d := ARow.Items[col];
 
       case d.JSONType of
-        jtObject:begin
-          o := d as TJSONObject;
-          FDestreamer.JSONToObject(o,tile);
-        end;
-        jtString:begin
 
+        jtString:begin
+           DeStreamTile(d.AsString,tile);
         end;
       else
         raise Exception.CreateFmt('Invalid tile format at  L: %d, row: %d, col: %d',[Level, row, col]);
       end;
-
-      //o := AJson.Objects[idx];
-
 
     end;
   end;
@@ -259,7 +335,11 @@ end;
 
 destructor TMapReaderVCMI.Destroy;
 begin
+  FTileExpression.Free;
   FDestreamer.Free;
+  FRiverTypeMap.free;
+  FRoadTypeMap.Free;
+  FTerrainTypeMap.Free;
   inherited Destroy;
 end;
 

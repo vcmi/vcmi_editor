@@ -168,9 +168,6 @@ type
 
     destructor Destroy; override;
 
-
-
-
     property RData[idx:Integer]: TRules read GetRData;
 
     property Id:string read FID write SetID;
