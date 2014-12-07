@@ -609,12 +609,23 @@ begin
           D:=O.Items[i];
           N:=O.Names[i];
           If D.JSONType=jtNull then
-            IO:=Nil
+          begin
+            IO:=Nil;
+            AStrings.AddObject(O.Names[i],IO);
+          end
           else if D.JSONType=jtObject then
-            IO:=GetObject(AStrings,N,TJSONOBject(D),Nil)
+          begin
+            IO:=GetObject(AStrings,N,TJSONOBject(D),Nil);
+            AStrings.AddObject(O.Names[i],IO);
+
+          end
+          //else if D.JSONType=jtString then
+          //begin
+          //  AStrings.Add();
+          //end
           else
             Error(SErrUnsupportedStringsObjectType,[D,JSONTypeName(D.JSONType)]);
-          AStrings.AddObject(O.Names[i],IO);
+
           end;
         end;
       end;

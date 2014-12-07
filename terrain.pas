@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils,
-   fgl,
+   fgl, gvector,
   editor_types, editor_graphics, vcmi_json,
   filesystem_base, editor_classes;
 
@@ -82,90 +82,149 @@ type
     Lower, Upper: Integer;
   end;
 
-  //TMappings = specialize TVector<TMapping>;
-  TMappings = array[0..1] of TMapping;
+  TMappings = specialize TVector<TMapping>;
+
 
   {$push}
   {$m+}
 
+  { TMappingTemplate }
+
+  TMappingTemplate = class (TCollectionItem)
+  private
+    FValue: string;
+    procedure SetValue(AValue: string);
+  public
+     constructor Create(ACollection: TCollection); override;
+     destructor Destroy; override;
+  published
+    property Value: string read FValue write SetValue;
+  end;
+
+  { TMappingTemplates }
+
+  TMappingTemplates = class(specialize TGNamedCollection<TMappingTemplate>)
+  public
+    constructor Create;
+
+  end;
+
+  { TPatternTemplate }
+
+  TPatternTemplate = class (TCollectionItem)
+  private
+    FId: string;
+    FMapping: TMappingTemplates;
+    FMinPoints: integer;
+    FData: TStringList;
+    function GetData: TStrings;
+    procedure SetId(AValue: string);
+    procedure SetMinPoints(AValue: integer);
+  public
+     constructor Create(ACollection: TCollection); override;
+     destructor Destroy; override;
+  published
+    property Id:string read FId write SetId;
+    property MinPoints: integer read FMinPoints write SetMinPoints;
+    property Mapping: TMappingTemplates read FMapping;
+    property Data: TStrings read GetData;
+  end;
+
+
+  { TPatternTemplates }
+
+  TPatternTemplates = class(specialize TGArrayCollection<TPatternTemplate>)
+  public
+    constructor Create;
+
+  end;
+
   { TPattern }
 
-  TPattern = class (TCollectionItem)
+  TPattern = class (TPersistent)
   strict private
     FData: TRulesArray;
-    FMappings: TMappings;
-    FFlipMode: TFlipMode;
-    FGroup: TTerrainGroup;
-    FStrData: TStringList;
     FID: string;
-    FMapping: string;
     FMinPoints: integer;
-    function GetData: TStrings;
-    procedure SetFlipMode(AValue: TFlipMode);
-    procedure SetID(AValue: string);
-    procedure SetMapping(AValue: string);
-    procedure SetMinPoints(AValue: integer);
-  private
+    FDiffImages: Boolean;
+    FMappings: TMappings;
+    FMaxPoints: integer;
+    FRotationTypesCount: Integer;
     function GetRData(idx: Integer): TRules;
+    procedure SetID(AValue: string);
+    procedure SetMinPoints(AValue: integer);
+    procedure SetDiffImages(AValue: Boolean);
+    procedure SetMaxPoints(AValue: integer);
+    procedure SetRotationTypesCount(AValue: Integer);
     procedure SwapRules(idx1,idx2: Integer);
+
+    procedure FillFrom(ATemplate: TPatternTemplate);
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
-    constructor Create(ACollection: TCollection); override;
+    constructor Create();
+
+    constructor Create(ATemplate: TPatternTemplate);
+
     destructor Destroy; override;
 
-    procedure Loaded;
 
-    property Mappings: TMappings read FMappings;
+
+
     property RData[idx:Integer]: TRules read GetRData;
 
-    property Group: TTerrainGroup read FGroup write FGroup;
-  published
-    property Data: TStrings read GetData;
-    property Mapping: string read FMapping write SetMapping;
     property Id:string read FID write SetID;
     property MinPoints: integer read FMinPoints write SetMinPoints;
-    property FlipMode:TFlipMode read FFlipMode write SetFlipMode default TFlipMode.sameImage;
+    property MaxPoints: integer read FMaxPoints write SetMaxPoints;
+    property DiffImages: Boolean read FDiffImages write SetDiffImages;
+    property RotationTypesCount: Integer read FRotationTypesCount write SetRotationTypesCount;
+
+    property Mappings:TMappings read FMappings;
   end;
 
-  { TPatterns }
 
-  TPatterns = class(specialize TGArrayCollection<TPattern>)
-  public
-    constructor Create;
-    procedure Loaded;
+  TPatternsVector = specialize TFPGObjectList<TPattern>;
 
-    procedure SetGroup(g: TTerrainGroup);
-
-  end;
+  TTerrainViewMap = specialize TFPGMap<TTerrainGroup, TPatternsVector>;
+  TTerrainTypeMap = specialize TFPGMap<string, TPattern>;
 
   { TTerrainPatternConfig }
 
   TTerrainPatternConfig = class
   private
-    FDirt: TPatterns;
-    FNormal: TPatterns;
-    FRock: TPatterns;
-    FSand: TPatterns;
-    FWater: TPatterns;
+    FTerrainType: TPatternTemplates;
+    FTerrainView: TPatternTemplates;
 
-    //FFlipped: array[0..3,TTerrainGroup] of TPatterns;
+    FViewMap: TTerrainViewMap;
+    FTypeMap: TTerrainTypeMap;
+
+    procedure ConvertTerrainTypes;
+    procedure ConvertTerrainViews;
+
 
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure ConvertConfig;
-    function GetGroupConfig(AGroup: TTerrainGroup):TPatterns;
-    function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
-    function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
-    function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
+    //function GetGroupConfig(AGroup: TTerrainGroup):TPatterns;
+    //function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
+
+    //function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
+    //function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
+
+    function GetTerrainViewPatternsForGroup(AGroup: TTerrainGroup): TPatternsVector;
+
+    //may return nil
+    function GetTerrainViewPatternById(AGroup: TTerrainGroup; AId:string): TPattern;
+
+    //will raise if not found
+    function GetTerrainTypePatternById(AId:string): TPattern;
+
+    function GetTerrainGroup(AGroup:string): TTerrainGroup;
   published
-    property Dirt: TPatterns read FDirt;
-    property Normal: TPatterns read FNormal;
-    property Sand: TPatterns read FSand;
-    property Water: TPatterns read FWater;
-    property Rock: TPatterns read FRock;
+    property TerrainView:TPatternTemplates read FTerrainView;
+    property TerrainType:TPatternTemplates read FTerrainType;
   end;
 
 
@@ -208,8 +267,6 @@ implementation
 uses
   RegExpr, LazLogger;
 
-
-
 type
   TTerrainViewInterval = record
     min, max: uint8;
@@ -247,6 +304,147 @@ procedure SetView(out V: TTerrainViewInterval; min,max: uint8);
 begin
   v.max:=max;
   v.min:=min;
+end;
+
+procedure RexpSplit (rexp: TRegExpr; const AInputStr : RegExprString; APieces : TStrings);
+var
+  PrevPos : PtrInt;
+  s : string;
+begin
+ PrevPos := 1;
+ if rexp.Exec (AInputStr) then
+  REPEAT
+   s := Copy (AInputStr, PrevPos, rexp.MatchPos [0] - PrevPos);
+   APieces.Add (Trim(s));
+   PrevPos := rexp.MatchPos [0] + rexp.MatchLen [0];
+  UNTIL not rexp.ExecNext;
+ if PrevPos <= Length(AInputStr) then
+ begin
+   s :=  Copy (AInputStr, PrevPos, MaxInt);
+
+   APieces.Add(Trim(s));
+  end;
+end;
+
+procedure RexpSplit (Expr: string; const AInputStr : RegExprString; APieces : TStrings);
+var
+  o: TRegExpr;
+begin
+  o := TRegExpr.Create;
+  try
+    o.Expression:=Expr;
+    RexpSplit(o, AInputStr, APieces);
+  finally
+    o.Free;
+  end;
+
+end;
+
+procedure RexpSplit2(rexp: TRegExpr; const AInputStr : RegExprString; out AFirst: string; out ASecond: String);
+var
+  sl: TStringList;
+begin
+  AFirst:='';
+  ASecond:='';
+  sl := TStringList.Create;
+  try
+    RexpSplit(rexp, AInputStr, sl);
+
+    if sl.Count>0 then
+    begin
+      AFirst:=sl[0];
+    end;
+
+    if sl.Count>1 then
+    begin
+      ASecond:=sl[1];
+    end;
+
+    if sl.Count>2 then
+    begin
+      assert(false);
+    end;
+
+  finally
+    sl.Free;
+  end;
+end;
+
+procedure RexpSplit2(rexp: String; const AInputStr : RegExprString; out AFirst: string; out ASecond: String);
+var
+  o: TRegExpr;
+begin
+  o := TRegExpr.Create;
+  try
+    o.Expression:=rexp;
+    RexpSplit2(o, AInputStr, AFirst, ASecond);
+  finally
+    o.Free;
+  end;
+end;
+
+{ TMappingTemplates }
+
+constructor TMappingTemplates.Create;
+begin
+  inherited Create;
+end;
+
+{ TMappingTemplate }
+
+procedure TMappingTemplate.SetValue(AValue: string);
+begin
+  if FValue=AValue then Exit;
+  FValue:=AValue;
+end;
+
+constructor TMappingTemplate.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+end;
+
+destructor TMappingTemplate.Destroy;
+begin
+  inherited Destroy;
+end;
+
+{ TPatternTemplates }
+
+constructor TPatternTemplates.Create;
+begin
+  inherited Create;
+end;
+
+
+{ TPatternTemplate }
+
+function TPatternTemplate.GetData: TStrings;
+begin
+  Result := FData;
+end;
+
+procedure TPatternTemplate.SetId(AValue: string);
+begin
+  if FId=AValue then Exit;
+  FId:=AValue;
+end;
+
+procedure TPatternTemplate.SetMinPoints(AValue: integer);
+begin
+  if FMinPoints=AValue then Exit;
+  FMinPoints:=AValue;
+end;
+
+constructor TPatternTemplate.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FData := TStringList.Create;
+end;
+
+destructor TPatternTemplate.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
 end;
 
 { TWeightedRule }
@@ -302,144 +500,244 @@ end;
 
 procedure TTerrainPatternConfig.ConvertConfig;
 begin
-  FDirt.Loaded;
-  FDirt.SetGroup(TTerrainGroup.DIRT);
-
-  FNormal.Loaded;
-  FNormal.SetGroup(TTerrainGroup.NORMAL);
-
-  FRock.Loaded;
-  FRock.SetGroup(TTerrainGroup.ROCK);
-
-  FSand.Loaded;
-  FSand.SetGroup(TTerrainGroup.SAND);
-
-  FWater.Loaded;
-  FWater.SetGroup(TTerrainGroup.WATER);
+  ConvertTerrainTypes();
+  ConvertTerrainViews();
 end;
 
-constructor TTerrainPatternConfig.Create;
+procedure TTerrainPatternConfig.ConvertTerrainTypes;
+var
+  pattern: TPattern;
+  i: Integer;
+  template: TPatternTemplate;
 begin
-  FDirt := TPatterns.Create;
-  FNormal := TPatterns.Create;
-  FRock := TPatterns.Create;
-  FSand := TPatterns.Create;
-  FWater := TPatterns.Create;
+
+  for i := 0 to FTerrainType.Count - 1 do
+  begin
+    template := FTerrainType[i];
+    pattern := TPattern.Create(template);
+
+    FTypeMap.Add(pattern.Id,pattern);
+  end;
+
+end;
+
+procedure TTerrainPatternConfig.ConvertTerrainViews;
+var
+  pattern: TPattern;
+  i: Integer;
+  template: TPatternTemplate;
+  j: Integer;
+
+  MappingString: String;
+  FlipModeStr, s1,s2: string;
+
+  MappingsList: TStringList;
+  k: Integer;
+  Lower: string;
+  Upper: String;
+
+  m: TMapping;
+begin
+  MappingsList := TStringList.Create;
+
+  try
+    for i := 0 to FTerrainView.Count - 1 do
+    begin
+      template := FTerrainView[i];
+
+      for j := 0 to template.Mapping.Count - 1 do
+      begin
+        pattern := TPattern.Create(template);
+
+        MappingString := template.Mapping[j].Value;
+
+        RexpSplit2('\s*:\s*',MappingString, FlipModeStr, s2);
+
+        if s2<>'' then
+        begin
+          //we have flip mode
+          MappingString := s2;
+          pattern.DiffImages:= ('D' = Copy(FlipModeStr, Length(FlipModeStr), 1));
+          if pattern.DiffImages then
+          begin
+            pattern.RotationTypesCount:=StrToInt(Copy(FlipModeStr,1, Length(FlipModeStr)-1));
+            Assert((pattern.RotationTypesCount = 2) or (pattern.RotationTypesCount = 4));
+          end;
+        end;
+        MappingsList.Clear;
+        RexpSplit('\s*,\s*', MappingString, MappingsList);
+
+        for k := 0 to MappingsList.Count - 1 do
+        begin
+          RexpSplit2('\s*,\s*', MappingsList[k], Lower, Upper);
+
+          m.Lower:=StrToInt(Lower);
+
+          if Upper = '' then
+          begin
+            m.Upper:=m.Lower;
+          end
+          else begin
+            m.Upper:=StrToInt(Upper);
+          end;
+          pattern.Mappings.PushBack(m);
+        end;
+
+        FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].DisplayName)].Add(pattern);
+
+      end;
+    end;
+  finally
+    MappingsList.Free;
+  end;
+end;
+
+
+constructor TTerrainPatternConfig.Create;
+var
+  tt: TTerrainGroup;
+begin
+  FTerrainType := TPatternTemplates.Create;
+  FTerrainView := TPatternTemplates.Create;
+
+  FViewMap := TTerrainViewMap.Create;
+  FTypeMap := TTerrainTypeMap.Create;
+
+  for tt in TTerrainGroup do
+  begin
+    FViewMap.Add(tt,TPatternsVector.Create(true));
+  end;
 end;
 
 destructor TTerrainPatternConfig.Destroy;
 begin
-  FDirt.Free;
-  FNormal.Free;
-  FRock.Free;
-  FSand.Free;
-  FWater.Free;
+
+  FTypeMap.Free;
+  FViewMap.Free;
+
+  FTerrainView.Free;
+  FTerrainType.Free;
 
   inherited Destroy;
 end;
 
-function TTerrainPatternConfig.GetConfigById(AGroup: TTerrainGroup; AId: string
-  ): TPattern;
-var
-  g_config: TPatterns;
-  t: TCollectionItem;
+//function TTerrainPatternConfig.GetConfigById(AGroup: TTerrainGroup; AId: string
+//  ): TPattern;
+//var
+//  g_config: TPatterns;
+//  t: TCollectionItem;
+//begin
+//  g_config := GetGroupConfig(AGroup);
+//
+//  for t in g_config do
+//  begin
+//    if TPattern(t).ID = AId then Exit(TPattern(t));
+//  end;
+//  Result := nil;
+//
+//  raise Exception.Create('Terrain config error. Pattern '+AId+' not found');
+//end;
+
+//function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
+//  flip: Integer): TPattern;
+//var
+//  i: Integer;
+//  y: Integer;
+//
+//begin
+//
+//  Result := TPattern.Create(nil);
+//  Result.Assign(APattern);
+//
+//  if flip in [FLIP_PATTERN_HORIZONTAL,FLIP_PATTERN_BOTH] then
+//  begin
+//    for i := 0 to 3 - 1 do
+//    begin
+//      y := i*3;
+//      Result.SwapRules(Y+2,Y);
+//    end;
+//  end;
+//
+//  if flip in [FLIP_PATTERN_VERTICAL,FLIP_PATTERN_BOTH] then
+//  begin
+//    for i := 0 to 3 - 1 do
+//    begin
+//      Result.SwapRules(i,i+6);
+//    end;
+//  end;
+//end;
+
+function TTerrainPatternConfig.GetTerrainViewPatternsForGroup(
+  AGroup: TTerrainGroup): TPatternsVector;
 begin
-  g_config := GetGroupConfig(AGroup);
-
-  for t in g_config do
-  begin
-    if TPattern(t).ID = AId then Exit(TPattern(t));
-  end;
-  Result := nil;
-
-  raise Exception.Create('Terrain config error. Pattern '+AId+' not found');
+  Result := FViewMap.KeyData[AGroup];
 end;
 
-function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
-  flip: Integer): TPattern;
+function TTerrainPatternConfig.GetTerrainViewPatternById(AGroup: TTerrainGroup;
+  AId: string): TPattern;
 var
-  i: Integer;
-  y: Integer;
-
+  vector: TPatternsVector;
+  item : TPattern;
 begin
+  vector := GetTerrainViewPatternsForGroup(AGroup);
 
-  Result := TPattern.Create(nil);
-  Result.Assign(APattern);
-
-  if flip in [FLIP_PATTERN_HORIZONTAL,FLIP_PATTERN_BOTH] then
+  for item in vector do
   begin
-    for i := 0 to 3 - 1 do
-    begin
-      y := i*3;
-      Result.SwapRules(Y+2,Y);
-    end;
+    if item.Id = AID then
+       Exit(item)
   end;
 
-  if flip in [FLIP_PATTERN_VERTICAL,FLIP_PATTERN_BOTH] then
-  begin
-    for i := 0 to 3 - 1 do
-    begin
-      Result.SwapRules(i,i+6);
-    end;
-  end;
+  Exit(nil);
+
 end;
 
-function TTerrainPatternConfig.GetGroupConfig(AGroup: TTerrainGroup
-  ): TPatterns;
+function TTerrainPatternConfig.GetTerrainTypePatternById(AId: string): TPattern;
+begin
+  Result := FTypeMap.KeyData[AID];
+end;
+
+function TTerrainPatternConfig.GetTerrainGroup(AGroup: string): TTerrainGroup;
 begin
   case AGroup of
-    TTerrainGroup.DIRT: Result := FDirt;
-    TTerrainGroup.NORMAL: Result := FNormal;
-    TTerrainGroup.ROCK: Result := FRock;
-    TTerrainGroup.SAND: Result := FSand;
-    TTerrainGroup.WATER: Result := FWater;
+    'normal': Result := TTerrainGroup.NORMAL;
+    'dirt':  Result := TTerrainGroup.DIRT;
+    'sand':  Result := TTerrainGroup.SAND;
+    'water':  Result := TTerrainGroup.WATER;
+    'rock':  Result := TTerrainGroup.ROCK;
+  else
+    raise Exception.Create('Unknown terrain typename '+AGroup);
   end;
 end;
 
-function TTerrainPatternConfig.GetTerrainConfig(ATerrain: TTerrainType
-  ): TPatterns;
-const
-  TERRAIN_GROUPS: array[TTerrainType] of TTerrainGroup =
-    (TTerrainGroup.DIRT,
-    TTerrainGroup.SAND,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.NORMAL,
-    TTerrainGroup.WATER,
-    TTerrainGroup.ROCK);
-begin
-  Result := GetGroupConfig(TERRAIN_GROUPS[ATerrain]);
-end;
+//function TTerrainPatternConfig.GetGroupConfig(AGroup: TTerrainGroup
+//  ): TPatterns;
+//begin
+//  case AGroup of
+//    TTerrainGroup.DIRT: Result := FDirt;
+//    TTerrainGroup.NORMAL: Result := FNormal;
+//    TTerrainGroup.ROCK: Result := FRock;
+//    TTerrainGroup.SAND: Result := FSand;
+//    TTerrainGroup.WATER: Result := FWater;
+//  end;
+//end;
 
-{ TPatterns }
-
-constructor TPatterns.Create;
-begin
-  inherited Create();
-end;
-
-procedure TPatterns.Loaded;
-var
-  i: Integer;
-begin
-  for i := 0 to Count - 1 do
-  begin
-    Items[i].Loaded;
-  end;
-end;
-
-procedure TPatterns.SetGroup(g: TTerrainGroup);
-var
-  i: Integer;
-begin
-  for i := 0 to Count - 1 do
-  begin
-    Items[i].Group := g;
-  end;
-end;
+//function TTerrainPatternConfig.GetTerrainConfig(ATerrain: TTerrainType
+//  ): TPatterns;
+//const
+//  TERRAIN_GROUPS: array[TTerrainType] of TTerrainGroup =
+//    (TTerrainGroup.DIRT,
+//    TTerrainGroup.SAND,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.NORMAL,
+//    TTerrainGroup.WATER,
+//    TTerrainGroup.ROCK);
+//begin
+//  Result := GetGroupConfig(TERRAIN_GROUPS[ATerrain]);
+//end;
 
 { TPattern }
 
@@ -458,8 +756,9 @@ begin
     //dest_o.Mapping := Mapping;
     dest_o.ID := ID;
     dest_o.MinPoints := MinPoints;
-    dest_o.FlipMode := FlipMode;
-    dest_o.FGroup := FGroup;
+    dest_o.MaxPoints := MaxPoints;
+    dest_o.FDiffImages:=FDiffImages;
+    dest_o.FRotationTypesCount:=FRotationTypesCount;
 
     for i := 0 to 9 - 1 do
     begin
@@ -471,50 +770,52 @@ begin
       end;
     end;
 
-    for i := 0 to 1 do
+    for i := 0 to FMappings.Size - 1 do
     begin
-      dest_o.FMappings[i] := FMappings[i];
+      dest_o.FMappings.PushBack(FMappings[i]);
     end;
 
-
-    //dest_o.Loaded;
   end
   else begin
     inherited AssignTo(Dest);
   end;
 end;
 
-constructor TPattern.Create(ACollection: TCollection);
+constructor TPattern.Create();
 var
   i: Integer;
 begin
-  inherited Create(ACollection);
-  FStrData := TStringList.Create;
-
   for i := Low(FData) to High(FData) do
   begin
     FData[i] := TRules.Create(True);
   end;
 
+  FMinPoints:=0;
+  FMaxPoints:=MaxInt;
+  FDiffImages:=false;
 
-  FFlipMode := TFlipMode.sameImage;
+  FMappings := TMappings.Create;
+end;
+
+constructor TPattern.Create(ATemplate: TPatternTemplate);
+begin
+  Create();
+  FillFrom(ATemplate);
 end;
 
 destructor TPattern.Destroy;
 var
   i: Integer;
 begin
+  FMappings.Free;
+
   for i := Low(FData) to High(FData) do
   begin
     FData[i].Free;
   end;
-  FStrData.Free;
-  inherited Destroy;
-end;
 
-function TPattern.GetData: TStrings;
-begin
-  Result := FStrData;
+
+  inherited Destroy;
 end;
 
 function TPattern.GetRData(idx: Integer): TRules;
@@ -522,41 +823,45 @@ begin
   Result := FData[idx];
 end;
 
-procedure TPattern.Loaded;
+procedure TPattern.SetDiffImages(AValue: Boolean);
+begin
+  if FDiffImages=AValue then Exit;
+  FDiffImages:=AValue;
+end;
+
+procedure TPattern.SetMaxPoints(AValue: integer);
+begin
+  if FMaxPoints=AValue then Exit;
+  FMaxPoints:=AValue;
+end;
+
+procedure TPattern.SetRotationTypesCount(AValue: Integer);
+begin
+  if FRotationTypesCount=AValue then Exit;
+  FRotationTypesCount:=AValue;
+end;
+
+procedure TPattern.FillFrom(ATemplate: TPatternTemplate);
 var
+  rexp: TRegExpr;
+
   i: Integer;
 
   tmp:TStringList;
 
   rule: TWeightedRule;
-  m: TMapping;
   j: Integer;
   p: SizeInt;
 
-  rexp: TRegExpr;
-
- procedure Split (const AInputStr : RegExprString; APieces : TStrings);
- var
-   PrevPos : PtrInt;
-   s : string;
- begin
-  PrevPos := 1;
-  if rexp.Exec (AInputStr) then
-   REPEAT
-    s := Copy (AInputStr, PrevPos, rexp.MatchPos [0] - PrevPos);
-    APieces.Add (s);
-    PrevPos := rexp.MatchPos [0] + rexp.MatchLen [0];
-   UNTIL not rexp.ExecNext;
-  if PrevPos <= Length(AInputStr) then
-  begin
-    s :=  Copy (AInputStr, PrevPos, MaxInt);
-
-    APieces.Add(s);
-   end;
- end;
-
+  FStrData: TStrings;
 
 begin
+  FID := ATemplate.Id;
+  FMinPoints:=ATemplate.MinPoints;
+  //todo: maxpoints
+
+  FStrData := ATemplate.Data;
+
   if not FStrData.Count = 9 then raise Exception.Create('terrain config invalid');
 
   tmp := TStringList.Create;
@@ -568,7 +873,7 @@ begin
     begin
       tmp.Clear;
       FData[i].Clear;
-      Split(FStrData[i],tmp);
+      RexpSplit(rexp, FStrData[i],tmp);
 
       for j := 0 to tmp.Count - 1 do
       begin
@@ -589,30 +894,6 @@ begin
         FData[i].Add(rule);
       end;
 
-      tmp.Clear;
-
-      //FMapping := ReplaceStr(FMapping,#20,'');
-      Split(FMapping,tmp);
-
-      if tmp.Count > 2 then raise Exception.Create('terrain config invalid. too many mappings');
-
-      for j := 0 to tmp.Count - 1 do
-      begin
-        p := Pos('-',tmp[j]);
-
-        if p <> 0 then
-        begin
-          m.Lower := StrToInt(Copy(tmp[j],1,p-1));
-          m.Upper := StrToInt(Copy(tmp[j],p+1,MaxInt));
-        end
-        else
-        begin
-          m.Lower := StrToInt(tmp[j]);
-          m.Upper := StrToInt(tmp[j]);
-        end;
-        FMappings[j] := m;
-      end
-
     end;
   finally
    rexp.Free;
@@ -621,22 +902,10 @@ begin
 
 end;
 
-procedure TPattern.SetFlipMode(AValue: TFlipMode);
-begin
-  if FFlipMode = AValue then Exit;
-  FFlipMode := AValue;
-end;
-
 procedure TPattern.SetID(AValue: string);
 begin
   if FID = AValue then Exit;
   FID := AValue;
-end;
-
-procedure TPattern.SetMapping(AValue: string);
-begin
-  if FMapping = AValue then Exit;
-  FMapping := AValue;
 end;
 
 procedure TPattern.SetMinPoints(AValue: integer);

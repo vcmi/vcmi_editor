@@ -336,6 +336,10 @@ begin
       JSONToCollection(Item,(new_item as IEmbeddedCollection).GetCollection);
     end
   end
+  else if Item.JSONType in [jtString] then
+  begin
+    SetStrProp(new_item, 'Value', Item.AsString);
+  end
   else begin
     Error('Not supported collection element type for item '+AName);
   end;

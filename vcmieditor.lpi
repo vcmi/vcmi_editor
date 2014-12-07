@@ -379,6 +379,7 @@
       <Verbosity>
         <ShowNotes Value="False"/>
         <ShowHints Value="False"/>
+        <ShoLineNum Value="True"/>
       </Verbosity>
       <CompilerMessages>
         <UseMsgFile Value="True"/>

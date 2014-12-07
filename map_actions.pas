@@ -374,7 +374,7 @@ end;
 
 procedure TEditTerrain.ProcessTile(var Info: TTileInfo);
 var
-  config: TPatterns;
+  //config: TPatterns;
   pattern : TPattern;
   bestFlip, bestPattern: Integer;
   tr_repl: String;
@@ -386,85 +386,85 @@ var
   range: Integer;
   ofc: Integer;
 begin
-  config := FMap.TerrainManager.PatternConfig.GetTerrainConfig(info.TerType);
+  //config := FMap.TerrainManager.PatternConfig.GetTerrainConfig(info.TerType);
 
-  bestPattern := -1;
-  bestFlip := -1;
+  //bestPattern := -1;
+  //bestFlip := -1;
+  //
+  //tr_repl := '';
+  //
+  //for i := 0 to config.Count - 1 do
+  //begin
+  //  pattern := config[i];
+  //
+  //  for flip := 0 to 4 - 1 do
+  //  begin
+  //    //FlippedPattern := FMap.TerrainManager.PatternConfig.GetFlippedPattern(pattern, flip);
+  //    vr := ValidateTerrainView(info,FlippedPattern);
+  //    if vr.result then
+  //    begin
+  //      bestPattern := i;
+  //      bestFlip := flip;
+  //      tr_repl := vr.transitionReplacement;
+  //      FreeAndNil(FlippedPattern);
+  //      Break;
+  //    end;
+  //
+  //    FreeAndNil(FlippedPattern);
+  //  end;
+  //end;
+  //
+  //if bestPattern = -1 then
+  //begin
+  //  DebugLn('No pattern detected at (X:%d , Y:%d, L: %d)',[Info.X,Info.Y,FLevel]);
+  //  Exit;
+  //end;
+  //
+  //pattern := config[bestPattern];
+  //
+  //if tr_repl = '' then
+  //begin
+  //  mapping := pattern.Mappings[0];
+  //end
+  //else begin
+  //  if tr_repl = RULE_DIRT then
+  //  begin
+  //    mapping := pattern.Mappings[0];
+  //  end
+  //  else begin
+  //    mapping := pattern.Mappings[1];
+  //  end;
+  //end;
 
-  tr_repl := '';
-
-  for i := 0 to config.Count - 1 do
-  begin
-    pattern := config[i];
-
-    for flip := 0 to 4 - 1 do
-    begin
-      FlippedPattern := FMap.TerrainManager.PatternConfig.GetFlippedPattern(pattern, flip);
-      vr := ValidateTerrainView(info,FlippedPattern);
-      if vr.result then
-      begin
-        bestPattern := i;
-        bestFlip := flip;
-        tr_repl := vr.transitionReplacement;
-        FreeAndNil(FlippedPattern);
-        Break;
-      end;
-
-      FreeAndNil(FlippedPattern);
-    end;
-  end;
-
-  if bestPattern = -1 then
-  begin
-    DebugLn('No pattern detected at (X:%d , Y:%d, L: %d)',[Info.X,Info.Y,FLevel]);
-    Exit;
-  end;
-
-  pattern := config[bestPattern];
-
-  if tr_repl = '' then
-  begin
-    mapping := pattern.Mappings[0];
-  end
-  else begin
-    if tr_repl = RULE_DIRT then
-    begin
-      mapping := pattern.Mappings[0];
-    end
-    else begin
-      mapping := pattern.Mappings[1];
-    end;
-  end;
-
-  if pattern.FlipMode = TFlipMode.sameImage then
-  begin
-    if (Info.mir <> bestFlip)
-      or (Info.TerSubtype<mapping.Lower)
-      or (Info.TerSubtype>mapping.Upper)
-      then
-    begin
-      info.TerSubtype := RandomRange(mapping.Lower,mapping.Upper);
-      Info.mir := bestFlip;
-    end;
-  end
-  else if (info.TerType = TerrainType.rock) and (mapping.Lower = 16)  then
-  begin
-    //todo: fix workaround
-     range := 2;
-
-     ofc := mapping.Lower + (bestFlip mod 2) * range;
-
-      info.TerSubtype := RandomRange(ofc, ofc + range);
-      info.mir := 0;
-
-  end
-  else begin
-    range := (mapping.Upper - mapping.Lower) div 4 + 1;
-    ofc := mapping.Lower + bestFlip*range;
-
-    info.TerSubtype := RandomRange(ofc, ofc + range);
-    info.mir := 0;
-  end;
+  //if pattern.FlipMode = TFlipMode.sameImage then
+  //begin
+  //  if (Info.mir <> bestFlip)
+  //    or (Info.TerSubtype<mapping.Lower)
+  //    or (Info.TerSubtype>mapping.Upper)
+  //    then
+  //  begin
+  //    info.TerSubtype := RandomRange(mapping.Lower,mapping.Upper);
+  //    Info.mir := bestFlip;
+  //  end;
+  //end
+  //else if (info.TerType = TerrainType.rock) and (mapping.Lower = 16)  then
+  //begin
+  //  //todo: fix workaround
+  //   range := 2;
+  //
+  //   ofc := mapping.Lower + (bestFlip mod 2) * range;
+  //
+  //    info.TerSubtype := RandomRange(ofc, ofc + range);
+  //    info.mir := 0;
+  //
+  //end
+  //else begin
+  //  range := (mapping.Upper - mapping.Lower) div 4 + 1;
+  //  ofc := mapping.Lower + bestFlip*range;
+  //
+  //  info.TerSubtype := RandomRange(ofc, ofc + range);
+  //  info.mir := 0;
+  //end;
 end;
 
 procedure TEditTerrain.Redo;
@@ -622,86 +622,86 @@ begin
 
     topPoints := -1;
 
-    for j := 0 to pattern.RData[i].Count - 1 do
-    begin
-      rule := pattern.RData[i][j];
-
-      if not rule.IsStandartRule then
-      begin
-        if recDepth = 0 then
-        begin
-          patternForRule := FMap.TerrainManager.PatternConfig.GetConfigById(pattern.Group,rule.name);
-          rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
-
-          if not rslt.result then
-          begin
-            Exit;
-          end
-          else
-          begin
-            topPoints := Max(topPoints,rule.points);
-            Continue;
-          end;
-        end
-        else
-        begin
-          rule.name := RULE_NATIVE;
-        end;
-      end;
-
-      nativeTestOk := ((rule.name = RULE_NATIVE) or rule.IsAny) and not isAlien;
-
-      case pattern.Group of
-        TTerrainGroup.NORMAL:begin
-          dirtTestOk := (rule.IsDirt or rule.IsTrans or rule.IsAny)
-            and isAlien and not isSandType(cur_tinfo.TerType);
-
-          sandTestOK := (rule.IsSand or rule.IsTrans or rule.IsAny)
-           and isSandType(cur_tinfo.TerType);
-
-          if (transitionReplacement = '')
-            and (rule.IsTrans or rule.IsAny)
-            and (dirtTestOk or sandTestOK) then
-          begin
-            if dirtTestOk then
-            begin
-              transitionReplacement := RULE_DIRT;
-            end
-            else begin
-              transitionReplacement := RULE_SAND;
-            end;
-          end;
-          applyValidationRslt(
-            (dirtTestOk and (transitionReplacement <> RULE_SAND))
-            or (sandTestOK and (transitionReplacement <> RULE_DIRT))
-            or nativeTestOk
-          );
-        end;
-        TTerrainGroup.DIRT:begin
-          sandTestOK := rule.IsSand and isSandType(cur_tinfo.TerType);
-          dirtTestOk := rule.IsDirt and (not isSandType(cur_tinfo.TerType)) and (not nativeTestOk);
-
-          applyValidationRslt(rule.IsAny or sandTestOK or dirtTestOk or nativeTestOk);
-        end;
-        TTerrainGroup.SAND:begin
-          sandTestOK := rule.IsSand and isAlien;
-          applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-        end;
-        TTerrainGroup.WATER:begin
-          sandTestOK := rule.IsSand
-            //and (cur_tinfo.TerType<>TTerrainType.dirt)
-            and (cur_tinfo.TerType<>TTerrainType.water);
-          applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-        end;
-        TTerrainGroup.ROCK:begin
-          sandTestOK := rule.IsSand
-            //and (cur_tinfo.TerType<>TTerrainType.dirt)
-            and (cur_tinfo.TerType<>TTerrainType.rock);
-          applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-
-        end;
-      end;
-    end;
+    //for j := 0 to pattern.RData[i].Count - 1 do
+    //begin
+    //  rule := pattern.RData[i][j];
+    //
+    //  if not rule.IsStandartRule then
+    //  begin
+    //    if recDepth = 0 then
+    //    begin
+    //     //patternForRule := FMap.TerrainManager.PatternConfig.GetConfigById(pattern.Group,rule.name);
+    //      rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
+    //
+    //      if not rslt.result then
+    //      begin
+    //        Exit;
+    //      end
+    //      else
+    //      begin
+    //        topPoints := Max(topPoints,rule.points);
+    //        Continue;
+    //      end;
+    //    end
+    //    else
+    //    begin
+    //      rule.name := RULE_NATIVE;
+    //    end;
+    //  end;
+    //
+    //  nativeTestOk := ((rule.name = RULE_NATIVE) or rule.IsAny) and not isAlien;
+    //
+    //  case pattern.Group of
+    //    TTerrainGroup.NORMAL:begin
+    //      dirtTestOk := (rule.IsDirt or rule.IsTrans or rule.IsAny)
+    //        and isAlien and not isSandType(cur_tinfo.TerType);
+    //
+    //      sandTestOK := (rule.IsSand or rule.IsTrans or rule.IsAny)
+    //       and isSandType(cur_tinfo.TerType);
+    //
+    //      if (transitionReplacement = '')
+    //        and (rule.IsTrans or rule.IsAny)
+    //        and (dirtTestOk or sandTestOK) then
+    //      begin
+    //        if dirtTestOk then
+    //        begin
+    //          transitionReplacement := RULE_DIRT;
+    //        end
+    //        else begin
+    //          transitionReplacement := RULE_SAND;
+    //        end;
+    //      end;
+    //      applyValidationRslt(
+    //        (dirtTestOk and (transitionReplacement <> RULE_SAND))
+    //        or (sandTestOK and (transitionReplacement <> RULE_DIRT))
+    //        or nativeTestOk
+    //      );
+    //    end;
+    //    TTerrainGroup.DIRT:begin
+    //      sandTestOK := rule.IsSand and isSandType(cur_tinfo.TerType);
+    //      dirtTestOk := rule.IsDirt and (not isSandType(cur_tinfo.TerType)) and (not nativeTestOk);
+    //
+    //      applyValidationRslt(rule.IsAny or sandTestOK or dirtTestOk or nativeTestOk);
+    //    end;
+    //    TTerrainGroup.SAND:begin
+    //      sandTestOK := rule.IsSand and isAlien;
+    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
+    //    end;
+    //    TTerrainGroup.WATER:begin
+    //      sandTestOK := rule.IsSand
+    //        //and (cur_tinfo.TerType<>TTerrainType.dirt)
+    //        and (cur_tinfo.TerType<>TTerrainType.water);
+    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
+    //    end;
+    //    TTerrainGroup.ROCK:begin
+    //      sandTestOK := rule.IsSand
+    //        //and (cur_tinfo.TerType<>TTerrainType.dirt)
+    //        and (cur_tinfo.TerType<>TTerrainType.rock);
+    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
+    //
+    //    end;
+    //  end;
+    //end;
 
     if topPoints  = -1 then
     begin
