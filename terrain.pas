@@ -24,7 +24,7 @@ unit terrain;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, contnrs,
    fgl, gvector,
   editor_types, editor_graphics, vcmi_json,
   filesystem_base, editor_classes;
@@ -194,6 +194,8 @@ type
 
     FViewMap: TTerrainViewMap;
     FTypeMap: TTerrainTypeMap;
+
+    FFreeList: TFPObjectList;
 
     procedure ConvertTerrainTypes;
     procedure ConvertTerrainViews;
@@ -441,6 +443,7 @@ end;
 
 destructor TPatternTemplate.Destroy;
 begin
+  FMapping.Free;
   FData.Free;
   inherited Destroy;
 end;
@@ -515,6 +518,7 @@ begin
     pattern := TPattern.Create(template);
 
     FTypeMap.Add(pattern.Id,pattern);
+    FFreeList.Add(pattern);
   end;
 
 end;
@@ -582,7 +586,6 @@ begin
         end;
 
         FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].DisplayName)].Add(pattern);
-
       end;
     end;
   finally
@@ -594,7 +597,10 @@ end;
 constructor TTerrainPatternConfig.Create;
 var
   tt: TTerrainGroup;
+  v: TPatternsVector;
 begin
+  FFreeList := TFPObjectList.Create(true);
+
   FTerrainType := TPatternTemplates.Create;
   FTerrainView := TPatternTemplates.Create;
 
@@ -603,7 +609,9 @@ begin
 
   for tt in TTerrainGroup do
   begin
-    FViewMap.Add(tt,TPatternsVector.Create(true));
+    v:=TPatternsVector.Create(true);
+    FViewMap.Add(tt,v);
+    FFreeList.Add(v);
   end;
 end;
 
@@ -616,6 +624,7 @@ begin
   FTerrainView.Free;
   FTerrainType.Free;
 
+  FFreeList.Free;
   inherited Destroy;
 end;
 

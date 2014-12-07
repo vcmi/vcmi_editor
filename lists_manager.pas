@@ -314,6 +314,8 @@ end;
 
 destructor TListsManager.Destroy;
 begin
+  FFactionInfos.Free;
+
   FSpellMap.Free;
   FSpellInfos.Free;
 
@@ -434,16 +436,16 @@ begin
     for i := 0 to APaths.Count - 1 do
     begin
       spell_info := TJsonResource.Create;
-      ResourceLoader.LoadResource(spell_info,TResourceType.Json,APaths[i]);
-      spell_config := spell_info.Root;
-      spell_config.Iterate(@ProcessSpellConfig,legacy_config);
+      try
+        ResourceLoader.LoadResource(spell_info,TResourceType.Json,APaths[i]);
+        spell_config := spell_info.Root;
+        spell_config.Iterate(@ProcessSpellConfig,legacy_config);
+      finally
+         spell_info.Free;
+      end;
     end;
 
-
-
-
   finally
-    spell_info.Free;
     legacy_config.Free;
     sptrairs.Free;
   end;
