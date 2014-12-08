@@ -84,7 +84,7 @@ const
   TEMPLATES_FIELD = 'templates';
   OBJECTS_FIELD = 'objects';
 
-  TERRAIN_CODES: array[TTerrainType] of string = ('dt', 'sa', 'gr', 'sn', 'sw', 'ro', 'sb', 'lv', 'wt', 'ro');
+  TERRAIN_CODES: array[TTerrainType] of string = ('dt', 'sa', 'gr', 'sn', 'sw', 'rg', 'sb', 'lv', 'wt', 'rc');
   ROAD_CODES: array[TRoadType] of String = ('', 'pd','pg', 'pc');
   RIVER_CODES: array[TRiverType] of string = ('', 'rw', 'ri', 'rm', 'rl');
 
@@ -252,6 +252,9 @@ begin
 
   if not FTileExpression.Exec(Encoded) then
      raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
+
+  if (FTileExpression.MatchLen[1]=0) or (FTileExpression.MatchLen[2]=0) then
+    raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
 
   terrainCode := FTileExpression.Match[1];
   tt := FTerrainTypeMap.KeyData[terrainCode];
