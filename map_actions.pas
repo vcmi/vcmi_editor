@@ -118,8 +118,6 @@ type
     //safe, with checking
     function GetTileInfo(x,y: Integer; out Info: TTileInfo): boolean;
 
-    procedure ProcessTile(var Info: TTileInfo);
-
     function ValidateTerrainView(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
     function ValidateTerrainViewInner(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
   strict private
@@ -366,8 +364,13 @@ begin
 
   it := FOutQueue.Min;
 
-  while Assigned(it) and (it.next) do
-     FNewTileInfos.PushBack(it.data);
+  if Assigned(it) then
+  begin
+    repeat
+      FNewTileInfos.PushBack(it.data);
+    until not it.next ;
+  end;
+
 
 
   //save old state
@@ -442,101 +445,6 @@ begin
     info := GetTileInfo(x,y);
     Result := true;
   end;
-end;
-
-procedure TEditTerrain.ProcessTile(var Info: TTileInfo);
-var
-  //config: TPatterns;
-  pattern : TPattern;
-  bestFlip, bestPattern: Integer;
-  tr_repl: String;
-  i: Integer;
-  flip: Integer;
-  FlippedPattern: TPattern;
-  vr: TValidationResult;
-  mapping: TMapping;
-  range: Integer;
-  ofc: Integer;
-begin
-  //config := FMap.TerrainManager.PatternConfig.GetTerrainConfig(info.TerType);
-
-  //bestPattern := -1;
-  //bestFlip := -1;
-  //
-  //tr_repl := '';
-  //
-  //for i := 0 to config.Count - 1 do
-  //begin
-  //  pattern := config[i];
-  //
-  //  for flip := 0 to 4 - 1 do
-  //  begin
-  //    //FlippedPattern := FMap.TerrainManager.PatternConfig.GetFlippedPattern(pattern, flip);
-  //    vr := ValidateTerrainView(info,FlippedPattern);
-  //    if vr.result then
-  //    begin
-  //      bestPattern := i;
-  //      bestFlip := flip;
-  //      tr_repl := vr.transitionReplacement;
-  //      FreeAndNil(FlippedPattern);
-  //      Break;
-  //    end;
-  //
-  //    FreeAndNil(FlippedPattern);
-  //  end;
-  //end;
-  //
-  //if bestPattern = -1 then
-  //begin
-  //  DebugLn('No pattern detected at (X:%d , Y:%d, L: %d)',[Info.X,Info.Y,FLevel]);
-  //  Exit;
-  //end;
-  //
-  //pattern := config[bestPattern];
-  //
-  //if tr_repl = '' then
-  //begin
-  //  mapping := pattern.Mappings[0];
-  //end
-  //else begin
-  //  if tr_repl = RULE_DIRT then
-  //  begin
-  //    mapping := pattern.Mappings[0];
-  //  end
-  //  else begin
-  //    mapping := pattern.Mappings[1];
-  //  end;
-  //end;
-
-  //if pattern.FlipMode = TFlipMode.sameImage then
-  //begin
-  //  if (Info.mir <> bestFlip)
-  //    or (Info.TerSubtype<mapping.Lower)
-  //    or (Info.TerSubtype>mapping.Upper)
-  //    then
-  //  begin
-  //    info.TerSubtype := RandomRange(mapping.Lower,mapping.Upper);
-  //    Info.mir := bestFlip;
-  //  end;
-  //end
-  //else if (info.TerType = TerrainType.rock) and (mapping.Lower = 16)  then
-  //begin
-  //  //todo: fix workaround
-  //   range := 2;
-  //
-  //   ofc := mapping.Lower + (bestFlip mod 2) * range;
-  //
-  //    info.TerSubtype := RandomRange(ofc, ofc + range);
-  //    info.mir := 0;
-  //
-  //end
-  //else begin
-  //  range := (mapping.Upper - mapping.Lower) div 4 + 1;
-  //  ofc := mapping.Lower + bestFlip*range;
-  //
-  //  info.TerSubtype := RandomRange(ofc, ofc + range);
-  //  info.mir := 0;
-  //end;
 end;
 
 procedure TEditTerrain.Redo;
@@ -720,7 +628,6 @@ var
   currentCoord: TMapCoord;
   delta: TMapCoord;
 begin
-
    while not FInQueue.IsEmpty do
    begin
      centerTile := FInQueue.NMin^.Data;
@@ -816,6 +723,7 @@ begin
      end
      else begin
         FInQueue.Delete(centerTile);
+        FOutQueue.Insert(centerTile);
      end;
      FreeAndNil(it);
 
@@ -884,7 +792,7 @@ function TEditTerrain.ValidateTerrainViewInner(info: TTileInfo;
   end;
 
 var
-  centerTerType, terType: TTerrainType;
+  terType: TTerrainType;
   centerTerGroup: TTerrainGroup;
 
   totalPoints: Integer;
@@ -922,8 +830,7 @@ begin
   Result.flip:=0;
   Result.transitionReplacement:='';
 
-  centerTerType := info.TerType;
-  centerTerGroup :=TERRAIN_GROUPS[centerTerType];
+  centerTerGroup :=TERRAIN_GROUPS[info.TerType];
 
   totalPoints:=0;
   transitionReplacement:='';
@@ -951,7 +858,7 @@ begin
     begin
       cur_tinfo := getTinfo(cx,cy);
 
-      if cur_tinfo.TerType <> centerTerType then
+      if cur_tinfo.TerType <> info.TerType then
         isAlien := True;
     end;
 
@@ -966,9 +873,9 @@ begin
       begin
         if (recDepth = 0) and FMap.IsOnMap(FLevel, currentPos.X,currentPos.Y) then
         begin
-          if cur_tinfo.TerType = centerTerType  then
+          if cur_tinfo.TerType = info.TerType  then
           begin
-            patternForRule := FMap.TerrainManager.PatternConfig.GetTerrainViewPatternById(TERRAIN_GROUPS[centerTerType], rule.name);
+            patternForRule := FMap.TerrainManager.PatternConfig.GetTerrainViewPatternById(centerTerGroup, rule.name);
 
             if Assigned(patternForRule) then
             begin
