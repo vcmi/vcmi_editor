@@ -41,6 +41,9 @@ type
     procedure Clear();
   end;
 
+  operator+ (a,b:TMapCoord):TMapCoord;
+
+type
   { TMapRect }
 
   TMapRect = record
@@ -60,6 +63,8 @@ type
     function Intersect(Other: TMapRect):TMapRect;
 
     procedure Clear();
+
+    procedure SetFromCenter(X,Y, Width,Height: integer);
   end;
 
 
@@ -85,14 +90,28 @@ type
   TValidationResult = record
     result: Boolean;
     transitionReplacement: string;
+    flip: Integer;
+  end;
+
+  { TInvalidTiles }
+
+  TInvalidTiles = class
+  public
+    ForeignTiles, NativeTiles: TTileSet;
+    constructor Create();
+    destructor Destroy; override;
 
   end;
 
   TEditTerrain = class(TMapUndoItem)
   strict private
 
-    FInQueue, FOutQueue: TTileSet;
+    FInQueue: TTileSet;
+    FOutQueue : TTileSet;
 
+    FInvalidated: TTileSet;
+
+    function GetTinfo(x, y: integer): TTileInfo;
     procedure UndoTile(constref Tile: TTileInfo);
     //no checking
     function GetTileInfo(x,y: Integer): TTileInfo;
@@ -102,6 +121,7 @@ type
     procedure ProcessTile(var Info: TTileInfo);
 
     function ValidateTerrainView(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
+    function ValidateTerrainViewInner(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
   strict private
     FLevel: Integer;
 
@@ -113,6 +133,17 @@ type
     procedure SetBrushMode(AValue: TBrushMode);
     procedure SetLevel(AValue: Integer);
     procedure SetTerrainType(AValue: TTerrainType);
+
+    function MapRect:TMapRect;
+    function ExtendTileAround(X,Y: integer):TMapRect;
+    function SafeExtendTileAround(X,Y: integer):TMapRect;
+
+    procedure InvalidateTerrainViews(X,Y: integer);
+
+    function GetInvalidTiles(center: TTileInfo): TInvalidTiles;
+
+    procedure UpdateTerrainTypes();
+    procedure	UpdateTerrainViews();
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
@@ -132,10 +163,33 @@ type
   end;
 
 
+
+
 implementation
 
 uses
   LazLogger;
+
+operator+(a, b: TMapCoord): TMapCoord;
+begin
+  result.X:=a.x+b.X;
+  result.Y:=a.y+b.y;
+end;
+
+{ TInvalidTiles }
+
+constructor TInvalidTiles.Create;
+begin
+  ForeignTiles := TTileSet.Create;
+  NativeTiles := TTileSet.Create;
+end;
+
+destructor TInvalidTiles.Destroy;
+begin
+  ForeignTiles.Free;
+  NativeTiles.Free;
+  inherited Destroy;
+end;
 
 { TMapCoord }
 
@@ -219,6 +273,18 @@ begin
   FWidth:=0;
 end;
 
+procedure TMapRect.SetFromCenter(X, Y, Width, Height: integer);
+begin
+  Assert(width mod 2 = 1);
+  Assert(Height mod 2 = 1);
+  Clear();
+
+  FTopLeft.X:= X - (Width-1) div 2;
+  FTopLeft.Y:= Y - (Height-1) div 2;
+  FWidth:=Width;
+  FHeight:=Height;
+end;
+
 
 { TTileCompare }
 
@@ -249,6 +315,9 @@ begin
   inherited Create(AMap);
   FOldTileInfos := TTileInfos.Create;
   FNewTileInfos := TTileInfos.Create;
+
+
+
 end;
 
 destructor TEditTerrain.Destroy;
@@ -270,64 +339,36 @@ var
   x: LongInt;
   y: LongInt;
   info_n: TTileSet.PNode;
+  it: TTileSet.TIterator;
 begin
-  //TODO: terrain transitions
-
   FInQueue := TTileSet.Create;
   FOutQueue := TTileSet.Create;
+  FInvalidated := TTileSet.Create;
 
-
-
-  try
-    //first insert all edited
-    for i := 0 to FNewTileInfos.Size - 1 do
-    begin
-      FInQueue.Insert(FNewTileInfos[i]);
-    end;
-
-    //then insert tiles around
-    for i := 0 to FNewTileInfos.Size - 1 do
-    begin
-      x := FNewTileInfos[i].x;
-      y := FNewTileInfos[i].y;
-
-      for dx := -1 to 2 do
-      begin
-        for dy := -1 to 2 do
-        begin
-          if not((dx= 0) and (dy=0)) and GetTileInfo(x+dx,y+dy,new_info) then
-             FInQueue.Insert(new_info);
-        end
-      end;
-    end;
-
-    FNewTileInfos.Clear;
-
-    //todo: more passes of validation
-
-    loop_guard := 0; //will be useful later, now guard useless
-
-    while (not FInQueue.IsEmpty) and (loop_guard < 1000000) do
-    begin
-
-      info_n := FInQueue.NMin;
-      info := info_n^.Data;
-
-      ProcessTile(info);
-
-      FInQueue.Delete(info);
-      FOutQueue.Insert(info);
-
-      FNewTileInfos.PushBack(info);
-      inc(loop_guard);
-    end;
-  finally
-    FInQueue.Free;
-    FOutQueue.Free;
-
-    FInQueue := nil;
-    FOutQueue := nil;
+  for i := 0 to FNewTileInfos.Size - 1 do
+  begin
+    InvalidateTerrainViews(FNewTileInfos[i].X,FNewTileInfos[i].Y);
   end;
+
+  for i := 0 to FNewTileInfos.Size - 1 do
+  begin
+     FInQueue.Insert(FNewTileInfos[i]);
+  end;
+
+  UpdateTerrainTypes();
+	UpdateTerrainViews();
+
+  //process out queue
+
+  FNewTileInfos.Clear;
+
+  Assert(FInQueue.IsEmpty);
+
+  it := FOutQueue.Min;
+
+  while Assigned(it) and (it.next) do
+     FNewTileInfos.PushBack(it.data);
+
 
   //save old state
   FOldTileInfos.Clear;
@@ -341,11 +382,42 @@ begin
   end;
   //apply new state
   Redo;
+
+  FOutQueue.Free;
+  FInQueue.Free;
+  FInvalidated.Free;
 end;
 
 function TEditTerrain.GetDescription: string;
 begin
   Result := 'Edit terrain'; //todo: l18n
+end;
+
+function TEditTerrain.GetTinfo(x,y: integer): TTileInfo;
+var
+  tmp: TTileInfo;
+  n: TTileSet.PNode;
+begin
+  tmp.X := x;
+  tmp.Y := Y;
+
+  n := FOutQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    getTinfo := n^.Data;
+    exit;
+  end;
+
+  n := FInQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    getTinfo := n^.Data;
+    exit;
+  end;
+
+  getTinfo := GetTileInfo(x,y);
 end;
 
 function TEditTerrain.GetTileInfo(x, y: Integer): TTileInfo;
@@ -505,6 +577,258 @@ begin
   FTerrainType := AValue;
 end;
 
+function TEditTerrain.MapRect: TMapRect;
+begin
+  Result.Clear();
+  Result.FWidth:=FMap.Width;
+  Result.FHeight:=FMap.Height;
+end;
+
+function TEditTerrain.ExtendTileAround(X, Y: integer): TMapRect;
+begin
+  Result.SetFromCenter(x,y,3,3);
+end;
+
+function TEditTerrain.SafeExtendTileAround(X, Y: integer): TMapRect;
+begin
+  Result := ExtendTileAround(x,y).Intersect(MapRect());
+end;
+
+procedure TEditTerrain.InvalidateTerrainViews(X, Y: integer);
+var
+  r: TMapRect;
+  i: Integer;
+  j: Integer;
+begin
+  r := SafeExtendTileAround(x,y);
+
+  for i := 0 to r.FWidth - 1 do
+  begin
+    for j := 0 to r.FHeight - 1 do
+    begin
+       FInvalidated.Insert(GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j));
+    end;
+  end;
+
+end;
+
+function TEditTerrain.GetInvalidTiles(center: TTileInfo): TInvalidTiles;
+const
+  WATER_ROCK_P: array[0..1] of string = ('s1','s2');
+  OTHER_P: array[0..1] of string = ('n2','n3');
+
+var
+  r: TMapRect;
+  i: Integer;
+  j: Integer;
+
+  curTile, centerTile: TTileInfo;
+
+  config: TTerrainPatternConfig;
+  valid: Boolean;
+
+  pName: string;
+
+begin
+  Result := TInvalidTiles.Create;
+  config :=  fmap.TerrainManager.PatternConfig;
+
+  centerTile := GetTinfo(center.X,center.Y);
+
+  r := SafeExtendTileAround(center.X,center.Y);
+
+  for i := 0 to r.FWidth - 1 do
+  begin
+    for j := 0 to r.FHeight - 1 do
+    begin
+         curTile := GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j);
+
+         valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById('n1')).result;
+
+         // Special validity check for rock & water
+
+         if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
+         begin
+           for pName in WATER_ROCK_P do
+           begin
+              valid := not ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+              if not valid then
+                break;
+           end;
+         end
+         // Additional validity check for non rock OR water
+         else if (not valid and not (curTile.TerType in [TTerrainType.water, TTerrainType.rock])) then
+         begin
+           for pName in OTHER_P do
+           begin
+              valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+              if valid then
+                break;
+           end;
+         end;
+
+         if not valid then
+         begin
+           if curTile.TerType = centerTile.TerType then
+             Result.NativeTiles.Insert(curTile)
+           else
+             Result.ForeignTiles.Insert(curTile)
+         end;
+
+
+    end;
+  end;
+
+end;
+
+procedure TEditTerrain.UpdateTerrainTypes;
+var
+  tiles: TInvalidTiles;
+  centerTile:TTileInfo;
+
+  procedure UpdateTerrain(tile:TTileInfo; RequiresValidation: Boolean);
+  begin
+    tile.TerType:=centerTile.TerType;
+    if RequiresValidation then
+      FInQueue.Insert(tile)
+    else
+      FOutQueue.Insert(tile);
+    InvalidateTerrainViews(tile.X,tile.Y);
+
+  end;
+const
+  SHIFTS: array[1..8] of TMapCoord = (
+    (x:0; y:-1),(x:-1; y:0),(x:0; y:1),(x:1; y:0),
+    (x:-1; y:-1),(x:-1; y:1),(x:1; y:1),(x:1; y:-1));
+
+var
+  i: Integer;
+  tile, tmp:TTileInfo;
+
+  it: TTileSet.TIterator;
+  rect: TMapRect;
+  SuitableTiles: TTileSet;
+
+  TestTile: TTileInfo;
+
+  invalidForeignTilesCnt,invalidNativeTilesCnt,nativeTilesCntNorm: Integer;
+  j: Integer;
+
+  invalid: TInvalidTiles;
+  tileRequiresValidation: Boolean;
+
+  currentCoord: TMapCoord;
+  delta: TMapCoord;
+begin
+
+   while not FInQueue.IsEmpty do
+   begin
+     centerTile := FInQueue.NMin^.Data;
+
+     tiles := GetInvalidTiles(centerTile);
+
+     it := tiles.ForeignTiles.Min;
+
+     while Assigned(it) and it.Next do
+       UpdateTerrain(it.data, true);
+
+     FreeAndNil(it);
+
+     it:=tiles.NativeTiles.Find(centerTile);
+
+     if Assigned(it) then
+     begin
+       rect := SafeExtendTileAround(centerTile.x, centerTile.y);
+       SuitableTiles := TTileSet.Create;
+
+       invalidForeignTilesCnt:=MaxInt;
+       invalidNativeTilesCnt:=0;
+
+        for i := 0 to rect.FWidth - 1 do
+        begin
+          for j := 0 to rect.FHeight - 1 do
+          begin
+            TestTile := GetTinfo(rect.FTopLeft.X+i, rect.FTopLeft.Y+j);
+
+            if TestTile.TerType <> centerTile.TerType then
+            begin
+              TestTile.TerType:=centerTile.TerType;
+              FOutQueue.Insert(TestTile);
+
+              invalid := GetInvalidTiles(TestTile);
+
+              nativeTilesCntNorm:=ifthen(invalid.NativeTiles.IsEmpty, MaxInt, invalid.NativeTiles.Size);
+
+              if (nativeTilesCntNorm > invalidNativeTilesCnt)
+                or ((nativeTilesCntNorm = invalidNativeTilesCnt) and (invalid.ForeignTiles.Size < invalidForeignTilesCnt) ) then
+              begin
+                invalidNativeTilesCnt := nativeTilesCntNorm;
+                invalidForeignTilesCnt:=invalid.ForeignTiles.Size;
+                SuitableTiles.Free;
+                SuitableTiles := TTileSet.Create;
+
+                SuitableTiles.Insert(TestTile);
+
+              end
+              else if (nativeTilesCntNorm = invalidNativeTilesCnt) and (invalid.ForeignTiles.Size = invalidForeignTilesCnt) then
+              begin
+                SuitableTiles.Insert(TestTile);
+              end;
+
+              invalid.Free;
+              FOutQueue.Delete(TestTile);
+            end;
+          end;
+        end;
+
+        tileRequiresValidation := invalidForeignTilesCnt > 0;
+
+        if SuitableTiles.Size = 1 then
+        begin
+          UpdateTerrain(SuitableTiles.NMin^.Data, tileRequiresValidation);
+        end
+        else
+        begin
+          //first suitable tile around center
+
+          //TODO: why is it needed?
+          for delta in SHIFTS do
+          begin
+             currentCoord.x := centerTile.X;
+             currentCoord.Y := centerTile.Y;
+
+             currentCoord += delta;
+
+             tmp.X:=currentCoord.X;
+             tmp.Y:=currentCoord.Y;
+
+             it := SuitableTiles.Find(tmp);
+
+             if Assigned(it) then
+             begin
+                UpdateTerrain(it.Data, tileRequiresValidation);
+             end;
+          end;
+
+
+        end;
+        SuitableTiles.Free;
+     end
+     else begin
+        FInQueue.Delete(centerTile);
+     end;
+     FreeAndNil(it);
+
+     tiles.Free;
+   end;
+
+end;
+
+procedure TEditTerrain.UpdateTerrainViews;
+begin
+
+end;
+
 procedure TEditTerrain.Undo;
 var
   i: Integer;
@@ -522,63 +846,33 @@ end;
 
 function TEditTerrain.ValidateTerrainView(info: TTileInfo; pattern: TPattern;
   recDepth: integer): TValidationResult;
-
-
-  function getTinfo(x,y: integer ): TTileInfo;
-  var
-    tmp: TTileInfo;
-    n: TTileSet.PNode;
-  begin
-    tmp.X := x;
-    tmp.Y := Y;
-
-    n := FInQueue.NFind(tmp);
-
-    if Assigned(n) then
-    begin
-      getTinfo := n^.Data;
-      exit;
-    end;
-
-    n := FOutQueue.NFind(tmp);
-
-    if Assigned(n) then
-    begin
-      getTinfo := n^.Data;
-      exit;
-    end;
-
-    getTinfo := GetTileInfo(x,y);
-  end;
-
-
 var
-  centerTerType: TTerrainType;
-  totalPoints: Integer;
-  transitionReplacement: String;
-  i: Integer;
-  cx: Integer;
-  cy: Integer;
-  isAlien: Boolean;
+  flip: integer;
+  flipped: TPattern;
+begin
+  Result.result := False;
+  Result.transitionReplacement := '';
+  Result.flip := 0;
 
-  cur_tinfo: TTileInfo;
-
-  topPoints: Integer;
-  j: Integer;
-  rule: TWeightedRule;
-  patternForRule: TPattern;
-  rslt: TValidationResult;
-  nativeTestOk: Boolean;
-  dirtTestOk: Boolean;
-  sandTestOK: Boolean;
-
-  procedure applyValidationRslt(AResult:Boolean);
+  for flip := 0 to 4 - 1 do
   begin
-    if AResult then
+    flipped := FMap.TerrainManager.PatternConfig.GetFlippedPattern(pattern,flip);
+
+    Result := ValidateTerrainViewInner(info,flipped, recDepth);
+
+    if Result.result then
     begin
-      topPoints := Max(topPoints,rule.points);
+      Result.flip:=flip;
+      Exit;
     end;
   end;
+end;
+
+function TEditTerrain.ValidateTerrainViewInner(info: TTileInfo;
+  pattern: TPattern; recDepth: integer): TValidationResult;
+
+
+
 
   function isSandType(tt: TTerrainType ): Boolean;
   begin
@@ -589,13 +883,50 @@ var
     end;
   end;
 
+var
+  centerTerType, terType: TTerrainType;
+  centerTerGroup: TTerrainGroup;
+
+  totalPoints: Integer;
+  transitionReplacement: String;
+
+  currentPos: TMapCoord;
+
+  cur_tinfo: TTileInfo;
+
+  i: Integer;
+  j: Integer;
+  cx: Integer;
+  cy: Integer;
+  isAlien: Boolean;
+  topPoints: Integer;
+  rule: TWeightedRule;
+  patternForRule: TPattern;
+  rslt: TValidationResult;
+
+  procedure applyValidationRslt(AResult:Boolean);
+  begin
+    if AResult then
+    begin
+      topPoints := Max(topPoints,rule.points);
+    end;
+  end;
+var
+
+  nativeTestOk: Boolean;
+  nativeTestStrongOk: Boolean;
+  dirtTestOk: Boolean;
+  sandTestOK: Boolean;
 begin
-  Result.result := False;
-  Result.transitionReplacement := '';
+  Result.result:=false;
+  Result.flip:=0;
+  Result.transitionReplacement:='';
 
   centerTerType := info.TerType;
-  totalPoints := 0;
-  transitionReplacement := '';
+  centerTerGroup :=TERRAIN_GROUPS[centerTerType];
+
+  totalPoints:=0;
+  transitionReplacement:='';
 
   for i := 0 to 9 - 1 do
   begin
@@ -606,7 +937,11 @@ begin
     cx := info.x + (i mod 3) - 1;
     cy := info.Y + (i div 3) - 1;
 
+    currentPos.X:=cx;
+    currentPos.y:=cy;
+
     isAlien := false;
+
 
     if not FMap.IsOnMap(FLevel, cx,cy) then
     begin
@@ -620,105 +955,113 @@ begin
         isAlien := True;
     end;
 
-    topPoints := -1;
+    // Validate all rules per cell
 
-    //for j := 0 to pattern.RData[i].Count - 1 do
-    //begin
-    //  rule := pattern.RData[i][j];
-    //
-    //  if not rule.IsStandartRule then
-    //  begin
-    //    if recDepth = 0 then
-    //    begin
-    //     //patternForRule := FMap.TerrainManager.PatternConfig.GetConfigById(pattern.Group,rule.name);
-    //      rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
-    //
-    //      if not rslt.result then
-    //      begin
-    //        Exit;
-    //      end
-    //      else
-    //      begin
-    //        topPoints := Max(topPoints,rule.points);
-    //        Continue;
-    //      end;
-    //    end
-    //    else
-    //    begin
-    //      rule.name := RULE_NATIVE;
-    //    end;
-    //  end;
-    //
-    //  nativeTestOk := ((rule.name = RULE_NATIVE) or rule.IsAny) and not isAlien;
-    //
-    //  case pattern.Group of
-    //    TTerrainGroup.NORMAL:begin
-    //      dirtTestOk := (rule.IsDirt or rule.IsTrans or rule.IsAny)
-    //        and isAlien and not isSandType(cur_tinfo.TerType);
-    //
-    //      sandTestOK := (rule.IsSand or rule.IsTrans or rule.IsAny)
-    //       and isSandType(cur_tinfo.TerType);
-    //
-    //      if (transitionReplacement = '')
-    //        and (rule.IsTrans or rule.IsAny)
-    //        and (dirtTestOk or sandTestOK) then
-    //      begin
-    //        if dirtTestOk then
-    //        begin
-    //          transitionReplacement := RULE_DIRT;
-    //        end
-    //        else begin
-    //          transitionReplacement := RULE_SAND;
-    //        end;
-    //      end;
-    //      applyValidationRslt(
-    //        (dirtTestOk and (transitionReplacement <> RULE_SAND))
-    //        or (sandTestOK and (transitionReplacement <> RULE_DIRT))
-    //        or nativeTestOk
-    //      );
-    //    end;
-    //    TTerrainGroup.DIRT:begin
-    //      sandTestOK := rule.IsSand and isSandType(cur_tinfo.TerType);
-    //      dirtTestOk := rule.IsDirt and (not isSandType(cur_tinfo.TerType)) and (not nativeTestOk);
-    //
-    //      applyValidationRslt(rule.IsAny or sandTestOK or dirtTestOk or nativeTestOk);
-    //    end;
-    //    TTerrainGroup.SAND:begin
-    //      sandTestOK := rule.IsSand and isAlien;
-    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-    //    end;
-    //    TTerrainGroup.WATER:begin
-    //      sandTestOK := rule.IsSand
-    //        //and (cur_tinfo.TerType<>TTerrainType.dirt)
-    //        and (cur_tinfo.TerType<>TTerrainType.water);
-    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-    //    end;
-    //    TTerrainGroup.ROCK:begin
-    //      sandTestOK := rule.IsSand
-    //        //and (cur_tinfo.TerType<>TTerrainType.dirt)
-    //        and (cur_tinfo.TerType<>TTerrainType.rock);
-    //      applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
-    //
-    //    end;
-    //  end;
-    //end;
-
-    if topPoints  = -1 then
+    topPoints:=-1;
+    for j := 0 to pattern.RData[i].Count - 1 do
     begin
-      Exit;
-    end
-    else begin
-      totalPoints += topPoints;
+      rule := pattern.RData[i][j].Clone;
+
+      if not rule.IsStandartRule then
+      begin
+        if (recDepth = 0) and FMap.IsOnMap(FLevel, currentPos.X,currentPos.Y) then
+        begin
+          if cur_tinfo.TerType = centerTerType  then
+          begin
+            patternForRule := FMap.TerrainManager.PatternConfig.GetTerrainViewPatternById(TERRAIN_GROUPS[centerTerType], rule.name);
+
+            if Assigned(patternForRule) then
+            begin
+                rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
+                if rslt.result then
+                begin
+                  topPoints := Max(topPoints,rule.points);
+                end;
+            end;
+
+          end;
+          Continue;
+        end
+        else
+        begin
+          rule.name := RULE_NATIVE;
+        end;
+      end;
+
+
+      // Validate cell with the ruleset of the pattern
+
+      nativeTestOk := ((rule.name = RULE_NATIVE) or (rule.name = RULE_NATIVE_STRONG)) and not isAlien;
+      nativeTestStrongOk:=nativeTestOk;
+
+      case centerTerGroup of
+        TTerrainGroup.NORMAL:
+        begin
+          dirtTestOk := (rule.IsDirt or rule.IsTrans)
+            and isAlien and not isSandType(cur_tinfo.TerType);
+
+          sandTestOK := (rule.IsSand or rule.IsTrans)
+           and isSandType(cur_tinfo.TerType);
+
+          if (transitionReplacement = '')
+            and (rule.IsTrans)
+            and (dirtTestOk or sandTestOK) then
+          begin
+            if dirtTestOk then
+            begin
+              transitionReplacement := RULE_DIRT;
+            end
+            else begin
+              transitionReplacement := RULE_SAND;
+            end;
+          end;
+
+          if rule.IsTrans then
+          begin
+            applyValidationRslt(
+              (dirtTestOk and (transitionReplacement <> RULE_SAND))
+              or (sandTestOK and (transitionReplacement <> RULE_DIRT))
+            );
+          end
+          else begin
+            applyValidationRslt( rule.IsAny or dirtTestOk or sandTestOK or nativeTestOk);
+          end;
+        end;
+        TTerrainGroup.DIRT:
+        begin
+          nativeTestOk:=rule.IsNative and not isSandType(cur_tinfo.TerType);
+
+          sandTestOK := (rule.IsSand or rule.IsTrans) and isSandType(cur_tinfo.TerType);
+
+          applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk or nativeTestStrongOk);
+        end;
+        TTerrainGroup.SAND:
+        begin
+          applyValidationRslt(true);
+        end;
+        TTerrainGroup.WATER,
+        TTerrainGroup.ROCK:
+        begin
+          sandTestOK := (rule.IsSand or rule.IsTrans) and isAlien;
+          applyValidationRslt(rule.IsAny or sandTestOK or nativeTestOk);
+        end;
+      end;
+
+      rule.free;
     end;
+
+    if topPoints = -1 then
+       Exit
+    else
+       totalPoints+=topPoints;
   end;
 
-  if pattern.MinPoints > totalPoints then
+  if (totalPoints >= pattern.MinPoints) and (totalPoints <= pattern.MaxPoints) then
   begin
-    Exit;
-  end;
+    Result.result:=true;
+    Result.transitionReplacement:=transitionReplacement;
+  end
 
-  Result.result := True;
-  Result.transitionReplacement := transitionReplacement;
 end;
 
 end.

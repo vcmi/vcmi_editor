@@ -37,6 +37,7 @@ const
   RULE_SAND = 'S';
   RULE_TRANSITION = 'T';
   RULE_NATIVE = 'N';
+  RULE_NATIVE_STRONG = 'N!';
   RULE_ANY = '?';
 
 
@@ -56,6 +57,20 @@ type
     WATER,
     ROCK);
 
+const
+
+  TERRAIN_GROUPS: array [TTerrainType] of TTerrainGroup = (
+   TTerrainGroup.DIRT,
+   TTerrainGroup.SAND,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.NORMAL,
+   TTerrainGroup.WATER,
+   TTerrainGroup.ROCK);
+
 type
 
   { TWeightedRule }
@@ -70,7 +85,7 @@ type
     function IsSand: boolean; inline;
     function IsTrans: boolean; inline;
     function IsAny: boolean; inline;
-
+    function IsNative: boolean; inline;
     function Clone: TWeightedRule;
   end;
 
@@ -150,15 +165,20 @@ type
     FMappings: TMappings;
     FMaxPoints: integer;
     FRotationTypesCount: Integer;
+
+
+
     function GetRData(idx: Integer): TRules;
     procedure SetID(AValue: string);
     procedure SetMinPoints(AValue: integer);
     procedure SetDiffImages(AValue: Boolean);
     procedure SetMaxPoints(AValue: integer);
     procedure SetRotationTypesCount(AValue: Integer);
-    procedure SwapRules(idx1,idx2: Integer);
+
 
     procedure FillFrom(ATemplate: TPatternTemplate);
+  private
+    FFlipped: array[1..3] of TPattern;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -167,6 +187,8 @@ type
     constructor Create(ATemplate: TPatternTemplate);
 
     destructor Destroy; override;
+
+    procedure SwapRules(idx1,idx2: Integer);
 
     property RData[idx:Integer]: TRules read GetRData;
 
@@ -197,6 +219,9 @@ type
 
     FFreeList: TFPObjectList;
 
+    procedure FlipPattern(APattern: TPattern; flip:Integer);
+    procedure PreparePattern(APattern: TPattern);
+
     procedure ConvertTerrainTypes;
     procedure ConvertTerrainViews;
 
@@ -210,7 +235,7 @@ type
     //function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
 
     //function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
-    //function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
+    function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
 
     function GetTerrainViewPatternsForGroup(AGroup: TTerrainGroup): TPatternsVector;
 
@@ -473,6 +498,11 @@ begin
   Result := name = RULE_ANY;
 end;
 
+function TWeightedRule.IsNative: boolean;
+begin
+  Result := name = RULE_NATIVE;
+end;
+
 function TWeightedRule.IsDirt: boolean;
 begin
   Result := name = RULE_DIRT;
@@ -489,7 +519,8 @@ begin
     or (name = RULE_DIRT)
     or (name = RULE_NATIVE)
     or (name = RULE_SAND)
-    or (name = RULE_TRANSITION);
+    or (name = RULE_TRANSITION)
+    or (name = RULE_NATIVE_STRONG);
 end;
 
 function TWeightedRule.IsTrans: boolean;
@@ -505,6 +536,43 @@ begin
   ConvertTerrainViews();
 end;
 
+procedure TTerrainPatternConfig.FlipPattern(APattern: TPattern; flip: Integer);
+var
+  i: Integer;
+  y: Integer;
+
+begin
+
+  for i := 0 to 3 - 1 do
+  begin
+    y := i*3;
+    APattern.SwapRules(Y+2,Y);
+  end;
+
+
+  if flip = FLIP_PATTERN_VERTICAL then
+  begin
+    for i := 0 to 3 - 1 do
+    begin
+      APattern.SwapRules(i,i+6);
+    end;
+  end;
+end;
+
+procedure TTerrainPatternConfig.PreparePattern(APattern: TPattern);
+var
+  flipped:TPattern;
+  flip: Integer;
+begin
+  for flip := 1 to 4 - 1 do
+  begin
+    flipped := TPattern.Create();
+    APattern.AssignTo(flipped);
+    FlipPattern(flipped,flip);
+    APattern.FFlipped[flip] := flipped;
+  end;
+end;
+
 procedure TTerrainPatternConfig.ConvertTerrainTypes;
 var
   pattern: TPattern;
@@ -516,6 +584,8 @@ begin
   begin
     template := FTerrainType[i];
     pattern := TPattern.Create(template);
+
+    PreparePattern(pattern);
 
     FTypeMap.Add(pattern.Id,pattern);
     FFreeList.Add(pattern);
@@ -584,7 +654,7 @@ begin
           end;
           pattern.Mappings.PushBack(m);
         end;
-
+        PreparePattern(pattern);
         FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].DisplayName)].Add(pattern);
       end;
     end;
@@ -645,34 +715,19 @@ end;
 //  raise Exception.Create('Terrain config error. Pattern '+AId+' not found');
 //end;
 
-//function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
-//  flip: Integer): TPattern;
-//var
-//  i: Integer;
-//  y: Integer;
-//
-//begin
-//
-//  Result := TPattern.Create(nil);
-//  Result.Assign(APattern);
-//
-//  if flip in [FLIP_PATTERN_HORIZONTAL,FLIP_PATTERN_BOTH] then
-//  begin
-//    for i := 0 to 3 - 1 do
-//    begin
-//      y := i*3;
-//      Result.SwapRules(Y+2,Y);
-//    end;
-//  end;
-//
-//  if flip in [FLIP_PATTERN_VERTICAL,FLIP_PATTERN_BOTH] then
-//  begin
-//    for i := 0 to 3 - 1 do
-//    begin
-//      Result.SwapRules(i,i+6);
-//    end;
-//  end;
-//end;
+function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
+  flip: Integer): TPattern;
+begin
+  if flip = 0 then
+  begin
+    Exit(APattern);
+  end
+  else begin
+    Assert(flip > 0);
+    Assert(flip < 4);
+    Exit(APattern.FFlipped[flip]);
+  end;
+end;
 
 function TTerrainPatternConfig.GetTerrainViewPatternsForGroup(
   AGroup: TTerrainGroup): TPatternsVector;
@@ -769,6 +824,8 @@ begin
   FDiffImages:=false;
 
   FMappings := TMappings.Create;
+
+
 end;
 
 constructor TPattern.Create(ATemplate: TPatternTemplate);
@@ -788,6 +845,10 @@ begin
     FData[i].Free;
   end;
 
+  for i := Low(FFlipped) to High(FFlipped) do
+  begin
+     FFlipped[i].Free;
+  end;
 
   inherited Destroy;
 end;
