@@ -25,7 +25,8 @@ unit map_actions;
 interface
 
 uses
-  Classes, SysUtils, Math, Map, gvector, gset, undo_map, editor_types, terrain;
+  Classes, SysUtils, Math, fgl, Map, gvector, gset, undo_map, editor_types,
+  terrain;
 
 type
 
@@ -733,8 +734,92 @@ begin
 end;
 
 procedure TEditTerrain.UpdateTerrainViews;
+var
+  it: TTileSet.TIterator;
+  groupPatterns: TPatternsVector;
+  info: TTileInfo;
+  BestPattern: Integer;
+  vr: TValidationResult;
+  pattern: TPattern;
+  Mapping: TMapping;
+  k: Integer;
+  FramesPerRotation: Integer;
+  Flip: Integer;
+  oqIt:  TTileSet.TIterator;
+  FirstFrame, x, y: Integer;
 begin
+  it  := FInvalidated.Min;
 
+  if Assigned(it) then
+  begin
+    repeat
+      x := it.data.x;
+      y := it.data.y;
+      info := GetTinfo(x,y);
+      groupPatterns := fmap.TerrainManager.PatternConfig.GetTerrainViewPatternsForGroup(TERRAIN_GROUPS[info.TerType]);
+
+      BestPattern := -1;
+      vr.result:=false;
+      vr.flip:=0;
+
+      for k := 0 to groupPatterns.Count - 1 do
+      begin
+        pattern := groupPatterns[k];
+
+        vr := ValidateTerrainView(info, pattern);
+        if vr.result then
+        begin
+          BestPattern := k;
+          Break;
+        end;
+      end;
+
+      if BestPattern = -1 then
+      begin
+        //raise Exception.Create('No pattern found');
+        Continue;
+      end;
+
+      pattern := groupPatterns[BestPattern];
+
+      if vr.transitionReplacement = '' then
+      begin
+        Mapping := pattern.Mappings[0];
+      end
+      else begin
+         if vr.transitionReplacement = RULE_DIRT then
+           Mapping := pattern.Mappings[0]
+         else
+            Mapping := pattern.Mappings[1];
+      end;
+
+      if not pattern.DiffImages then
+      begin
+        info.TerSubtype:=system.Random(Mapping.Upper-Mapping.Lower)+Mapping.Lower;
+        info.mir:=vr.flip;
+      end
+      else begin
+
+        FramesPerRotation := (Mapping.Upper-Mapping.Lower+1) div pattern.RotationTypesCount;
+
+        Flip := ifthen((pattern.rotationTypesCount = 2) and (vr.flip = 2),1, vr.flip);
+        FirstFrame := Mapping.Lower + Flip*FramesPerRotation;
+
+        info.TerSubtype:= FirstFrame + system.Random(FramesPerRotation-1);
+        info.mir:=0;
+      end;
+
+      oqIt := FOutQueue.Find(info);
+
+      if Assigned(oqIt) then
+      begin
+        FOutQueue.Delete(info); //it was queued with old values
+      end;
+
+      FOutQueue.Insert(info);
+
+    until not it.next;
+  end;
 end;
 
 procedure TEditTerrain.Undo;
