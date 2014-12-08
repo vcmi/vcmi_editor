@@ -30,8 +30,6 @@ uses
   filesystem_base, editor_classes;
 
 const
-  FLIP_MODE_SAME_IMAGE = 'sameImage';
-  FLIP_MODE_DIFF_IMAGES = 'diffImages';
 
   RULE_DIRT = 'D';
   RULE_SAND = 'S';
@@ -542,15 +540,17 @@ var
   y: Integer;
 
 begin
+  Assert(flip > 0);
+  Assert(flip <= 3);
+  if flip in [FLIP_PATTERN_HORIZONTAL, FLIP_PATTERN_BOTH] then
+    for i := 0 to 3 - 1 do
+    begin
+      y := i*3;
+      APattern.SwapRules(Y+2,Y);
+    end;
 
-  for i := 0 to 3 - 1 do
-  begin
-    y := i*3;
-    APattern.SwapRules(Y+2,Y);
-  end;
 
-
-  if flip = FLIP_PATTERN_VERTICAL then
+  if flip in [FLIP_PATTERN_VERTICAL, FLIP_PATTERN_BOTH] then
   begin
     for i := 0 to 3 - 1 do
     begin
