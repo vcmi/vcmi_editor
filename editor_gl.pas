@@ -34,7 +34,7 @@ type
 
 const
   VERTEX_DEFAULT_SHADER =
-  '#version 150'#13#10+
+  '#version 330'#13#10+
   'uniform mat4 viewMatrix, projMatrix;'#13#10+
   'in ivec2 coords;'+
   'void main(){'+
@@ -49,7 +49,7 @@ const
   '}';
 
   FRAGMENT_PALETTE_SHADER =
-  '#version 150'#13#10 +
+  '#version 330'#13#10 +
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
   'layout (origin_upper_left) in vec4 gl_FragCoord;'+
@@ -60,7 +60,7 @@ const
 
 
   FRAGMENT_PALETTE_FLAG_SHADER =
-  '#version 150'#13#10 +
+  '#version 330'#13#10 +
   'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
