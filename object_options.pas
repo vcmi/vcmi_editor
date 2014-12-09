@@ -364,7 +364,6 @@ type
     procedure SetMaxLevel(AValue: UInt8);
     procedure SetMinLevel(AValue: UInt8);
   public
-
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;

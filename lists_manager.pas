@@ -485,7 +485,7 @@ begin
     info.SpellType := sp_type;
     info.Nid := nid;
 
-    FNameMap.Insert(info.ID,nid);
+    FNameMap.Insert('spell.'+info.ID,nid);
 
     FSpellInfos.Add(info);
     FSpellMap.AddObject(info.ID,info);

@@ -1548,24 +1548,12 @@ begin
   cx := FMouseTileX * TILE_SIZE;
   cy := FMouseTileY * TILE_SIZE;
 
+
+
   if FHightLightTile and (FTerrainBrushMode = TBrushMode.fixed) then
   begin
-    glPushAttrib(GL_CURRENT_BIT);
-    glLineWidth(1);
-    glBegin(GL_LINE_LOOP);
-
-      glColor4ub(200, 200, 200, 255);
-      dim := TILE_SIZE * FTerrainBrushSize;
-
-      glVertex2i(cx, cy);
-      glVertex2i(cx + dim, cy);
-
-      glVertex2i(cx + dim, cy + dim);
-      glVertex2i(cx, cy + dim);
-
-
-    glEnd();
-    glPopAttrib();
+    dim := TILE_SIZE * FTerrainBrushSize;
+    editor_gl.RenderRect(cx,cy,dim,dim);
   end;
 
 end;

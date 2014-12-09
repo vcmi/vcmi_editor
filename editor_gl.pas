@@ -321,7 +321,6 @@ end;
 procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 begin
 
-
   glLineWidth(1);
   glPushAttrib(GL_CURRENT_BIT);
   glBegin(GL_LINE_LOOP);
