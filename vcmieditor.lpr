@@ -27,7 +27,7 @@ uses
   {$ENDIF}{$ENDIF}
   sysutils,
   Interfaces, // this includes the LCL widgetset
-  Forms, csvdocument_package, lazopenglcontext, main, lod, editor_graphics, Map,
+  Forms, main, lod, editor_graphics, Map,
   editor_types, terrain, undo_base, undo_map, map_actions, zlib_stream, objects,
   new_map, minimap, filesystem_base, filesystem, vcmi_json, editor_utils,
   map_format, map_format_h3m, stream_adapter, editor_str_consts,
