@@ -157,7 +157,7 @@ type
     DefaultProjMatrixUniform: GLuint;
     DefaultCoordsAttrib: GLuint;
 
-    CoordsBuffer: GLuint;
+    CoordsBuffer, CoordsArray: GLuint;
   public
     destructor Destroy; override;
     procedure Init;
@@ -361,6 +361,8 @@ var
   position_attrib_index: integer;
 
   vertex_data: packed array[1..8] of GLdouble;
+const
+  index_data: packed array[1..4] of GLUint = (0,sizeof(GLdouble),sizeof(GLdouble)*2,sizeof(GLdouble)*3);
 begin
   ShaderContext.SetFragmentColor(RECT_COLOR);
   glLineWidth(1);
@@ -393,11 +395,19 @@ begin
   vertex_data[7] := x;
   vertex_data[8] := y + dimy;
 
+
+  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLdouble)*8,@vertex_data,GL_STREAM_DRAW);
+
   glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
-  glVertexAttribIPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_INT,0,nil);
-  glDrawElements(GL_LINE_LOOP,4,GL_DOUBLE,@(vertex_data));
+
+  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_DOUBLE, GL_TRUE, 0,nil);
+
+  glDrawArrays(GL_LINE_LOOP,0,4);
+
   glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -532,10 +542,14 @@ begin
   DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
   DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
 
-  glGenBuffers(1,@CoordsBuffer);
-
-
   CheckGLErrors('compiling default vertex shader1');
+
+  glGenVertexArrays(1,@CoordsArray);
+  glGenBuffers(1,@CoordsBuffer);
+  //glBindBuffer(GL_ARRAY_BUFFER,CoordsBuffer);
+  glBindVertexArray(ShaderContext.CoordsArray);
+
+  CheckGLErrors('VBO');
 end;
 
 procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
@@ -553,15 +567,19 @@ begin
   if FCurrentProgram = DefaultProgram then
   begin
     glUniform4f(DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
-  end;
+  end
+  else
+    Assert(false);
 end;
 
 procedure TShaderContext.SetProjection(constref AMatrix: Tmatrix4_double);
 begin
   if FCurrentProgram = DefaultProgram then
   begin
-    glUniformMatrix4fv(DefaultProjMatrixUniform,1,GL_FALSE,@AMatrix.data);
-  end;
+    glUniformMatrix4fv(DefaultProjMatrixUniform,1,GL_TRUE,@AMatrix.data);
+  end
+  else
+    Assert(false);
 end;
 
 procedure TShaderContext.SetOrtho(left, right, bottom, top: GLdouble);
