@@ -360,31 +360,10 @@ const
 var
   position_attrib_index: integer;
 
-  vertex_data: packed array[1..8] of GLdouble;
-const
-  index_data: packed array[1..4] of GLUint = (0,sizeof(GLdouble),sizeof(GLdouble)*2,sizeof(GLdouble)*3);
+  vertex_data: packed array[1..8] of GLfloat;
 begin
   ShaderContext.SetFragmentColor(RECT_COLOR);
-  glLineWidth(1);
-  //glPushAttrib(GL_CURRENT_BIT);
-  //glBegin(GL_LINE_LOOP);
-  //
-  //  //glColor4ub(200, 200, 200, 255);
-  //
-  //
-  //
-  //  glVertex2i(x, y);
-  //  glVertex2i(x + dimx, y);
-  //
-  //  glVertex2i(x + dimx, y + dimy);
-  //  glVertex2i(x, y + dimy);
-  //
-  //
-  //  glEnd();
-  //glPopAttrib();
-
-
-  //exit();
+//  glLineWidth(1);
 
   vertex_data[1] := x;
   vertex_data[2] := y;
@@ -396,11 +375,11 @@ begin
   vertex_data[8] := y + dimy;
 
   glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLdouble)*8,@vertex_data,GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
 
   glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
-  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_DOUBLE, GL_FALSE, 0,nil);
+  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
   glDrawArrays(GL_LINE_LOOP,0,4);
 
