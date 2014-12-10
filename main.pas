@@ -1200,6 +1200,8 @@ begin
     TILE_SIZE * FMapVPos,
     0, 1);
 
+
+
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   //glTranslatef(0.375, 0.375, 0);   //???
@@ -1238,6 +1240,11 @@ begin
   //todo: render passability
 
   ShaderContext.UseNoPaletteShader();
+
+  ShaderContext.SetOrtho(TILE_SIZE * FMapHPos,
+    MapView.Width + TILE_SIZE * FMapHPos,
+    MapView.Height + TILE_SIZE * FMapVPos,
+    TILE_SIZE * FMapVPos);
 
   if Assigned(FSelectedObject) then
   begin
@@ -1542,20 +1549,16 @@ end;
 procedure TfMain.RenderCursor;
 var
   dim: Integer;
-
   cx,cy: Integer;
 begin
   cx := FMouseTileX * TILE_SIZE;
   cy := FMouseTileY * TILE_SIZE;
-
-
 
   if FHightLightTile and (FTerrainBrushMode = TBrushMode.fixed) then
   begin
     dim := TILE_SIZE * FTerrainBrushSize;
     editor_gl.RenderRect(cx,cy,dim,dim);
   end;
-
 end;
 
 procedure TfMain.SaveMap(AFileName: string);

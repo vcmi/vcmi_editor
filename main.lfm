@@ -4,7 +4,7 @@ object fMain: TfMain
   Top = 146
   Width = 822
   Caption = 'VCMI editor'
-  ClientHeight = 556
+  ClientHeight = 555
   ClientWidth = 822
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
@@ -1018,23 +1018,23 @@ object fMain: TfMain
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   Position = poDefault
-  LCLVersion = '1.0.9.0'
+  LCLVersion = '1.2.7.0'
   object pnMap: TPanel
     Left = 0
-    Height = 488
+    Height = 484
     Top = 48
     Width = 618
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 488
+    ClientHeight = 484
     ClientWidth = 618
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 454
+      Height = 450
       Top = 18
       Width = 584
       Align = alClient
@@ -1055,7 +1055,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 472
+      Top = 468
       Width = 582
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1067,7 +1067,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 602
-      Height = 454
+      Height = 450
       Top = 18
       Width = 16
       Align = alRight
@@ -1079,17 +1079,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 454
+      Height = 450
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 454
+      ClientHeight = 450
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 454
+        Height = 450
         Top = 0
         Width = 18
         Align = alClient
@@ -1121,12 +1121,12 @@ object fMain: TfMain
   end
   object Panel3: TPanel
     Left = 618
-    Height = 488
+    Height = 484
     Top = 48
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 488
+    ClientHeight = 484
     ClientWidth = 204
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1151,7 +1151,7 @@ object fMain: TfMain
     end
     object pcToolBox: TPageControl
       Left = 0
-      Height = 284
+      Height = 280
       Top = 204
       Width = 204
       TabStop = False
@@ -1178,7 +1178,6 @@ object fMain: TfMain
           Top = 384
           Width = 47
           Caption = 'Подзем.'
-          NumGlyphs = 0
         end
         object GroupBox1: TGroupBox
           Left = 2
@@ -1197,7 +1196,6 @@ object fMain: TfMain
             Caption = 'Грязь'
             Down = True
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnDirtClick
           end
           object btnSand: TSpeedButton
@@ -1208,7 +1206,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Песок'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnSandClick
           end
           object btnGrass: TSpeedButton
@@ -1219,7 +1216,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Трава'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnGrassClick
           end
           object btnSnow: TSpeedButton
@@ -1229,7 +1225,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Снег'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnSnowClick
           end
           object btnSwamp: TSpeedButton
@@ -1240,7 +1235,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Болото'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnSwampClick
           end
           object btnRough: TSpeedButton
@@ -1251,7 +1245,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Камни'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnRoughClick
           end
           object btnSub: TSpeedButton
@@ -1261,7 +1254,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Подзем.'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnSubClick
           end
           object btnLava: TSpeedButton
@@ -1272,7 +1264,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Лава'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnLavaClick
           end
           object btnWater: TSpeedButton
@@ -1283,7 +1274,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Вода'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnWaterClick
           end
           object btnRock: TSpeedButton
@@ -1293,7 +1283,6 @@ object fMain: TfMain
             Width = 55
             Caption = 'Скала'
             GroupIndex = 2
-            NumGlyphs = 0
             OnClick = btnRockClick
           end
         end
@@ -1305,7 +1294,6 @@ object fMain: TfMain
           Caption = '1'
           Down = True
           GroupIndex = 1
-          NumGlyphs = 0
           OnClick = btnBrush1Click
         end
         object btnBrush2: TSpeedButton
@@ -1315,7 +1303,6 @@ object fMain: TfMain
           Width = 23
           Caption = '2'
           GroupIndex = 1
-          NumGlyphs = 0
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
@@ -1325,7 +1312,6 @@ object fMain: TfMain
           Width = 23
           Caption = '4'
           GroupIndex = 1
-          NumGlyphs = 0
           OnClick = btnBrush4Click
         end
         object btnBrushFill: TSpeedButton
@@ -1335,7 +1321,6 @@ object fMain: TfMain
           Width = 23
           Caption = '∞'
           GroupIndex = 1
-          NumGlyphs = 0
           OnClick = btnBrushFillClick
         end
         object btnBrushArea: TSpeedButton
@@ -1347,17 +1332,16 @@ object fMain: TfMain
           Font.Height = -16
           Font.Style = [fsBold]
           GroupIndex = 1
-          NumGlyphs = 0
           OnClick = btnBrushAreaClick
           ParentFont = False
         end
       end
       object tsObjects: TTabSheet
-        ClientHeight = 276
+        ClientHeight = 272
         ClientWidth = 196
         object sbObjects: TScrollBar
           Left = 180
-          Height = 276
+          Height = 272
           Top = 0
           Width = 16
           Align = alRight
@@ -1369,7 +1353,7 @@ object fMain: TfMain
         end
         object ObjectsView: TOpenGLControl
           Left = 0
-          Height = 276
+          Height = 272
           Top = 0
           Width = 180
           Align = alClient
@@ -1456,56 +1440,56 @@ object fMain: TfMain
       Action = actTerrain
     end
     object ToolButton9: TToolButton
-      Left = 129
+      Left = 135
       Top = 2
       Action = actObjects
     end
     object tbSelectPlayer: TToolButton
-      Left = 317
+      Left = 337
       Top = 2
       Caption = 'Player'
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
     object ToolButton11: TToolButton
-      Left = 367
+      Left = 389
       Top = 2
       Width = 5
       Caption = 'ToolButton11'
       Style = tbsDivider
     end
     object ToolButton12: TToolButton
-      Left = 372
+      Left = 394
       Top = 2
       Action = actUnderground
     end
     object ToolButton13: TToolButton
-      Left = 174
+      Left = 183
       Top = 2
       Action = actHeroes
     end
     object ToolButton14: TToolButton
-      Left = 216
+      Left = 228
       Top = 2
       Action = actMonsters
     end
     object ToolButton15: TToolButton
-      Left = 268
+      Left = 285
       Top = 2
       Action = actArtifacts
     end
     object ToolButton16: TToolButton
-      Left = 43
+      Left = 46
       Top = 2
       Action = actRoads
     end
     object ToolButton17: TToolButton
-      Left = 81
+      Left = 86
       Top = 2
       Action = actRivers
     end
     object ToolButton10: TToolButton
-      Left = 119
+      Left = 125
       Top = 2
       Width = 10
       Caption = 'ToolButton10'
@@ -1514,8 +1498,8 @@ object fMain: TfMain
   end
   object StatusBar: TStatusBar
     Left = 0
-    Height = 20
-    Top = 536
+    Height = 23
+    Top = 532
     Width = 822
     Panels = <>
     SimplePanel = False

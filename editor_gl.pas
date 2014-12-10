@@ -25,7 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, GL, glext40, LazLoggerBase;
+  Classes, SysUtils, math, matrix, GL, glext40, LazLoggerBase;
 
 type
   TRBGAColor = packed record   //todo: optimise
@@ -34,33 +34,64 @@ type
 
 const
   VERTEX_DEFAULT_SHADER =
-  '#version 330'#13#10+
-  'uniform mat4 viewMatrix, projMatrix;'#13#10+
-  'in ivec2 coords;'+
+  '#version 330 core'#13#10+
+  'uniform mat4 projMatrix;'#13#10+
+  'in vec2 coords;'#13#10+
+  'in vec2 uv;'#13#10+
+  'out vec2 UV;'#13#10+
   'void main(){'+
-
-  	'gl_Position = projMatrix * viewMatrix * vec4(coords,0,0);'#13#10+
+  	'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
   '}';
 
   FRAGMENT_DEFAULT_SHADER =
-  '#version 120'#13#10+
-  'void main(){'+
-      'gl_FragColor = gl_Color;'+
-  '}';
-
-  FRAGMENT_PALETTE_SHADER =
-  '#version 330'#13#10 +
+  '#version 330 core'#13#10+
+  'const vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
+  'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
-  'layout (origin_upper_left) in vec4 gl_FragCoord;'+
+  'uniform bool useTexture = false;'+
+  'uniform bool usePalette = false;'+
+  'uniform bool useFlag = false;'+
+  'uniform vec4 flagColor;'+
+  'uniform vec4 fragmentColor;'#13#10+
+  'in vec2 UV;'#13#10+
+  'out vec4 outColor;'#13#10+
+
+  'vec4 applyTexture(vec4 inColor)'+
+  '{'+
+      'if(useTexture)'+
+      '{'+
+         'if(usePalette)'+
+          '{'+
+              'return texelFetch(palette, int(texelFetch(bitmap, ivec2(UV)).r), 0);'+
+          '}'+
+          'else'+
+          '{' +
+              'return texture2DRect(bitmap,UV);'+ //???
+          '}'+
+      '}'+
+       'return inColor;'+
+  '}'+
+
+  'vec4 applyFlag(vec4 inColor)' +
+  '{'+
+     'if(useFlag)'+
+     '{'+
+        'if(all(greaterThanEqual(inColor,maskColor-eps)) && all(lessThanEqual(inColor,maskColor+eps)))'+
+        '  return flagColor;'+
+     '}'+
+     'return inColor;'+
+  '}'+
 
   'void main(){'+
-    'gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_TexCoord[0].xy)).r), 0);'+
+      'outColor = applyTexture(fragmentColor);'+
+      'outColor = applyFlag(outColor);'+
   '}';
+
 
 
   FRAGMENT_PALETTE_FLAG_SHADER =
-  '#version 330'#13#10 +
+  '#version 330 core'#13#10 +
   'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
@@ -74,23 +105,6 @@ const
     '  gl_FragColor = flagColor;'+
   '}';
 
-
-
-
-   FRAGMENT_FLAG_SHADER =
-
-   '#version 120'#13#10 +
-   'uniform vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
-   'uniform sampler2DRect bitmap;'+
-   'uniform vec4 flagColor;'+
-
-   'void main(){'+
-     'vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
-     'vec4 texel = texture2DRect(bitmap,gl_TexCoord[0].xy);'+
-     'if(all(greaterThanEqual(texel,maskColor-eps)) && all(lessThanEqual(texel,maskColor+eps)))'+
-     '  texel = flagColor;'+
-     'gl_FragColor = texel;'+
-  '}';
 
 type
 
@@ -107,6 +121,21 @@ type
     Y: Int32;
   end;
 
+  TShaderProgram = class
+  public
+
+  end;
+
+  TFragmentShaderProgram = class(TShaderProgram)
+
+  end;
+
+  TVertexShaderProgram = class(TShaderProgram)
+
+  end;
+
+
+
   { TShaderContext }
 
   TShaderContext = class
@@ -120,11 +149,15 @@ type
 
     PaletteProgram: GLuint;
 
-    FlagProgram: GLuint;
-    FlagFlagColorUniform: GLuint;
-    FlagBitmapUniform: GLUint;
+    DefaultProgram: GLuint;
+    DefaultFragmentColorUniform: GLuint;
 
-    DefaultProgarm: GLuint;
+
+
+    DefaultProjMatrixUniform: GLuint;
+    DefaultCoordsAttrib: GLuint;
+
+    CoordsBuffer: GLuint;
   public
     destructor Destroy; override;
     procedure Init;
@@ -134,6 +167,9 @@ type
     //procedure UseFlagShader();
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
+    procedure SetFragmentColor(AColor: TRBGAColor);
+    procedure SetProjection(constref AMatrix: Tmatrix4_double);
+    procedure SetOrtho(left, right, bottom, top: GLdouble);
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -149,7 +185,7 @@ procedure RenderRect(x,y: Integer; dimx,dimy:integer);
 
 procedure CheckGLErrors(Stage: string);
 
-function MakeShaderProgram(const AShaderSource: AnsiString):GLuint;
+function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSource: AnsiString):GLuint;
 
 var
   ShaderContext: TShaderContext;
@@ -319,25 +355,49 @@ begin
 end;
 
 procedure RenderRect(x, y: Integer; dimx, dimy: integer);
+const
+  RECT_COLOR: TRBGAColor = (r:200; g:200; b:200; a:255);
+var
+  position_attrib_index: integer;
+
+  vertex_data: packed array[1..8] of GLdouble;
 begin
-
+  ShaderContext.SetFragmentColor(RECT_COLOR);
   glLineWidth(1);
-  glPushAttrib(GL_CURRENT_BIT);
-  glBegin(GL_LINE_LOOP);
+  //glPushAttrib(GL_CURRENT_BIT);
+  //glBegin(GL_LINE_LOOP);
+  //
+  //  //glColor4ub(200, 200, 200, 255);
+  //
+  //
+  //
+  //  glVertex2i(x, y);
+  //  glVertex2i(x + dimx, y);
+  //
+  //  glVertex2i(x + dimx, y + dimy);
+  //  glVertex2i(x, y + dimy);
+  //
+  //
+  //  glEnd();
+  //glPopAttrib();
 
-    glColor4ub(200, 200, 200, 255);
 
+  //exit();
 
+  vertex_data[1] := x;
+  vertex_data[2] := y;
+  vertex_data[3] := x + dimx;
+  vertex_data[4] := y;
+  vertex_data[5] := x + dimx;
+  vertex_data[6] := y + dimy;
+  vertex_data[7] := x;
+  vertex_data[8] := y + dimy;
 
-    glVertex2i(x, y);
-    glVertex2i(x + dimx, y);
+  glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
+  glVertexAttribIPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_INT,0,nil);
+  glDrawElements(GL_LINE_LOOP,4,GL_DOUBLE,@(vertex_data));
+  glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
-    glVertex2i(x + dimx, y + dimy);
-    glVertex2i(x, y + dimy);
-
-
-    glEnd();
-  glPopAttrib();
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -358,24 +418,24 @@ begin
 
 end;
 
-function MakeShaderProgram(const AShaderSource: AnsiString): GLuint;
+function MakeShader(const ShaderSource: AnsiString; ShaderType: GLenum): GLuint;
 var
-  shader_object, program_object: GLuint;
-  status: GLint;
+  shader_object: GLuint;
+  status: Integer;
   info_log_len: GLint;
 
   info_log: string;
 begin
   Result := 0;
-  shader_object := glCreateShader(GL_FRAGMENT_SHADER);
+  shader_object := glCreateShader(ShaderType);
 
   if shader_object = 0 then
   begin
-    CheckGLErrors('MakeShaderProgram');
+    CheckGLErrors('MakeShader');
     Exit;
   end;
 
-  glShaderSource(shader_object,1,@(AShaderSource),nil);
+  glShaderSource(shader_object,1,@(ShaderSource),nil);
   glCompileShader(shader_object);
   status := GL_FALSE;
   glGetShaderiv(shader_object,GL_COMPILE_STATUS,@status);
@@ -388,23 +448,57 @@ begin
 
     DebugLn('Shader compile log:');
     DebugLn(info_log);
-  end
-  else
-  begin
-    program_object := glCreateProgram();
-    glAttachShader(program_object, shader_object);
-
-    glLinkProgram(program_object);
-    status := GL_FALSE;
-    glGetProgramiv(program_object, GL_LINK_STATUS, @status);
-
-    //todo: print log
-
-    if (status = GL_TRUE) then
-      Result := program_object;
+    exit;
   end;
 
-  glDeleteShader(shader_object); //always mark shader for deletion
+  Result := shader_object;
+
+end;
+
+function MakeShaderProgram(const AVertexSource: AnsiString;
+  const AFragmentSource: AnsiString): GLuint;
+var
+  vertex_shader, fragment_shader: GLuint;
+  status: GLint;
+  program_object: GLuint;
+  doVertex: Boolean;
+  doFragment: Boolean;
+begin
+  Result := 0;
+  vertex_shader := 0;
+  fragment_shader := 0;
+
+  doVertex := AVertexSource <> '';
+  doFragment := AFragmentSource <> '';
+
+  program_object := glCreateProgram();
+
+  if doVertex then
+  begin
+    vertex_shader := MakeShader(AVertexSource, GL_VERTEX_SHADER);
+    if vertex_shader = 0 then Exit;
+    glAttachShader(program_object, vertex_shader);
+  end;
+
+  if doFragment then
+  begin
+    fragment_shader := MakeShader(AFragmentSource, GL_FRAGMENT_SHADER);
+    if fragment_shader = 0 then Exit;
+    glAttachShader(program_object, fragment_shader);
+  end;
+
+  glLinkProgram(program_object);
+  status := GL_FALSE;
+  glGetProgramiv(program_object, GL_LINK_STATUS, @status);
+
+  //todo: print log
+
+  if (status = GL_TRUE) then
+    Result := program_object;
+
+
+  if doVertex then glDeleteShader(vertex_shader); //always mark shader for deletion
+  if doFragment then glDeleteShader(fragment_shader);
 end;
 
 { TShaderContext }
@@ -419,7 +513,7 @@ end;
 
 procedure TShaderContext.Init;
 begin
-  PaletteFlagProgram := MakeShaderProgram(FRAGMENT_PALETTE_FLAG_SHADER);
+  PaletteFlagProgram := MakeShaderProgram('',FRAGMENT_PALETTE_FLAG_SHADER);
   CheckGLErrors('compiling palette shader');
   if PaletteFlagProgram = 0 then
     raise Exception.Create('Error compiling palette shader');
@@ -428,16 +522,20 @@ begin
   PalettePaletteUniform := glGetUniformLocation(PaletteFlagProgram, PChar('palette'));
   PaletteFlagColorUniform := glGetUniformLocation(PaletteFlagProgram, PChar('flagColor'));
 
-  FlagProgram := MakeShaderProgram(FRAGMENT_FLAG_SHADER);
-  if FlagProgram = 0 then
-    raise Exception.Create('Error compiling flag shader');
-
-  FlagFlagColorUniform := glGetUniformLocation(FlagProgram, PChar('flagColor'));
-  FlagBitmapUniform := glGetUniformLocation(FlagProgram, PChar('bitmap'));
-
-  DefaultProgarm := MakeShaderProgram(FRAGMENT_DEFAULT_SHADER);
-  if DefaultProgarm = 0 then
+  DefaultProgram := MakeShaderProgram(VERTEX_DEFAULT_SHADER, FRAGMENT_DEFAULT_SHADER);
+  if DefaultProgram = 0 then
     raise Exception.Create('Error compiling default shader');
+
+  DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram, PChar('fragmentColor'));
+
+
+  DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
+  DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
+
+  glGenBuffers(1,@CoordsBuffer);
+
+
+  CheckGLErrors('compiling default vertex shader1');
 end;
 
 procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
@@ -446,11 +544,40 @@ begin
   if FCurrentProgram = PaletteFlagProgram then
   begin
     glUniform4f(PaletteFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
-  end
-  else if FCurrentProgram = FlagProgram then begin
-    glUniform4f(FlagFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
   end;
 
+end;
+
+procedure TShaderContext.SetFragmentColor(AColor: TRBGAColor);
+begin
+  if FCurrentProgram = DefaultProgram then
+  begin
+    glUniform4f(DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
+  end;
+end;
+
+procedure TShaderContext.SetProjection(constref AMatrix: Tmatrix4_double);
+begin
+  if FCurrentProgram = DefaultProgram then
+  begin
+    glUniformMatrix4fv(DefaultProjMatrixUniform,1,GL_FALSE,@AMatrix.data);
+  end;
+end;
+
+procedure TShaderContext.SetOrtho(left, right, bottom, top: GLdouble);
+var
+  M:Tmatrix4_double;
+begin
+  m.init_identity;
+  m.data[0,0] := 2 /(right - left);
+  m.data[1,1] := 2 /(top - bottom);
+  m.data[2,2] := -2;
+
+  m.data[0,3] := -(right+left)/(right-left);
+  m.data[1,3] := - (top + bottom)/(top - bottom);
+  m.data[2,3] := - 1;
+
+  SetProjection(m);
 end;
 
 //procedure TShaderContext.UseFlagShader;
@@ -462,8 +589,9 @@ end;
 
 procedure TShaderContext.UseNoPaletteShader;
 begin
-  FCurrentProgram := DefaultProgarm;
-  glUseProgram(DefaultProgarm);
+  FCurrentProgram := DefaultProgram;
+  glUseProgram(DefaultProgram);
+
 end;
 
 procedure TShaderContext.UsePaletteFlagShader;
