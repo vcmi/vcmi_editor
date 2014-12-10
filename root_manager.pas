@@ -102,7 +102,7 @@ begin
     raise Exception.Create('Unable to switch GL context');
   end;
 
-  if not Load_GL_VERSION_3_3() or not Load_GL_VERSION_2_1_DEPRECATED() then
+  if not Load_GL_VERSION_3_3() {or not Load_GL_VERSION_2_1_DEPRECATED()} then
   begin
     Application.Terminate;
     raise Exception.Create('Error initializing OpenGL');

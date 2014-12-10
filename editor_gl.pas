@@ -126,7 +126,12 @@ type
 
   TShaderContext = class
   private
+    const
+       DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);
+  private
     FCurrentProgram: GLuint;
+
+
   private
     PaletteFlagProgram: GLint;
     PalettePaletteUniform: GLint;
@@ -341,14 +346,16 @@ begin
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
 
+
+
    // glBindVertexArray(ShaderContext.CoordsArray);
     glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
     glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
     glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
     glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uv_data),@uv_data,GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(uv_data),@uv_data);
     glEnableVertexAttribArray(ShaderContext.UVAttrib);
     glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
@@ -445,7 +452,7 @@ begin
 
 
   glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
+  glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
 
   glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
@@ -607,15 +614,25 @@ begin
   glGenBuffers(1,@CoordsBuffer);
   glGenBuffers(1,@UVBuffer);
  // glBindVertexArray(CoordsArray);
+
+  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
+
   CheckGLErrors('VBO');
+
+  //glUseProgram(DefaultProgram);
+  //FCurrentProgram:=DefaultProgram;
 end;
 
 procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
 
 begin
-  if FCurrentProgram = PaletteFlagProgram then
+  if FCurrentProgram = DefaultProgram then
   begin
-    glUniform4f(PaletteFlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
+    glUniform4f(FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
   end;
 
 end;

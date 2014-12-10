@@ -1186,6 +1186,8 @@ begin
 
   //ShaderContext.UseNoPaletteShader();
 
+  ShaderContext.UsePaletteFlagShader();
+
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
 
@@ -1208,7 +1210,7 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  ShaderContext.UsePaletteFlagShader();
+
 
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
@@ -1365,6 +1367,8 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
+  ShaderContext.UseNoPaletteShader();
+
   ShaderContext.SetOrtho(   0,
       c.Width + 0,
       c.Height + 0,
@@ -1373,7 +1377,7 @@ begin
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  ShaderContext.UseNoPaletteShader();
+
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
