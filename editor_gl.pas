@@ -168,8 +168,8 @@ type
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
-    procedure SetProjection(constref AMatrix: Tmatrix4_double);
-    procedure SetOrtho(left, right, bottom, top: GLdouble);
+    procedure SetProjection(constref AMatrix: Tmatrix4_single);
+    procedure SetOrtho(left, right, bottom, top: GLfloat);
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -395,19 +395,20 @@ begin
   vertex_data[7] := x;
   vertex_data[8] := y + dimy;
 
-
   glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLdouble)*8,@vertex_data,GL_STREAM_DRAW);
 
   glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
-  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_DOUBLE, GL_TRUE, 0,nil);
+  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_DOUBLE, GL_FALSE, 0,nil);
 
   glDrawArrays(GL_LINE_LOOP,0,4);
 
   glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  CheckGLErrors('RenderRect');
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -572,7 +573,7 @@ begin
     Assert(false);
 end;
 
-procedure TShaderContext.SetProjection(constref AMatrix: Tmatrix4_double);
+procedure TShaderContext.SetProjection(constref AMatrix: Tmatrix4_single);
 begin
   if FCurrentProgram = DefaultProgram then
   begin
@@ -582,16 +583,16 @@ begin
     Assert(false);
 end;
 
-procedure TShaderContext.SetOrtho(left, right, bottom, top: GLdouble);
+procedure TShaderContext.SetOrtho(left, right, bottom, top: GLfloat);
 var
-  M:Tmatrix4_double;
+  M:Tmatrix4_single;
 begin
   m.init_identity;
   m.data[0,0] := 2 /(right - left);
   m.data[1,1] := 2 /(top - bottom);
   m.data[2,2] := -2;
 
-  m.data[0,3] := -(right+left)/(right-left);
+  m.data[0,3] := - (right+left)/(right-left);
   m.data[1,3] := - (top + bottom)/(top - bottom);
   m.data[2,3] := - 1;
 
