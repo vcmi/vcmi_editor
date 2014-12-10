@@ -40,6 +40,7 @@ const
   'in vec2 uv;'#13#10+
   'out vec2 UV;'#13#10+
   'void main(){'+
+    'UV = uv;'+
   	'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
   '}';
 
@@ -121,43 +122,34 @@ type
     Y: Int32;
   end;
 
-  TShaderProgram = class
-  public
-
-  end;
-
-  TFragmentShaderProgram = class(TShaderProgram)
-
-  end;
-
-  TVertexShaderProgram = class(TShaderProgram)
-
-  end;
-
-
-
   { TShaderContext }
 
   TShaderContext = class
   private
     FCurrentProgram: GLuint;
   private
-    PaletteFlagProgram: GLuint;
-    PalettePaletteUniform: GLuint;
-    PaletteBitmapUniform: GLUint;
-    PaletteFlagColorUniform: GLuint;
+    PaletteFlagProgram: GLint;
+    PalettePaletteUniform: GLint;
+    PaletteBitmapUniform: GLint;
+    PaletteFlagColorUniform: GLint;
 
     PaletteProgram: GLuint;
 
     DefaultProgram: GLuint;
-    DefaultFragmentColorUniform: GLuint;
+    DefaultFragmentColorUniform: GLint;
 
+    DefaultProjMatrixUniform: GLint;
+    DefaultCoordsAttrib: GLint;
+    UVAttrib: GLint;
+    UseTextureUniform: GLint;
+    UsePaletteUniform: GLint;
+    UseFlagUniform: GLint;
 
+    PaletteUniform: GLint;
+    BitmapUniform: GLint;
+    FlagColorUniform: GLint;
 
-    DefaultProjMatrixUniform: GLuint;
-    DefaultCoordsAttrib: GLuint;
-
-    CoordsBuffer, CoordsArray: GLuint;
+    CoordsBuffer, {CoordsArray,} UVBuffer: GLuint;
   public
     destructor Destroy; override;
     procedure Init;
@@ -170,6 +162,10 @@ type
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetProjection(constref AMatrix: Tmatrix4_single);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
+
+    procedure SetUseFlag(const Value: Boolean);
+    procedure SetUsePalette(const Value: Boolean);
+    procedure SetUseTexture(const Value: Boolean);
   end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -259,14 +255,20 @@ begin
 end;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);
+
 var
   factor: Double;
   cur_dim: integer;
   H,W,
   x,
   y: Int32;
-begin
 
+  vertex_data: packed array[1..12] of GLfloat;
+  uv_data: packed array[1..12] of GLfloat;
+  u: GLfloat;
+  v: GLfloat;
+  CoordsArray: glint;
+begin
   if dim <=0 then //render real size w|o scale
   begin
     H := ASprite.Height;
@@ -284,72 +286,139 @@ begin
   x := ASprite.x;
   y := ASprite.y;
 
+  vertex_data[1] := x;   vertex_data[2] := y;
+  vertex_data[3] := x+w; vertex_data[4] := y;
+  vertex_data[5] := x+w; vertex_data[6] := y+h;
+
+  vertex_data[7] := x+w; vertex_data[8] := y+h;
+  vertex_data[9] := x;   vertex_data[10] := y+h;
+  vertex_data[11] := x;  vertex_data[12] := y;
+
+  u := ASprite.Height;
+  v := ASprite.Width;
+
+  case mir of
+    0:begin
+        uv_data[1] := 0;   uv_data[2] := 0;
+        uv_data[3] := u;   uv_data[4] := 0;
+        uv_data[5] := u;   uv_data[6] := v;
+
+        uv_data[7] := u;   uv_data[8] := v;
+        uv_data[9] := 0;   uv_data[10] := v;
+        uv_data[11] := 0;   uv_data[12] := 0;
+    end;
+    1: begin
+          uv_data[1] := u;   uv_data[2] := 0;
+          uv_data[3] := 0;   uv_data[4] := 0;
+          uv_data[5] := u;   uv_data[6] := v;
+
+          uv_data[7] := 0;   uv_data[8] := v;
+          uv_data[9] := u;   uv_data[10] := v;
+          uv_data[11] := u;   uv_data[12] := 0;
+      end;
+    2: begin
+          uv_data[1] := 0;   uv_data[2] := v;
+          uv_data[3] := u;   uv_data[4] := v;
+          uv_data[5] := u;   uv_data[6] := 0;
+
+          uv_data[7] := u;   uv_data[8] := 0;
+          uv_data[9] := 0;   uv_data[10] := 0;
+          uv_data[11] := 0;   uv_data[12] := v;
+      end;
+    3:begin
+        uv_data[1] := u;   uv_data[2] := v;
+        uv_data[3] := 0;   uv_data[4] := v;
+        uv_data[5] := 0;   uv_data[6] := 0;
+
+        uv_data[7] := 0;   uv_data[8] := 0;
+        uv_data[9] := u;   uv_data[10] := 0;
+        uv_data[11] := u;   uv_data[12] := v;
+      end;
+   end;
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_RECTANGLE,ASprite.TextureID);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
 
+   // glBindVertexArray(ShaderContext.CoordsArray);
+    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(uv_data),@uv_data,GL_STREAM_DRAW);
+    glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
+    glEnableVertexAttribArray(ShaderContext.UVAttrib);
+    glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+    glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    glBegin(GL_POLYGON);
+    glDrawArrays(GL_TRIANGLES,0,2);
 
-      case mir of
-        0:begin
-          glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-          glVertex2i(X,  Y);
+    glDisableVertexAttribArray(ShaderContext.UVAttrib);
+    glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-          glVertex2i(X+W,Y);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-          glVertex2i(X+W,Y+H);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-          glVertex2i(X,  Y+H);
-        end;
-        1: begin
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-          glVertex2i(X,  Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-          glVertex2i(X+W,Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-          glVertex2i(X+W,Y+H);
-
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-          glVertex2i(X,  Y+H);
-          end;
-        2: begin
-          glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-          glVertex2i(X,  Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-          glVertex2i(X+W,Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-          glVertex2i(X+W,Y+H);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-          glVertex2i(X,  Y+H);
-          end;
-        3:begin
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-          glVertex2i(X,  Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-          glVertex2i(X+W,Y);
-
-          glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-          glVertex2i(X+W,Y+H);
-
-          glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-          glVertex2i(X,  Y+H);
-          end;
-      end;
-
-
-
-    glEnd();
+    //glBegin(GL_POLYGON);
+    //
+    //  case mir of
+    //    0:begin
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0,0);
+    //      glVertex2i(X,  Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
+    //      glVertex2i(X+W,Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
+    //      glVertex2i(X+W,Y+H);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
+    //      glVertex2i(X,  Y+H);
+    //    end;
+    //    1: begin
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
+    //      glVertex2i(X,  Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
+    //      glVertex2i(X+W,Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
+    //      glVertex2i(X+W,Y+H);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
+    //      glVertex2i(X,  Y+H);
+    //      end;
+    //    2: begin
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
+    //      glVertex2i(X,  Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
+    //      glVertex2i(X+W,Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
+    //      glVertex2i(X+W,Y+H);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0,0);
+    //      glVertex2i(X,  Y+H);
+    //      end;
+    //    3:begin
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
+    //      glVertex2i(X,  Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
+    //      glVertex2i(X+W,Y);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
+    //      glVertex2i(X+W,Y+H);
+    //
+    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
+    //      glVertex2i(X,  Y+H);
+    //      end;
+    //  end;
+    //
+    //
+    //
+    //glEnd();
 
   CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 end;
@@ -374,6 +443,7 @@ begin
   vertex_data[7] := x;
   vertex_data[8] := y + dimy;
 
+
   glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
 
@@ -387,7 +457,7 @@ begin
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  CheckGLErrors('RenderRect');
+  //CheckGLErrors('RenderRect');
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -521,14 +591,22 @@ begin
 
   DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
   DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
+  UVAttrib:=glGetAttribLocation(DefaultProgram, PChar('uv'));
+
+  UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
+  UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
+  UseTextureUniform:=glGetUniformLocation(DefaultProgram, PChar('useTexture'));
+
+  PaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('palette'));
+  FlagColorUniform:=glGetUniformLocation(DefaultProgram, PChar('flagColor'));
+  BitmapUniform:=glGetUniformLocation(DefaultProgram, PChar('bitmap'));
 
   CheckGLErrors('compiling default vertex shader1');
 
-  glGenVertexArrays(1,@CoordsArray);
-  glGenBuffers(1,@CoordsBuffer);
-  //glBindBuffer(GL_ARRAY_BUFFER,CoordsBuffer);
-  glBindVertexArray(ShaderContext.CoordsArray);
 
+  glGenBuffers(1,@CoordsBuffer);
+  glGenBuffers(1,@UVBuffer);
+ // glBindVertexArray(CoordsArray);
   CheckGLErrors('VBO');
 end;
 
@@ -578,6 +656,21 @@ begin
   SetProjection(m);
 end;
 
+procedure TShaderContext.SetUseFlag(const Value: Boolean);
+begin
+  glUniform1i(UseFlagUniform, GLboolean(Value));
+end;
+
+procedure TShaderContext.SetUsePalette(const Value: Boolean);
+begin
+  glUniform1i(UsePaletteUniform, GLboolean(Value));
+end;
+
+procedure TShaderContext.SetUseTexture(const Value: Boolean);
+begin
+  glUniform1i(UseTextureUniform, GLboolean(Value));
+end;
+
 //procedure TShaderContext.UseFlagShader;
 //begin
 //  FCurrentProgram := FlagProgram;
@@ -589,15 +682,24 @@ procedure TShaderContext.UseNoPaletteShader;
 begin
   FCurrentProgram := DefaultProgram;
   glUseProgram(DefaultProgram);
-
+  SetUseFlag(false);
+  SetUsePalette(false);
+  SetUseTexture(False);
 end;
 
 procedure TShaderContext.UsePaletteFlagShader;
 begin
-  FCurrentProgram := PaletteFlagProgram;
-  glUseProgram(FCurrentProgram);
-  glUniform1i(PaletteBitmapUniform, 0); //texture unit0
-  glUniform1i(PalettePaletteUniform, 1);//texture unit1
+  //FCurrentProgram := PaletteFlagProgram;
+  //  glUseProgram(FCurrentProgram);
+  FCurrentProgram := DefaultProgram;
+  glUseProgram(DefaultProgram);
+
+  SetUseFlag(true);
+  SetUsePalette(true);
+  SetUseTexture(true);
+
+  glUniform1i(BitmapUniform, 0); //texture unit0
+  glUniform1i(PaletteUniform, 1);//texture unit1
 
 end;
 

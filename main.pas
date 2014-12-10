@@ -1187,24 +1187,13 @@ begin
   //ShaderContext.UseNoPaletteShader();
 
   glEnable(GL_SCISSOR_TEST);
-
-
   glScissor(0, 0, MapView.Width, MapView.Height);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(
-    TILE_SIZE * FMapHPos,
+  ShaderContext.SetOrtho(TILE_SIZE * FMapHPos,
     MapView.Width + TILE_SIZE * FMapHPos,
     MapView.Height + TILE_SIZE * FMapVPos,
-    TILE_SIZE * FMapVPos,
-    0, 1);
+    TILE_SIZE * FMapVPos);
 
-
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  //glTranslatef(0.375, 0.375, 0);   //???
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1241,10 +1230,7 @@ begin
 
   ShaderContext.UseNoPaletteShader();
 
-  ShaderContext.SetOrtho(TILE_SIZE * FMapHPos,
-    MapView.Width + TILE_SIZE * FMapHPos,
-    MapView.Height + TILE_SIZE * FMapVPos,
-    TILE_SIZE * FMapVPos);
+
 
   if Assigned(FSelectedObject) then
   begin
@@ -1379,16 +1365,11 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(
-    0,
-    c.Width + 0,
-    c.Height + 0,
-    0,
-    0, 1);
+  ShaderContext.SetOrtho(   0,
+      c.Width + 0,
+      c.Height + 0,
+      0);
 
-  glMatrixMode(GL_MODELVIEW);
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1405,27 +1386,7 @@ begin
       cx := col * OBJ_CELL_SIZE;
       cy := row * OBJ_CELL_SIZE;
 
-      glPushAttrib(GL_CURRENT_BIT);
-      glLineWidth(1);
-
-      glBegin(GL_LINE_LOOP);
-
-        glColor4ub(200, 200, 200, 255);
-
-
-        dim := OBJ_CELL_SIZE;
-
-        glVertex2i(cx, cy);
-        glVertex2i(cx + dim, cy);
-
-        glVertex2i(cx + dim, cy + dim);
-        glVertex2i(cx, cy + dim);
-
-
-      glEnd();
-      glPopAttrib();
-
-
+      RenderRect(cx,cy,OBJ_CELL_SIZE,OBJ_CELL_SIZE);
     end;
   end;
 
