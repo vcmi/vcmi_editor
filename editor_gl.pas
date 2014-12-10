@@ -68,7 +68,7 @@ const
           '}'+
           'else'+
           '{' +
-              'return texture2DRect(bitmap,UV);'+ //???
+          //    'return texture2DRect(bitmap,UV);'+ //???
           '}'+
       '}'+
        'return inColor;'+
@@ -156,7 +156,6 @@ type
 
     procedure UseNoPaletteShader();
     procedure UsePaletteFlagShader();
-    //procedure UseFlagShader();
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
@@ -345,11 +344,12 @@ begin
    // glBindVertexArray(ShaderContext.CoordsArray);
     glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),@vertex_data,GL_STREAM_DRAW);
+    glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
+    glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+
     glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(uv_data),@uv_data,GL_STREAM_DRAW);
-    glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
     glEnableVertexAttribArray(ShaderContext.UVAttrib);
-    glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
     glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
     glDrawArrays(GL_TRIANGLES,0,2);
@@ -670,13 +670,6 @@ procedure TShaderContext.SetUseTexture(const Value: Boolean);
 begin
   glUniform1i(UseTextureUniform, GLboolean(Value));
 end;
-
-//procedure TShaderContext.UseFlagShader;
-//begin
-//  FCurrentProgram := FlagProgram;
-//  glUseProgram(FCurrentProgram);
-//  glUniform1i(FlagBitmapUniform, 0); //texture unit0
-//end;
 
 procedure TShaderContext.UseNoPaletteShader;
 begin
