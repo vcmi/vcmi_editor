@@ -48,7 +48,7 @@ const
   '#version 330 core'#13#10+
   'const vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
   'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
-  'uniform usampler2DRect bitmap;'+
+  'uniform usampler2D bitmap;'+
   'uniform sampler1D palette;'+
   'uniform int useTexture = 0;'+
   'uniform int usePalette = 0;'+
@@ -189,12 +189,12 @@ implementation
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer; AInternalFormat: GLEnum); inline;
 begin
 
-  glBindTexture(GL_TEXTURE_RECTANGLE, ATextureId);
+  glBindTexture(GL_TEXTURE_2D, ATextureId);
 
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  glTexImage2D(GL_TEXTURE_RECTANGLE, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
+  glTexImage2D(GL_TEXTURE_2D, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
 
 end;
 
@@ -215,17 +215,17 @@ end;
 procedure BindUncompressedPaletted(ATextureId: GLuint; w, h: Int32;
   ARawImage: Pointer);
 begin
-  glBindTexture(GL_TEXTURE_RECTANGLE, ATextureId);
+  glBindTexture(GL_TEXTURE_2D, ATextureId);
 
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-  //glTexImage2D(GL_TEXTURE_RECTANGLE, 0,GL_LUMINANCE,w,h,0,GL_RED, GL_UNSIGNED_BYTE, ARawImage);
+  //glTexImage2D(GL_TEXTURE_2D, 0,GL_LUMINANCE,w,h,0,GL_RED, GL_UNSIGNED_BYTE, ARawImage);
 
-  glTexImage2D(GL_TEXTURE_RECTANGLE, 0,GL_R8UI,w,h,0,GL_RED_INTEGER, GL_UNSIGNED_BYTE, ARawImage);
+  glTexImage2D(GL_TEXTURE_2D, 0,GL_R8UI,w,h,0,GL_RED_INTEGER, GL_UNSIGNED_BYTE, ARawImage);
 
    CheckGLErrors('Bind paletted');
 end;
@@ -287,8 +287,8 @@ begin
   vertex_data[9] := x;   vertex_data[10] := y+h;
   vertex_data[11] := x;  vertex_data[12] := y;
 
-  u := ASprite.Width;
-  v := ASprite.Height;
+  u := 1;
+  v := 1;
 
   case mir of
     0:begin
@@ -330,7 +330,7 @@ begin
    end;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE,ASprite.TextureID);
+    glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
