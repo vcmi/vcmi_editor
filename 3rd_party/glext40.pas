@@ -150,49 +150,6 @@ var
 
 function Load_GL_VERSION_1_2(): Boolean;
 
-//**** GL_VERSION_1_2_DEPRECATED *****//
-const
-  GL_RESCALE_NORMAL = $803A;
-  GL_LIGHT_MODEL_COLOR_CONTROL = $81F8;
-  GL_SINGLE_COLOR = $81F9;
-  GL_SEPARATE_SPECULAR_COLOR = $81FA;
-  GL_ALIASED_POINT_SIZE_RANGE = $846D;
-var
-  glColorTable: procedure(target: GLenum; internalformat: GLenum; width: GLsizei; format: GLenum; _type: GLenum; const table: PGLvoid); extdecl;
-  glColorTableParameterfv: procedure(target: GLenum; pname: GLenum; const params: PGLfloat); extdecl;
-  glColorTableParameteriv: procedure(target: GLenum; pname: GLenum; const params: PGLint); extdecl;
-  glCopyColorTable: procedure(target: GLenum; internalformat: GLenum; x: GLint; y: GLint; width: GLsizei); extdecl;
-  glGetColorTable: procedure(target: GLenum; format: GLenum; _type: GLenum; table: PGLvoid); extdecl;
-  glGetColorTableParameterfv: procedure(target: GLenum; pname: GLenum; params: PGLfloat); extdecl;
-  glGetColorTableParameteriv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
-  glColorSubTable: procedure(target: GLenum; start: GLsizei; count: GLsizei; format: GLenum; _type: GLenum; const data: PGLvoid); extdecl;
-  glCopyColorSubTable: procedure(target: GLenum; start: GLsizei; x: GLint; y: GLint; width: GLsizei); extdecl;
-  glConvolutionFilter1D: procedure(target: GLenum; internalformat: GLenum; width: GLsizei; format: GLenum; _type: GLenum; const image: PGLvoid); extdecl;
-  glConvolutionFilter2D: procedure(target: GLenum; internalformat: GLenum; width: GLsizei; height: GLsizei; format: GLenum; _type: GLenum; const image: PGLvoid); extdecl;
-  glConvolutionParameterf: procedure(target: GLenum; pname: GLenum; params: GLfloat); extdecl;
-  glConvolutionParameterfv: procedure(target: GLenum; pname: GLenum; const params: PGLfloat); extdecl;
-  glConvolutionParameteri: procedure(target: GLenum; pname: GLenum; params: GLint); extdecl;
-  glConvolutionParameteriv: procedure(target: GLenum; pname: GLenum; const params: PGLint); extdecl;
-  glCopyConvolutionFilter1D: procedure(target: GLenum; internalformat: GLenum; x: GLint; y: GLint; width: GLsizei); extdecl;
-  glCopyConvolutionFilter2D: procedure(target: GLenum; internalformat: GLenum; x: GLint; y: GLint; width: GLsizei; height: GLsizei); extdecl;
-  glGetConvolutionFilter: procedure(target: GLenum; format: GLenum; _type: GLenum; image: PGLvoid); extdecl;
-  glGetConvolutionParameterfv: procedure(target: GLenum; pname: GLenum; params: PGLfloat); extdecl;
-  glGetConvolutionParameteriv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
-  glGetSeparableFilter: procedure(target: GLenum; format: GLenum; _type: GLenum; row: PGLvoid; column: PGLvoid; span: PGLvoid); extdecl;
-  glSeparableFilter2D: procedure(target: GLenum; internalformat: GLenum; width: GLsizei; height: GLsizei; format: GLenum; _type: GLenum; const row: PGLvoid; const column: PGLvoid); extdecl;
-  glGetHistogram: procedure(target: GLenum; reset: GLboolean; format: GLenum; _type: GLenum; values: PGLvoid); extdecl;
-  glGetHistogramParameterfv: procedure(target: GLenum; pname: GLenum; params: PGLfloat); extdecl;
-  glGetHistogramParameteriv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
-  glGetMinmax: procedure(target: GLenum; reset: GLboolean; format: GLenum; _type: GLenum; values: PGLvoid); extdecl;
-  glGetMinmaxParameterfv: procedure(target: GLenum; pname: GLenum; params: PGLfloat); extdecl;
-  glGetMinmaxParameteriv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
-  glHistogram: procedure(target: GLenum; width: GLsizei; internalformat: GLenum; sink: GLboolean); extdecl;
-  glMinmax: procedure(target: GLenum; internalformat: GLenum; sink: GLboolean); extdecl;
-  glResetHistogram: procedure(target: GLenum); extdecl;
-  glResetMinmax: procedure(target: GLenum); extdecl;
-
-function Load_GL_VERSION_1_2_DEPRECATED(): Boolean;
-
 //**** GL_ARB_imaging *****//
 const
   GL_CONSTANT_COLOR = $8001;
@@ -209,74 +166,6 @@ const
 
 function Load_GL_ARB_imaging(): Boolean;
 
-//**** GL_ARB_imaging_DEPRECATED *****//
-const
-  GL_CONVOLUTION_1D = $8010;
-  GL_CONVOLUTION_2D = $8011;
-  GL_SEPARABLE_2D = $8012;
-  GL_CONVOLUTION_BORDER_MODE = $8013;
-  GL_CONVOLUTION_FILTER_SCALE = $8014;
-  GL_CONVOLUTION_FILTER_BIAS = $8015;
-  GL_REDUCE = $8016;
-  GL_CONVOLUTION_FORMAT = $8017;
-  GL_CONVOLUTION_WIDTH = $8018;
-  GL_CONVOLUTION_HEIGHT = $8019;
-  GL_MAX_CONVOLUTION_WIDTH = $801A;
-  GL_MAX_CONVOLUTION_HEIGHT = $801B;
-  GL_POST_CONVOLUTION_RED_SCALE = $801C;
-  GL_POST_CONVOLUTION_GREEN_SCALE = $801D;
-  GL_POST_CONVOLUTION_BLUE_SCALE = $801E;
-  GL_POST_CONVOLUTION_ALPHA_SCALE = $801F;
-  GL_POST_CONVOLUTION_RED_BIAS = $8020;
-  GL_POST_CONVOLUTION_GREEN_BIAS = $8021;
-  GL_POST_CONVOLUTION_BLUE_BIAS = $8022;
-  GL_POST_CONVOLUTION_ALPHA_BIAS = $8023;
-  GL_HISTOGRAM = $8024;
-  GL_PROXY_HISTOGRAM = $8025;
-  GL_HISTOGRAM_WIDTH = $8026;
-  GL_HISTOGRAM_FORMAT = $8027;
-  GL_HISTOGRAM_RED_SIZE = $8028;
-  GL_HISTOGRAM_GREEN_SIZE = $8029;
-  GL_HISTOGRAM_BLUE_SIZE = $802A;
-  GL_HISTOGRAM_ALPHA_SIZE = $802B;
-  GL_HISTOGRAM_LUMINANCE_SIZE = $802C;
-  GL_HISTOGRAM_SINK = $802D;
-  GL_MINMAX = $802E;
-  GL_MINMAX_FORMAT = $802F;
-  GL_MINMAX_SINK = $8030;
-  GL_TABLE_TOO_LARGE = $8031;
-  GL_COLOR_MATRIX = $80B1;
-  GL_COLOR_MATRIX_STACK_DEPTH = $80B2;
-  GL_MAX_COLOR_MATRIX_STACK_DEPTH = $80B3;
-  GL_POST_COLOR_MATRIX_RED_SCALE = $80B4;
-  GL_POST_COLOR_MATRIX_GREEN_SCALE = $80B5;
-  GL_POST_COLOR_MATRIX_BLUE_SCALE = $80B6;
-  GL_POST_COLOR_MATRIX_ALPHA_SCALE = $80B7;
-  GL_POST_COLOR_MATRIX_RED_BIAS = $80B8;
-  GL_POST_COLOR_MATRIX_GREEN_BIAS = $80B9;
-  GL_POST_COLOR_MATRIX_BLUE_BIAS = $80BA;
-  GL_POST_COLOR_MATRIX_ALPHA_BIAS = $80BB;
-  GL_COLOR_TABLE = $80D0;
-  GL_POST_CONVOLUTION_COLOR_TABLE = $80D1;
-  GL_POST_COLOR_MATRIX_COLOR_TABLE = $80D2;
-  GL_PROXY_COLOR_TABLE = $80D3;
-  GL_PROXY_POST_CONVOLUTION_COLOR_TABLE = $80D4;
-  GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE = $80D5;
-  GL_COLOR_TABLE_SCALE = $80D6;
-  GL_COLOR_TABLE_BIAS = $80D7;
-  GL_COLOR_TABLE_FORMAT = $80D8;
-  GL_COLOR_TABLE_WIDTH = $80D9;
-  GL_COLOR_TABLE_RED_SIZE = $80DA;
-  GL_COLOR_TABLE_GREEN_SIZE = $80DB;
-  GL_COLOR_TABLE_BLUE_SIZE = $80DC;
-  GL_COLOR_TABLE_ALPHA_SIZE = $80DD;
-  GL_COLOR_TABLE_LUMINANCE_SIZE = $80DE;
-  GL_COLOR_TABLE_INTENSITY_SIZE = $80DF;
-  GL_CONSTANT_BORDER = $8151;
-  GL_REPLICATE_BORDER = $8153;
-  GL_CONVOLUTION_BORDER_COLOR = $8154;
-
-function Load_GL_ARB_imaging_DEPRECATED(): Boolean;
 
 //**** GL_VERSION_1_3 *****//
 const
@@ -352,86 +241,6 @@ var
 
 function Load_GL_VERSION_1_3(): Boolean;
 
-//**** GL_VERSION_1_3_DEPRECATED *****//
-const
-  GL_CLIENT_ACTIVE_TEXTURE = $84E1;
-  GL_MAX_TEXTURE_UNITS = $84E2;
-  GL_TRANSPOSE_MODELVIEW_MATRIX = $84E3;
-  GL_TRANSPOSE_PROJECTION_MATRIX = $84E4;
-  GL_TRANSPOSE_TEXTURE_MATRIX = $84E5;
-  GL_TRANSPOSE_COLOR_MATRIX = $84E6;
-  GL_MULTISAMPLE_BIT = $20000000;
-  GL_NORMAL_MAP = $8511;
-  GL_REFLECTION_MAP = $8512;
-  GL_COMPRESSED_ALPHA = $84E9;
-  GL_COMPRESSED_LUMINANCE = $84EA;
-  GL_COMPRESSED_LUMINANCE_ALPHA = $84EB;
-  GL_COMPRESSED_INTENSITY = $84EC;
-  GL_COMBINE = $8570;
-  GL_COMBINE_RGB = $8571;
-  GL_COMBINE_ALPHA = $8572;
-  GL_SOURCE0_RGB = $8580;
-  GL_SOURCE1_RGB = $8581;
-  GL_SOURCE2_RGB = $8582;
-  GL_SOURCE0_ALPHA = $8588;
-  GL_SOURCE1_ALPHA = $8589;
-  GL_SOURCE2_ALPHA = $858A;
-  GL_OPERAND0_RGB = $8590;
-  GL_OPERAND1_RGB = $8591;
-  GL_OPERAND2_RGB = $8592;
-  GL_OPERAND0_ALPHA = $8598;
-  GL_OPERAND1_ALPHA = $8599;
-  GL_OPERAND2_ALPHA = $859A;
-  GL_RGB_SCALE = $8573;
-  GL_ADD_SIGNED = $8574;
-  GL_INTERPOLATE = $8575;
-  GL_SUBTRACT = $84E7;
-  GL_CONSTANT = $8576;
-  GL_PRIMARY_COLOR = $8577;
-  GL_PREVIOUS = $8578;
-  GL_DOT3_RGB = $86AE;
-  GL_DOT3_RGBA = $86AF;
-var
-  glClientActiveTexture: procedure(texture: GLenum); extdecl;
-  glMultiTexCoord1d: procedure(target: GLenum; s: GLdouble); extdecl;
-  glMultiTexCoord1dv: procedure(target: GLenum; const v: PGLdouble); extdecl;
-  glMultiTexCoord1f: procedure(target: GLenum; s: GLfloat); extdecl;
-  glMultiTexCoord1fv: procedure(target: GLenum; const v: PGLfloat); extdecl;
-  glMultiTexCoord1i: procedure(target: GLenum; s: GLint); extdecl;
-  glMultiTexCoord1iv: procedure(target: GLenum; const v: PGLint); extdecl;
-  glMultiTexCoord1s: procedure(target: GLenum; s: GLshort); extdecl;
-  glMultiTexCoord1sv: procedure(target: GLenum; const v: PGLshort); extdecl;
-  glMultiTexCoord2d: procedure(target: GLenum; s: GLdouble; t: GLdouble); extdecl;
-  glMultiTexCoord2dv: procedure(target: GLenum; const v: PGLdouble); extdecl;
-  glMultiTexCoord2f: procedure(target: GLenum; s: GLfloat; t: GLfloat); extdecl;
-  glMultiTexCoord2fv: procedure(target: GLenum; const v: PGLfloat); extdecl;
-  glMultiTexCoord2i: procedure(target: GLenum; s: GLint; t: GLint); extdecl;
-  glMultiTexCoord2iv: procedure(target: GLenum; const v: PGLint); extdecl;
-  glMultiTexCoord2s: procedure(target: GLenum; s: GLshort; t: GLshort); extdecl;
-  glMultiTexCoord2sv: procedure(target: GLenum; const v: PGLshort); extdecl;
-  glMultiTexCoord3d: procedure(target: GLenum; s: GLdouble; t: GLdouble; r: GLdouble); extdecl;
-  glMultiTexCoord3dv: procedure(target: GLenum; const v: PGLdouble); extdecl;
-  glMultiTexCoord3f: procedure(target: GLenum; s: GLfloat; t: GLfloat; r: GLfloat); extdecl;
-  glMultiTexCoord3fv: procedure(target: GLenum; const v: PGLfloat); extdecl;
-  glMultiTexCoord3i: procedure(target: GLenum; s: GLint; t: GLint; r: GLint); extdecl;
-  glMultiTexCoord3iv: procedure(target: GLenum; const v: PGLint); extdecl;
-  glMultiTexCoord3s: procedure(target: GLenum; s: GLshort; t: GLshort; r: GLshort); extdecl;
-  glMultiTexCoord3sv: procedure(target: GLenum; const v: PGLshort); extdecl;
-  glMultiTexCoord4d: procedure(target: GLenum; s: GLdouble; t: GLdouble; r: GLdouble; q: GLdouble); extdecl;
-  glMultiTexCoord4dv: procedure(target: GLenum; const v: PGLdouble); extdecl;
-  glMultiTexCoord4f: procedure(target: GLenum; s: GLfloat; t: GLfloat; r: GLfloat; q: GLfloat); extdecl;
-  glMultiTexCoord4fv: procedure(target: GLenum; const v: PGLfloat); extdecl;
-  glMultiTexCoord4i: procedure(target: GLenum; s: GLint; t: GLint; r: GLint; q: GLint); extdecl;
-  glMultiTexCoord4iv: procedure(target: GLenum; const v: PGLint); extdecl;
-  glMultiTexCoord4s: procedure(target: GLenum; s: GLshort; t: GLshort; r: GLshort; q: GLshort); extdecl;
-  glMultiTexCoord4sv: procedure(target: GLenum; const v: PGLshort); extdecl;
-  glLoadTransposeMatrixf: procedure(const m: PGLfloat); extdecl;
-  glLoadTransposeMatrixd: procedure(const m: PGLdouble); extdecl;
-  glMultTransposeMatrixf: procedure(const m: PGLfloat); extdecl;
-  glMultTransposeMatrixd: procedure(const m: PGLdouble); extdecl;
-
-function Load_GL_VERSION_1_3_DEPRECATED(): Boolean;
-
 //**** GL_VERSION_1_4 *****//
 const
   GL_BLEND_DST_RGB = $80C8;
@@ -460,73 +269,6 @@ var
   glPointParameteriv: procedure(pname: GLenum; const params: PGLint); extdecl;
 
 function Load_GL_VERSION_1_4(): Boolean;
-
-//**** GL_VERSION_1_4_DEPRECATED *****//
-const
-  GL_POINT_SIZE_MIN = $8126;
-  GL_POINT_SIZE_MAX = $8127;
-  GL_POINT_DISTANCE_ATTENUATION = $8129;
-  GL_GENERATE_MIPMAP = $8191;
-  GL_GENERATE_MIPMAP_HINT = $8192;
-  GL_FOG_COORDINATE_SOURCE = $8450;
-  GL_FOG_COORDINATE = $8451;
-  GL_FRAGMENT_DEPTH = $8452;
-  GL_CURRENT_FOG_COORDINATE = $8453;
-  GL_FOG_COORDINATE_ARRAY_TYPE = $8454;
-  GL_FOG_COORDINATE_ARRAY_STRIDE = $8455;
-  GL_FOG_COORDINATE_ARRAY_POINTER = $8456;
-  GL_FOG_COORDINATE_ARRAY = $8457;
-  GL_COLOR_SUM = $8458;
-  GL_CURRENT_SECONDARY_COLOR = $8459;
-  GL_SECONDARY_COLOR_ARRAY_SIZE = $845A;
-  GL_SECONDARY_COLOR_ARRAY_TYPE = $845B;
-  GL_SECONDARY_COLOR_ARRAY_STRIDE = $845C;
-  GL_SECONDARY_COLOR_ARRAY_POINTER = $845D;
-  GL_SECONDARY_COLOR_ARRAY = $845E;
-  GL_TEXTURE_FILTER_CONTROL = $8500;
-  GL_DEPTH_TEXTURE_MODE = $884B;
-  GL_COMPARE_R_TO_TEXTURE = $884E;
-var
-  glFogCoordf: procedure(coord: GLfloat); extdecl;
-  glFogCoordfv: procedure(const coord: PGLfloat); extdecl;
-  glFogCoordd: procedure(coord: GLdouble); extdecl;
-  glFogCoorddv: procedure(const coord: PGLdouble); extdecl;
-  glFogCoordPointer: procedure(_type: GLenum; stride: GLsizei; const _pointer: PGLvoid); extdecl;
-  glSecondaryColor3b: procedure(red: GLbyte; green: GLbyte; blue: GLbyte); extdecl;
-  glSecondaryColor3bv: procedure(const v: PGLbyte); extdecl;
-  glSecondaryColor3d: procedure(red: GLdouble; green: GLdouble; blue: GLdouble); extdecl;
-  glSecondaryColor3dv: procedure(const v: PGLdouble); extdecl;
-  glSecondaryColor3f: procedure(red: GLfloat; green: GLfloat; blue: GLfloat); extdecl;
-  glSecondaryColor3fv: procedure(const v: PGLfloat); extdecl;
-  glSecondaryColor3i: procedure(red: GLint; green: GLint; blue: GLint); extdecl;
-  glSecondaryColor3iv: procedure(const v: PGLint); extdecl;
-  glSecondaryColor3s: procedure(red: GLshort; green: GLshort; blue: GLshort); extdecl;
-  glSecondaryColor3sv: procedure(const v: PGLshort); extdecl;
-  glSecondaryColor3ub: procedure(red: GLubyte; green: GLubyte; blue: GLubyte); extdecl;
-  glSecondaryColor3ubv: procedure(const v: PGLubyte); extdecl;
-  glSecondaryColor3ui: procedure(red: GLuint; green: GLuint; blue: GLuint); extdecl;
-  glSecondaryColor3uiv: procedure(const v: PGLuint); extdecl;
-  glSecondaryColor3us: procedure(red: GLushort; green: GLushort; blue: GLushort); extdecl;
-  glSecondaryColor3usv: procedure(const v: PGLushort); extdecl;
-  glSecondaryColorPointer: procedure(size: GLint; _type: GLenum; stride: GLsizei; const _pointer: PGLvoid); extdecl;
-  glWindowPos2d: procedure(x: GLdouble; y: GLdouble); extdecl;
-  glWindowPos2dv: procedure(const v: PGLdouble); extdecl;
-  glWindowPos2f: procedure(x: GLfloat; y: GLfloat); extdecl;
-  glWindowPos2fv: procedure(const v: PGLfloat); extdecl;
-  glWindowPos2i: procedure(x: GLint; y: GLint); extdecl;
-  glWindowPos2iv: procedure(const v: PGLint); extdecl;
-  glWindowPos2s: procedure(x: GLshort; y: GLshort); extdecl;
-  glWindowPos2sv: procedure(const v: PGLshort); extdecl;
-  glWindowPos3d: procedure(x: GLdouble; y: GLdouble; z: GLdouble); extdecl;
-  glWindowPos3dv: procedure(const v: PGLdouble); extdecl;
-  glWindowPos3f: procedure(x: GLfloat; y: GLfloat; z: GLfloat); extdecl;
-  glWindowPos3fv: procedure(const v: PGLfloat); extdecl;
-  glWindowPos3i: procedure(x: GLint; y: GLint; z: GLint); extdecl;
-  glWindowPos3iv: procedure(const v: PGLint); extdecl;
-  glWindowPos3s: procedure(x: GLshort; y: GLshort; z: GLshort); extdecl;
-  glWindowPos3sv: procedure(const v: PGLshort); extdecl;
-
-function Load_GL_VERSION_1_4_DEPRECATED(): Boolean;
 
 //**** GL_VERSION_1_5 *****//
 const
@@ -579,34 +321,6 @@ var
   glGetBufferPointerv: procedure(target: GLenum; pname: GLenum; params: PPGLvoid); extdecl;
 
 function Load_GL_VERSION_1_5(): Boolean;
-
-//**** GL_VERSION_1_5_DEPRECATED *****//
-const
-  GL_VERTEX_ARRAY_BUFFER_BINDING = $8896;
-  GL_NORMAL_ARRAY_BUFFER_BINDING = $8897;
-  GL_COLOR_ARRAY_BUFFER_BINDING = $8898;
-  GL_INDEX_ARRAY_BUFFER_BINDING = $8899;
-  GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING = $889A;
-  GL_EDGE_FLAG_ARRAY_BUFFER_BINDING = $889B;
-  GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING = $889C;
-  GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING = $889D;
-  GL_WEIGHT_ARRAY_BUFFER_BINDING = $889E;
-  GL_FOG_COORD_SRC = $8450;
-  GL_FOG_COORD = $8451;
-  GL_CURRENT_FOG_COORD = $8453;
-  GL_FOG_COORD_ARRAY_TYPE = $8454;
-  GL_FOG_COORD_ARRAY_STRIDE = $8455;
-  GL_FOG_COORD_ARRAY_POINTER = $8456;
-  GL_FOG_COORD_ARRAY = $8457;
-  GL_FOG_COORD_ARRAY_BUFFER_BINDING = $889D;
-  GL_SRC0_RGB = $8580;
-  GL_SRC1_RGB = $8581;
-  GL_SRC2_RGB = $8582;
-  GL_SRC0_ALPHA = $8588;
-  GL_SRC1_ALPHA = $8589;
-  GL_SRC2_ALPHA = $858A;
-
-function Load_GL_VERSION_1_5_DEPRECATED(): Boolean;
 
 //**** GL_VERSION_2_0 *****//
 const
@@ -788,15 +502,6 @@ var
 
 function Load_GL_VERSION_2_0(): Boolean;
 
-//**** GL_VERSION_2_0_DEPRECATED *****//
-const
-  GL_VERTEX_PROGRAM_TWO_SIDE = $8643;
-  GL_POINT_SPRITE = $8861;
-  GL_COORD_REPLACE = $8862;
-  GL_MAX_TEXTURE_COORDS = $8871;
-
-function Load_GL_VERSION_2_0_DEPRECATED(): Boolean;
-
 //**** GL_VERSION_2_1 *****//
 const
   GL_PIXEL_PACK_BUFFER = $88EB;
@@ -824,18 +529,6 @@ var
   glUniformMatrix4x3fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
 
 function Load_GL_VERSION_2_1(): Boolean;
-
-//**** GL_VERSION_2_1_DEPRECATED *****//
-const
-  GL_CURRENT_RASTER_SECONDARY_COLOR = $845F;
-  GL_SLUMINANCE_ALPHA = $8C44;
-  GL_SLUMINANCE8_ALPHA8 = $8C45;
-  GL_SLUMINANCE = $8C46;
-  GL_SLUMINANCE8 = $8C47;
-  GL_COMPRESSED_SLUMINANCE = $8C4A;
-  GL_COMPRESSED_SLUMINANCE_ALPHA = $8C4B;
-
-function Load_GL_VERSION_2_1_DEPRECATED(): Boolean;
 
 //**** GL_VERSION_3_0 *****//
 const
@@ -1130,17 +823,6 @@ var
   glGetStringi: function(name: GLenum; index: GLuint): PGLubyte; extdecl;
 
 function Load_GL_VERSION_3_0(): Boolean;
-
-//**** GL_VERSION_3_0_DEPRECATED *****//
-const
-  GL_CLAMP_VERTEX_COLOR = $891A;
-  GL_CLAMP_FRAGMENT_COLOR = $891B;
-  GL_ALPHA_INTEGER = $8D97;
-// Reuse tokens from ARB_framebuffer_object 
-// reuse GL_TEXTURE_LUMINANCE_TYPE 
-// reuse GL_TEXTURE_INTENSITY_TYPE 
-
-function Load_GL_VERSION_3_0_DEPRECATED(): Boolean;
 
 //**** GL_VERSION_3_1 *****//
 const
@@ -2336,14 +2018,6 @@ var
   glFramebufferTextureLayer: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; layer: GLint); extdecl;
 
 function Load_GL_ARB_framebuffer_object(): Boolean;
-
-//**** GL_ARB_framebuffer_object_DEPRECATED *****//
-const
-  GL_INDEX = $8222;
-  GL_TEXTURE_LUMINANCE_TYPE = $8C14;
-  GL_TEXTURE_INTENSITY_TYPE = $8C15;
-
-function Load_GL_ARB_framebuffer_object_DEPRECATED(): Boolean;
 
 //**** GL_ARB_framebuffer_sRGB *****//
 const
@@ -7458,76 +7132,6 @@ begin
   Result := True;
 end;
 
-function Load_GL_VERSION_1_2_DEPRECATED(): Boolean;
-begin
-  Result := False;
-  Pointer(glColorTable) := wglGetProcAddress('glColorTable');
-  if not Assigned(glColorTable) then Exit;
-  Pointer(glColorTableParameterfv) := wglGetProcAddress('glColorTableParameterfv');
-  if not Assigned(glColorTableParameterfv) then Exit;
-  Pointer(glColorTableParameteriv) := wglGetProcAddress('glColorTableParameteriv');
-  if not Assigned(glColorTableParameteriv) then Exit;
-  Pointer(glCopyColorTable) := wglGetProcAddress('glCopyColorTable');
-  if not Assigned(glCopyColorTable) then Exit;
-  Pointer(glGetColorTable) := wglGetProcAddress('glGetColorTable');
-  if not Assigned(glGetColorTable) then Exit;
-  Pointer(glGetColorTableParameterfv) := wglGetProcAddress('glGetColorTableParameterfv');
-  if not Assigned(glGetColorTableParameterfv) then Exit;
-  Pointer(glGetColorTableParameteriv) := wglGetProcAddress('glGetColorTableParameteriv');
-  if not Assigned(glGetColorTableParameteriv) then Exit;
-  Pointer(glColorSubTable) := wglGetProcAddress('glColorSubTable');
-  if not Assigned(glColorSubTable) then Exit;
-  Pointer(glCopyColorSubTable) := wglGetProcAddress('glCopyColorSubTable');
-  if not Assigned(glCopyColorSubTable) then Exit;
-  Pointer(glConvolutionFilter1D) := wglGetProcAddress('glConvolutionFilter1D');
-  if not Assigned(glConvolutionFilter1D) then Exit;
-  Pointer(glConvolutionFilter2D) := wglGetProcAddress('glConvolutionFilter2D');
-  if not Assigned(glConvolutionFilter2D) then Exit;
-  Pointer(glConvolutionParameterf) := wglGetProcAddress('glConvolutionParameterf');
-  if not Assigned(glConvolutionParameterf) then Exit;
-  Pointer(glConvolutionParameterfv) := wglGetProcAddress('glConvolutionParameterfv');
-  if not Assigned(glConvolutionParameterfv) then Exit;
-  Pointer(glConvolutionParameteri) := wglGetProcAddress('glConvolutionParameteri');
-  if not Assigned(glConvolutionParameteri) then Exit;
-  Pointer(glConvolutionParameteriv) := wglGetProcAddress('glConvolutionParameteriv');
-  if not Assigned(glConvolutionParameteriv) then Exit;
-  Pointer(glCopyConvolutionFilter1D) := wglGetProcAddress('glCopyConvolutionFilter1D');
-  if not Assigned(glCopyConvolutionFilter1D) then Exit;
-  Pointer(glCopyConvolutionFilter2D) := wglGetProcAddress('glCopyConvolutionFilter2D');
-  if not Assigned(glCopyConvolutionFilter2D) then Exit;
-  Pointer(glGetConvolutionFilter) := wglGetProcAddress('glGetConvolutionFilter');
-  if not Assigned(glGetConvolutionFilter) then Exit;
-  Pointer(glGetConvolutionParameterfv) := wglGetProcAddress('glGetConvolutionParameterfv');
-  if not Assigned(glGetConvolutionParameterfv) then Exit;
-  Pointer(glGetConvolutionParameteriv) := wglGetProcAddress('glGetConvolutionParameteriv');
-  if not Assigned(glGetConvolutionParameteriv) then Exit;
-  Pointer(glGetSeparableFilter) := wglGetProcAddress('glGetSeparableFilter');
-  if not Assigned(glGetSeparableFilter) then Exit;
-  Pointer(glSeparableFilter2D) := wglGetProcAddress('glSeparableFilter2D');
-  if not Assigned(glSeparableFilter2D) then Exit;
-  Pointer(glGetHistogram) := wglGetProcAddress('glGetHistogram');
-  if not Assigned(glGetHistogram) then Exit;
-  Pointer(glGetHistogramParameterfv) := wglGetProcAddress('glGetHistogramParameterfv');
-  if not Assigned(glGetHistogramParameterfv) then Exit;
-  Pointer(glGetHistogramParameteriv) := wglGetProcAddress('glGetHistogramParameteriv');
-  if not Assigned(glGetHistogramParameteriv) then Exit;
-  Pointer(glGetMinmax) := wglGetProcAddress('glGetMinmax');
-  if not Assigned(glGetMinmax) then Exit;
-  Pointer(glGetMinmaxParameterfv) := wglGetProcAddress('glGetMinmaxParameterfv');
-  if not Assigned(glGetMinmaxParameterfv) then Exit;
-  Pointer(glGetMinmaxParameteriv) := wglGetProcAddress('glGetMinmaxParameteriv');
-  if not Assigned(glGetMinmaxParameteriv) then Exit;
-  Pointer(glHistogram) := wglGetProcAddress('glHistogram');
-  if not Assigned(glHistogram) then Exit;
-  Pointer(glMinmax) := wglGetProcAddress('glMinmax');
-  if not Assigned(glMinmax) then Exit;
-  Pointer(glResetHistogram) := wglGetProcAddress('glResetHistogram');
-  if not Assigned(glResetHistogram) then Exit;
-  Pointer(glResetMinmax) := wglGetProcAddress('glResetMinmax');
-  if not Assigned(glResetMinmax) then Exit;
-  Result := True;
-end;
-
 function Load_GL_ARB_imaging(): Boolean;
 var
   extstring: String;
@@ -7536,19 +7140,6 @@ begin
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
-  begin
-    Result := True;
-  end;
-end;
-
-function Load_GL_ARB_imaging_DEPRECATED(): Boolean;
-var
-  extstring: String;
-begin
-  Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
-
-  if glext_ExtensionSupported('GL_ARB_imaging_DEPRECATED', extstring) then
   begin
     Result := True;
   end;
@@ -7578,86 +7169,6 @@ begin
   Result := Load_GL_VERSION_1_2();
 end;
 
-function Load_GL_VERSION_1_3_DEPRECATED(): Boolean;
-begin
-  Result := False;
-  Pointer(glClientActiveTexture) := wglGetProcAddress('glClientActiveTexture');
-  if not Assigned(glClientActiveTexture) then Exit;
-  Pointer(glMultiTexCoord1d) := wglGetProcAddress('glMultiTexCoord1d');
-  if not Assigned(glMultiTexCoord1d) then Exit;
-  Pointer(glMultiTexCoord1dv) := wglGetProcAddress('glMultiTexCoord1dv');
-  if not Assigned(glMultiTexCoord1dv) then Exit;
-  Pointer(glMultiTexCoord1f) := wglGetProcAddress('glMultiTexCoord1f');
-  if not Assigned(glMultiTexCoord1f) then Exit;
-  Pointer(glMultiTexCoord1fv) := wglGetProcAddress('glMultiTexCoord1fv');
-  if not Assigned(glMultiTexCoord1fv) then Exit;
-  Pointer(glMultiTexCoord1i) := wglGetProcAddress('glMultiTexCoord1i');
-  if not Assigned(glMultiTexCoord1i) then Exit;
-  Pointer(glMultiTexCoord1iv) := wglGetProcAddress('glMultiTexCoord1iv');
-  if not Assigned(glMultiTexCoord1iv) then Exit;
-  Pointer(glMultiTexCoord1s) := wglGetProcAddress('glMultiTexCoord1s');
-  if not Assigned(glMultiTexCoord1s) then Exit;
-  Pointer(glMultiTexCoord1sv) := wglGetProcAddress('glMultiTexCoord1sv');
-  if not Assigned(glMultiTexCoord1sv) then Exit;
-  Pointer(glMultiTexCoord2d) := wglGetProcAddress('glMultiTexCoord2d');
-  if not Assigned(glMultiTexCoord2d) then Exit;
-  Pointer(glMultiTexCoord2dv) := wglGetProcAddress('glMultiTexCoord2dv');
-  if not Assigned(glMultiTexCoord2dv) then Exit;
-  Pointer(glMultiTexCoord2f) := wglGetProcAddress('glMultiTexCoord2f');
-  if not Assigned(glMultiTexCoord2f) then Exit;
-  Pointer(glMultiTexCoord2fv) := wglGetProcAddress('glMultiTexCoord2fv');
-  if not Assigned(glMultiTexCoord2fv) then Exit;
-  Pointer(glMultiTexCoord2i) := wglGetProcAddress('glMultiTexCoord2i');
-  if not Assigned(glMultiTexCoord2i) then Exit;
-  Pointer(glMultiTexCoord2iv) := wglGetProcAddress('glMultiTexCoord2iv');
-  if not Assigned(glMultiTexCoord2iv) then Exit;
-  Pointer(glMultiTexCoord2s) := wglGetProcAddress('glMultiTexCoord2s');
-  if not Assigned(glMultiTexCoord2s) then Exit;
-  Pointer(glMultiTexCoord2sv) := wglGetProcAddress('glMultiTexCoord2sv');
-  if not Assigned(glMultiTexCoord2sv) then Exit;
-  Pointer(glMultiTexCoord3d) := wglGetProcAddress('glMultiTexCoord3d');
-  if not Assigned(glMultiTexCoord3d) then Exit;
-  Pointer(glMultiTexCoord3dv) := wglGetProcAddress('glMultiTexCoord3dv');
-  if not Assigned(glMultiTexCoord3dv) then Exit;
-  Pointer(glMultiTexCoord3f) := wglGetProcAddress('glMultiTexCoord3f');
-  if not Assigned(glMultiTexCoord3f) then Exit;
-  Pointer(glMultiTexCoord3fv) := wglGetProcAddress('glMultiTexCoord3fv');
-  if not Assigned(glMultiTexCoord3fv) then Exit;
-  Pointer(glMultiTexCoord3i) := wglGetProcAddress('glMultiTexCoord3i');
-  if not Assigned(glMultiTexCoord3i) then Exit;
-  Pointer(glMultiTexCoord3iv) := wglGetProcAddress('glMultiTexCoord3iv');
-  if not Assigned(glMultiTexCoord3iv) then Exit;
-  Pointer(glMultiTexCoord3s) := wglGetProcAddress('glMultiTexCoord3s');
-  if not Assigned(glMultiTexCoord3s) then Exit;
-  Pointer(glMultiTexCoord3sv) := wglGetProcAddress('glMultiTexCoord3sv');
-  if not Assigned(glMultiTexCoord3sv) then Exit;
-  Pointer(glMultiTexCoord4d) := wglGetProcAddress('glMultiTexCoord4d');
-  if not Assigned(glMultiTexCoord4d) then Exit;
-  Pointer(glMultiTexCoord4dv) := wglGetProcAddress('glMultiTexCoord4dv');
-  if not Assigned(glMultiTexCoord4dv) then Exit;
-  Pointer(glMultiTexCoord4f) := wglGetProcAddress('glMultiTexCoord4f');
-  if not Assigned(glMultiTexCoord4f) then Exit;
-  Pointer(glMultiTexCoord4fv) := wglGetProcAddress('glMultiTexCoord4fv');
-  if not Assigned(glMultiTexCoord4fv) then Exit;
-  Pointer(glMultiTexCoord4i) := wglGetProcAddress('glMultiTexCoord4i');
-  if not Assigned(glMultiTexCoord4i) then Exit;
-  Pointer(glMultiTexCoord4iv) := wglGetProcAddress('glMultiTexCoord4iv');
-  if not Assigned(glMultiTexCoord4iv) then Exit;
-  Pointer(glMultiTexCoord4s) := wglGetProcAddress('glMultiTexCoord4s');
-  if not Assigned(glMultiTexCoord4s) then Exit;
-  Pointer(glMultiTexCoord4sv) := wglGetProcAddress('glMultiTexCoord4sv');
-  if not Assigned(glMultiTexCoord4sv) then Exit;
-  Pointer(glLoadTransposeMatrixf) := wglGetProcAddress('glLoadTransposeMatrixf');
-  if not Assigned(glLoadTransposeMatrixf) then Exit;
-  Pointer(glLoadTransposeMatrixd) := wglGetProcAddress('glLoadTransposeMatrixd');
-  if not Assigned(glLoadTransposeMatrixd) then Exit;
-  Pointer(glMultTransposeMatrixf) := wglGetProcAddress('glMultTransposeMatrixf');
-  if not Assigned(glMultTransposeMatrixf) then Exit;
-  Pointer(glMultTransposeMatrixd) := wglGetProcAddress('glMultTransposeMatrixd');
-  if not Assigned(glMultTransposeMatrixd) then Exit;
-  Result := Load_GL_VERSION_1_2_DEPRECATED();
-end;
-
 function Load_GL_VERSION_1_4(): Boolean;
 begin
   Result := False;
@@ -7676,88 +7187,6 @@ begin
   Pointer(glPointParameteriv) := wglGetProcAddress('glPointParameteriv');
   if not Assigned(glPointParameteriv) then Exit;
   Result := Load_GL_VERSION_1_3();
-end;
-
-function Load_GL_VERSION_1_4_DEPRECATED(): Boolean;
-begin
-  Result := False;
-  Pointer(glFogCoordf) := wglGetProcAddress('glFogCoordf');
-  if not Assigned(glFogCoordf) then Exit;
-  Pointer(glFogCoordfv) := wglGetProcAddress('glFogCoordfv');
-  if not Assigned(glFogCoordfv) then Exit;
-  Pointer(glFogCoordd) := wglGetProcAddress('glFogCoordd');
-  if not Assigned(glFogCoordd) then Exit;
-  Pointer(glFogCoorddv) := wglGetProcAddress('glFogCoorddv');
-  if not Assigned(glFogCoorddv) then Exit;
-  Pointer(glFogCoordPointer) := wglGetProcAddress('glFogCoordPointer');
-  if not Assigned(glFogCoordPointer) then Exit;
-  Pointer(glSecondaryColor3b) := wglGetProcAddress('glSecondaryColor3b');
-  if not Assigned(glSecondaryColor3b) then Exit;
-  Pointer(glSecondaryColor3bv) := wglGetProcAddress('glSecondaryColor3bv');
-  if not Assigned(glSecondaryColor3bv) then Exit;
-  Pointer(glSecondaryColor3d) := wglGetProcAddress('glSecondaryColor3d');
-  if not Assigned(glSecondaryColor3d) then Exit;
-  Pointer(glSecondaryColor3dv) := wglGetProcAddress('glSecondaryColor3dv');
-  if not Assigned(glSecondaryColor3dv) then Exit;
-  Pointer(glSecondaryColor3f) := wglGetProcAddress('glSecondaryColor3f');
-  if not Assigned(glSecondaryColor3f) then Exit;
-  Pointer(glSecondaryColor3fv) := wglGetProcAddress('glSecondaryColor3fv');
-  if not Assigned(glSecondaryColor3fv) then Exit;
-  Pointer(glSecondaryColor3i) := wglGetProcAddress('glSecondaryColor3i');
-  if not Assigned(glSecondaryColor3i) then Exit;
-  Pointer(glSecondaryColor3iv) := wglGetProcAddress('glSecondaryColor3iv');
-  if not Assigned(glSecondaryColor3iv) then Exit;
-  Pointer(glSecondaryColor3s) := wglGetProcAddress('glSecondaryColor3s');
-  if not Assigned(glSecondaryColor3s) then Exit;
-  Pointer(glSecondaryColor3sv) := wglGetProcAddress('glSecondaryColor3sv');
-  if not Assigned(glSecondaryColor3sv) then Exit;
-  Pointer(glSecondaryColor3ub) := wglGetProcAddress('glSecondaryColor3ub');
-  if not Assigned(glSecondaryColor3ub) then Exit;
-  Pointer(glSecondaryColor3ubv) := wglGetProcAddress('glSecondaryColor3ubv');
-  if not Assigned(glSecondaryColor3ubv) then Exit;
-  Pointer(glSecondaryColor3ui) := wglGetProcAddress('glSecondaryColor3ui');
-  if not Assigned(glSecondaryColor3ui) then Exit;
-  Pointer(glSecondaryColor3uiv) := wglGetProcAddress('glSecondaryColor3uiv');
-  if not Assigned(glSecondaryColor3uiv) then Exit;
-  Pointer(glSecondaryColor3us) := wglGetProcAddress('glSecondaryColor3us');
-  if not Assigned(glSecondaryColor3us) then Exit;
-  Pointer(glSecondaryColor3usv) := wglGetProcAddress('glSecondaryColor3usv');
-  if not Assigned(glSecondaryColor3usv) then Exit;
-  Pointer(glSecondaryColorPointer) := wglGetProcAddress('glSecondaryColorPointer');
-  if not Assigned(glSecondaryColorPointer) then Exit;
-  Pointer(glWindowPos2d) := wglGetProcAddress('glWindowPos2d');
-  if not Assigned(glWindowPos2d) then Exit;
-  Pointer(glWindowPos2dv) := wglGetProcAddress('glWindowPos2dv');
-  if not Assigned(glWindowPos2dv) then Exit;
-  Pointer(glWindowPos2f) := wglGetProcAddress('glWindowPos2f');
-  if not Assigned(glWindowPos2f) then Exit;
-  Pointer(glWindowPos2fv) := wglGetProcAddress('glWindowPos2fv');
-  if not Assigned(glWindowPos2fv) then Exit;
-  Pointer(glWindowPos2i) := wglGetProcAddress('glWindowPos2i');
-  if not Assigned(glWindowPos2i) then Exit;
-  Pointer(glWindowPos2iv) := wglGetProcAddress('glWindowPos2iv');
-  if not Assigned(glWindowPos2iv) then Exit;
-  Pointer(glWindowPos2s) := wglGetProcAddress('glWindowPos2s');
-  if not Assigned(glWindowPos2s) then Exit;
-  Pointer(glWindowPos2sv) := wglGetProcAddress('glWindowPos2sv');
-  if not Assigned(glWindowPos2sv) then Exit;
-  Pointer(glWindowPos3d) := wglGetProcAddress('glWindowPos3d');
-  if not Assigned(glWindowPos3d) then Exit;
-  Pointer(glWindowPos3dv) := wglGetProcAddress('glWindowPos3dv');
-  if not Assigned(glWindowPos3dv) then Exit;
-  Pointer(glWindowPos3f) := wglGetProcAddress('glWindowPos3f');
-  if not Assigned(glWindowPos3f) then Exit;
-  Pointer(glWindowPos3fv) := wglGetProcAddress('glWindowPos3fv');
-  if not Assigned(glWindowPos3fv) then Exit;
-  Pointer(glWindowPos3i) := wglGetProcAddress('glWindowPos3i');
-  if not Assigned(glWindowPos3i) then Exit;
-  Pointer(glWindowPos3iv) := wglGetProcAddress('glWindowPos3iv');
-  if not Assigned(glWindowPos3iv) then Exit;
-  Pointer(glWindowPos3s) := wglGetProcAddress('glWindowPos3s');
-  if not Assigned(glWindowPos3s) then Exit;
-  Pointer(glWindowPos3sv) := wglGetProcAddress('glWindowPos3sv');
-  if not Assigned(glWindowPos3sv) then Exit;
-  Result := Load_GL_VERSION_1_3_DEPRECATED();
 end;
 
 function Load_GL_VERSION_1_5(): Boolean;
@@ -7802,11 +7231,6 @@ begin
   Pointer(glGetBufferPointerv) := wglGetProcAddress('glGetBufferPointerv');
   if not Assigned(glGetBufferPointerv) then Exit;
   Result := Load_GL_VERSION_1_4();
-end;
-
-function Load_GL_VERSION_1_5_DEPRECATED(): Boolean;
-begin
-  Result := Load_GL_VERSION_1_4_DEPRECATED();
 end;
 
 function Load_GL_VERSION_2_0(): Boolean;
@@ -8001,11 +7425,6 @@ begin
   Result := Load_GL_VERSION_1_5();
 end;
 
-function Load_GL_VERSION_2_0_DEPRECATED(): Boolean;
-begin
-  Result := Load_GL_VERSION_1_5_DEPRECATED();
-end;
-
 function Load_GL_VERSION_2_1(): Boolean;
 begin
   Result := False;
@@ -8022,11 +7441,6 @@ begin
   Pointer(glUniformMatrix4x3fv) := wglGetProcAddress('glUniformMatrix4x3fv');
   if not Assigned(glUniformMatrix4x3fv) then Exit;
   Result := Load_GL_VERSION_2_0();
-end;
-
-function Load_GL_VERSION_2_1_DEPRECATED(): Boolean;
-begin
-  Result := Load_GL_VERSION_2_0_DEPRECATED();
 end;
 
 function Load_GL_VERSION_3_0(): Boolean;
@@ -8152,11 +7566,6 @@ begin
   if not Load_GL_ARB_map_buffer_range() then Exit;
   if not Load_GL_ARB_vertex_array_object() then Exit;
   Result := Load_GL_VERSION_2_1();
-end;
-
-function Load_GL_VERSION_3_0_DEPRECATED(): Boolean;
-begin
-  Result := Load_GL_VERSION_2_1_DEPRECATED();
 end;
 
 function Load_GL_VERSION_3_1(): Boolean;
@@ -9282,19 +8691,6 @@ begin
     if not Assigned(glRenderbufferStorageMultisample) then Exit;
     Pointer(glFramebufferTextureLayer) := wglGetProcAddress('glFramebufferTextureLayer');
     if not Assigned(glFramebufferTextureLayer) then Exit;
-    Result := True;
-  end;
-end;
-
-function Load_GL_ARB_framebuffer_object_DEPRECATED(): Boolean;
-var
-  extstring: String;
-begin
-  Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
-
-  if glext_ExtensionSupported('GL_ARB_framebuffer_object_DEPRECATED', extstring) then
-  begin
     Result := True;
   end;
 end;
@@ -16050,21 +15446,13 @@ begin
   Result := False;
 
   if ext = 'GL_VERSION_1_2' then Result := Load_GL_VERSION_1_2()
-  else if ext = 'GL_VERSION_1_2_DEPRECATED' then Result := Load_GL_VERSION_1_2_DEPRECATED()
   else if ext = 'GL_ARB_imaging' then Result := Load_GL_ARB_imaging()
-  else if ext = 'GL_ARB_imaging_DEPRECATED' then Result := Load_GL_ARB_imaging_DEPRECATED()
   else if ext = 'GL_VERSION_1_3' then Result := Load_GL_VERSION_1_3()
-  else if ext = 'GL_VERSION_1_3_DEPRECATED' then Result := Load_GL_VERSION_1_3_DEPRECATED()
   else if ext = 'GL_VERSION_1_4' then Result := Load_GL_VERSION_1_4()
-  else if ext = 'GL_VERSION_1_4_DEPRECATED' then Result := Load_GL_VERSION_1_4_DEPRECATED()
   else if ext = 'GL_VERSION_1_5' then Result := Load_GL_VERSION_1_5()
-  else if ext = 'GL_VERSION_1_5_DEPRECATED' then Result := Load_GL_VERSION_1_5_DEPRECATED()
   else if ext = 'GL_VERSION_2_0' then Result := Load_GL_VERSION_2_0()
-  else if ext = 'GL_VERSION_2_0_DEPRECATED' then Result := Load_GL_VERSION_2_0_DEPRECATED()
   else if ext = 'GL_VERSION_2_1' then Result := Load_GL_VERSION_2_1()
-  else if ext = 'GL_VERSION_2_1_DEPRECATED' then Result := Load_GL_VERSION_2_1_DEPRECATED()
   else if ext = 'GL_VERSION_3_0' then Result := Load_GL_VERSION_3_0()
-  else if ext = 'GL_VERSION_3_0_DEPRECATED' then Result := Load_GL_VERSION_3_0_DEPRECATED()
   else if ext = 'GL_VERSION_3_1' then Result := Load_GL_VERSION_3_1()
   else if ext = 'GL_VERSION_3_2' then Result := Load_GL_VERSION_3_2()
   else if ext = 'GL_VERSION_3_3' then Result := Load_GL_VERSION_3_3()
@@ -16107,7 +15495,6 @@ begin
   else if ext = 'GL_ARB_depth_buffer_float' then Result := Load_GL_ARB_depth_buffer_float()
   else if ext = 'GL_ARB_draw_instanced' then Result := Load_GL_ARB_draw_instanced()
   else if ext = 'GL_ARB_framebuffer_object' then Result := Load_GL_ARB_framebuffer_object()
-  else if ext = 'GL_ARB_framebuffer_object_DEPRECATED' then Result := Load_GL_ARB_framebuffer_object_DEPRECATED()
   else if ext = 'GL_ARB_framebuffer_sRGB' then Result := Load_GL_ARB_framebuffer_sRGB()
   else if ext = 'GL_ARB_geometry_shader4' then Result := Load_GL_ARB_geometry_shader4()
   else if ext = 'GL_ARB_half_float_vertex' then Result := Load_GL_ARB_half_float_vertex()
