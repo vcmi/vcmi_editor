@@ -87,7 +87,9 @@ type
     function Clone: TWeightedRule;
   end;
 
+  //todo: use object or record
   TRules = specialize TFPGObjectList<TWeightedRule>;
+
 
   TRulesArray =  array[0..8] of TRules ;
 

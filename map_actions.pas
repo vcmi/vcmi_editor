@@ -370,6 +370,7 @@ begin
     repeat
       FNewTileInfos.PushBack(it.data);
     until not it.next ;
+    FreeAndNil(it);
   end;
 
 
@@ -615,6 +616,7 @@ var
   tile, tmp:TTileInfo;
 
   it: TTileSet.TIterator;
+  it2: TTileSet.PNode;
   rect: TMapRect;
   SuitableTiles: TTileSet;
 
@@ -637,8 +639,12 @@ begin
 
      it := tiles.ForeignTiles.Min;
 
-     while Assigned(it) and it.Next do
-       UpdateTerrain(it.data, true);
+     if Assigned(it)  then
+     begin
+       repeat
+          UpdateTerrain(it.data, true);
+       until not it.Next;
+     end;
 
      FreeAndNil(it);
 
@@ -710,11 +716,11 @@ begin
              tmp.X:=currentCoord.X;
              tmp.Y:=currentCoord.Y;
 
-             it := SuitableTiles.Find(tmp);
+             it2 := SuitableTiles.NFind(tmp);
 
-             if Assigned(it) then
+             if Assigned(it2) then
              begin
-                UpdateTerrain(it.Data, tileRequiresValidation);
+                UpdateTerrain(it2^.Data, tileRequiresValidation);
              end;
           end;
 
@@ -745,7 +751,7 @@ var
   k: Integer;
   FramesPerRotation: Integer;
   Flip: Integer;
-  oqIt:  TTileSet.TIterator;
+  oqIt:  TTileSet.PNode;
   FirstFrame, x, y: Integer;
 begin
   it  := FInvalidated.Min;
@@ -809,7 +815,7 @@ begin
         info.mir:=0;
       end;
 
-      oqIt := FOutQueue.Find(info);
+      oqIt := FOutQueue.NFind(info);
 
       if Assigned(oqIt) then
       begin
@@ -819,6 +825,7 @@ begin
       FOutQueue.Insert(info);
 
     until not it.next;
+    FreeAndNil(it);
   end;
 end;
 
@@ -972,6 +979,7 @@ begin
             end;
 
           end;
+          rule.free;
           Continue;
         end
         else
