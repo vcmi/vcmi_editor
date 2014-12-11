@@ -56,9 +56,10 @@ type
 
   TObjectDragProxy = class(TDragProxy)
   private
+    FShiftX, FShiftY: Integer;
     FDraggingObject: TMapObject;
   public
-    constructor Create(ADraggingObject: TMapObject);
+    constructor Create(ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
     procedure Drop; override;
     procedure Render(x, y: integer); override;
   end;
@@ -339,25 +340,26 @@ uses
 
 { TObjectDragProxy }
 
-constructor TObjectDragProxy.Create(ADraggingObject: TMapObject);
+constructor TObjectDragProxy.Create(ADraggingObject: TMapObject; CurrentX,
+  CurrentY: integer);
 begin
   FDraggingObject := ADraggingObject;
+  FShiftX:=FDraggingObject.X - CurrentX;
+  FShiftY:=FDraggingObject.Y - CurrentY;
 end;
 
 procedure TObjectDragProxy.Drop;
 begin
   FDraggingObject.L := fMain.FMap.CurrentLevel;
-  FDraggingObject.X := fMain.FMouseTileX;
-  FDraggingObject.Y := fMain.FMouseTileY;
+  FDraggingObject.X := fMain.FMouseTileX+FShiftX;
+  FDraggingObject.Y := fMain.FMouseTileY+FShiftY;
 
   fMain.FSelectedObject := FDraggingObject;
 end;
 
 procedure TObjectDragProxy.Render(x, y: integer);
 begin
-  FDraggingObject.X:=x;
-  FDraggingObject.Y:=y;
-  FDraggingObject.RenderStatic();
+  FDraggingObject.RenderStatic((x+1+FShiftX)*TILE_SIZE,(y+1+FShiftY)*TILE_SIZE);
 end;
 
 { TTemplateDragProxy }
@@ -1183,7 +1185,7 @@ begin
   if Assigned(FSelectedObject) and (FTerrainBrushMode=TBrushMode.none) then
   begin
     DragManager.DragStart(MapView,False, 0);
-    FDragging := TObjectDragProxy.Create(FSelectedObject);
+    FDragging := TObjectDragProxy.Create(FSelectedObject, FMouseTileX, FMouseTileY);
     //FSelectedObject := nil;
   end;
 end;
@@ -1319,8 +1321,6 @@ begin
     Assert(Assigned(FDragging));
 
     FDragging.Render(FMouseTileX,FMouseTileY);
-
-
   end;
 
   //todo: render passability

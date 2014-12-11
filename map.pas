@@ -286,7 +286,7 @@ type
     FX: integer;
     FY: integer;
     function GetPlayer: TPlayer; inline;
-    procedure Render(Frame:integer);
+    procedure Render(Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
@@ -300,6 +300,7 @@ type
     destructor Destroy; override;
     property Template: TMapObjectTemplate read FTemplate;
     procedure RenderStatic(); inline;
+    procedure RenderStatic(X,Y: integer); inline;
     procedure RenderAnim(); inline;
 
     procedure RenderSelectionRect; inline;
@@ -564,16 +565,16 @@ begin
   Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
 end;
 
-procedure TMapObject.Render(Frame: integer);
+procedure TMapObject.Render(Frame: integer; Ax, Ay: integer);
 var
   owner : TPlayer;
 begin
   owner := GetPlayer;
-  Template.FDef.RenderO(Frame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE,GetPlayer);
+  Template.FDef.RenderO(Frame, Ax,Ay,GetPlayer);
 
   if (owner <> TPlayer.none) and (TObj(Template.Id) in [TObj.HERO, TObj.RANDOM_HERO, TObj.HERO_PLACEHOLDER]) then
   begin
-    RootManager.GraphicsManger.GetHeroFlagDef(owner).RenderO(0, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+    RootManager.GraphicsManger.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
   end;
 end;
 
@@ -593,7 +594,7 @@ begin
       FLastFrame := 0;
   end;
 
-  Render(FLastFrame);
+  Render(FLastFrame,(x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
 end;
 
 procedure TMapObject.RenderSelectionRect;
@@ -603,7 +604,12 @@ end;
 
 procedure TMapObject.RenderStatic;
 begin
-  Render(FLastFrame);
+  Render(FLastFrame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+end;
+
+procedure TMapObject.RenderStatic(X, Y: integer);
+begin
+  Render(FLastFrame, x,y);
 end;
 
 procedure TMapObject.SetL(AValue: integer);
