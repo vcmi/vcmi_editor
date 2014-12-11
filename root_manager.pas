@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, LazLogger,
   Forms, Controls,
-  progress_form, filesystem_base,
+  progress_form, filesystem_base, root_form,
   filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl, {GLext,}glext40;
 
 type
@@ -38,7 +38,7 @@ type
     procedure DataModuleDestroy(Sender: TObject);
   private
     FProgressForm:    TProgressForm;
-    FHiddenForm:      TForm;
+    FHiddenForm:      TRootForm;
     FResourceManager: TFSManager;
 
     FTerrianManager:  TTerrainManager;
@@ -87,14 +87,12 @@ begin
     DeleteFileUTF8(log_name);
   end;
 
-  FHiddenForm := TForm.CreateNew(Self);
-
   DebugLogger.LogName := log_name;
   DebugLogger.CloseLogFileBetweenWrites := True;
 
+  FHiddenForm := TRootForm.Create(Self);
 
-  FGLContext := TOpenGLControl.Create(Self);
-  FGLContext.Parent := FHiddenForm;
+  FGLContext := FHiddenForm.RootContext;
 
   if not FGLContext.MakeCurrent() then
   begin

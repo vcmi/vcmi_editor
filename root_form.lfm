@@ -1,0 +1,17 @@
+object RootForm: TRootForm
+  Left = 270
+  Height = 240
+  Top = 130
+  Width = 320
+  ClientHeight = 240
+  ClientWidth = 320
+  LCLVersion = '1.2.7.0'
+  object RootContext: TOpenGLControl
+    Left = 8
+    Height = 232
+    Top = 0
+    Width = 304
+    OpenGLMajorVersion = 3
+    OpenGLMinorVersion = 3
+  end
+end
