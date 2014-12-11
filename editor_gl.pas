@@ -64,11 +64,11 @@ const
       '{'+
          'if(usePalette == 1)'+
           '{'+
-              'return texelFetch(palette, int(texelFetch(bitmap, ivec2(UV)).r), 0);'+
+              'return texelFetch(palette, int(texture(bitmap,UV).r), 0);'+
           '}'+
           'else'+
           '{' +
-              'return texture2DRect(bitmap,UV);'+ //???
+              'return texture(bitmap,UV);'+ //???
           '}'+
       '}'+
        'return inColor;'+
@@ -247,9 +247,6 @@ begin
 end;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);
-//const
-//  RECT_COLOR: TRBGAColor = (r:255; g:0; b:0; a:255);
-//
 var
   factor: Double;
   cur_dim: integer;
@@ -263,8 +260,6 @@ var
   v: GLfloat;
   CoordsArray: glint;
 begin
-  //ShaderContext.SetFragmentColor(RECT_COLOR);
-
   if dim <=0 then //render real size w|o scale
   begin
     H := ASprite.Height;
