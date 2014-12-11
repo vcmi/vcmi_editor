@@ -1374,10 +1374,7 @@ begin
 
   ShaderContext.UseNoTextures();
 
-  ShaderContext.SetOrtho(   0,
-      c.Width + 0,
-      c.Height + 0,
-      0);
+  ShaderContext.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);

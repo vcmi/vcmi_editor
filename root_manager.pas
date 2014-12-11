@@ -102,17 +102,11 @@ begin
     raise Exception.Create('Unable to switch GL context');
   end;
 
-  if not Load_GL_VERSION_3_3() {or not Load_GL_VERSION_2_1_DEPRECATED()} then
+  if not Load_GL_VERSION_3_3() then
   begin
     Application.Terminate;
     raise Exception.Create('Error initializing OpenGL');
   end;
-
-  //if not Load_GL_EXT_texture_rectangle() then
-  //begin
-  //  Application.Terminate;
-  //  raise Exception.Create('Error loading required extension EXT_texture_rectangle');
-  //end;
 
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;

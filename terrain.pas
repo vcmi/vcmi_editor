@@ -165,17 +165,12 @@ type
     FMappings: TMappings;
     FMaxPoints: integer;
     FRotationTypesCount: Integer;
-
-
-
     function GetRData(idx: Integer): TRules;
     procedure SetID(AValue: string);
     procedure SetMinPoints(AValue: integer);
     procedure SetDiffImages(AValue: Boolean);
     procedure SetMaxPoints(AValue: integer);
     procedure SetRotationTypesCount(AValue: Integer);
-
-
     procedure FillFrom(ATemplate: TPatternTemplate);
   private
     FFlipped: array[1..3] of TPattern;
@@ -183,27 +178,20 @@ type
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create();
-
     constructor Create(ATemplate: TPatternTemplate);
-
     destructor Destroy; override;
-
     procedure SwapRules(idx1,idx2: Integer);
-
     property RData[idx:Integer]: TRules read GetRData;
-
     property Id:string read FID write SetID;
     property MinPoints: integer read FMinPoints write SetMinPoints;
     property MaxPoints: integer read FMaxPoints write SetMaxPoints;
     property DiffImages: Boolean read FDiffImages write SetDiffImages;
     property RotationTypesCount: Integer read FRotationTypesCount write SetRotationTypesCount;
-
     property Mappings:TMappings read FMappings;
   end;
 
 
   TPatternsVector = specialize TFPGObjectList<TPattern>;
-
   TTerrainViewMap = specialize TFPGMap<TTerrainGroup, TPatternsVector>;
   TTerrainTypeMap = specialize TFPGMap<string, TPattern>;
 
@@ -213,38 +201,23 @@ type
   private
     FTerrainType: TPatternTemplates;
     FTerrainView: TPatternTemplates;
-
     FViewMap: TTerrainViewMap;
     FTypeMap: TTerrainTypeMap;
-
     FFreeList: TFPObjectList;
-
     procedure FlipPattern(APattern: TPattern; flip:Integer);
     procedure PreparePattern(APattern: TPattern);
-
     procedure ConvertTerrainTypes;
     procedure ConvertTerrainViews;
-
-
   public
     constructor Create;
     destructor Destroy; override;
-
     procedure ConvertConfig;
-    //function GetGroupConfig(AGroup: TTerrainGroup):TPatterns;
-    //function GetTerrainConfig(ATerrain: TTerrainType):TPatterns;
-
-    //function GetConfigById(AGroup: TTerrainGroup; AId:string): TPattern;
     function GetFlippedPattern(const APattern: TPattern; flip:Integer ): TPattern;
-
     function GetTerrainViewPatternsForGroup(AGroup: TTerrainGroup): TPatternsVector;
-
     //may return nil
     function GetTerrainViewPatternById(AGroup: TTerrainGroup; AId:string): TPattern;
-
     //will raise if not found
     function GetTerrainTypePatternById(AId:string): TPattern;
-
     function GetTerrainGroup(AGroup:string): TTerrainGroup;
   published
     property TerrainView:TPatternTemplates read FTerrainView;
@@ -700,23 +673,6 @@ begin
   inherited Destroy;
 end;
 
-//function TTerrainPatternConfig.GetConfigById(AGroup: TTerrainGroup; AId: string
-//  ): TPattern;
-//var
-//  g_config: TPatterns;
-//  t: TCollectionItem;
-//begin
-//  g_config := GetGroupConfig(AGroup);
-//
-//  for t in g_config do
-//  begin
-//    if TPattern(t).ID = AId then Exit(TPattern(t));
-//  end;
-//  Result := nil;
-//
-//  raise Exception.Create('Terrain config error. Pattern '+AId+' not found');
-//end;
-
 function TTerrainPatternConfig.GetFlippedPattern(const APattern: TPattern;
   flip: Integer): TPattern;
 begin
@@ -783,8 +739,6 @@ begin
   begin
     dest_o := TPattern(Dest);
 
-    //dest_o.Data.Assign(Data);
-    //dest_o.Mapping := Mapping;
     dest_o.ID := ID;
     dest_o.MinPoints := MinPoints;
     dest_o.MaxPoints := MaxPoints;
@@ -805,7 +759,6 @@ begin
     begin
       dest_o.FMappings.PushBack(FMappings[i]);
     end;
-
   end
   else begin
     inherited AssignTo(Dest);
@@ -826,8 +779,6 @@ begin
   FDiffImages:=false;
 
   FMappings := TMappings.Create;
-
-
 end;
 
 constructor TPattern.Create(ATemplate: TPatternTemplate);
@@ -1046,7 +997,6 @@ begin
   begin
     FRoadDefs[rdt] := GraphicsManager.GetGraphics(ROAD_DEF_FILES[rdt]);
   end;
-
 end;
 
 procedure TTerrainManager.Render(const tt: TTerrainType; sbt: UInt8; X,
@@ -1073,11 +1023,4 @@ begin
   end;
 end;
 
-
 end.
-
-
-
-
-
-

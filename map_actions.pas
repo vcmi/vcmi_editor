@@ -22,7 +22,6 @@ unit map_actions;
 {$I compilersetup.inc}
 {$MODESWITCH ADVANCEDRECORDS}
 {$MODESWITCH NESTEDPROCVARS}
-{$inline on}
 
 interface
 
