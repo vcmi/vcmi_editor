@@ -22,6 +22,7 @@ unit map_actions;
 {$I compilersetup.inc}
 {$MODESWITCH ADVANCEDRECORDS}
 {$MODESWITCH NESTEDPROCVARS}
+{$inline on}
 
 interface
 
@@ -37,7 +38,7 @@ type
   TMapCoord = record
     X,Y: integer;
 
-    procedure Clear();
+    procedure Clear(); inline;
   end;
 
   operator+ (a,b:TMapCoord):TMapCoord;
@@ -54,15 +55,15 @@ type
     constructor Create(); //empty
     constructor SetFromCenter(X,Y, Width,Height: integer);
 
-    function Left(): integer;
-    function Right(): integer;
-    function Top(): integer;
-    function Bottom(): integer;
+    function Left(): integer; inline;
+    function Right(): integer; inline;
+    function Top(): integer; inline;
+    function Bottom(): integer; inline;
 
-    function TopLeft():TMapCoord;
-    function TopRight():TMapCoord;
-    function BottomLeft():TMapCoord;
-    function BottomRight():TMapCoord;
+    function TopLeft():TMapCoord; inline;
+    function TopRight():TMapCoord; inline;
+    function BottomLeft():TMapCoord; inline;
+    function BottomRight():TMapCoord; inline;
 
     function Intersect(Other: TMapRect):TMapRect;
 
