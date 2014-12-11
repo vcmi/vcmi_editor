@@ -127,9 +127,10 @@ type
   TShaderContext = class
   private
     const
-       DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);
+       DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);//deprecated
   private
     FCurrentProgram: GLuint;
+    EmptyBufferData:array of GLfloat; //used to initialize VBO
   private
 
     DefaultProgram: GLuint;
@@ -147,6 +148,10 @@ type
     FlagColorUniform: GLint;
 
     CoordsBuffer, {CoordsArray,} UVBuffer: GLuint;
+
+    MirroredUVBuffers: array[0..3] of GLuint;
+
+    procedure SetupUVBuffer;
   public
     destructor Destroy; override;
     procedure Init;
@@ -255,10 +260,8 @@ var
   y: Int32;
 
   vertex_data: packed array[1..12] of GLfloat;
-  uv_data: packed array[1..12] of GLfloat;
-  u: GLfloat;
-  v: GLfloat;
-  CoordsArray: glint;
+
+  BufferHandle: GLuint;
 begin
   if dim <=0 then //render real size w|o scale
   begin
@@ -287,53 +290,12 @@ begin
   vertex_data[9] := x;   vertex_data[10] := y+h;
   vertex_data[11] := x;  vertex_data[12] := y;
 
-  u := 1;
-  v := 1;
-
-  case mir of
-    0:begin
-        uv_data[1] := 0;   uv_data[2] := 0;
-        uv_data[3] := u;   uv_data[4] := 0;
-        uv_data[5] := u;   uv_data[6] := v;
-
-        uv_data[7] := u;   uv_data[8] := v;
-        uv_data[9] := 0;   uv_data[10] := v;
-        uv_data[11] := 0;   uv_data[12] := 0;
-    end;
-    1: begin
-          uv_data[1] := u;   uv_data[2] := 0;
-          uv_data[3] := 0;   uv_data[4] := 0;
-          uv_data[5] := 0;   uv_data[6] := v;
-
-          uv_data[7] := 0;   uv_data[8] := v;
-          uv_data[9] := u;   uv_data[10] := v;
-          uv_data[11] := u;   uv_data[12] := 0;
-      end;
-    2: begin
-          uv_data[1] := 0;   uv_data[2] := v;
-          uv_data[3] := u;   uv_data[4] := v;
-          uv_data[5] := u;   uv_data[6] := 0;
-
-          uv_data[7] := u;   uv_data[8] := 0;
-          uv_data[9] := 0;   uv_data[10] := 0;
-          uv_data[11] := 0;   uv_data[12] := v;
-      end;
-    3:begin
-        uv_data[1] := u;   uv_data[2] := v;
-        uv_data[3] := 0;   uv_data[4] := v;
-        uv_data[5] := 0;   uv_data[6] := 0;
-
-        uv_data[7] := 0;   uv_data[8] := 0;
-        uv_data[9] := u;   uv_data[10] := 0;
-        uv_data[11] := u;   uv_data[12] := v;
-      end;
-   end;
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+
 
 
 
@@ -343,8 +305,11 @@ begin
     glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
     glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(uv_data),@uv_data);
+
+    BufferHandle:=ShaderContext.MirroredUVBuffers[mir];
+
+    glBindBuffer(GL_ARRAY_BUFFER,BufferHandle);
+
     glEnableVertexAttribArray(ShaderContext.UVAttrib);
     glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
@@ -498,6 +463,68 @@ end;
 
 { TShaderContext }
 
+procedure TShaderContext.SetupUVBuffer;
+var
+  uv_data: packed array[1..12] of GLfloat;
+  u: GLfloat;
+  v: GLfloat;
+  mir: Integer;
+begin
+  glGenBuffers(1,@UVBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
+
+  glGenBuffers(Length(MirroredUVBuffers), @MirroredUVBuffers);
+
+
+  u:=1;
+  v:=1;
+
+  for mir := 0 to 3 do
+  begin
+    glBindBuffer(GL_ARRAY_BUFFER,MirroredUVBuffers[mir]);
+    case mir of
+      0:begin
+          uv_data[1] := 0;   uv_data[2] := 0;
+          uv_data[3] := u;   uv_data[4] := 0;
+          uv_data[5] := u;   uv_data[6] := v;
+
+          uv_data[7] := u;   uv_data[8] := v;
+          uv_data[9] := 0;   uv_data[10] := v;
+          uv_data[11] := 0;   uv_data[12] := 0;
+      end;
+      1: begin
+            uv_data[1] := u;   uv_data[2] := 0;
+            uv_data[3] := 0;   uv_data[4] := 0;
+            uv_data[5] := 0;   uv_data[6] := v;
+
+            uv_data[7] := 0;   uv_data[8] := v;
+            uv_data[9] := u;   uv_data[10] := v;
+            uv_data[11] := u;   uv_data[12] := 0;
+        end;
+      2: begin
+            uv_data[1] := 0;   uv_data[2] := v;
+            uv_data[3] := u;   uv_data[4] := v;
+            uv_data[5] := u;   uv_data[6] := 0;
+
+            uv_data[7] := u;   uv_data[8] := 0;
+            uv_data[9] := 0;   uv_data[10] := 0;
+            uv_data[11] := 0;   uv_data[12] := v;
+        end;
+      3:begin
+          uv_data[1] := u;   uv_data[2] := v;
+          uv_data[3] := 0;   uv_data[4] := v;
+          uv_data[5] := 0;   uv_data[6] := 0;
+
+          uv_data[7] := 0;   uv_data[8] := 0;
+          uv_data[9] := u;   uv_data[10] := 0;
+          uv_data[11] := u;   uv_data[12] := v;
+        end;
+     end;
+     glBufferData(GL_ARRAY_BUFFER, sizeof(uv_data),@uv_data,GL_STATIC_DRAW);
+  end;
+end;
+
 destructor TShaderContext.Destroy;
 begin
   glDeleteProgram(DefaultProgram);
@@ -530,15 +557,13 @@ begin
 
 
   glGenBuffers(1,@CoordsBuffer);
-  glGenBuffers(1,@UVBuffer);
  // glBindVertexArray(CoordsArray);
 
   glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
 
+  SetupUVBuffer;
   CheckGLErrors('VBO');
 
   //glUseProgram(DefaultProgram);
