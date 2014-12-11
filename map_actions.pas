@@ -21,6 +21,7 @@ unit map_actions;
 
 {$I compilersetup.inc}
 {$MODESWITCH ADVANCEDRECORDS}
+{$MODESWITCH NESTEDPROCVARS}
 
 interface
 
@@ -44,9 +45,11 @@ type
 type
   { TMapRect }
 
+  TMapCoordForEach = procedure (const Coord: TMapCoord; var Stop: Boolean) is nested;
+
   TMapRect = object
     FTopLeft: TMapCoord;
-    FWidth,FHeight: Integer;
+    FWidth,FHeight: SizeInt;
 
     constructor Create(); //empty
     constructor SetFromCenter(X,Y, Width,Height: integer);
@@ -64,6 +67,8 @@ type
     function Intersect(Other: TMapRect):TMapRect;
 
     procedure Clear();
+
+    procedure Iterate(Callback: TMapCoordForEach);
   end;
 
   TTileInfo = record
@@ -269,6 +274,27 @@ begin
   FTopLeft.Clear();
   FHeight:=0;
   FWidth:=0;
+end;
+
+procedure TMapRect.Iterate(Callback: TMapCoordForEach);
+var
+  Current: TMapCoord;
+  Stop: Boolean;
+  i,j: SizeInt;
+begin
+  Stop := false;
+
+  for i := 0 to FWidth - 1 do
+  begin
+    for j := 0 to FHeight - 1 do
+    begin
+      Current.X := FTopLeft.X+i;
+      Current.Y := FTopLeft.Y+j;
+
+      Callback(Current, Stop);
+      if Stop then Exit;
+    end;
+  end;
 end;
 
 constructor TMapRect.SetFromCenter(X, Y, Width, Height: integer);
@@ -503,88 +529,76 @@ begin
 end;
 
 procedure TEditTerrain.InvalidateTerrainViews(X, Y: integer);
-var
-  r: TMapRect;
-  i: Integer;
-  j: Integer;
-begin
-  r := SafeExtendTileAround(x,y);
 
-  for i := 0 to r.FWidth - 1 do
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
   begin
-    for j := 0 to r.FHeight - 1 do
-    begin
-       FInvalidated.Insert(GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j));
-    end;
+    FInvalidated.Insert(GetTinfo(Coord.X, Coord.Y));
   end;
-
+begin
+  SafeExtendTileAround(x,y).Iterate(@ProcessTile);
 end;
 
 function TEditTerrain.GetInvalidTiles(center: TTileInfo): TInvalidTiles;
-const
-  WATER_ROCK_P: array[0..1] of string = ('s1','s2');
-  OTHER_P: array[0..1] of string = ('n2','n3');
-
 var
-  r: TMapRect;
-  i: Integer;
-  j: Integer;
-
-  curTile, centerTile: TTileInfo;
+  centerTile: TTileInfo;
 
   config: TTerrainPatternConfig;
-  valid: Boolean;
 
-  pName: string;
+  res:TInvalidTiles;
+
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  const
+    WATER_ROCK_P: array[0..1] of string = ('s1','s2');
+    OTHER_P: array[0..1] of string = ('n2','n3');
+  var
+    valid: Boolean;
+    curTile: TTileInfo;
+    pName: string;
+  begin
+    curTile := GetTinfo(Coord.X, Coord.Y);
+
+    valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById('n1')).result;
+
+    // Special validity check for rock & water
+
+    if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
+    begin
+      for pName in WATER_ROCK_P do
+      begin
+         valid := not ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+         if not valid then
+           break;
+      end;
+    end
+    // Additional validity check for non rock OR water
+    else if (not valid and not (curTile.TerType in [TTerrainType.water, TTerrainType.rock])) then
+    begin
+      for pName in OTHER_P do
+      begin
+         valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+         if valid then
+           break;
+      end;
+    end;
+
+    if not valid then
+    begin
+      if curTile.TerType = centerTile.TerType then
+        Res.NativeTiles.Insert(curTile)
+      else
+        Res.ForeignTiles.Insert(curTile)
+    end;
+  end;
 
 begin
-  Result := TInvalidTiles.Create;
+  Res := TInvalidTiles.Create;
   config :=  fmap.TerrainManager.PatternConfig;
 
   centerTile := GetTinfo(center.X,center.Y);
 
-  r := SafeExtendTileAround(center.X,center.Y);
+  SafeExtendTileAround(center.X,center.Y).Iterate(@ProcessTile);
 
-  for i := 0 to r.FWidth - 1 do
-  begin
-    for j := 0 to r.FHeight - 1 do
-    begin
-       curTile := GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j);
-
-       valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById('n1')).result;
-
-       // Special validity check for rock & water
-
-       if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
-       begin
-         for pName in WATER_ROCK_P do
-         begin
-            valid := not ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
-            if not valid then
-              break;
-         end;
-       end
-       // Additional validity check for non rock OR water
-       else if (not valid and not (curTile.TerType in [TTerrainType.water, TTerrainType.rock])) then
-       begin
-         for pName in OTHER_P do
-         begin
-            valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
-            if valid then
-              break;
-         end;
-       end;
-
-       if not valid then
-       begin
-         if curTile.TerType = centerTile.TerType then
-           Result.NativeTiles.Insert(curTile)
-         else
-           Result.ForeignTiles.Insert(curTile)
-       end;
-    end;
-  end;
-
+  Exit(res)
 end;
 
 procedure TEditTerrain.UpdateTerrainTypes;
