@@ -34,11 +34,15 @@ type
   TAxisKind = (Vertical,Horizontal);
 
   TDragSubject = (MapObject, MapTemplate);
-
+  TfMain = class;
   { TDragProxy }
 
   TDragProxy = class(TDragObject)
+  protected
+    FOwner: TFMain;
   public
+    constructor Create(AOwner: TfMain); reintroduce;
+    destructor Destroy; override;
     procedure Drop; virtual; abstract;
     procedure Render(x,y: integer); virtual; abstract;
   end;
@@ -49,7 +53,8 @@ type
   private
     FDraggingTemplate: TObjTemplate;
   public
-    constructor Create(ADraggingTemplate: TObjTemplate); overload;
+    constructor Create(AOwner: TfMain;ADraggingTemplate: TObjTemplate);
+
     procedure Drop; override;
     procedure Render(x, y: integer); override;
   end;
@@ -61,8 +66,7 @@ type
     FShiftX, FShiftY: Integer;
     FDraggingObject: TMapObject;
   public
-    constructor Create(ADraggingObject: TMapObject; CurrentX, CurrentY: integer); overload;
-    destructor Destroy; override;
+    constructor Create(AOwner: TfMain;ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
     procedure Drop; override;
     procedure Render(x, y: integer); override;
   end;
@@ -349,23 +353,32 @@ uses
 
 {$R *.lfm}
 
+{ TDragProxy }
+
+constructor TDragProxy.Create(AOwner: TfMain);
+begin
+  FOwner := AOwner;
+  AOwner.FDragging := Self;
+  inherited AutoCreate(AOwner);
+end;
+
+destructor TDragProxy.Destroy;
+begin
+  FOwner.FDragging := nil;
+  inherited Destroy;
+end;
+
 { TObjectDragProxy }
 
-constructor TObjectDragProxy.Create(ADraggingObject: TMapObject; CurrentX,
-  CurrentY: integer);
+constructor TObjectDragProxy.Create(AOwner: TfMain;
+  ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
 begin
   FDraggingObject := ADraggingObject;
   FShiftX:=FDraggingObject.X - CurrentX;
   FShiftY:=FDraggingObject.Y - CurrentY;
-  fMain.FDragging := Self;
-  inherited AutoCreate(fMain);
+  inherited Create(AOwner);
 end;
 
-destructor TObjectDragProxy.Destroy;
-begin
-  fMain.FDragging := nil;
-  inherited Destroy;
-end;
 
 procedure TObjectDragProxy.Drop;
 begin
@@ -373,7 +386,7 @@ begin
   FDraggingObject.X := fMain.FMouseTileX+FShiftX;
   FDraggingObject.Y := fMain.FMouseTileY+FShiftY;
 
-  fMain.FSelectedObject := FDraggingObject;
+  FOwner.FSelectedObject := FDraggingObject;
 end;
 
 procedure TObjectDragProxy.Render(x, y: integer);
@@ -383,10 +396,11 @@ end;
 
 { TTemplateDragProxy }
 
-constructor TTemplateDragProxy.Create(ADraggingTemplate: TObjTemplate);
+constructor TTemplateDragProxy.Create(AOwner: TfMain;
+  ADraggingTemplate: TObjTemplate);
 begin
   FDraggingTemplate := ADraggingTemplate;
-  inherited AutoCreate(fMain);
+  inherited Create(AOwner);
 end;
 
 procedure TTemplateDragProxy.Drop;
@@ -395,29 +409,27 @@ var
   o: TMapObject;
   ot: TMapObjectTemplate;
 begin
-  ot :=  fMain.FMap.Templates.Add;
-
-
+  ot :=  FOwner.FMap.Templates.Add;
 
   ot.FillFrom(FDraggingTemplate);
 
-  o := fMain.FMap.Objects.Add;
+  o := FOwner.FMap.Objects.Add;
 
   o.TemplateID := ot.TID;
 
   Assert(Assigned(o.Template), 'Template not assigned by ID');
 
-  o.L := fMain.FMap.CurrentLevel;
-  o.X := fMain.FMouseTileX;
-  o.Y := fMain.FMouseTileY;
+  o.L := FOwner.FMap.CurrentLevel;
+  o.X := FOwner.FMouseTileX;
+  o.Y := FOwner.FMouseTileY;
 
   if o.Options.MayBeOwned then
   begin
-    o.Options.Owner := fMain.FCurrentPlayer;
+    o.Options.Owner := FOwner.FCurrentPlayer;
   end;
 
   //TODO: undo
-  fMain.FSelectedObject := o;
+  FOwner.FSelectedObject := o;
 end;
 
 procedure TTemplateDragProxy.Render(x, y: integer);
@@ -428,7 +440,7 @@ begin
   cx := (x +1 ) * TILE_SIZE;
   cy := (y+1) * TILE_SIZE;
 
-  FDraggingTemplate.Def.RenderO(0,cx, cy, fMain.FCurrentPlayer);
+  FDraggingTemplate.Def.RenderO(0,cx, cy, FOwner.FCurrentPlayer);
 end;
 
 
@@ -1175,9 +1187,8 @@ var
        if Assigned(FSelectedObject)
          and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY)) then
        begin
-         DragManager.DragStart(self,False, TILE_SIZE div 2);
          FNextDragSubject:=TDragSubject.MapObject;
-
+         DragManager.DragStart(self,False, TILE_SIZE div 2);
          DragStarted := true;
        end;
      end;
@@ -1467,10 +1478,9 @@ begin
 
   if (Button = TMouseButton.mbLeft) and (o_idx < FObjManager.ObjCount) then
   begin
-    DragManager.DragStart(self, True,0);
     FNextDragSubject:=TDragSubject.MapTemplate;
     FSelectedTemplate := FObjManager.Objcts[o_idx];
-
+    DragManager.DragStart(self, True,0); //after state change
   end;
 
 end;
@@ -1784,8 +1794,8 @@ end;
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);
 begin
   case FNextDragSubject of
-    TDragSubject.MapObject: DragObject := TObjectDragProxy.Create(FSelectedObject, FMouseTileX, FMouseTileY);
-    TDragSubject.MapTemplate: DragObject := TTemplateDragProxy.Create(FSelectedTemplate);
+    TDragSubject.MapObject: DragObject := TObjectDragProxy.Create(self, FSelectedObject, FMouseTileX, FMouseTileY);
+    TDragSubject.MapTemplate: DragObject := TTemplateDragProxy.Create(self, FSelectedTemplate);
   else
   inherited DoStartDrag(DragObject);
   end;
