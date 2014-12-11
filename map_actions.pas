@@ -731,6 +731,7 @@ begin
              if Assigned(it2) then
              begin
                 UpdateTerrain(it2^.Data, tileRequiresValidation);
+                Break;
              end;
           end;
         end;
