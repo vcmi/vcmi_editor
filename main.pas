@@ -33,6 +33,31 @@ uses
 type
   TAxisKind = (Vertical,Horizontal);
 
+  { TDragProxy }
+
+  TDragProxy = class
+  public
+    procedure Drop; virtual; abstract;
+    procedure Render(x,y: integer); virtual; abstract;
+  end;
+
+  { TTemplateDragProxy }
+
+  TTemplateDragProxy = class(TDragProxy)
+  private
+    FDraggingTemplate: TObjTemplate;
+  public
+    constructor Create(ADraggingTemplate: TObjTemplate);
+    procedure Drop; override;
+    procedure Render(x, y: integer); override;
+  end;
+
+  { TObjectDragProxy }
+
+  TObjectDragProxy = class(TDragProxy)
+
+  end;
+
   { TfMain }
 
   TfMain = class(TForm)
@@ -254,9 +279,11 @@ type
     FObjectsVPos: Integer;
     FViewObjectRowsH: Integer;
 
-    FDraggingTemplate: TObjTemplate;
+    FDragging: TDragProxy;
 
     FSelectedObject: TMapObject;
+
+    FDragProxy: TDragProxy;
 
     FMapDragging: boolean;
 
@@ -306,6 +333,49 @@ uses
   edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
+
+{ TTemplateDragProxy }
+
+constructor TTemplateDragProxy.Create(ADraggingTemplate: TObjTemplate);
+begin
+  FDraggingTemplate := ADraggingTemplate;
+end;
+
+procedure TTemplateDragProxy.Drop;
+
+var
+  o: TMapObject;
+  ot: TMapObjectTemplate;
+begin
+  ot :=  fMain.FMap.Templates.Add;
+
+
+
+  ot.FillFrom(FDraggingTemplate);
+
+  o := fMain.FMap.Objects.Add;
+
+  o.TemplateID := ot.TID;
+
+  Assert(Assigned(o.Template), 'Template not assigned by ID');
+
+  o.L := fMain.FMap.CurrentLevel;
+  o.X := fMain.FMouseTileX;
+  o.Y := fMain.FMouseTileY;
+
+  if o.Options.MayBeOwned then
+  begin
+    o.Options.Owner := fMain.FCurrentPlayer;
+  end;
+
+  //TODO: undo
+  fMain.FSelectedObject := o;
+end;
+
+procedure TTemplateDragProxy.Render(x, y: integer);
+begin
+  FDraggingTemplate.Def.RenderO(0,x, y, fMain.FCurrentPlayer);
+end;
 
 
 { TfMain }
@@ -922,7 +992,7 @@ end;
 procedure TfMain.MapChanded;
 begin
   FSelectedObject := nil;
-  FDraggingTemplate := nil;
+  FreeAndNil(FDragProxy);
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
@@ -1043,30 +1113,9 @@ var
 begin
   SetMapViewMouse(x,y);
 
-  ot :=  FMap.Templates.Add;
-
-  ot.FillFrom(FDraggingTemplate);
-
-  o := FMap.Objects.Add;
-
-  o.TemplateID := ot.TID;
-
-  Assert(Assigned(o.Template), 'Template not assigned by ID');
-
-  o.L := FMap.CurrentLevel;
-  o.X := FMouseTileX;
-  o.Y := FMouseTileY;
-
-  if o.Options.MayBeOwned then
-  begin
-    o.Options.Owner := FCurrentPlayer;
-  end;
-
-  //TODO: undo
-  FSelectedObject := o;
+  FDragProxy.Drop;
 
   InvalidateMapContent;
-
 end;
 
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
@@ -1225,10 +1274,14 @@ begin
 
   if FMapDragging then
   begin
-    Assert(Assigned(FDraggingTemplate));
+    Assert(Assigned(FDragProxy));
+
     cx := FMouseTileX * TILE_SIZE;
     cy := FMouseTileY * TILE_SIZE;
-    FDraggingTemplate.Def.RenderO(0,cx +TILE_SIZE, cy+TILE_SIZE, FCurrentPlayer);
+
+    FDragProxy.Render(cx +TILE_SIZE, cy+TILE_SIZE);
+
+
   end;
 
   //todo: render passability
@@ -1326,8 +1379,7 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  FDraggingTemplate := nil;
-
+  FreeAndNil(FDragProxy);
   col := x div OBJ_CELL_SIZE;
   row := y div OBJ_CELL_SIZE;
 
@@ -1337,7 +1389,7 @@ begin
   begin
     DragManager.DragStart(ObjectsView, True,0);
 
-    FDraggingTemplate := FObjManager.Objcts[o_idx];
+    FDragProxy := TTemplateDragProxy.Create(FObjManager.Objcts[o_idx]);
   end;
 
 end;

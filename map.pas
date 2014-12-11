@@ -291,6 +291,8 @@ type
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
+
+    function GetMap:TVCMIMap;
   protected
     procedure Changed;
   public
@@ -606,8 +608,10 @@ end;
 
 procedure TMapObject.SetL(AValue: integer);
 begin
-  //TODO: ensure on map
+  if not GetMap.IsOnMap(AValue, FX,FY) then exit;
+
   if FL = AValue then Exit;
+
   FL := AValue;
   Changed;
 end;
@@ -616,7 +620,7 @@ procedure TMapObject.SetTemplateID(AValue: integer);
 begin
   if FTemplateID = AValue then Exit; //dont remove
 
-  FTemplate := (Collection as TMapObjects).Map.FTemplates.Items[AValue];
+  FTemplate := GetMap().FTemplates.Items[AValue];
 
   FTemplateID := AValue;
 
@@ -628,7 +632,7 @@ end;
 
 procedure TMapObject.SetX(AValue: integer);
 begin
-    //TODO: ensure on map
+  if not GetMap.IsOnMap(FL, AValue,FY) then exit;
   if FX = AValue then Exit;
   FX := AValue;
   Changed;
@@ -636,10 +640,15 @@ end;
 
 procedure TMapObject.SetY(AValue: integer);
 begin
-  //TODO: ensure on map
+  if not GetMap.IsOnMap(FL, FX,AValue) then exit;
   if FY = AValue then Exit;
   FY := AValue;
   Changed;
+end;
+
+function TMapObject.GetMap: TVCMIMap;
+begin
+  Result := (Collection as TMapObjects).Map;
 end;
 
 { TMapObjects }
