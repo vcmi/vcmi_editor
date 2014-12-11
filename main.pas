@@ -1219,8 +1219,10 @@ begin
       end
       else
       begin
-        if not q.IsEmpty then
-           FSelectedObject := q.Top;
+        if q.IsEmpty then
+          FSelectedObject := nil
+        else
+          FSelectedObject := q.Top;
       end;
       PerformStartDrag();
     finally
