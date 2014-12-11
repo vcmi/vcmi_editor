@@ -45,9 +45,9 @@ type
 
   TAbstractUndoManager = class abstract
   public
-    //Last executed item. Will be undo first
+    //Last executed item. Will be undone first
     function PeekCurrent: TAbstractUndoItem; virtual; abstract;
-    //Last undone item. Will be redo net if any
+    //Last undone item. Will be redone next if any
     function PeekNext: TAbstractUndoItem; virtual; abstract;
 
     //current present

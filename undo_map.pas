@@ -41,7 +41,7 @@ type
 
   { TMapUndoManger }
 
-  TMapUndoManger = class(TAbstractUndoManager)
+  TMapUndoManager = class(TAbstractUndoManager)
   strict private
     FItemStack: TItemStack;
 
@@ -74,35 +74,35 @@ end;
 
 { TMapUndoManger }
 
-function TMapUndoManger.CanRedo: boolean;
+function TMapUndoManager.CanRedo: boolean;
 begin
   Result := (FCurrentPosition >=-1) and (FCurrentPosition < FItemStack.Count - 1);
 end;
 
-function TMapUndoManger.CanUndo: boolean;
+function TMapUndoManager.CanUndo: boolean;
 begin
   Result := (FCurrentPosition >=0) and (FCurrentPosition < FItemStack.Count);
 end;
 
-procedure TMapUndoManger.Clear;
+procedure TMapUndoManager.Clear;
 begin
   FItemStack.Clear;
   FCurrentPosition := -1;
 end;
 
-constructor TMapUndoManger.Create;
+constructor TMapUndoManager.Create;
 begin
   FItemStack := TItemStack.Create(True);
   FCurrentPosition := -1;
 end;
 
-destructor TMapUndoManger.Destroy;
+destructor TMapUndoManager.Destroy;
 begin
   FItemStack.Free;
   inherited Destroy;
 end;
 
-procedure TMapUndoManger.ExecuteItem(AItem: TAbstractUndoItem);
+procedure TMapUndoManager.ExecuteItem(AItem: TAbstractUndoItem);
 var
   i: Integer;
 begin
@@ -117,7 +117,7 @@ begin
 
 end;
 
-function TMapUndoManger.PeekCurrent: TAbstractUndoItem;
+function TMapUndoManager.PeekCurrent: TAbstractUndoItem;
 begin
 
   if CanUndo then
@@ -130,7 +130,7 @@ begin
 
 end;
 
-function TMapUndoManger.PeekNext: TAbstractUndoItem;
+function TMapUndoManager.PeekNext: TAbstractUndoItem;
 begin
   if CanRedo then
   begin
@@ -141,13 +141,13 @@ begin
   end;
 end;
 
-procedure TMapUndoManger.Redo;
+procedure TMapUndoManager.Redo;
 begin
   PeekNext.Redo;
   Inc(FCurrentPosition);
 end;
 
-procedure TMapUndoManger.Undo;
+procedure TMapUndoManager.Undo;
 begin
   PeekCurrent.Undo;
   Dec(FCurrentPosition);

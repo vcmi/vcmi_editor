@@ -652,7 +652,7 @@ begin
   FGraphicsManager := RootManager.GraphicsManger;
   FEnv.lm := RootManager.ListsManager;
 
-  FUndoManager := TMapUndoManger.Create;
+  FUndoManager := TMapUndoManager.Create;
 
   FMinimap := TMinimap.Create(Self);
 
