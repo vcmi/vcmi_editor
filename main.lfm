@@ -2072,7 +2072,7 @@ object fMain: TfMain
     end
   end
   object AnimTimer: TTimer
-    Interval = 100
+    Interval = 21
     OnTimer = AnimTimerTimer
     left = 133
     top = 256

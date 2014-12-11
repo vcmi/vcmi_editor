@@ -147,7 +147,7 @@ type
     BitmapUniform: GLint;
     FlagColorUniform: GLint;
 
-    CoordsBuffer, {CoordsArray,} UVBuffer: GLuint;
+    CoordsBuffer: GLuint;
 
     MirroredUVBuffers: array[0..3] of GLuint;
 
@@ -470,10 +470,6 @@ var
   v: GLfloat;
   mir: Integer;
 begin
-  glGenBuffers(1,@UVBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.UVBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
-
   glGenBuffers(Length(MirroredUVBuffers), @MirroredUVBuffers);
 
 
