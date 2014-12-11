@@ -1184,9 +1184,7 @@ begin
     Init;
   end;
 
-  //ShaderContext.UseNoPaletteShader();
-
-  ShaderContext.UsePaletteFlagShader();
+  ShaderContext.UsePalettedTextures();
 
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
@@ -1230,7 +1228,7 @@ begin
 
   //todo: render passability
 
-  ShaderContext.UseNoPaletteShader();
+  ShaderContext.UseNoTextures();
 
 
 
@@ -1367,7 +1365,7 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  ShaderContext.UseNoPaletteShader();
+  ShaderContext.UseNoTextures();
 
   ShaderContext.SetOrtho(   0,
       c.Width + 0,
@@ -1394,7 +1392,7 @@ begin
     end;
   end;
 
-  ShaderContext.UsePaletteFlagShader();
+  ShaderContext.UsePalettedTextures();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin

@@ -50,9 +50,9 @@ const
   'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
-  'uniform bool useTexture = false;'+
-  'uniform bool usePalette = false;'+
-  'uniform bool useFlag = false;'+
+  'uniform int useTexture = 0;'+
+//  'uniform int usePalette = 0;'+
+//  'uniform int useFlag = 0;'+
   'uniform vec4 flagColor;'+
   'uniform vec4 fragmentColor;'#13#10+
   'in vec2 UV;'#13#10+
@@ -60,13 +60,13 @@ const
 
   'vec4 applyTexture(vec4 inColor)'+
   '{'+
-      'if(useTexture)'+
+      'if(useTexture == 1)'+
       '{'+
-         'if(usePalette)'+
+         //'if(usePalette == 1)'+
           '{'+
               'return texelFetch(palette, int(texelFetch(bitmap, ivec2(UV)).r), 0);'+
           '}'+
-          'else'+
+       //   'else'+
           '{' +
           //    'return texture2DRect(bitmap,UV);'+ //???
           '}'+
@@ -76,7 +76,7 @@ const
 
   'vec4 applyFlag(vec4 inColor)' +
   '{'+
-     'if(useFlag)'+
+    // 'if(useFlag == 1)'+
      '{'+
         'if(all(greaterThanEqual(inColor,maskColor-eps)) && all(lessThanEqual(inColor,maskColor+eps)))'+
         '  return flagColor;'+
@@ -133,12 +133,12 @@ type
 
 
   private
-    PaletteFlagProgram: GLint;
-    PalettePaletteUniform: GLint;
-    PaletteBitmapUniform: GLint;
-    PaletteFlagColorUniform: GLint;
-
-    PaletteProgram: GLuint;
+    //PaletteFlagProgram: GLint;
+    //PalettePaletteUniform: GLint;
+    //PaletteBitmapUniform: GLint;
+    //PaletteFlagColorUniform: GLint;
+    //
+    //PaletteProgram: GLuint;
 
     DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
@@ -159,8 +159,8 @@ type
     destructor Destroy; override;
     procedure Init;
 
-    procedure UseNoPaletteShader();
-    procedure UsePaletteFlagShader();
+    procedure UseNoTextures();
+    procedure UsePalettedTextures();
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
@@ -196,26 +196,25 @@ implementation
 
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer; AInternalFormat: GLEnum); inline;
 begin
-  glEnable(GL_TEXTURE_RECTANGLE);
+
   glBindTexture(GL_TEXTURE_RECTANGLE, ATextureId);
 
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_RECTANGLE, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
-  glDisable(GL_TEXTURE_RECTANGLE);
+
 end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 begin
-  glEnable(GL_TEXTURE_1D);
   glBindTexture(GL_TEXTURE_1D, ATextureId);
 
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glTexImage1D(GL_TEXTURE_1D, 0,GL_RGBA,256,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
-  glDisable(GL_TEXTURE_1D);
+
 
   CheckGLErrors('Bind palette');
 end;
@@ -224,7 +223,6 @@ end;
 procedure BindUncompressedPaletted(ATextureId: GLuint; w, h: Int32;
   ARawImage: Pointer);
 begin
-  glEnable(GL_TEXTURE_RECTANGLE);
   glBindTexture(GL_TEXTURE_RECTANGLE, ATextureId);
 
   glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -237,9 +235,7 @@ begin
 
   glTexImage2D(GL_TEXTURE_RECTANGLE, 0,GL_R8UI,w,h,0,GL_RED_INTEGER, GL_UNSIGNED_BYTE, ARawImage);
 
-  glDisable(GL_TEXTURE_RECTANGLE);
-
-  CheckGLErrors('Bind paletted');
+   CheckGLErrors('Bind paletted');
 end;
 
 procedure BindUncompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);
@@ -259,7 +255,9 @@ begin
 end;
 
 procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);
-
+//const
+//  RECT_COLOR: TRBGAColor = (r:255; g:0; b:0; a:255);
+//
 var
   factor: Double;
   cur_dim: integer;
@@ -273,6 +271,8 @@ var
   v: GLfloat;
   CoordsArray: glint;
 begin
+  //ShaderContext.SetFragmentColor(RECT_COLOR);
+
   if dim <=0 then //render real size w|o scale
   begin
     H := ASprite.Height;
@@ -290,6 +290,8 @@ begin
   x := ASprite.x;
   y := ASprite.y;
 
+  //todo: use indexes
+
   vertex_data[1] := x;   vertex_data[2] := y;
   vertex_data[3] := x+w; vertex_data[4] := y;
   vertex_data[5] := x+w; vertex_data[6] := y+h;
@@ -298,8 +300,8 @@ begin
   vertex_data[9] := x;   vertex_data[10] := y+h;
   vertex_data[11] := x;  vertex_data[12] := y;
 
-  u := ASprite.Height;
-  v := ASprite.Width;
+  u := ASprite.Width;
+  v := ASprite.Height;
 
   case mir of
     0:begin
@@ -314,7 +316,7 @@ begin
     1: begin
           uv_data[1] := u;   uv_data[2] := 0;
           uv_data[3] := 0;   uv_data[4] := 0;
-          uv_data[5] := u;   uv_data[6] := v;
+          uv_data[5] := 0;   uv_data[6] := v;
 
           uv_data[7] := 0;   uv_data[8] := v;
           uv_data[9] := u;   uv_data[10] := v;
@@ -359,73 +361,12 @@ begin
     glEnableVertexAttribArray(ShaderContext.UVAttrib);
     glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    glDrawArrays(GL_TRIANGLES,0,2);
+    glDrawArrays(GL_TRIANGLES,0,6);
 
     glDisableVertexAttribArray(ShaderContext.UVAttrib);
     glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    //glBegin(GL_POLYGON);
-    //
-    //  case mir of
-    //    0:begin
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-    //      glVertex2i(X,  Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-    //      glVertex2i(X+W,Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-    //      glVertex2i(X+W,Y+H);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-    //      glVertex2i(X,  Y+H);
-    //    end;
-    //    1: begin
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-    //      glVertex2i(X,  Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-    //      glVertex2i(X+W,Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-    //      glVertex2i(X+W,Y+H);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-    //      glVertex2i(X,  Y+H);
-    //      end;
-    //    2: begin
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0,ASprite.Height);
-    //      glVertex2i(X,  Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, ASprite.Height);
-    //      glVertex2i(X+W,Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width, 0);
-    //      glVertex2i(X+W,Y+H);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0,0);
-    //      glVertex2i(X,  Y+H);
-    //      end;
-    //    3:begin
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,ASprite.Height);
-    //      glVertex2i(X,  Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0, ASprite.Height);
-    //      glVertex2i(X+W,Y);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, 0, 0);
-    //      glVertex2i(X+W,Y+H);
-    //
-    //      glMultiTexCoord2i(GL_TEXTURE0, ASprite.Width,0);
-    //      glVertex2i(X,  Y+H);
-    //      end;
-    //  end;
-    //
-    //
-    //
-    //glEnd();
 
   CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 end;
@@ -572,22 +513,21 @@ end;
 
 destructor TShaderContext.Destroy;
 begin
-  UseNoPaletteShader;
-  glDeleteProgram(PaletteFlagProgram);
-  //TODO: delete shader?
+  glDeleteProgram(DefaultProgram);
+
   inherited Destroy;
 end;
 
 procedure TShaderContext.Init;
 begin
-  PaletteFlagProgram := MakeShaderProgram('',FRAGMENT_PALETTE_FLAG_SHADER);
-  CheckGLErrors('compiling palette shader');
-  if PaletteFlagProgram = 0 then
-    raise Exception.Create('Error compiling palette shader');
-
-  PaletteBitmapUniform := glGetUniformLocation(PaletteFlagProgram, PChar('bitmap'));
-  PalettePaletteUniform := glGetUniformLocation(PaletteFlagProgram, PChar('palette'));
-  PaletteFlagColorUniform := glGetUniformLocation(PaletteFlagProgram, PChar('flagColor'));
+  //PaletteFlagProgram := MakeShaderProgram('',FRAGMENT_PALETTE_FLAG_SHADER);
+  //CheckGLErrors('compiling palette shader');
+  //if PaletteFlagProgram = 0 then
+  //  raise Exception.Create('Error compiling palette shader');
+  //
+  //PaletteBitmapUniform := glGetUniformLocation(PaletteFlagProgram, PChar('bitmap'));
+  //PalettePaletteUniform := glGetUniformLocation(PaletteFlagProgram, PChar('palette'));
+  //PaletteFlagColorUniform := glGetUniformLocation(PaletteFlagProgram, PChar('flagColor'));
 
   DefaultProgram := MakeShaderProgram(VERTEX_DEFAULT_SHADER, FRAGMENT_DEFAULT_SHADER);
   if DefaultProgram = 0 then
@@ -600,8 +540,8 @@ begin
   DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
   UVAttrib:=glGetAttribLocation(DefaultProgram, PChar('uv'));
 
-  UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
-  UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
+  //UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
+  //UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
   UseTextureUniform:=glGetUniformLocation(DefaultProgram, PChar('useTexture'));
 
   PaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('palette'));
@@ -675,20 +615,20 @@ end;
 
 procedure TShaderContext.SetUseFlag(const Value: Boolean);
 begin
-  glUniform1i(UseFlagUniform, GLboolean(Value));
+  //glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
 procedure TShaderContext.SetUsePalette(const Value: Boolean);
 begin
-  glUniform1i(UsePaletteUniform, GLboolean(Value));
+  //glUniform1i(UsePaletteUniform, ifthen(Value, 1, 0));
 end;
 
 procedure TShaderContext.SetUseTexture(const Value: Boolean);
 begin
-  glUniform1i(UseTextureUniform, GLboolean(Value));
+  glUniform1i(UseTextureUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TShaderContext.UseNoPaletteShader;
+procedure TShaderContext.UseNoTextures;
 begin
   FCurrentProgram := DefaultProgram;
   glUseProgram(DefaultProgram);
@@ -697,7 +637,7 @@ begin
   SetUseTexture(False);
 end;
 
-procedure TShaderContext.UsePaletteFlagShader;
+procedure TShaderContext.UsePalettedTextures;
 begin
   //FCurrentProgram := PaletteFlagProgram;
   //  glUseProgram(FCurrentProgram);
