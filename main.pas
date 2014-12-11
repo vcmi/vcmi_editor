@@ -473,8 +473,14 @@ begin
 end;
 
 procedure TfMain.actDeleteExecute(Sender: TObject);
+var
+  action_item: TDeleteObject;
 begin
-  Fmap.Objects.Delete(FSelectedObject.Index);
+  action_item := TDeleteObject.Create(FMap);
+  action_item.TargetObject :=FSelectedObject;
+
+  FUndoManager.ExecuteItem(action_item);
+
   FSelectedObject := nil;
 end;
 

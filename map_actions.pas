@@ -164,6 +164,28 @@ type
     property TerrainType: TTerrainType read FTerrainType write SetTerrainType;
   end;
 
+  { TObjectAction }
+
+  TObjectAction = class(TMapUndoItem)
+  private
+    FTargetObject: TMapObject;
+    procedure SetTargetObject(AValue: TMapObject);
+  protected
+
+  public
+    property  TargetObject: TMapObject read FTargetObject write SetTargetObject;
+  end;
+
+  { TDeleteObject }
+
+  TDeleteObject = class(TObjectAction)
+  public
+    procedure Execute; override;
+    function GetDescription: string; override;
+    procedure Redo; override;
+    procedure Undo; override;
+  end;
+
 implementation
 
 uses
@@ -173,6 +195,36 @@ operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TObjectAction }
+
+procedure TObjectAction.SetTargetObject(AValue: TMapObject);
+begin
+  if FTargetObject=AValue then Exit;
+  FTargetObject:=AValue;
+end;
+
+{ TDeleteObject }
+
+procedure TDeleteObject.Execute;
+begin
+  Redo;
+end;
+
+function TDeleteObject.GetDescription: string;
+begin
+  Result := 'Delete object';
+end;
+
+procedure TDeleteObject.Redo;
+begin
+  FTargetObject.Collection := nil;
+end;
+
+procedure TDeleteObject.Undo;
+begin
+  FTargetObject.Collection := FMap.Objects;
 end;
 
 { TInvalidTiles }
