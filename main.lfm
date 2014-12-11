@@ -1039,6 +1039,8 @@ object fMain: TfMain
       Width = 584
       Align = alClient
       AutoResizeViewport = True
+      OpenGLMajorVersion = 3
+      OpenGLMinorVersion = 3
       OnClick = MapViewClick
       OnDblClick = MapViewDblClick
       OnDragDrop = MapViewDragDrop
@@ -1358,6 +1360,8 @@ object fMain: TfMain
           Width = 180
           Align = alClient
           AutoResizeViewport = True
+          OpenGLMajorVersion = 3
+          OpenGLMinorVersion = 3
           OnMouseDown = ObjectsViewMouseDown
           OnMouseWheel = ObjectsViewMouseWheel
           OnPaint = ObjectsViewPaint
