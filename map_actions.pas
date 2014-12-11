@@ -26,7 +26,7 @@ unit map_actions;
 interface
 
 uses
-  Classes, SysUtils, Math, fgl, Map, gvector, gset, undo_map, editor_types,
+  Classes, SysUtils, Math, fgl, Map, gvector, gset, undo_map, undo_base, editor_types,
   terrain, objects;
 
 type
@@ -192,6 +192,7 @@ type
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
+    destructor Destroy; override;
     procedure Execute; override;
     function GetDescription: string; override;
     procedure Redo; override;
@@ -212,6 +213,7 @@ type
   //todo: cleaup unused map templates
   TDeleteObject = class(TObjectAction)
   public
+    destructor Destroy; override;
     procedure Execute; override;
     function GetDescription: string; override;
     procedure Redo; override;
@@ -259,6 +261,15 @@ procedure TAddObject.SetY(AValue: Integer);
 begin
   if FY=AValue then Exit;
   FY:=AValue;
+end;
+
+destructor TAddObject.Destroy;
+begin
+  if State = TUndoItemState.UnDone then
+  begin
+    FreeAndNil(FTargetObject);
+  end;
+  inherited Destroy;
 end;
 
 procedure TAddObject.Execute;
@@ -310,6 +321,15 @@ begin
 end;
 
 { TDeleteObject }
+
+destructor TDeleteObject.Destroy;
+begin
+  if State = TUndoItemState.ReDone then
+  begin
+    FreeAndNil(FTargetObject);
+  end;
+  inherited Destroy;
+end;
 
 procedure TDeleteObject.Execute;
 begin

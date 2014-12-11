@@ -106,8 +106,9 @@ procedure TMapUndoManager.ExecuteItem(AItem: TAbstractUndoItem);
 var
   i: Integer;
 begin
+  SetItemState(AItem,TUndoItemState.Idle);
   AItem.Execute;
-
+  SetItemState(AItem,TUndoItemState.ReDone);
   for i := FItemStack.Count - 1 downto Max(FCurrentPosition+1, 0) do
   begin
     FItemStack.Delete(i);
@@ -144,12 +145,14 @@ end;
 procedure TMapUndoManager.Redo;
 begin
   PeekNext.Redo;
+  SetItemState(PeekNext,TUndoItemState.ReDone);
   Inc(FCurrentPosition);
 end;
 
 procedure TMapUndoManager.Undo;
 begin
   PeekCurrent.Undo;
+  SetItemState(PeekCurrent,TUndoItemState.UnDone);
   Dec(FCurrentPosition);
 end;
 

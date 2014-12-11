@@ -28,10 +28,16 @@ uses
 
 type
 
+  TUndoItemState = (Idle, UnDone, ReDone);
+
   { TAbstractUndoItem }
 
   TAbstractUndoItem = class abstract
+  private
+    FState: TUndoItemState;
+    procedure SetState(AValue: TUndoItemState);
   protected
+    property State:TUndoItemState read FState write SetState;
     function GetDescription: string; virtual; abstract;
   public
     procedure Undo; virtual; abstract;
@@ -44,6 +50,8 @@ type
   { TAbstractUndoManager }
 
   TAbstractUndoManager = class abstract
+  protected
+    class procedure SetItemState(AItem: TAbstractUndoItem; AState: TUndoItemState); static;
   public
     //Last executed item. Will be undone first
     function PeekCurrent: TAbstractUndoItem; virtual; abstract;
@@ -66,6 +74,22 @@ type
 
 implementation
 
+{ TAbstractUndoManager }
+
+class procedure TAbstractUndoManager.SetItemState(AItem: TAbstractUndoItem;
+  AState: TUndoItemState);
+begin
+  AItem.State:=AState;
+end;
+
+
+{ TAbstractUndoItem }
+
+procedure TAbstractUndoItem.SetState(AValue: TUndoItemState);
+begin
+  if FState=AValue then Exit;
+  FState:=AValue;
+end;
 
 end.
 
