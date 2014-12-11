@@ -24,18 +24,20 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil,
-  GL, OpenGLContext, LCLType, Forms, Controls,
+  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
-  Buttons, Map, terrain, editor_types, undo_base, map_actions, objects, editor_graphics,
-  minimap, filesystem, filesystem_base, lists_manager, zlib_stream, types;
+  Buttons, Map, terrain, editor_types, undo_base, map_actions, objects,
+  editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
+  zlib_stream, gpriorityqueue, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
 
+  TDragSubject = (MapObject, MapTemplate);
+
   { TDragProxy }
 
-  TDragProxy = class
+  TDragProxy = class(TDragObject)
   public
     procedure Drop; virtual; abstract;
     procedure Render(x,y: integer); virtual; abstract;
@@ -47,7 +49,7 @@ type
   private
     FDraggingTemplate: TObjTemplate;
   public
-    constructor Create(ADraggingTemplate: TObjTemplate);
+    constructor Create(ADraggingTemplate: TObjTemplate); overload;
     procedure Drop; override;
     procedure Render(x, y: integer); override;
   end;
@@ -59,7 +61,8 @@ type
     FShiftX, FShiftY: Integer;
     FDraggingObject: TMapObject;
   public
-    constructor Create(ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
+    constructor Create(ADraggingObject: TMapObject; CurrentX, CurrentY: integer); overload;
+    destructor Destroy; override;
     procedure Drop; override;
     procedure Render(x, y: integer); override;
   end;
@@ -290,6 +293,8 @@ type
     FSelectedObject: TMapObject;
 
     FMapDragging: boolean;
+    FNextDragSubject: TDragSubject;
+    FSelectedTemplate: TObjTemplate;
 
     FCurrentPlayer: TPlayer;
 
@@ -324,6 +329,8 @@ type
     procedure SetCurrentPlayer(APlayer: TPlayer);
   protected
     procedure UpdateActions; override;
+    procedure DoStartDrag(var DragObject: TDragObject); override;
+    procedure DragCanceled; override;
   end;
 
 var
@@ -346,6 +353,14 @@ begin
   FDraggingObject := ADraggingObject;
   FShiftX:=FDraggingObject.X - CurrentX;
   FShiftY:=FDraggingObject.Y - CurrentY;
+  fMain.FDragging := Self;
+  inherited AutoCreate(fMain);
+end;
+
+destructor TObjectDragProxy.Destroy;
+begin
+  fMain.FDragging := nil;
+  inherited Destroy;
 end;
 
 procedure TObjectDragProxy.Drop;
@@ -367,6 +382,7 @@ end;
 constructor TTemplateDragProxy.Create(ADraggingTemplate: TObjTemplate);
 begin
   FDraggingTemplate := ADraggingTemplate;
+  inherited AutoCreate(fMain);
 end;
 
 procedure TTemplateDragProxy.Drop;
@@ -799,7 +815,7 @@ end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FDragging);
+
   FZbuffer.Free;
   FMap.Free;
 
@@ -1027,7 +1043,7 @@ end;
 procedure TfMain.MapChanded;
 begin
   FSelectedObject := nil;
-  FreeAndNil(FDragging);
+
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
@@ -1080,38 +1096,7 @@ begin
 
   //TODO: road/river mode
 
-  q := TMapObjectQueue.Create;
-  try
-    FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
 
-    if Assigned(FSelectedObject)
-      and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY))
-      then
-    begin
-      //select next object
-      o := nil;
-      while not q.IsEmpty do
-      begin
-        o := q.Top;
-        q.Pop;
-
-        if (q.IsEmpty) or (q.Top = FSelectedObject) then
-        begin
-          break;
-        end;
-
-      end;
-      FSelectedObject := o;
-    end
-    else
-    begin
-      if not q.IsEmpty then
-         FSelectedObject := q.Top;
-    end;
-
-  finally
-    q.Free;
-  end;
 
 end;
 
@@ -1149,7 +1134,7 @@ begin
   SetMapViewMouse(x,y);
 
   FDragging.Drop;
-  FreeAndNil(FDragging);
+
   InvalidateMapContent;
 end;
 
@@ -1174,19 +1159,72 @@ end;
 
 procedure TfMain.MapViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
+var
+  q: TMapObjectQueue;
+  o: TMapObject;
+  DragStarted: Boolean;
+
+   procedure PerformStartDrag();
+   begin
+     if not DragStarted then
+     begin
+       if Assigned(FSelectedObject)
+         and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY)) then
+       begin
+         DragManager.DragStart(self,False, TILE_SIZE div 2);
+         FNextDragSubject:=TDragSubject.MapObject;
+
+         DragStarted := true;
+       end;
+     end;
+   end;
 begin
-  FreeAndNil(FDragging);
+  SetMapViewMouse(x,y);
+  if FTerrainBrushMode=TBrushMode.none then
+  begin
+
+    DragStarted:=False;
+
+    PerformStartDrag();
+
+    q := TMapObjectQueue.Create;
+    try
+      FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
+
+      if Assigned(FSelectedObject)
+        and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY))
+        then
+      begin
+        //select next object
+        o := nil;
+        while not q.IsEmpty do
+        begin
+          o := q.Top;
+          q.Pop;
+
+          if (q.IsEmpty) or (q.Top = FSelectedObject) then
+          begin
+            break;
+          end;
+
+        end;
+        FSelectedObject := o;
+      end
+      else
+      begin
+        if not q.IsEmpty then
+           FSelectedObject := q.Top;
+      end;
+      PerformStartDrag();
+    finally
+      q.Free;
+    end;
+  end;
+
   //todo: editor mode
   if Button = TMouseButton.mbLeft then
   begin
     FMouseDown := True;
-  end;
-
-  if Assigned(FSelectedObject) and (FTerrainBrushMode=TBrushMode.none) then
-  begin
-    DragManager.DragStart(MapView,False, 0);
-    FDragging := TObjectDragProxy.Create(FSelectedObject, FMouseTileX, FMouseTileY);
-    //FSelectedObject := nil;
   end;
 end;
 
@@ -1418,7 +1456,6 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  FreeAndNil(FDragging);
   col := x div OBJ_CELL_SIZE;
   row := y div OBJ_CELL_SIZE;
 
@@ -1426,9 +1463,10 @@ begin
 
   if (Button = TMouseButton.mbLeft) and (o_idx < FObjManager.ObjCount) then
   begin
-    DragManager.DragStart(ObjectsView, True,0);
+    DragManager.DragStart(self, True,0);
+    FNextDragSubject:=TDragSubject.MapTemplate;
+    FSelectedTemplate := FObjManager.Objcts[o_idx];
 
-    FDragging := TTemplateDragProxy.Create(FObjManager.Objcts[o_idx]);
   end;
 
 end;
@@ -1737,6 +1775,22 @@ begin
   end
   else
     Caption := 'VCMI editor';
+end;
+
+procedure TfMain.DoStartDrag(var DragObject: TDragObject);
+begin
+  case FNextDragSubject of
+    TDragSubject.MapObject: DragObject := TObjectDragProxy.Create(FSelectedObject, FMouseTileX, FMouseTileY);
+    TDragSubject.MapTemplate: DragObject := TTemplateDragProxy.Create(FSelectedTemplate);
+  else
+  inherited DoStartDrag(DragObject);
+  end;
+end;
+
+procedure TfMain.DragCanceled;
+begin
+  inherited DragCanceled;
+  FMapDragging:=false;
 end;
 
 procedure TfMain.VerticalAxisPaint(Sender: TObject);
