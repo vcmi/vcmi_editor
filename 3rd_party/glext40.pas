@@ -7407,36 +7407,34 @@ end;
 
 function glext_ExtensionSupported(const extension: String; const searchIn: String): Boolean;
 var
-  extensions: PChar;
+  extensions: string;
   start: PChar;
   where, terminator: PChar;
+  n: GLint;
+  i: GLint;
 begin
+  if not Assigned(glGetStringi) then
+    Pointer(glGetStringi) := wglGetProcAddress('glGetStringi');
 
-  if (Pos(' ', extension) <> 0) or (extension = '') then
+  if not Assigned(glGetStringi) then Exit(false);
+
+  if extension = '' then
   begin
-    Result := False;
-    Exit;
+    Exit(False);
   end;
 
-  if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
-  else extensions := PChar(searchIn);
-  start := extensions;
-  while True do
+  glGetIntegerv(GL_NUM_EXTENSIONS, @n);
+
+  Result := false;
+
+  for i := 0 to n -1 do
   begin
-    where := StrPos(start, PChar(extension));
-    if where = nil then Break;
-    terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
-    if (where = start) or (PChar(PtrUInt(where) - 1)^ = ' ') then
+    extensions :=PChar(glGetStringi(GL_EXTENSIONS, i));
+    if SameText(extension, extensions) then
     begin
-      if (terminator^ = ' ') or (terminator^ = #0) then
-      begin
-        Result := True;
-        Exit;
-      end;
+      exit(true);
     end;
-    start := terminator;
   end;
-  Result := False;
 
 end;
 
