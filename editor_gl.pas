@@ -89,24 +89,6 @@ const
       'outColor = applyFlag(outColor);'+
   '}';
 
-
-
-  FRAGMENT_PALETTE_FLAG_SHADER =
-  '#version 330 core'#13#10 +
-  'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
-  'uniform usampler2DRect bitmap;'+
-  'uniform sampler1D palette;'+
-  'uniform vec4 flagColor;'+
-  'const vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
-  'layout (origin_upper_left) in vec4 gl_FragCoord;'+
-
-  'void main(){'+
-    'gl_FragColor = texelFetch(palette, int(texelFetch(bitmap, ivec2(gl_TexCoord[0].xy)).r), 0);'+
-    'if(all(greaterThanEqual(gl_FragColor,maskColor-eps)) && all(lessThanEqual(gl_FragColor,maskColor+eps)))'+
-    '  gl_FragColor = flagColor;'+
-  '}';
-
-
 type
 
   TGLSprite = record
