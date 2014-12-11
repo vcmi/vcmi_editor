@@ -55,7 +55,12 @@ type
   { TObjectDragProxy }
 
   TObjectDragProxy = class(TDragProxy)
-
+  private
+    FDraggingObject: TMapObject;
+  public
+    constructor Create(ADraggingObject: TMapObject);
+    procedure Drop; override;
+    procedure Render(x, y: integer); override;
   end;
 
   { TfMain }
@@ -283,8 +288,6 @@ type
 
     FSelectedObject: TMapObject;
 
-    FDragProxy: TDragProxy;
-
     FMapDragging: boolean;
 
     FCurrentPlayer: TPlayer;
@@ -334,6 +337,29 @@ uses
 
 {$R *.lfm}
 
+{ TObjectDragProxy }
+
+constructor TObjectDragProxy.Create(ADraggingObject: TMapObject);
+begin
+  FDraggingObject := ADraggingObject;
+end;
+
+procedure TObjectDragProxy.Drop;
+begin
+  FDraggingObject.L := fMain.FMap.CurrentLevel;
+  FDraggingObject.X := fMain.FMouseTileX;
+  FDraggingObject.Y := fMain.FMouseTileY;
+
+  fMain.FSelectedObject := FDraggingObject;
+end;
+
+procedure TObjectDragProxy.Render(x, y: integer);
+begin
+  FDraggingObject.X:=x;
+  FDraggingObject.Y:=y;
+  FDraggingObject.RenderStatic();
+end;
+
 { TTemplateDragProxy }
 
 constructor TTemplateDragProxy.Create(ADraggingTemplate: TObjTemplate);
@@ -373,8 +399,14 @@ begin
 end;
 
 procedure TTemplateDragProxy.Render(x, y: integer);
+var
+  cx: Integer;
+  cy: Integer;
 begin
-  FDraggingTemplate.Def.RenderO(0,x, y, fMain.FCurrentPlayer);
+  cx := (x +1 ) * TILE_SIZE;
+  cy := (y+1) * TILE_SIZE;
+
+  FDraggingTemplate.Def.RenderO(0,cx, cy, fMain.FCurrentPlayer);
 end;
 
 
@@ -765,6 +797,7 @@ end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FDragging);
   FZbuffer.Free;
   FMap.Free;
 
@@ -992,7 +1025,7 @@ end;
 procedure TfMain.MapChanded;
 begin
   FSelectedObject := nil;
-  FreeAndNil(FDragProxy);
+  FreeAndNil(FDragging);
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
@@ -1113,8 +1146,8 @@ var
 begin
   SetMapViewMouse(x,y);
 
-  FDragProxy.Drop;
-
+  FDragging.Drop;
+  FreeAndNil(FDragging);
   InvalidateMapContent;
 end;
 
@@ -1122,6 +1155,8 @@ procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
   Accept := true; //TODO: handle accceptible terrain
+
+  FSelectedObject := nil;
 
   SetMapViewMouse(x,y);
 
@@ -1138,12 +1173,19 @@ end;
 procedure TfMain.MapViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
+  FreeAndNil(FDragging);
   //todo: editor mode
   if Button = TMouseButton.mbLeft then
   begin
     FMouseDown := True;
   end;
 
+  if Assigned(FSelectedObject) and (FTerrainBrushMode=TBrushMode.none) then
+  begin
+    DragManager.DragStart(MapView,False, 0);
+    FDragging := TObjectDragProxy.Create(FSelectedObject);
+    //FSelectedObject := nil;
+  end;
 end;
 
 procedure TfMain.MapViewMouseEnter(Sender: TObject);
@@ -1274,12 +1316,9 @@ begin
 
   if FMapDragging then
   begin
-    Assert(Assigned(FDragProxy));
+    Assert(Assigned(FDragging));
 
-    cx := FMouseTileX * TILE_SIZE;
-    cy := FMouseTileY * TILE_SIZE;
-
-    FDragProxy.Render(cx +TILE_SIZE, cy+TILE_SIZE);
+    FDragging.Render(FMouseTileX,FMouseTileY);
 
 
   end;
@@ -1379,7 +1418,7 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  FreeAndNil(FDragProxy);
+  FreeAndNil(FDragging);
   col := x div OBJ_CELL_SIZE;
   row := y div OBJ_CELL_SIZE;
 
@@ -1389,7 +1428,7 @@ begin
   begin
     DragManager.DragStart(ObjectsView, True,0);
 
-    FDragProxy := TTemplateDragProxy.Create(FObjManager.Objcts[o_idx]);
+    FDragging := TTemplateDragProxy.Create(FObjManager.Objcts[o_idx]);
   end;
 
 end;
