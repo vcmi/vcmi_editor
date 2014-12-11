@@ -1060,7 +1060,7 @@ begin
         o := q.Top;
         q.Pop;
 
-        if q.Top = FSelectedObject then
+        if (q.IsEmpty) or (q.Top = FSelectedObject) then
         begin
           break;
         end;
