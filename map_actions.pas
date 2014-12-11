@@ -220,6 +220,28 @@ type
     procedure Undo; override;
   end;
 
+  { TMoveObject }
+
+  TMoveObject = class(TObjectAction)
+  private
+    FOldX, FOldY,FOldL: Integer;
+    FL: Integer;
+    FX: Integer;
+    FY: Integer;
+    procedure SetL(AValue: Integer);
+    procedure SetX(AValue: Integer);
+    procedure SetY(AValue: Integer);
+  public
+    procedure Execute; override;
+    function GetDescription: string; override;
+    procedure Redo; override;
+    procedure Undo; override;
+
+    property X:Integer read FX write SetX;
+    property Y:Integer read FY write SetY;
+    property L:Integer read FL write SetL;
+  end;
+
 implementation
 
 uses
@@ -229,6 +251,53 @@ operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TMoveObject }
+
+procedure TMoveObject.SetL(AValue: Integer);
+begin
+  if FL=AValue then Exit;
+  FL:=AValue;
+end;
+
+procedure TMoveObject.SetX(AValue: Integer);
+begin
+  if FX=AValue then Exit;
+  FX:=AValue;
+end;
+
+procedure TMoveObject.SetY(AValue: Integer);
+begin
+  if FY=AValue then Exit;
+  FY:=AValue;
+end;
+
+procedure TMoveObject.Execute;
+begin
+  FOldL:=TargetObject.L;
+  FOldX:=TargetObject.X;
+  FOldY:=TargetObject.Y;
+  Redo;
+end;
+
+function TMoveObject.GetDescription: string;
+begin
+  Result := 'Move object';
+end;
+
+procedure TMoveObject.Redo;
+begin
+  TargetObject.L:=L;
+  TargetObject.X:=X;
+  TargetObject.Y:=Y;
+end;
+
+procedure TMoveObject.Undo;
+begin
+  TargetObject.L:=FOldL;
+  TargetObject.X:=FOldX;
+  TargetObject.Y:=FOldY;
 end;
 
 { TAddObject }

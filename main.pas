@@ -339,6 +339,8 @@ type
     procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
+  public
+    procedure MoveObject(AObject: TMapObject; l,x,y: integer);
   end;
 
 var
@@ -382,11 +384,7 @@ end;
 
 procedure TObjectDragProxy.Drop;
 begin
-  FDraggingObject.L := fMain.FMap.CurrentLevel;
-  FDraggingObject.X := fMain.FMouseTileX+FShiftX;
-  FDraggingObject.Y := fMain.FMouseTileY+FShiftY;
-
-  FOwner.FSelectedObject := FDraggingObject;
+  FOwner.MoveObject(FDraggingObject,FOwner.FMap.CurrentLevel,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
 end;
 
 procedure TObjectDragProxy.Render(x, y: integer);
@@ -545,7 +543,7 @@ begin
   if FUndoManager.CanRedo then
   begin
     a.Enabled := True;
-    a.Caption := rsRedo + FUndoManager.PeekNext.Description;
+    a.Caption := rsRedo + ' ' + FUndoManager.PeekNext.Description;
   end else
   begin
     a.Enabled := False;
@@ -621,7 +619,7 @@ begin
   if FUndoManager.CanUndo then
   begin
     a.Enabled := True;
-    a.Caption := rsUndo + FUndoManager.PeekCurrent.Description;
+    a.Caption := rsUndo +' '+ FUndoManager.PeekCurrent.Description;
   end else
   begin
     a.Enabled := False;
@@ -858,9 +856,7 @@ begin
 
   if (dx<>0) or (dy<>0) then
   begin
-    FSelectedObject.X := FSelectedObject.X + dx;
-    FSelectedObject.Y := FSelectedObject.Y + dy;
-    InvalidateMapContent;
+    MoveObject(FSelectedObject, FMap.CurrentLevel, FSelectedObject.X + dx, FSelectedObject.Y + dy);
     Key := VK_UNKNOWN;
     Exit;
   end;
@@ -1801,6 +1797,24 @@ procedure TfMain.DragCanceled;
 begin
   inherited DragCanceled;
   FMapDragging:=false;
+end;
+
+procedure TfMain.MoveObject(AObject: TMapObject; l, x, y: integer);
+var
+  action_item: TMoveObject;
+begin
+  action_item := TMoveObject.Create(FMap);
+
+  action_item.TargetObject := AObject;
+
+  action_item.L := l;
+  action_item.X := x;
+  action_item.Y := y;
+
+  FUndoManager.ExecuteItem(action_item);
+
+  FSelectedObject := AObject;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.VerticalAxisPaint(Sender: TObject);
