@@ -82,6 +82,7 @@ type
     actSaveMapAs: TAction;
     actTerrain: TAction;
     actObjects: TAction;
+    imlMainActionsSmall: TImageList;
     MainActions: TActionList;
     actCreateMap: TAction;
     actRedo: TAction;
@@ -111,7 +112,10 @@ type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     mm:      TMainMenu;
     menuFile: TMenuItem;
     MapView: TOpenGLControl;
