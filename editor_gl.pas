@@ -68,7 +68,7 @@ const
           '}'+
           'else'+
           '{' +
-              'return texture(bitmap,UV);'+ //???
+             // 'return texture(bitmap,UV);'+ //???
           '}'+
       '}'+
        'return inColor;'+

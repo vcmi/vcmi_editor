@@ -196,10 +196,10 @@ begin
           end_loop := True;
         end
         else begin
-          if not FState.total_out = FPosition then
-          begin
-            raise Exception.Create('Decomression error');
-          end;
+          //if not (FState.total_out = FPosition) then
+          //begin
+          //  raise Exception.Create('Decomression error');
+          //end;
           end_loop := True;
         end;
       end;

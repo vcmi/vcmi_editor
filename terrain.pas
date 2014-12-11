@@ -755,7 +755,7 @@ begin
       end;
     end;
 
-    for i := 0 to FMappings.Size - 1 do
+    for i := 0 to SizeInt(FMappings.Size) - 1 do
     begin
       dest_o.FMappings.PushBack(FMappings[i]);
     end;
