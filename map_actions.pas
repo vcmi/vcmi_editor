@@ -47,9 +47,11 @@ type
 type
   { TMapRect }
 
-  TMapRect = record
+  TMapRect = object
     FTopLeft: TMapCoord;
     FWidth,FHeight: Integer;
+
+    constructor Create(); //empty
 
     function Left(): integer;
     function Right(): integer;
@@ -65,7 +67,7 @@ type
 
     procedure Clear();
 
-    procedure SetFromCenter(X,Y, Width,Height: integer);
+    constructor SetFromCenter(X,Y, Width,Height: integer);
   end;
 
 
@@ -200,6 +202,11 @@ end;
 
 { TMapRect }
 
+constructor TMapRect.Create;
+begin
+  Clear();
+end;
+
 function TMapRect.Left: integer;
 begin
   Result := FTopLeft.x;
@@ -253,7 +260,7 @@ begin
     and (Bottom()>Other.Top())
     and (Other.Bottom()>Top());
 
-  Result.Clear();
+  Result.Create();
 
   if intersects then
   begin
@@ -272,7 +279,7 @@ begin
   FWidth:=0;
 end;
 
-procedure TMapRect.SetFromCenter(X, Y, Width, Height: integer);
+constructor TMapRect.SetFromCenter(X, Y, Width, Height: integer);
 begin
   Assert(width mod 2 = 1);
   Assert(Height mod 2 = 1);
@@ -495,7 +502,7 @@ end;
 
 function TEditTerrain.MapRect: TMapRect;
 begin
-  Result.Clear();
+  Result.Create();
   Result.FWidth:=FMap.Width;
   Result.FHeight:=FMap.Height;
 end;
