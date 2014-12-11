@@ -51,8 +51,8 @@ const
   'uniform usampler2DRect bitmap;'+
   'uniform sampler1D palette;'+
   'uniform int useTexture = 0;'+
-//  'uniform int usePalette = 0;'+
-//  'uniform int useFlag = 0;'+
+  'uniform int usePalette = 0;'+
+  'uniform int useFlag = 0;'+
   'uniform vec4 flagColor;'+
   'uniform vec4 fragmentColor;'#13#10+
   'in vec2 UV;'#13#10+
@@ -62,13 +62,13 @@ const
   '{'+
       'if(useTexture == 1)'+
       '{'+
-         //'if(usePalette == 1)'+
+         'if(usePalette == 1)'+
           '{'+
               'return texelFetch(palette, int(texelFetch(bitmap, ivec2(UV)).r), 0);'+
           '}'+
-       //   'else'+
+          'else'+
           '{' +
-          //    'return texture2DRect(bitmap,UV);'+ //???
+              'return texture2DRect(bitmap,UV);'+ //???
           '}'+
       '}'+
        'return inColor;'+
@@ -76,7 +76,7 @@ const
 
   'vec4 applyFlag(vec4 inColor)' +
   '{'+
-    // 'if(useFlag == 1)'+
+     'if(useFlag == 1)'+
      '{'+
         'if(all(greaterThanEqual(inColor,maskColor-eps)) && all(lessThanEqual(inColor,maskColor+eps)))'+
         '  return flagColor;'+
@@ -130,15 +130,7 @@ type
        DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);
   private
     FCurrentProgram: GLuint;
-
-
   private
-    //PaletteFlagProgram: GLint;
-    //PalettePaletteUniform: GLint;
-    //PaletteBitmapUniform: GLint;
-    //PaletteFlagColorUniform: GLint;
-    //
-    //PaletteProgram: GLuint;
 
     DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
@@ -520,15 +512,6 @@ end;
 
 procedure TShaderContext.Init;
 begin
-  //PaletteFlagProgram := MakeShaderProgram('',FRAGMENT_PALETTE_FLAG_SHADER);
-  //CheckGLErrors('compiling palette shader');
-  //if PaletteFlagProgram = 0 then
-  //  raise Exception.Create('Error compiling palette shader');
-  //
-  //PaletteBitmapUniform := glGetUniformLocation(PaletteFlagProgram, PChar('bitmap'));
-  //PalettePaletteUniform := glGetUniformLocation(PaletteFlagProgram, PChar('palette'));
-  //PaletteFlagColorUniform := glGetUniformLocation(PaletteFlagProgram, PChar('flagColor'));
-
   DefaultProgram := MakeShaderProgram(VERTEX_DEFAULT_SHADER, FRAGMENT_DEFAULT_SHADER);
   if DefaultProgram = 0 then
     raise Exception.Create('Error compiling default shader');
@@ -540,8 +523,8 @@ begin
   DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
   UVAttrib:=glGetAttribLocation(DefaultProgram, PChar('uv'));
 
-  //UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
-  //UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
+  UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
+  UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
   UseTextureUniform:=glGetUniformLocation(DefaultProgram, PChar('useTexture'));
 
   PaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('palette'));
@@ -615,12 +598,12 @@ end;
 
 procedure TShaderContext.SetUseFlag(const Value: Boolean);
 begin
-  //glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
+  glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
 procedure TShaderContext.SetUsePalette(const Value: Boolean);
 begin
-  //glUniform1i(UsePaletteUniform, ifthen(Value, 1, 0));
+  glUniform1i(UsePaletteUniform, ifthen(Value, 1, 0));
 end;
 
 procedure TShaderContext.SetUseTexture(const Value: Boolean);
