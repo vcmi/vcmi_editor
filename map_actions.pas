@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, Math, fgl, Map, gvector, gset, undo_map, editor_types,
-  terrain;
+  terrain, objects;
 
 type
   TBrushMode = (none,fixed, area, fill);
@@ -176,8 +176,40 @@ type
     property  TargetObject: TMapObject read FTargetObject write SetTargetObject;
   end;
 
-  { TDeleteObject }
+  { TAddObject }
 
+  TAddObject = class(TObjectAction)
+  private
+    FCurrentPlayer: TPlayer;
+    FL: Integer;
+    FTemplate: TObjTemplate;
+    FX: Integer;
+    FY: Integer;
+
+    procedure SetCurrentPlayer(AValue: TPlayer);
+    procedure SetL(AValue: Integer);
+    procedure SetTemplate(AValue: TObjTemplate);
+    procedure SetX(AValue: Integer);
+    procedure SetY(AValue: Integer);
+  public
+    procedure Execute; override;
+    function GetDescription: string; override;
+    procedure Redo; override;
+    procedure Undo; override;
+
+    property  Template: TObjTemplate read FTemplate write SetTemplate;
+
+    property X:Integer read FX write SetX;
+    property Y:Integer read FY write SetY;
+    property L:Integer read FL write SetL;
+    property CurrentPlayer: TPlayer read FCurrentPlayer write SetCurrentPlayer;
+
+  end;
+
+
+  { TDeleteObject }
+  //todo: free target object on freeing in undo queue (but not in redo queue)
+  //todo: cleaup unused map templates
   TDeleteObject = class(TObjectAction)
   public
     procedure Execute; override;
@@ -195,6 +227,78 @@ operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TAddObject }
+
+procedure TAddObject.SetTemplate(AValue: TObjTemplate);
+begin
+  if FTemplate=AValue then Exit;
+  FTemplate:=AValue;
+end;
+
+procedure TAddObject.SetL(AValue: Integer);
+begin
+  if FL=AValue then Exit;
+  FL:=AValue;
+end;
+
+procedure TAddObject.SetCurrentPlayer(AValue: TPlayer);
+begin
+  if FCurrentPlayer=AValue then Exit;
+  FCurrentPlayer:=AValue;
+end;
+
+procedure TAddObject.SetX(AValue: Integer);
+begin
+  if FX=AValue then Exit;
+  FX:=AValue;
+end;
+
+procedure TAddObject.SetY(AValue: Integer);
+begin
+  if FY=AValue then Exit;
+  FY:=AValue;
+end;
+
+procedure TAddObject.Execute;
+var
+  ot: TMapObjectTemplate;
+begin
+  ot :=  FMap.Templates.Add;
+
+  ot.FillFrom(Template);
+
+  TargetObject := FMap.Objects.Add;
+
+  TargetObject.TemplateID := ot.TID;
+
+  Assert(Assigned(TargetObject.Template), 'Template not assigned by ID');
+
+  TargetObject.L := l;
+  TargetObject.X := X;
+  TargetObject.Y := Y;
+
+  if TargetObject.Options.MayBeOwned then
+  begin
+    TargetObject.Options.Owner := CurrentPlayer;
+  end;
+  //(!)do not redo here
+end;
+
+function TAddObject.GetDescription: string;
+begin
+  Result := 'Add object';
+end;
+
+procedure TAddObject.Redo;
+begin
+  TargetObject.Collection := FMap.Objects;
+end;
+
+procedure TAddObject.Undo;
+begin
+  TargetObject.Collection := nil;
 end;
 
 { TObjectAction }

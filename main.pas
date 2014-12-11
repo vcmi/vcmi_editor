@@ -404,32 +404,22 @@ begin
 end;
 
 procedure TTemplateDragProxy.Drop;
-
 var
-  o: TMapObject;
-  ot: TMapObjectTemplate;
+  action_item: TAddObject;
 begin
-  ot :=  FOwner.FMap.Templates.Add;
 
-  ot.FillFrom(FDraggingTemplate);
+  action_item := TAddObject.Create(FOwner.FMap);
 
-  o := FOwner.FMap.Objects.Add;
+  action_item.L:=FOwner.FMap.CurrentLevel;
+  action_item.X := FOwner.FMouseTileX;
+  action_item.Y := FOwner.FMouseTileY;
+  action_item.Template := FDraggingTemplate;
 
-  o.TemplateID := ot.TID;
+  action_item.CurrentPlayer:=FOwner.FCurrentPlayer;
 
-  Assert(Assigned(o.Template), 'Template not assigned by ID');
+  FOwner.FUndoManager.ExecuteItem(action_item);
 
-  o.L := FOwner.FMap.CurrentLevel;
-  o.X := FOwner.FMouseTileX;
-  o.Y := FOwner.FMouseTileY;
-
-  if o.Options.MayBeOwned then
-  begin
-    o.Options.Owner := FOwner.FCurrentPlayer;
-  end;
-
-  //TODO: undo
-  FOwner.FSelectedObject := o;
+  FOwner.FSelectedObject := action_item.TargetObject;
 end;
 
 procedure TTemplateDragProxy.Render(x, y: integer);
