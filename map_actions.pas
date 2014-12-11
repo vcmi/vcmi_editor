@@ -29,9 +29,6 @@ uses
   terrain;
 
 type
-
-  { TEditTerrain }
-
   TBrushMode = (none,fixed, area, fill);
 
   { TMapCoord }
@@ -52,6 +49,7 @@ type
     FWidth,FHeight: Integer;
 
     constructor Create(); //empty
+    constructor SetFromCenter(X,Y, Width,Height: integer);
 
     function Left(): integer;
     function Right(): integer;
@@ -66,11 +64,7 @@ type
     function Intersect(Other: TMapRect):TMapRect;
 
     procedure Clear();
-
-    constructor SetFromCenter(X,Y, Width,Height: integer);
   end;
-
-
 
   TTileInfo = record
     X,Y: integer;
@@ -105,6 +99,8 @@ type
     destructor Destroy; override;
 
   end;
+
+  { TEditTerrain }
 
   TEditTerrain = class(TMapUndoItem)
   strict private
@@ -162,9 +158,6 @@ type
 
     property TerrainType: TTerrainType read FTerrainType write SetTerrainType;
   end;
-
-
-
 
 implementation
 
@@ -242,7 +235,6 @@ function TMapRect.BottomLeft: TMapCoord;
 begin
   Result.X := Bottom();
   Result.Y := Left();
-
 end;
 
 function TMapRect.BottomRight: TMapCoord;
@@ -291,7 +283,6 @@ begin
   FHeight:=Height;
 end;
 
-
 { TTileCompare }
 
 class function TTileCompare.c(a, b: TTileInfo): boolean;
@@ -327,9 +318,6 @@ begin
   inherited Create(AMap);
   FOldTileInfos := TTileInfos.Create;
   FNewTileInfos := TTileInfos.Create;
-
-
-
 end;
 
 destructor TEditTerrain.Destroy;
@@ -345,7 +333,6 @@ var
   old_info, new_info, info: TTileInfo;
 
   i, dx,dy: Integer;
-
 
   loop_guard: Integer;
   x: LongInt;
@@ -385,8 +372,6 @@ begin
     until not it.next ;
     FreeAndNil(it);
   end;
-
-
 
   //save old state
   FOldTileInfos.Clear;
@@ -564,41 +549,39 @@ begin
   begin
     for j := 0 to r.FHeight - 1 do
     begin
-         curTile := GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j);
+       curTile := GetTinfo(r.FTopLeft.X+i, r.FTopLeft.Y+j);
 
-         valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById('n1')).result;
+       valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById('n1')).result;
 
-         // Special validity check for rock & water
+       // Special validity check for rock & water
 
-         if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
+       if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
+       begin
+         for pName in WATER_ROCK_P do
          begin
-           for pName in WATER_ROCK_P do
-           begin
-              valid := not ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
-              if not valid then
-                break;
-           end;
-         end
-         // Additional validity check for non rock OR water
-         else if (not valid and not (curTile.TerType in [TTerrainType.water, TTerrainType.rock])) then
-         begin
-           for pName in OTHER_P do
-           begin
-              valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
-              if valid then
-                break;
-           end;
+            valid := not ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+            if not valid then
+              break;
          end;
-
-         if not valid then
+       end
+       // Additional validity check for non rock OR water
+       else if (not valid and not (curTile.TerType in [TTerrainType.water, TTerrainType.rock])) then
+       begin
+         for pName in OTHER_P do
          begin
-           if curTile.TerType = centerTile.TerType then
-             Result.NativeTiles.Insert(curTile)
-           else
-             Result.ForeignTiles.Insert(curTile)
+            valid := ValidateTerrainView(curTile,config.GetTerrainTypePatternById(pName)).result;
+            if valid then
+              break;
          end;
+       end;
 
-
+       if not valid then
+       begin
+         if curTile.TerType = centerTile.TerType then
+           Result.NativeTiles.Insert(curTile)
+         else
+           Result.ForeignTiles.Insert(curTile)
+       end;
     end;
   end;
 
@@ -736,8 +719,6 @@ begin
                 UpdateTerrain(it2^.Data, tileRequiresValidation);
              end;
           end;
-
-
         end;
         SuitableTiles.Free;
      end
@@ -884,9 +865,6 @@ end;
 function TEditTerrain.ValidateTerrainViewInner(info: TTileInfo;
   pattern: TPattern; recDepth: integer): TValidationResult;
 
-
-
-
   function isSandType(tt: TTerrainType ): Boolean;
   begin
     case tt of
@@ -1000,7 +978,6 @@ begin
           rule.name := RULE_NATIVE;
         end;
       end;
-
 
       // Validate cell with the ruleset of the pattern
 
