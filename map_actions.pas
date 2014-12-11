@@ -298,8 +298,14 @@ procedure TEditTerrain.AddTile(X, Y: integer);
 var
   info: TTileInfo;
 begin
+
+  if not FMap.IsOnMap(FLevel,X,Y) then
+  begin
+    exit; //silently ignore
+  end;
+
   info.TerType := TerrainType;
-  info.TerSubtype := 0; //todo: maybe select random at this time
+  info.TerSubtype := 0; //will be randomized by pattern selection algorithm
   info.X := X;
   info.Y := Y;
   info.mir := 0;

@@ -939,6 +939,11 @@ var
 begin
   //TODO: handle all cases
 
+  if not FMap.IsOnMap(FMap.CurrentLevel, FMouseTileX, FMouseTileY) then
+  begin
+    exit;
+  end;
+
   if FTerrainBrushMode <> TBrushMode.none then
   begin
     action_item := TEditTerrain.Create(FMap);
@@ -1237,11 +1242,13 @@ begin
     FSelectedObject.RenderSelectionRect;
   end;
 
+  glDisable(GL_SCISSOR_TEST);
+
   RenderCursor;
 
   glDisable (GL_BLEND);
 
-  glDisable(GL_SCISSOR_TEST);
+
   //glDisable(GL_ALPHA_TEST);
 
   c.SwapBuffers;
