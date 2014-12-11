@@ -82,12 +82,12 @@ type
 
   { TTileCompare }
 
-  TTileCompare = class
+  TTileCompareByCoord = class
   public
     class function c(a,b: TTileInfo): boolean;
   end;
 
-  TTileSet = specialize TSet<TTileInfo,TTileCompare> ;
+  TTileSet = specialize TSet<TTileInfo,TTileCompareByCoord> ;
 
   TValidationResult = record
     result: Boolean;
@@ -311,7 +311,7 @@ end;
 
 { TTileCompare }
 
-class function TTileCompare.c(a, b: TTileInfo): boolean;
+class function TTileCompareByCoord.c(a, b: TTileInfo): boolean;
 begin
   Result := (a.X < b.X) or ((a.X=b.X) and (a.y<b.Y));
 end;
