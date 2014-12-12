@@ -29,7 +29,7 @@ uses
   lazutf8classes,
   vcmi_json,
   editor_classes,
-  filesystem_base, lod ;
+  filesystem_base, lod, fpjson ;
 
   {
   real FS
@@ -221,6 +221,8 @@ type
 
   TIdToModMap = specialize TFPGMap<TModId,TModConfig>;
 
+  TPathToPathMap = specialize TFPGMap<TFilename,TFilename>;
+
   TModQueue = specialize TQueue<TModConfig>;
 
   //index = index in TModConfigs
@@ -228,13 +230,13 @@ type
   TModDependencyMatrix = array of array of boolean;
 
 
-  TLocationType = (InLod, InFile);
+  TLocationType = (InLod, InFile, InOtherLocation);
 
   { TResLocation }
 
   TResLocation = object
     lt: TLocationType;
-    //for files
+    //for files. Real path
     path: TFilename;
     //for lods
     lod:TLod;
@@ -269,6 +271,8 @@ type
     FResMap: TResIDToLcationMap;
     FLodList: TLodList;
 
+    FVpathMap: TPathToPathMap; //key subtituted by value
+
     FModMap: TIdToModMap;
     FMods: TModConfigs;
 
@@ -296,6 +300,8 @@ type
     procedure OnFileFound(FileIterator: TFileIterator);
     procedure OnDirectoryFound(FileIterator: TFileIterator);
     procedure ScanDir(RelDir: string; ARootPath: TStrings);
+
+    procedure ScanMap(MapPath: string; ARootPath: TStrings);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
 
@@ -332,6 +338,8 @@ type
 
 
 implementation
+uses
+  LazLoggerBase;
 
 const
   GAME_PATH_CONFIG = 'gamepath.txt';
@@ -598,10 +606,12 @@ begin
   FModMap.OnKeyCompare := @ComapreModId;
 
   FGameConfig := TGameConfig.Create;
+  FVpathMap := TPathToPathMap.Create;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FVpathMap.Free;
   FGameConfig.Free;
   FModMap.Free;
   FMods.Free;
@@ -702,6 +712,13 @@ var
   it : TResIDToLcationMap.TIterator;
 begin
   AName := NormalizeResName(AName);
+
+  if FVpathMap.IndexOf(AName) >=0 then
+  begin
+    DebugLn('Subst from '+AName);
+    AName := FVpathMap.KeyData[AName];
+    DebugLn('to '+AName);
+  end;
 
   res_id.VFSPath := AName;
   res_id.Typ := AResType;
@@ -1032,6 +1049,9 @@ begin
       'dir':begin
          ScanDir(rel_path,ARootPath);
       end;
+      'map':begin
+         ScanMap(rel_path,ARootPath);
+      end;
     end;
   end;
 end;
@@ -1068,6 +1088,41 @@ begin
       srch.Free;
     end;
   end;
+end;
+
+procedure TFSManager.ScanMap(MapPath: string; ARootPath: TStrings);
+var
+  root_path: String;
+  current_path: String;
+  map_config: TJsonResource;
+  item: TJSONEnum;
+  KeyVPath: String;
+  ValueVPath: TJSONStringType;
+begin
+  for root_path in ARootPath do
+  begin
+    current_path := MakeFullPath(root_path,MapPath);
+     if FileExistsUTF8(current_path) then
+     begin
+       map_config:=TJsonResource.Create;
+       LoadFileResource(map_config,current_path);
+
+       for item in map_config.Root do
+       begin
+          KeyVPath :=  item.Key;
+          KeyVPath := IncludeTrailingPathDelimiter(ExtractFilePath(KeyVPath)) + ExtractFileNameOnly(KeyVPath);
+          KeyVPath := NormalizeResName(KeyVPath);
+
+          ValueVPath := item.Value.AsString;
+          ValueVPath := IncludeTrailingPathDelimiter(ExtractFilePath(ValueVPath)) + ExtractFileNameOnly(ValueVPath);
+          ValueVPath := NormalizeResName(ValueVPath);
+
+          FVpathMap.KeyData[KeyVPath] := ValueVPath;
+       end;
+       map_config.Free;
+     end;
+
+  end
 end;
 
 procedure TFSManager.ScanFilesystem;
