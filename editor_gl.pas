@@ -100,6 +100,9 @@ type
     TopMagin: int32;
     LeftMargin: int32;
 
+    SpriteWidth: Int32;
+    SpriteHeight: int32;
+
     X: Int32;
     Y: Int32;
   end;
@@ -159,7 +162,7 @@ procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure Unbind(var ATextureId: GLuint); inline;
 
-procedure RenderSprite(const ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
+procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
 procedure RenderRect(x,y: Integer; dimx,dimy:integer);
 
 procedure CheckGLErrors(Stage: string);
@@ -233,7 +236,7 @@ begin
   ATextureId := 0;
 end;
 
-procedure RenderSprite(const ASprite: TGLSprite; dim: integer; mir: UInt8);
+procedure RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8);
 var
   factor: Double;
   cur_dim: integer;
@@ -245,24 +248,44 @@ var
 
   BufferHandle: GLuint;
 begin
+  factor := 1;
   if dim <=0 then //render real size w|o scale
   begin
-    H := ASprite.Height;
+    H := ASprite.SpriteHeight;
     W := ASprite.Width;
   end
   else
   begin
-    cur_dim := Max(ASprite.Width,ASprite.Height);
+    cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
     factor := Min(dim / cur_dim, 1); //no zoom
 
-    h := round(Double(ASprite.Height) * factor);
+    h := round(Double(ASprite.SpriteHeight) * factor);
     w := round(Double(ASprite.Width) * factor);
   end;
 
-  x := ASprite.x;
-  y := ASprite.y;
+   //todo: use indexes
 
-  //todo: use indexes
+  case mir of
+    0:begin
+      x := ASprite.x;//+round(factor * ASprite.LeftMargin);
+      y := ASprite.y+round(factor * ASprite.TopMagin);
+    end;
+    1:begin
+      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := ASprite.y+round(factor *  ASprite.TopMagin);
+
+    end;
+    2:begin
+      x := ASprite.x;//+ round(factor * ASprite.LeftMargin);
+      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+
+    end;
+    3:begin
+      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+     end;
+  end;
+
 
   vertex_data[1] := x;   vertex_data[2] := y;
   vertex_data[3] := x+w; vertex_data[4] := y;

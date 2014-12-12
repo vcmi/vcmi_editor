@@ -212,14 +212,14 @@ type
   end;
 
   TH3SpriteHeader = packed record
-    prSize: UInt32;
-    defType2: UInt32;
-    FullWidth: UInt32;
-    FullHeight: UInt32;
-    SpriteWidth: UInt32;
-    SpriteHeight: UInt32;
-    LeftMargin: UInt32;
-    TopMargin: UInt32;
+    prSize: Int32;
+    defType2: Int32;
+    FullWidth: Int32;
+    FullHeight: Int32;
+    SpriteWidth: Int32;
+    SpriteHeight: Int32;
+    LeftMargin: Int32;
+    TopMargin: Int32;
   end;
 const
 
@@ -295,11 +295,7 @@ var
 
 var
   h: TH3SpriteHeader;
-
-  LeftMargin,TopMargin,
   RightMargin, BottomMargin: Int32;
-  SpriteHeight, SpriteWidth: Int32;
-
   add: Int32;
 
   BaseOffset: Int32;
@@ -311,11 +307,11 @@ var
   var
     row: Int32;
   begin
-    for row:=0 to SpriteHeight - 1 do
+    for row:=0 to h.SpriteHeight - 1 do
     begin
-      SkipIfPositive(LeftMargin);
+      SkipIfPositive(h.LeftMargin);
 
-      AStream.Read(FBuffer[ftcp+row * Int32(h.FullWidth)],SpriteWidth);
+      AStream.Read(FBuffer[ftcp+row * h.SpriteWidth],h.SpriteWidth);
 
       SkipIfPositive(RightMargin);
     end;
@@ -323,23 +319,19 @@ var
 
   procedure ReadType1;
   var
-    //RWEntriesLoc: Int32;
     row: Int32;
     TotalRowLength : Int32;
-    RowAdd: UInt32;
+    RowAdd: Int32;
     SegmentLength: Int32;
     SegmentType: UInt8;
   begin
-    //const ui32 * RWEntriesLoc = reinterpret_cast<const ui32 *>(FDef+BaseOffset);
-
-    //BaseOffset += sizeof(int) * SpriteHeight;
-    for row := 0 to SpriteHeight - 1 do
+    for row := 0 to h.SpriteHeight - 1 do
     begin
       AStream.Seek(BaseOffsetor + SizeOf(UInt32)*row, soFromBeginning);
       AStream.Read(BaseOffset,SizeOf(BaseOffset));
 
 
-      SkipIfPositive(LeftMargin);
+      SkipIfPositive(h.LeftMargin);
       TotalRowLength :=  0;
       repeat
          SegmentType := AStream.ReadByte;
@@ -358,8 +350,8 @@ var
          Skip(SegmentLength);
 
          TotalRowLength += SegmentLength;
-       until TotalRowLength>=(SpriteWidth);
-       RowAdd := Uint32(SpriteWidth) - TotalRowLength;
+       until TotalRowLength>=(h.SpriteWidth);
+       RowAdd := h.SpriteWidth - TotalRowLength;
 
        SkipIfPositive(RightMargin);
 
@@ -378,9 +370,9 @@ var
     BaseOffset := BaseOffsetor + AStream.ReadWord();
     AStream.Seek(BaseOffset,soBeginning);
 
-    for row := 0 to SpriteHeight - 1 do
+    for row := 0 to h.SpriteHeight - 1 do
     begin
-      SkipIfPositive(LeftMargin);
+      SkipIfPositive(h.LeftMargin);
 
       TotalRowLength:=0;
       repeat
@@ -398,15 +390,16 @@ var
          Skip(Value);
          TotalRowLength+=value;
 
-      until TotalRowLength >= SpriteWidth ;
-
+      until TotalRowLength >= h.SpriteWidth ;
 
       SkipIfPositive(RightMargin);
 
-      RowAdd := SpriteWidth-TotalRowLength;
+      RowAdd := h.SpriteWidth-TotalRowLength;
+
+      Skip(RowAdd);
 
       if (add>0) then
-         ftcp += add+RowAdd;
+         ftcp += add;
     end;
   end;
 
@@ -420,12 +413,12 @@ var
     len: Integer;
     RowAdd: Int32;
   begin
-    for row := 0 to SpriteHeight - 1 do
+    for row := 0 to h.SpriteHeight - 1 do
     begin
-      AStream.Seek(BaseOffsetor+row*2*(SpriteWidth div 32),soBeginning);
+      AStream.Seek(BaseOffsetor+row*2*(h.SpriteWidth div 32),soBeginning);
       tmp := AStream.ReadWord();
       BaseOffset := BaseOffsetor + tmp;
-      SkipIfPositive(LeftMargin);
+      SkipIfPositive(h.LeftMargin);
       TotalRowLength := 0;
 
       AStream.Seek(BaseOffset,soBeginning);
@@ -435,7 +428,7 @@ var
          code := SegmentType div 32;
          value := (SegmentType and 31) + 1;
 
-         len := Min(Int32(value), SpriteWidth - TotalRowLength) - Max(0, -LeftMargin);
+         len := Min(Int32(value), h.SpriteWidth - TotalRowLength) - Max(0, -h.LeftMargin);
 
          len := Max(0,len);
 
@@ -448,13 +441,13 @@ var
          end;
          Skip(len);
 
-         TotalRowLength += ifthen(LeftMargin>=0,value, value+LeftMargin );
+         TotalRowLength += ifthen(h.LeftMargin>=0,value, value+h.LeftMargin );
 
-      until TotalRowLength>=SpriteWidth;
+      until TotalRowLength>=h.SpriteWidth;
 
       SkipIfPositive(RightMargin);
 
-      RowAdd := SpriteWidth-TotalRowLength;
+      RowAdd := h.SpriteWidth-TotalRowLength;
 
       if (add>0) then
          ftcp += add+RowAdd;
@@ -485,7 +478,17 @@ begin
     LeToNInPlase(TopMargin);
   end;
 
-  //TODO: use margins to decrease decompressed sprite size
+  RightMargin := h.FullWidth - h.SpriteWidth - h.LeftMargin;
+  BottomMargin := h.FullHeight - h.SpriteHeight - h.TopMargin;
+
+  if h.LeftMargin<0 then
+     h.SpriteWidth+=h.LeftMargin;
+  if RightMargin<0 then
+     h.SpriteWidth+=RightMargin;
+
+  add := 4 - (h.FullWidth mod 4);
+  if add = 4 then
+     add :=0;
 
   PEntry^.LeftMargin := h.LeftMargin;
   PEntry^.TopMagin := h.TopMargin;
@@ -493,37 +496,13 @@ begin
   PEntry^.SpriteHeight := h.SpriteHeight;
   PEntry^.SpriteWidth := h.SpriteWidth;
 
-  LeftMargin := h.LeftMargin;
-  TopMargin := h.TopMargin;
-
-  SpriteHeight := h.SpriteHeight;
-  SpriteWidth := h.SpriteWidth;
-
-  RightMargin := Int32(h.FullWidth) - SpriteWidth - LeftMargin;
-  BottomMargin := Int32(h.FullHeight) - SpriteHeight - TopMargin;
-
-  if LeftMargin<0 then
-     SpriteWidth+=LeftMargin;
-  if RightMargin<0 then
-     SpriteWidth+=RightMargin;
-
-  add := 4 - (h.FullWidth mod 4);
-  if add = 4 then
-     add :=0;
-
   IncreaseBuffer(h.FullWidth*h.FullHeight);
 
 
-  if (TopMargin > 0) or (BottomMargin > 0) or (LeftMargin > 0) or (RightMargin > 0) then
+  if (h.TopMargin > 0) or (BottomMargin > 0) or (h.LeftMargin > 0) or (RightMargin > 0) then
     FillChar(FBuffer[0], Length(FBuffer) ,0); //todo: use marging in texture coords
 
   ftcp := 0;
-
-  // Skip top margin
-  if TopMargin > 0 then
-  begin
-    Skip(TopMargin*(Int32(h.FullWidth)+add));
-  end;
 
   case h.defType2 of
     0:begin
@@ -542,9 +521,7 @@ begin
     raise Exception.Create('Unknown sprite compression format');
   end;
 
-  BindUncompressedPaletted(ATextureID,h.FullWidth,h.FullHeight, @FBuffer[0]);
-  //BindUncompressedRGBA(ATextureID,h.FullWidth,h.FullHeight, FBuffer[0]);
-
+  BindUncompressedPaletted(ATextureID,h.FullWidth,h.SpriteHeight, @FBuffer[0]);
 end;
 
 procedure TDefFormatLoader.LoadFromStream(AStream: TStream);
@@ -794,6 +771,10 @@ begin
   Sprite.Y := Y;
   Sprite.Height := height;
   Sprite.Width := width;
+  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
+  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
+  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
 
   SetPalyerColor(color);
 
@@ -823,6 +804,10 @@ begin
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
   Sprite.PaletteID := FPaletteID;
+  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
+  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
+  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
 
   mir := flags mod 4;
 
@@ -843,6 +828,10 @@ begin
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
   Sprite.PaletteID := FPaletteID;
+  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
+  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
+  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
 
   SetPalyerColor(color);
 

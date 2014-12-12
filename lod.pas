@@ -51,10 +51,10 @@ type
 
   TLodItem = packed record
     Filename:   array [0..16 - 1] of AnsiChar;
-    FileOffset: UInt32;
-    UncompressedFileSize: UInt32;
-    FileType:   UInt32;
-    FileLength: UInt32;
+    FileOffset: Int32;
+    UncompressedFileSize: Int32;
+    FileType:   Int32;
+    FileLength: Int32;
   end;
 
   //todo: add match filter flag to not to store filtered items
