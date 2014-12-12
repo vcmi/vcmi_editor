@@ -715,9 +715,7 @@ begin
 
   if FVpathMap.IndexOf(AName) >=0 then
   begin
-    DebugLn('Subst from '+AName);
     AName := FVpathMap.KeyData[AName];
-    DebugLn('to '+AName);
   end;
 
   res_id.VFSPath := AName;

@@ -596,6 +596,7 @@ begin
 
   FMap.CurrentLevel := ifthen(under,1,0);
   FSelectedObject := nil;
+  InvalidateMapDimensions;
   InvalidateMapContent;
 end;
 

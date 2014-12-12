@@ -242,13 +242,14 @@ type
 
   TMapTile = class
   strict private
-    FFlags: UInt8;
-    FRiverDir: UInt8;
-    FRiverType: UInt8;
-    FRoadDir: UInt8;
-    FRoadType: UInt8;
     FTerType: TTerrainType;
     FTerSubtype: UInt8;
+    FRoadType: UInt8;
+    FRoadDir: UInt8;
+    FRiverType: UInt8;
+    FRiverDir: UInt8;
+    FFlags: UInt8;
+    FUnused: UInt8;
     procedure SetFlags(AValue: UInt8);
     procedure SetRiverDir(AValue: UInt8);
     procedure SetRiverType(AValue: UInt8);
@@ -373,7 +374,7 @@ type
 
   { TMapLevels }
 
-  TMapLevels = class(specialize TGArrayCollection<TMapLevel>)
+  TMapLevels = class(specialize TGNamedCollection<TMapLevel>)
 
   end;
 
@@ -410,6 +411,7 @@ type
     function GetAllowedAbilities: TStrings;
     function GetAllowedSpells: TStrings;
     function GetCurrentLevel: Integer; inline;
+    function GetLevelCount: Integer;
     procedure RecreateTerrainArray;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -456,7 +458,7 @@ type
   published
     property Height: Integer read FHeight;
     property Width: Integer read FWigth;
-    property Levels: Integer read FLevels;
+    property Levels: Integer read GetLevelCount;
 
     property Name:TLocalizedString read FName write SetName;
     property Description:TLocalizedString read FDescription write SetDescription;
@@ -1157,6 +1159,11 @@ end;
 function TVCMIMap.GetCurrentLevel: Integer;
 begin
   Result := FCurrentLevel;
+end;
+
+function TVCMIMap.GetLevelCount: Integer;
+begin
+  Result := FLevels;
 end;
 
 function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;
