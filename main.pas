@@ -830,6 +830,8 @@ end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FMapViewState);
+  FreeAndNil(FObjectsViewState);
 
   FZbuffer.Free;
   FMap.Free;
