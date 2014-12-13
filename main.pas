@@ -1371,7 +1371,7 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
+  editor_gl.CurrentContextState.StartDrawingSprites;
 
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
@@ -1388,11 +1388,11 @@ begin
     FDragging.Render(FMouseTileX,FMouseTileY);
   end;
 
+  editor_gl.CurrentContextState.StartDrawingRects;
+
   //todo: render passability
 
   CurrentContextState.UseNoTextures();
-
-
 
   if Assigned(FSelectedObject) then
   begin
@@ -1405,7 +1405,7 @@ begin
 
   glDisable (GL_BLEND);
 
-
+  editor_gl.CurrentContextState.StopDrawing;
   //glDisable(GL_ALPHA_TEST);
 
   c.SwapBuffers;
@@ -1564,9 +1564,10 @@ begin
     end;
   end;
 
-  editor_gl.CurrentContextState.UnbindArrays;
+  editor_gl.CurrentContextState.StopDrawing;
 
   CurrentContextState.UsePalettedTextures();
+  editor_gl.CurrentContextState.StartDrawingSprites;
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1584,6 +1585,7 @@ begin
 
     end;
   end;
+  editor_gl.CurrentContextState.StopDrawing;
 
   glDisable (GL_BLEND);
   glDisable(GL_SCISSOR_TEST);
@@ -1696,7 +1698,7 @@ begin
     editor_gl.CurrentContextState.StartDrawingRects;
     dim := TILE_SIZE * FTerrainBrushSize;
     editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-    editor_gl.CurrentContextState.UnbindArrays;
+    editor_gl.CurrentContextState.StopDrawing;
   end;
 end;
 

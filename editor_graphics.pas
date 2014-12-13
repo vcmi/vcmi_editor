@@ -778,7 +778,7 @@ begin
 
   SetPalyerColor(color);
 
-  editor_gl.RenderSprite(Sprite, dim);
+  editor_gl.CurrentContextState.RenderSprite(Sprite, dim);
 
 end;
 
@@ -792,7 +792,7 @@ begin
 
   editor_gl.CurrentContextState.StartDrawingRects;
   editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height);
-  editor_gl.CurrentContextState.UnbindArrays;
+  editor_gl.CurrentContextState.StopDrawing;
 end;
 
 procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
@@ -815,7 +815,7 @@ begin
 
   CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
 
-  editor_gl.RenderSprite(Sprite,-1,mir);
+  editor_gl.CurrentContextState.RenderSprite(Sprite,-1,mir);
 
 
 end;
@@ -837,7 +837,7 @@ begin
 
   SetPalyerColor(color);
 
-  editor_gl.RenderSprite(Sprite);
+  editor_gl.CurrentContextState.RenderSprite(Sprite);
 
 end;
 

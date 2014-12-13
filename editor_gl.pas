@@ -171,10 +171,15 @@ type
 
     procedure Init;
 
+    procedure StartDrawingRects;
     procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 
-    procedure UnbindArrays;
-    procedure StartDrawingRects;
+    procedure StartDrawingSprites;
+    procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
+
+    procedure StopDrawing;
+
+
   end;
 
 
@@ -187,7 +192,7 @@ procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure Unbind(var ATextureId: GLuint); inline;
 
-procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
+//procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
 
 procedure CheckGLErrors(Stage: string);
 
@@ -593,25 +598,15 @@ begin
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  //glBindVertexArray(RectVAO);
-
-
-  //glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-
   glDrawArrays(GL_LINE_LOOP,0,4);
 
-  //glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-
-
-  //glBindVertexArray(0);
   CheckGLErrors('RenderRect');
 
 end;
 
-procedure TLocalState.UnbindArrays;
+procedure TLocalState.StopDrawing;
 begin
   glBindVertexArray(0);
-
   glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
   glDisableVertexAttribArray(GlobalContextState.UVAttrib);
 end;
@@ -621,6 +616,98 @@ begin
   glBindVertexArray(RectVAO);
   glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
   glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+end;
+
+procedure TLocalState.StartDrawingSprites;
+begin
+  //glBindVertexArray(0);
+  //glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  //glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+end;
+
+procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8
+  );
+var
+  factor: Double;
+  cur_dim: integer;
+  H,W,
+  x,
+  y: Int32;
+
+  vertex_data: packed array[1..12] of GLfloat;
+begin
+  factor := 1;
+  if dim <=0 then //render real size w|o scale
+  begin
+    H := ASprite.SpriteHeight;
+    W := ASprite.Width;
+  end
+  else
+  begin
+    cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
+    factor := Min(dim / cur_dim, 1); //no zoom
+
+    h := round(Double(ASprite.SpriteHeight) * factor);
+    w := round(Double(ASprite.Width) * factor);
+  end;
+
+   //todo: use indexes
+
+  case mir of
+    0:begin
+      x := ASprite.x;//+round(factor * ASprite.LeftMargin);
+      y := ASprite.y+round(factor * ASprite.TopMagin);
+    end;
+    1:begin
+      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := ASprite.y+round(factor *  ASprite.TopMagin);
+
+    end;
+    2:begin
+      x := ASprite.x;//+ round(factor * ASprite.LeftMargin);
+      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+
+    end;
+    3:begin
+      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+     end;
+  end;
+
+  vertex_data[1] := x;   vertex_data[2] := y;
+  vertex_data[3] := x+w; vertex_data[4] := y;
+  vertex_data[5] := x+w; vertex_data[6] := y+h;
+
+  vertex_data[7] := x+w; vertex_data[8] := y+h;
+  vertex_data[9] := x;   vertex_data[10] := y+h;
+  vertex_data[11] := x;  vertex_data[12] := y;
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+
+  Assert(glIsVertexArray(SpriteVAO[mir]) = GL_TRUE, 'invalid SpriteVAO');
+
+  glBindVertexArray(SpriteVAO[mir]);
+
+  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+  glDrawArrays(GL_TRIANGLES,0,6);  //todo: use triangle strip
+  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+
+
+
+  glBindVertexArray(0);
+
+  CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
+
 end;
 
 
@@ -643,7 +730,6 @@ end;
 procedure TLocalState.SetupSpriteVAO;
 var
   i: Integer;
-  BufferHandle: LongWord;
 begin
   glGenVertexArrays(Length(SpriteVAO),@SpriteVAO[0]);
 
@@ -652,19 +738,10 @@ begin
     glBindVertexArray(SpriteVAO[i]);
 
     glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-    glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
     glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    BufferHandle:=GlobalContextState.MirroredUVBuffers[i];
-
-    glBindBuffer(GL_ARRAY_BUFFER,BufferHandle);
-
-    glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+    glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffers[i]);
     glVertexAttribPointer(GlobalContextState.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
-
-    glDisableVertexAttribArray(GlobalContextState.UVAttrib);
-    glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
