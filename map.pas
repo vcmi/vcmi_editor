@@ -249,7 +249,7 @@ type
     FRiverType: UInt8;
     FRiverDir: UInt8;
     FFlags: UInt8;
-    FUnused: UInt8;
+    FOwner: TPlayer;
     procedure SetFlags(AValue: UInt8);
     procedure SetRiverDir(AValue: UInt8);
     procedure SetRiverType(AValue: UInt8);
@@ -262,15 +262,15 @@ type
 
     procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
     procedure RenderRoad(mgr: TTerrainManager; X,Y: Integer); inline;
-  published
-    property TerType: TTerrainType read FTerType write SetTerType nodefault;
-    property TerSubType: UInt8 read FTerSubtype write SetTerSubtype default 0;
 
-    property RiverType:UInt8 read FRiverType write SetRiverType default 0;
-    property RiverDir:UInt8 read FRiverDir write SetRiverDir default 0;
-    property RoadType:UInt8 read FRoadType write SetRoadType default 0;
-    property RoadDir:UInt8 read FRoadDir write SetRoadDir default 0;
-    property Flags:UInt8 read FFlags write SetFlags default 0;
+    property TerType: TTerrainType read FTerType write SetTerType;
+    property TerSubType: UInt8 read FTerSubtype write SetTerSubtype;
+
+    property RiverType:UInt8 read FRiverType write SetRiverType;
+    property RiverDir:UInt8 read FRiverDir write SetRiverDir;
+    property RoadType:UInt8 read FRoadType write SetRoadType;
+    property RoadDir:UInt8 read FRoadDir write SetRoadDir;
+    property Flags:UInt8 read FFlags write SetFlags;
   end;
 
   { TMapObject }
