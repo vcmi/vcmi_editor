@@ -33,11 +33,19 @@ type
   end;
 
 const
+  SHADER_VERSION =  '#version 330 core'#13#10;
+
+  COORDS_ATTRIB_LOCATION_str = '1';
+  UV_ATTRIB_LOCATION_str = '2';
+
+  COORDS_ATTRIB_LOCATION = 1;
+  UV_ATTRIB_LOCATION = 2;
+
   VERTEX_DEFAULT_SHADER =
-  '#version 330 core'#13#10+
+  SHADER_VERSION+
   'uniform mat4 projMatrix;'#13#10+
-  'in vec2 coords;'#13#10+
-  'in vec2 uv;'#13#10+
+  'layout(location = '+ COORDS_ATTRIB_LOCATION_str+') in vec2 coords;'#13#10+
+  'layout(location = '+ UV_ATTRIB_LOCATION_str+') in vec2 uv;'#13#10+
   'out vec2 UV;'#13#10+
   'void main(){'+
     'UV = uv;'+
@@ -45,7 +53,7 @@ const
   '}';
 
   FRAGMENT_DEFAULT_SHADER =
-  '#version 330 core'#13#10+
+  SHADER_VERSION+
   'const vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
   'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
   'uniform usampler2D bitmap;'+
@@ -89,6 +97,13 @@ const
       'outColor = applyFlag(outColor);'+
   '}';
 
+  VERTEX_TERRAIN_SHADER = '';
+
+
+
+  GEOMETRY_TERRAIN_SHADER = '';
+
+
 type
 
   TGLSprite = record
@@ -121,8 +136,7 @@ type
     DefaultFragmentColorUniform: GLint;
 
     DefaultProjMatrixUniform: GLint;
-    DefaultCoordsAttrib: GLint;
-    UVAttrib: GLint;
+
     UseTextureUniform: GLint;
     UsePaletteUniform: GLint;
     UseFlagUniform: GLint;
@@ -192,8 +206,6 @@ procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure Unbind(var ATextureId: GLuint); inline;
 
-//procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
-
 procedure CheckGLErrors(Stage: string);
 
 function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSource: AnsiString):GLuint;
@@ -241,8 +253,6 @@ begin
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-  //glTexImage2D(GL_TEXTURE_2D, 0,GL_LUMINANCE,w,h,0,GL_RED, GL_UNSIGNED_BYTE, ARawImage);
 
   glTexImage2D(GL_TEXTURE_2D, 0,GL_R8UI,w,h,0,GL_RED_INTEGER, GL_UNSIGNED_BYTE, ARawImage);
 
@@ -338,11 +348,11 @@ begin
   glBindVertexArray(CurrentContextState.SpriteVAO[mir]);
 
 
-  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-  glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
   glDrawArrays(GL_TRIANGLES,0,6);
-  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
-  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
 
   glBindVertexArray(0);
 
@@ -524,10 +534,7 @@ begin
 
   DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram, PChar('fragmentColor'));
 
-
   DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
-  DefaultCoordsAttrib := glGetAttribLocation(DefaultProgram, PChar('coords'));
-  UVAttrib:=glGetAttribLocation(DefaultProgram, PChar('uv'));
 
   UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
   UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
@@ -548,12 +555,6 @@ begin
 
   SetupUVBuffer;
   CheckGLErrors('VBO');
-
-
-
-
-  //glUseProgram(DefaultProgram);
-  //FCurrentProgram:=DefaultProgram;
 end;
 
 
@@ -607,15 +608,15 @@ end;
 procedure TLocalState.StopDrawing;
 begin
   glBindVertexArray(0);
-  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
 procedure TLocalState.StartDrawingRects;
 begin
   glBindVertexArray(RectVAO);
-  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
 procedure TLocalState.StartDrawingSprites;
@@ -696,11 +697,11 @@ begin
 
   glBindVertexArray(SpriteVAO[mir]);
 
-  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-  glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
   glDrawArrays(GL_TRIANGLES,0,6);  //todo: use triangle strip
-  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
-  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
 
 
 
@@ -738,10 +739,10 @@ begin
     glBindVertexArray(SpriteVAO[i]);
 
     glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-    glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+    glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
     glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffers[i]);
-    glVertexAttribPointer(GlobalContextState.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+    glVertexAttribPointer(UV_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -755,7 +756,7 @@ begin
    glGenVertexArrays(1,@RectVAO);
    glBindVertexArray(RectVAO);
 
-   glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+   glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
    glBindVertexArray(0);
 end;
 
@@ -814,8 +815,6 @@ end;
 
 procedure TLocalState.UsePalettedTextures;
 begin
-  //FCurrentProgram := PaletteFlagProgram;
-  //  glUseProgram(FCurrentProgram);
   FCurrentProgram := GlobalContextState.DefaultProgram;
   glUseProgram(GlobalContextState.DefaultProgram);
 
