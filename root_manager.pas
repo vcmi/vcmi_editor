@@ -49,7 +49,7 @@ type
 
     FGLContext: TOpenGLControl;
 
-    //FShaderContext: TShaderContext;
+    //FShaderContext: TGlobalState;
 
     function GetResourceManager: IResourceLoader;
   public
@@ -118,8 +118,8 @@ begin
 
   Application.ProcessMessages;
 
-  ShaderContext := TShaderContext.Create;
-  ShaderContext.Init;
+  GlobalContextState := TGlobalState.Create;
+  GlobalContextState.Init;
 
   //stage 1
   ProgressForm.NextStage('Scanning filesystem.');
@@ -152,8 +152,8 @@ end;
 
 procedure TRootManager.DataModuleDestroy(Sender: TObject);
 begin
-  ShaderContext.Free;
-  ShaderContext := nil;
+  GlobalContextState.Free;
+  GlobalContextState := nil;
 end;
 
 function TRootManager.GetResourceManager: IResourceLoader;

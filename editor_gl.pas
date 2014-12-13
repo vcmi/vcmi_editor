@@ -107,9 +107,9 @@ type
     Y: Int32;
   end;
 
-  { TShaderContext }
+  { TGlobalState }
 
-  TShaderContext = class
+  TGlobalState = class
   private
     const
        DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);//deprecated
@@ -134,17 +134,13 @@ type
 
     CoordsBuffer: GLuint;
 
-    MirroredUVBuffers, SpriteVAO: array[0..3] of GLuint;
-
-    RectVAO: GLuint;
+    MirroredUVBuffers: array[0..3] of GLuint;
 
     procedure SetupUVBuffer;
 
   public
     destructor Destroy; override;
     procedure Init;
-
-    procedure SetupSpriteVAO;
 
     procedure UseNoTextures();
     procedure UsePalettedTextures();
@@ -158,6 +154,23 @@ type
     procedure SetUsePalette(const Value: Boolean);
     procedure SetUseTexture(const Value: Boolean);
   end;
+
+
+  { TLocalState }
+
+  TLocalState = class
+  private
+    SpriteVAO: array[0..3] of GLuint;
+    RectVAO: GLuint;
+    procedure SetupSpriteVAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Init;
+  end;
+
+
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 
@@ -175,8 +188,8 @@ procedure CheckGLErrors(Stage: string);
 function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSource: AnsiString):GLuint;
 
 var
-  ShaderContext: TShaderContext;
-
+  GlobalContextState: TGlobalState;
+  CurrentContextState:TLocalState = nil;
 
 implementation
 
@@ -250,10 +263,6 @@ var
   y: Int32;
 
   vertex_data: packed array[1..12] of GLfloat;
-
-  BufferHandle: GLuint;
-
-  tmp_VAO: GLuint;
 begin
   factor := 1;
   if dim <=0 then //render real size w|o scale
@@ -293,8 +302,6 @@ begin
      end;
   end;
 
-  CheckGLErrors('sprite0');
-
   vertex_data[1] := x;   vertex_data[2] := y;
   vertex_data[3] := x+w; vertex_data[4] := y;
   vertex_data[5] := x+w; vertex_data[6] := y+h;
@@ -303,48 +310,31 @@ begin
   vertex_data[9] := x;   vertex_data[10] := y+h;
   vertex_data[11] := x;  vertex_data[12] := y;
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
 
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
 
-    glGenVertexArrays(1, @tmp_VAO);
+  Assert(Assigned(CurrentContextState), 'no current context state');
 
+  Assert(glIsVertexArray(CurrentContextState.SpriteVAO[mir]) = GL_TRUE, 'invalid SpriteVAO');
 
-    CheckGLErrors('sprite1');
-
-    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-    glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-
-     CheckGLErrors('sprite2');
-     //Assert(glIsVertexArray(ShaderContext.SpriteVAO[mir]) = GL_TRUE);
-
-    glBindVertexArray(tmp_VAO);
-
-    CheckGLErrors('sprite3');
-    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-    glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
-    glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindVertexArray(CurrentContextState.SpriteVAO[mir]);
 
 
-    BufferHandle:=ShaderContext.MirroredUVBuffers[mir];
+  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+  glDrawArrays(GL_TRIANGLES,0,6);
+  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
 
-    glBindBuffer(GL_ARRAY_BUFFER,BufferHandle);
-    glEnableVertexAttribArray(ShaderContext.UVAttrib);
-    glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindVertexArray(0);
 
-    CheckGLErrors('sprite3.3');
-    glDrawArrays(GL_TRIANGLES,0,6);
-     CheckGLErrors('sprite4');
-    glDisableVertexAttribArray(ShaderContext.UVAttrib);
-    glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-   glBindVertexArray(0);
-   glDeleteVertexArrays(1, @tmp_VAO);
   CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 end;
 
@@ -358,7 +348,7 @@ var
 
   tmp_VAO: GLuint;
 begin
-  ShaderContext.SetFragmentColor(RECT_COLOR);
+  GlobalContextState.SetFragmentColor(RECT_COLOR);
 //  glLineWidth(1);
 
   vertex_data[1] := x;
@@ -373,16 +363,16 @@ begin
   glGenVertexArrays(1, @tmp_VAO);
   glBindVertexArray(tmp_VAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
 
-  glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
+  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
 
-  glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
   glDrawArrays(GL_LINE_LOOP,0,4);
 
-  glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
+  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -491,9 +481,9 @@ begin
   if doFragment then glDeleteShader(fragment_shader);
 end;
 
-{ TShaderContext }
+{ TGlobalState }
 
-procedure TShaderContext.SetupUVBuffer;
+procedure TGlobalState.SetupUVBuffer;
 var
   uv_data: packed array[1..12] of GLfloat;
   u: GLfloat;
@@ -550,48 +540,14 @@ begin
   end;
 end;
 
-procedure TShaderContext.SetupSpriteVAO;
-var
-  i: Integer;
-  BufferHandle: LongWord;
-begin
-  glGenVertexArrays(Length(SpriteVAO),@SpriteVAO[0]);
-
-  for i := Low(SpriteVAO) to High(SpriteVAO) do
-  begin
-    glBindVertexArray(SpriteVAO[i]);
-
-    glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
-    glEnableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
-    glVertexAttribPointer(ShaderContext.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
-    BufferHandle:=MirroredUVBuffers[i];
-
-    glBindBuffer(GL_ARRAY_BUFFER,BufferHandle);
-
-    glEnableVertexAttribArray(ShaderContext.UVAttrib);
-    glVertexAttribPointer(ShaderContext.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
-
-    glDisableVertexAttribArray(ShaderContext.UVAttrib);
-    glDisableVertexAttribArray(ShaderContext.DefaultCoordsAttrib);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
-    Assert(glIsVertexArray(ShaderContext.SpriteVAO[i]) = GL_TRUE);
-  end;
-
-end;
-
-destructor TShaderContext.Destroy;
+destructor TGlobalState.Destroy;
 begin
   glDeleteProgram(DefaultProgram);
 
   inherited Destroy;
 end;
 
-procedure TShaderContext.Init;
+procedure TGlobalState.Init;
 begin
   DefaultProgram := MakeShaderProgram(VERTEX_DEFAULT_SHADER, FRAGMENT_DEFAULT_SHADER);
   if DefaultProgram = 0 then
@@ -617,22 +573,21 @@ begin
 
   glGenBuffers(1,@CoordsBuffer);
 
-  glBindBuffer(GL_ARRAY_BUFFER,ShaderContext.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
 
 
   SetupUVBuffer;
   CheckGLErrors('VBO');
 
-  //SetupSpriteVAO;
-  //CheckGLErrors('VAO');
+
 
 
   //glUseProgram(DefaultProgram);
   //FCurrentProgram:=DefaultProgram;
 end;
 
-procedure TShaderContext.SetFlagColor(FlagColor: TRBGAColor);
+procedure TGlobalState.SetFlagColor(FlagColor: TRBGAColor);
 
 begin
   if FCurrentProgram = DefaultProgram then
@@ -642,7 +597,7 @@ begin
 
 end;
 
-procedure TShaderContext.SetFragmentColor(AColor: TRBGAColor);
+procedure TGlobalState.SetFragmentColor(AColor: TRBGAColor);
 begin
   if FCurrentProgram = DefaultProgram then
   begin
@@ -652,7 +607,7 @@ begin
     Assert(false);
 end;
 
-procedure TShaderContext.SetProjection(constref AMatrix: Tmatrix4_single);
+procedure TGlobalState.SetProjection(constref AMatrix: Tmatrix4_single);
 begin
   if FCurrentProgram = DefaultProgram then
   begin
@@ -662,7 +617,7 @@ begin
     Assert(false);
 end;
 
-procedure TShaderContext.SetOrtho(left, right, bottom, top: GLfloat);
+procedure TGlobalState.SetOrtho(left, right, bottom, top: GLfloat);
 var
   M:Tmatrix4_single;
 begin
@@ -678,22 +633,22 @@ begin
   SetProjection(m);
 end;
 
-procedure TShaderContext.SetUseFlag(const Value: Boolean);
+procedure TGlobalState.SetUseFlag(const Value: Boolean);
 begin
   glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TShaderContext.SetUsePalette(const Value: Boolean);
+procedure TGlobalState.SetUsePalette(const Value: Boolean);
 begin
   glUniform1i(UsePaletteUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TShaderContext.SetUseTexture(const Value: Boolean);
+procedure TGlobalState.SetUseTexture(const Value: Boolean);
 begin
   glUniform1i(UseTextureUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TShaderContext.UseNoTextures;
+procedure TGlobalState.UseNoTextures;
 begin
   FCurrentProgram := DefaultProgram;
   glUseProgram(DefaultProgram);
@@ -702,7 +657,7 @@ begin
   SetUseTexture(False);
 end;
 
-procedure TShaderContext.UsePalettedTextures;
+procedure TGlobalState.UsePalettedTextures;
 begin
   //FCurrentProgram := PaletteFlagProgram;
   //  glUseProgram(FCurrentProgram);
@@ -715,6 +670,57 @@ begin
 
   glUniform1i(BitmapUniform, 0); //texture unit0
   glUniform1i(PaletteUniform, 1);//texture unit1
+
+end;
+
+{ TLocalState }
+
+constructor TLocalState.Create;
+begin
+
+end;
+
+destructor TLocalState.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TLocalState.Init;
+begin
+  SetupSpriteVAO;
+  CheckGLErrors('VAO');
+end;
+
+procedure TLocalState.SetupSpriteVAO;
+var
+  i: Integer;
+  BufferHandle: LongWord;
+begin
+  glGenVertexArrays(Length(SpriteVAO),@SpriteVAO[0]);
+
+  for i := Low(SpriteVAO) to High(SpriteVAO) do
+  begin
+    glBindVertexArray(SpriteVAO[i]);
+
+    glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+    glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+    glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+
+    BufferHandle:=GlobalContextState.MirroredUVBuffers[i];
+
+    glBindBuffer(GL_ARRAY_BUFFER,BufferHandle);
+
+    glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+    glVertexAttribPointer(GlobalContextState.UVAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+
+
+    glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+    glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
+  end;
 
 end;
 

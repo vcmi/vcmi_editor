@@ -28,7 +28,7 @@ uses
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects,
   editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
-  zlib_stream, gpriorityqueue, types;
+  zlib_stream, editor_gl, gpriorityqueue, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -220,6 +220,7 @@ type
     procedure MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
+    procedure MapViewMakeCurrent(Sender: TObject; var Allow: boolean);
     procedure MapViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure MapViewMouseEnter(Sender: TObject);
@@ -233,6 +234,7 @@ type
     procedure MapViewResize(Sender: TObject);
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
@@ -306,6 +308,8 @@ type
 
     FCurrentPlayer: TPlayer;
 
+    FMapViewState, FObjectsViewState: TLocalState;
+
     function GetObjIdx(col, row:integer): integer;
 
     function getMapHeight: Integer;
@@ -350,7 +354,7 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, map_format_vcmi,
-  editor_str_consts, root_manager, editor_gl, map_options, new_map,
+  editor_str_consts, root_manager, map_options, new_map,
   edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
@@ -903,9 +907,6 @@ begin
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_DITHER);
 
-  ShaderContext.SetupSpriteVAO;
-
-
   glInited := True;
 end;
 
@@ -1168,6 +1169,11 @@ begin
 
 end;
 
+procedure TfMain.MapViewMakeCurrent(Sender: TObject; var Allow: boolean);
+begin
+
+end;
+
 procedure TfMain.MapViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
@@ -1332,12 +1338,21 @@ begin
     Init;
   end;
 
-  ShaderContext.UsePalettedTextures();
+  if not Assigned(FMapViewState) then
+  begin
+    FMapViewState := TLocalState.Create;
+
+    FMapViewState.Init;
+  end;
+
+  CurrentContextState := FMapViewState;
+
+  GlobalContextState.UsePalettedTextures();
 
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
 
-  ShaderContext.SetOrtho(TILE_SIZE * FMapHPos,
+  GlobalContextState.SetOrtho(TILE_SIZE * FMapHPos,
     MapView.Width + TILE_SIZE * FMapHPos,
     MapView.Height + TILE_SIZE * FMapVPos,
     TILE_SIZE * FMapVPos);
@@ -1375,7 +1390,7 @@ begin
 
   //todo: render passability
 
-  ShaderContext.UseNoTextures();
+  GlobalContextState.UseNoTextures();
 
 
 
@@ -1428,6 +1443,11 @@ begin
     SetMapPosition(pos);;
 
   end;
+end;
+
+procedure TfMain.ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
+begin
+
 end;
 
 procedure TfMain.PlayerMenuClick(Sender: TObject);
@@ -1505,6 +1525,14 @@ begin
     Init;
   end;
 
+  if not Assigned(FObjectsViewState) then
+  begin
+    FObjectsViewState := TLocalState.Create;
+
+    FObjectsViewState.Init;
+  end;
+  CurrentContextState := FObjectsViewState;
+
   glEnable(GL_SCISSOR_TEST);
 
   glEnable (GL_BLEND);
@@ -1512,9 +1540,9 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  ShaderContext.UseNoTextures();
+  GlobalContextState.UseNoTextures();
 
-  ShaderContext.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
+  GlobalContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -1536,7 +1564,7 @@ begin
     end;
   end;
 
-  ShaderContext.UsePalettedTextures();
+  GlobalContextState.UsePalettedTextures();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin

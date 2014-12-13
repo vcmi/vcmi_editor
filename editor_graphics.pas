@@ -811,7 +811,7 @@ begin
 
   mir := flags mod 4;
 
-  ShaderContext.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+  GlobalContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
 
   editor_gl.RenderSprite(Sprite,-1,mir);
 
@@ -843,10 +843,10 @@ class procedure TDef.SetPalyerColor(color: TPlayer);
 begin
   if color = TPlayer.NONE then
   begin
-    ShaderContext.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+    GlobalContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
   end
   else begin
-    ShaderContext.SetFlagColor(PLAYER_FLAG_COLORS[color]);
+    GlobalContextState.SetFlagColor(PLAYER_FLAG_COLORS[color]);
   end;
 
 end;
