@@ -125,7 +125,7 @@ var
   row, col: Integer;
   tile_size: Integer;
 
-  tile: TMapTile;
+  tile: PMapTile;
   tile_rect: TRect;
 begin
   if not Assigned(FMap) then
@@ -153,7 +153,7 @@ begin
         trunc(col*scale) + tile_size,
         trunc(row*scale) + tile_size);
 
-      ctx.Brush.Color := FterrainColors[tile.TerType];
+      ctx.Brush.Color := FterrainColors[tile^.TerType];
 
       ctx.FillRect(tile_rect);
 

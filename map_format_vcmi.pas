@@ -44,7 +44,7 @@ type
 
     FTileExpression : TRegExpr;
 
-    procedure DeStreamTile(Encoded: string; Tile:TMapTile);
+    procedure DeStreamTile(Encoded: string; Tile:PMapTile);
     procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
     procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
 
@@ -62,7 +62,7 @@ type
   private
     FStreamer: TVCMIJSONStreamer;
 
-    procedure StreamTile(AJson: TJSONArray; tile: TMapTile);
+    procedure StreamTile(AJson: TJSONArray; tile: PMapTile);
 
     procedure StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
     procedure StreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
@@ -121,28 +121,28 @@ begin
   ARoot.Add(TILES_FIELD,main_array);
 end;
 
-procedure TMapWriterVCMI.StreamTile(AJson: TJSONArray; tile: TMapTile);
+procedure TMapWriterVCMI.StreamTile(AJson: TJSONArray; tile: PMapTile);
 var
   s: string;
 begin
 //  [terrain code][terrain index]
 //[P][path type][path index]
 //[R][river type][river index]
-  s := TERRAIN_CODES[tile.TerType]+IntToStr(tile.TerSubType);
+  s := TERRAIN_CODES[tile^.TerType]+IntToStr(tile^.TerSubType);
 
-  if tile.RoadType <> 0 then
+  if tile^.RoadType <> 0 then
   begin
-    s := s + ROAD_CODES[TRoadType(tile.RoadType)]+IntToStr(tile.RoadDir);
+    s := s + ROAD_CODES[TRoadType(tile^.RoadType)]+IntToStr(tile^.RoadDir);
   end;
 
-  if tile.RiverType <> 0 then
+  if tile^.RiverType <> 0 then
   begin
-    s := s + RIVER_CODES[TRiverType(tile.RiverType)]+IntToStr(tile.RiverDir);
+    s := s + RIVER_CODES[TRiverType(tile^.RiverType)]+IntToStr(tile^.RiverDir);
   end;
 
-  if tile.Flags <> 0 then
+  if tile^.Flags <> 0 then
   begin
-    s := s + 'f' + IntToStr(tile.Flags);
+    s := s + 'f' + IntToStr(tile^.Flags);
   end;
 
   AJson.Add(s);
@@ -244,7 +244,7 @@ begin
   FTileExpression.Compile;
 end;
 
-procedure TMapReaderVCMI.DeStreamTile(Encoded: string; Tile: TMapTile);
+procedure TMapReaderVCMI.DeStreamTile(Encoded: string; Tile: PMapTile);
 var
   terrainCode: String;
   tt: TTerrainType;
@@ -258,16 +258,16 @@ begin
 
   terrainCode := FTileExpression.Match[1];
   tt := FTerrainTypeMap.KeyData[terrainCode];
-  Tile.TerType:=tt;
-  Tile.TerSubType:= StrToInt(FTileExpression.Match[2]);
+  Tile^.TerType:=tt;
+  Tile^.TerSubType:= StrToInt(FTileExpression.Match[2]);
 
   if FTileExpression.MatchLen[3]>0 then
   begin
     Assert(FTileExpression.MatchLen[4]>0);
     Assert(FTileExpression.MatchLen[5]>0);
 
-    Tile.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[4]]);
-    Tile.RoadDir:= StrToInt(FTileExpression.Match[5]);;
+    Tile^.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[4]]);
+    Tile^.RoadDir:= StrToInt(FTileExpression.Match[5]);;
   end;
 
   if FTileExpression.MatchLen[6]>0 then
@@ -275,14 +275,14 @@ begin
     Assert(FTileExpression.MatchLen[7]>0);
     Assert(FTileExpression.MatchLen[8]>0);
 
-    Tile.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[7]]);
-    Tile.RiverDir:= StrToInt(FTileExpression.Match[8]);
+    Tile^.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[7]]);
+    Tile^.RiverDir:= StrToInt(FTileExpression.Match[8]);
   end;
 
   if FTileExpression.MatchLen[9]>0 then
   begin
     Assert(FTileExpression.MatchLen[10]>0);
-    Tile.Flags:=StrToInt(FTileExpression.Match[10]);
+    Tile^.Flags:=StrToInt(FTileExpression.Match[10]);
   end;
 end;
 
@@ -309,7 +309,7 @@ var
 
   o: TJSONObject;
   d: TJSONData;
-  tile: TMapTile;
+  tile: PMapTile;
 
   ARow:TJSONArray;
 begin

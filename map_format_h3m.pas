@@ -1287,7 +1287,7 @@ end;
 procedure TMapReaderH3m.ReadTerrain;
   procedure ReadLevel(Level:Integer);
   var
-    tile: TMapTile;
+    tile: PMapTile;
     x: Integer;
     y: Integer;
   begin
@@ -1297,16 +1297,18 @@ procedure TMapReaderH3m.ReadTerrain;
       begin
         tile := FMap.GetTile(Level,x,y);
 
-        with tile, FSrc do
-        begin
-          TerType := TTerrainType(ReadByte);
-          TerSubType := ReadByte;
-          RiverType := ReadByte;
-          RiverDir := ReadByte;
-          RoadType := ReadByte;
-          RoadDir := ReadByte;
-          Flags := ReadByte;
-        end;
+        FSrc.ReadBuffer(tile^, 7); //7 bytes excluding owner
+//
+//        with tile, FSrc do
+//        begin
+//          TerType := TTerrainType(ReadByte);
+//          TerSubType := ReadByte;
+//          RiverType := ReadByte;
+//          RiverDir := ReadByte;
+//          RoadType := ReadByte;
+//          RoadDir := ReadByte;
+//          Flags := ReadByte;
+//        end;
       end;
     end;
   end;

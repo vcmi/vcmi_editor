@@ -696,16 +696,16 @@ end;
 
 function TEditTerrain.GetTileInfo(x, y: Integer): TTileInfo;
 var
-  t: TMapTile;
+  t: PMapTile;
 begin
 
   t := FMap.GetTile(FLevel,X,Y);
 
   Result.X := X;
   Result.Y := Y;
-  Result.TerType := t.TerType;
-  Result.TerSubtype := t.TerSubType;
-  Result.mir := t.Flags mod 4;
+  Result.TerType := t^.TerType;
+  Result.TerSubtype := t^.TerSubType;
+  Result.mir := t^.Flags mod 4;
 end;
 
 function TEditTerrain.GetTileInfo(x, y: Integer; out Info: TTileInfo): boolean;

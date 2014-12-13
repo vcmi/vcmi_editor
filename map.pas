@@ -240,15 +240,19 @@ type
 
   { TMapTile }
 
-  TMapTile = class
+  PMapTile = ^TMapTile;
+
+  TMapTile = object
   strict private
+    //start binary compatible with H3 part
     FTerType: TTerrainType;
     FTerSubtype: UInt8;
-    FRoadType: UInt8;
-    FRoadDir: UInt8;
     FRiverType: UInt8;
     FRiverDir: UInt8;
+    FRoadType: UInt8;
+    FRoadDir: UInt8;
     FFlags: UInt8;
+    //end binary compatible with H3 part
     FOwner: TPlayer;
     procedure SetFlags(AValue: UInt8);
     procedure SetRiverDir(AValue: UInt8);
@@ -355,18 +359,22 @@ type
   TMapLevel = class(TCollectionItem)
   strict private
     FHeight: Integer;
+    FOwner: TVCMIMap;
     FTerrain: array of array of TMapTile; //X, Y
     FObjects: TMapObjects;
     FWidth: Integer;
-    function GetTile(X, Y: Integer): TMapTile; inline;
+    function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
+    procedure SetOwner(AValue: TVCMIMap);
     procedure SetWidth(AValue: Integer);
 
     procedure Resize;
   public
     destructor Destroy; override;
 
-    property Tile[X, Y: Integer]: TMapTile read GetTile;
+    property Tile[X, Y: Integer]: PMapTile read GetTile;
+
+    property Owner: TVCMIMap read FOwner write SetOwner;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -395,7 +403,7 @@ type
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
     FWigth: Integer;
-    FLevels: Integer;
+    FLevels: TMapLevels;
 
     FAllowedSpells: TStringList;
     FAllowedAbilities: TStringList;
@@ -404,10 +412,7 @@ type
 
     FIsDirty: boolean;
 
-    FTerrain: array of array of array of TMapTile; //levels, X, Y
-
     procedure Changed;
-    procedure DestroyTiles();
     function GetAllowedAbilities: TStrings;
     function GetAllowedSpells: TStrings;
     function GetCurrentLevel: Integer; inline;
@@ -437,7 +442,7 @@ type
     procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload; //set concete terrain
     procedure FillLevel(TT: TTerrainType);
 
-    function GetTile(Level, X, Y: Integer): TMapTile;
+    function GetTile(Level, X, Y: Integer): PMapTile;
 
     function IsOnMap(Level, X, Y: Integer): boolean;
 
@@ -984,31 +989,49 @@ end;
 { TMapLevel }
 
 destructor TMapLevel.Destroy;
-var
-  X: SizeInt;
-  Y: SizeInt;
+//var
+//  X: SizeInt;
+//  Y: SizeInt;
 begin
-  for X := 0 to Length(FTerrain) - 1 do
-  begin
-    for Y := 0 to Length(FTerrain[X]) - 1 do
-    begin
-      FTerrain[X][Y].Free();
-    end;
-  end;
+  //for X := 0 to Length(FTerrain) - 1 do
+  //begin
+  //  for Y := 0 to Length(FTerrain[X]) - 1 do
+  //  begin
+  //    FTerrain[X][Y].Free();
+  //  end;
+  //end;
   inherited Destroy;
 end;
 
-function TMapLevel.GetTile(X, Y: Integer): TMapTile;
+function TMapLevel.GetTile(X, Y: Integer): PMapTile;
 begin
-  Result := FTerrain[x,y];
+  Result :=@FTerrain[x,y];
 end;
 
 procedure TMapLevel.Resize;
+var
+  tt: TTerrainType;
+  X: Integer;
+  Y: Integer;
 begin
   Assert(Height>=0, 'Invalid height');
   Assert(Width>=0, 'Invalid width');
   if (Height=0) or (Width=0) then Exit;
 
+
+    tt := FOwner.FTerrainManager.GetDefaultTerrain(Index);
+
+    SetLength(FTerrain,FWidth);
+    for X := 0 to FWidth - 1 do
+    begin
+      SetLength(FTerrain[X],FHeight);
+      for Y := 0 to FHeight - 1 do
+      begin
+        FTerrain[X][Y].Create();
+        FTerrain[X][Y].TerType :=  tt;
+        FTerrain[X][Y].TerSubtype := FOwner.FTerrainManager.GetRandomNormalSubtype(tt);
+      end;
+    end;
 
 end;
 
@@ -1017,6 +1040,12 @@ begin
   if FHeight = AValue then Exit;
   FHeight := AValue;
   Resize();
+end;
+
+procedure TMapLevel.SetOwner(AValue: TVCMIMap);
+begin
+  if FOwner=AValue then Exit;
+  FOwner:=AValue;
 end;
 
 procedure TMapLevel.SetWidth(AValue: Integer);
@@ -1060,13 +1089,32 @@ end;
 
 constructor TVCMIMap.CreateExisting(env: TMapEnvironment;
   Params: TMapCreateParams);
+var
+  ALevel: TMapLevel;
 begin
   FTerrainManager := env.tm;
   FListsManager := env.lm;
 
   FHeight := Params.Height;
   FWigth := Params.Width;
-  FLevels := Params.Levels;
+  FLevels := TMapLevels.Create;
+
+  ALevel := FLevels.Add;
+  ALevel.Owner := Self;
+  ALevel.Width := FWigth;
+  ALevel.Height:=FHeight;
+  ALevel.DisplayName := 'Surface';
+
+  if Params.Levels>1 then
+  begin
+
+    ALevel := FLevels.Add;
+    ALevel.Owner := Self;
+    ALevel.Width := FWigth;
+    ALevel.Height:=FHeight;
+    ALevel.DisplayName := 'Underground';
+
+  end;
 
   RecreateTerrainArray;
   CurrentLevel := 0;
@@ -1094,29 +1142,8 @@ begin
   FObjects.Free;
   FTemplates.Free;
   FPlayerAttributes.Free;
-  DestroyTiles();
+  FLevels.Free;
   inherited Destroy;
-end;
-
-procedure TVCMIMap.DestroyTiles;
-var
-  Level: Integer;
-  X: Integer;
-  Y: Integer;
-begin
-  if Length(FTerrain)<>0 then
-  begin
-    for Level := 0 to Length(FTerrain) - 1 do
-    begin
-      for X := 0 to Length(FTerrain[Level]) - 1 do
-      begin
-        for Y := 0 to Length(FTerrain[Level,X]) - 1 do
-        begin
-          FTerrain[Level][X][Y].Free();
-        end;
-      end;
-    end;
-  end;
 end;
 
 procedure TVCMIMap.FillLevel(TT: TTerrainType);
@@ -1163,12 +1190,12 @@ end;
 
 function TVCMIMap.GetLevelCount: Integer;
 begin
-  Result := FLevels;
+  Result := FLevels.Count;
 end;
 
-function TVCMIMap.GetTile(Level, X, Y: Integer): TMapTile;
+function TVCMIMap.GetTile(Level, X, Y: Integer): PMapTile;
 begin
-  Result := (FTerrain[Level][X][Y]); //todo: check
+  Result := FLevels[Level].Tile[x,y]//todo: check
 end;
 
 function TVCMIMap.IsOnMap(Level, X, Y: Integer): boolean;
@@ -1187,27 +1214,27 @@ var
 
   tt: TTerrainType;
 begin
-  DestroyTiles();
-
-  SetLength(FTerrain, FLevels);
-
-  for Level := 0 to FLevels-1 do
-  begin
-
-    tt := FTerrainManager.GetDefaultTerrain(Level);
-
-    SetLength(FTerrain[Level],FWigth);
-    for X := 0 to FWigth - 1 do
-    begin
-      SetLength(FTerrain[Level, X],FHeight);
-      for Y := 0 to FHeight - 1 do
-      begin
-        FTerrain[Level][X][Y] := TMapTile.Create();
-        FTerrain[Level][X][Y].TerType :=  tt;
-        FTerrain[Level][X][Y].TerSubtype := FTerrainManager.GetRandomNormalSubtype(tt);
-      end;
-    end;
-  end;
+  //DestroyTiles();
+  //
+  //SetLength(FTerrain, FLevels);
+  //
+  //for Level := 0 to FLevels-1 do
+  //begin
+  //
+  //  tt := FTerrainManager.GetDefaultTerrain(Level);
+  //
+  //  SetLength(FTerrain[Level],FWigth);
+  //  for X := 0 to FWigth - 1 do
+  //  begin
+  //    SetLength(FTerrain[Level, X],FHeight);
+  //    for Y := 0 to FHeight - 1 do
+  //    begin
+  //      FTerrain[Level][X][Y] := TMapTile.Create();
+  //      FTerrain[Level][X][Y].TerType :=  tt;
+  //      FTerrain[Level][X][Y].TerSubtype := FTerrainManager.GetRandomNormalSubtype(tt);
+  //    end;
+  //  end;
+  //end;
 end;
 
 procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);
@@ -1223,7 +1250,7 @@ begin
   begin
     for j := Top to Bottom do
     begin
-      FTerrain[FCurrentLevel][i][j].Render(FTerrainManager,i,j);
+      GetTile(FCurrentLevel,i,j)^.Render(FTerrainManager,i,j);
     end;
   end;
 
@@ -1233,7 +1260,7 @@ begin
   begin
     for j := Top to Bottom do
     begin
-      FTerrain[FCurrentLevel][i][j].RenderRoad(FTerrainManager,i,j);
+      GetTile(FCurrentLevel,i,j)^.RenderRoad(FTerrainManager,i,j);
     end;
   end;
 
@@ -1339,12 +1366,12 @@ end;
 procedure TVCMIMap.SetTerrain(Level, X, Y: Integer; TT: TTerrainType;
   TS: UInt8; mir: UInt8);
 var
-  t: TMapTile;
+  t: PMapTile;
 begin
-  t := FTerrain[Level][X][Y];
-  t.TerType := TT;
-  t.TerSubtype := TS;
-  t.Flags := (t.Flags and $FC) or (mir and 3);
+  t := GetTile(Level,X,Y);
+  t^.TerType := TT;
+  t^.TerSubtype := TS;
+  t^.Flags := (t^.Flags and $FC) or (mir and 3);
 
   Changed;
 end;
