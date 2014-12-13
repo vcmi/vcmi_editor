@@ -1347,12 +1347,12 @@ begin
 
   CurrentContextState := FMapViewState;
 
-  GlobalContextState.UsePalettedTextures();
+  CurrentContextState.UsePalettedTextures();
 
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
 
-  GlobalContextState.SetOrtho(TILE_SIZE * FMapHPos,
+  CurrentContextState.SetOrtho(TILE_SIZE * FMapHPos,
     MapView.Width + TILE_SIZE * FMapHPos,
     MapView.Height + TILE_SIZE * FMapVPos,
     TILE_SIZE * FMapVPos);
@@ -1390,7 +1390,7 @@ begin
 
   //todo: render passability
 
-  GlobalContextState.UseNoTextures();
+  CurrentContextState.UseNoTextures();
 
 
 
@@ -1540,9 +1540,9 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  GlobalContextState.UseNoTextures();
+  CurrentContextState.UseNoTextures();
 
-  GlobalContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
+  CurrentContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -1564,7 +1564,7 @@ begin
     end;
   end;
 
-  GlobalContextState.UsePalettedTextures();
+  CurrentContextState.UsePalettedTextures();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin

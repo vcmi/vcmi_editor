@@ -114,7 +114,6 @@ type
     const
        DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);//deprecated
   private
-    FCurrentProgram: GLuint;
     EmptyBufferData:array of GLfloat; //used to initialize VBO
   private
 
@@ -142,17 +141,6 @@ type
     destructor Destroy; override;
     procedure Init;
 
-    procedure UseNoTextures();
-    procedure UsePalettedTextures();
-
-    procedure SetFlagColor(FlagColor: TRBGAColor);
-    procedure SetFragmentColor(AColor: TRBGAColor);
-    procedure SetProjection(constref AMatrix: Tmatrix4_single);
-    procedure SetOrtho(left, right, bottom, top: GLfloat);
-
-    procedure SetUseFlag(const Value: Boolean);
-    procedure SetUsePalette(const Value: Boolean);
-    procedure SetUseTexture(const Value: Boolean);
   end;
 
 
@@ -162,8 +150,20 @@ type
   private
     SpriteVAO: array[0..3] of GLuint;
     RectVAO: GLuint;
-    procedure SetupSpriteVAO;
+
+    FCurrentProgram: GLuint;
   public
+    procedure SetFlagColor(FlagColor: TRBGAColor);
+    procedure SetFragmentColor(AColor: TRBGAColor);
+    procedure SetOrtho(left, right, bottom, top: GLfloat);
+    procedure SetProjection(constref AMatrix: Tmatrix4_single);
+    procedure SetupSpriteVAO;
+    procedure SetUseFlag(const Value: Boolean);
+    procedure SetUsePalette(const Value: Boolean);
+    procedure SetUseTexture(const Value: Boolean);
+    procedure UseNoTextures;
+    procedure UsePalettedTextures;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -348,7 +348,7 @@ var
 
   tmp_VAO: GLuint;
 begin
-  GlobalContextState.SetFragmentColor(RECT_COLOR);
+  CurrentContextState.SetFragmentColor(RECT_COLOR);
 //  glLineWidth(1);
 
   vertex_data[1] := x;
@@ -587,91 +587,6 @@ begin
   //FCurrentProgram:=DefaultProgram;
 end;
 
-procedure TGlobalState.SetFlagColor(FlagColor: TRBGAColor);
-
-begin
-  if FCurrentProgram = DefaultProgram then
-  begin
-    glUniform4f(FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
-  end;
-
-end;
-
-procedure TGlobalState.SetFragmentColor(AColor: TRBGAColor);
-begin
-  if FCurrentProgram = DefaultProgram then
-  begin
-    glUniform4f(DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
-  end
-  else
-    Assert(false);
-end;
-
-procedure TGlobalState.SetProjection(constref AMatrix: Tmatrix4_single);
-begin
-  if FCurrentProgram = DefaultProgram then
-  begin
-    glUniformMatrix4fv(DefaultProjMatrixUniform,1,GL_TRUE,@AMatrix.data);
-  end
-  else
-    Assert(false);
-end;
-
-procedure TGlobalState.SetOrtho(left, right, bottom, top: GLfloat);
-var
-  M:Tmatrix4_single;
-begin
-  m.init_identity;
-  m.data[0,0] := 2 /(right - left);
-  m.data[1,1] := 2 /(top - bottom);
-  m.data[2,2] := -2;
-
-  m.data[0,3] := - (right+left)/(right-left);
-  m.data[1,3] := - (top + bottom)/(top - bottom);
-  m.data[2,3] := - 1;
-
-  SetProjection(m);
-end;
-
-procedure TGlobalState.SetUseFlag(const Value: Boolean);
-begin
-  glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
-end;
-
-procedure TGlobalState.SetUsePalette(const Value: Boolean);
-begin
-  glUniform1i(UsePaletteUniform, ifthen(Value, 1, 0));
-end;
-
-procedure TGlobalState.SetUseTexture(const Value: Boolean);
-begin
-  glUniform1i(UseTextureUniform, ifthen(Value, 1, 0));
-end;
-
-procedure TGlobalState.UseNoTextures;
-begin
-  FCurrentProgram := DefaultProgram;
-  glUseProgram(DefaultProgram);
-  SetUseFlag(false);
-  SetUsePalette(false);
-  SetUseTexture(False);
-end;
-
-procedure TGlobalState.UsePalettedTextures;
-begin
-  //FCurrentProgram := PaletteFlagProgram;
-  //  glUseProgram(FCurrentProgram);
-  FCurrentProgram := DefaultProgram;
-  glUseProgram(DefaultProgram);
-
-  SetUseFlag(true);
-  SetUsePalette(true);
-  SetUseTexture(true);
-
-  glUniform1i(BitmapUniform, 0); //texture unit0
-  glUniform1i(PaletteUniform, 1);//texture unit1
-
-end;
 
 { TLocalState }
 
@@ -689,6 +604,23 @@ procedure TLocalState.Init;
 begin
   SetupSpriteVAO;
   CheckGLErrors('VAO');
+end;
+
+
+procedure TLocalState.SetOrtho(left, right, bottom, top: GLfloat);
+var
+  M:Tmatrix4_single;
+begin
+  m.init_identity;
+  m.data[0,0] := 2 /(right - left);
+  m.data[1,1] := 2 /(top - bottom);
+  m.data[2,2] := -2;
+
+  m.data[0,3] := - (right+left)/(right-left);
+  m.data[1,3] := - (top + bottom)/(top - bottom);
+  m.data[2,3] := - 1;
+
+  SetProjection(m);
 end;
 
 procedure TLocalState.SetupSpriteVAO;
@@ -723,6 +655,76 @@ begin
   end;
 
 end;
+
+procedure TLocalState.SetFlagColor(FlagColor: TRBGAColor);
+begin
+  if FCurrentProgram = GlobalContextState.DefaultProgram then
+  begin
+    glUniform4f(GlobalContextState.FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
+  end;
+
+end;
+
+procedure TLocalState.SetFragmentColor(AColor: TRBGAColor);
+begin
+  if FCurrentProgram = GlobalContextState.DefaultProgram then
+  begin
+    glUniform4f(GlobalContextState.DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
+  end
+  else
+    Assert(false);
+end;
+
+procedure TLocalState.SetProjection(constref AMatrix: Tmatrix4_single);
+begin
+  if FCurrentProgram = GlobalContextState.DefaultProgram then
+  begin
+    glUniformMatrix4fv(GlobalContextState.DefaultProjMatrixUniform,1,GL_TRUE,@AMatrix.data);
+  end
+  else
+    Assert(false);
+end;
+
+procedure TLocalState.SetUseFlag(const Value: Boolean);
+begin
+  glUniform1i(GlobalContextState.UseFlagUniform, ifthen(Value, 1, 0));
+end;
+
+procedure TLocalState.SetUsePalette(const Value: Boolean);
+begin
+  glUniform1i(GlobalContextState.UsePaletteUniform, ifthen(Value, 1, 0));
+end;
+
+procedure TLocalState.SetUseTexture(const Value: Boolean);
+begin
+  glUniform1i(GlobalContextState.UseTextureUniform, ifthen(Value, 1, 0));
+end;
+
+procedure TLocalState.UseNoTextures;
+begin
+  FCurrentProgram := GlobalContextState.DefaultProgram;
+  glUseProgram(GlobalContextState.DefaultProgram);
+  SetUseFlag(false);
+  SetUsePalette(false);
+  SetUseTexture(False);
+end;
+
+procedure TLocalState.UsePalettedTextures;
+begin
+  //FCurrentProgram := PaletteFlagProgram;
+  //  glUseProgram(FCurrentProgram);
+  FCurrentProgram := GlobalContextState.DefaultProgram;
+  glUseProgram(GlobalContextState.DefaultProgram);
+
+  SetUseFlag(true);
+  SetUsePalette(true);
+  SetUseTexture(true);
+
+  glUniform1i(GlobalContextState.BitmapUniform, 0); //texture unit0
+  glUniform1i(GlobalContextState.PaletteUniform, 1);//texture unit1
+
+end;
+
 
 
 end.
