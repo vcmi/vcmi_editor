@@ -790,7 +790,9 @@ begin
   cx := (TileX+1) * TILE_SIZE;
   cy := (TileY+1) * TILE_SIZE;
 
-  editor_gl.RenderRect(cx,cy,-width,-height);
+  editor_gl.CurrentContextState.StartDrawingRects;
+  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height);
+  editor_gl.CurrentContextState.UnbindArrays;
 end;
 
 procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);

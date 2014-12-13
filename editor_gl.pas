@@ -152,12 +152,14 @@ type
     RectVAO: GLuint;
 
     FCurrentProgram: GLuint;
+
+    procedure SetupSpriteVAO;
+    procedure SetupRectVAO;
   public
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
     procedure SetProjection(constref AMatrix: Tmatrix4_single);
-    procedure SetupSpriteVAO;
     procedure SetUseFlag(const Value: Boolean);
     procedure SetUsePalette(const Value: Boolean);
     procedure SetUseTexture(const Value: Boolean);
@@ -168,6 +170,11 @@ type
     destructor Destroy; override;
 
     procedure Init;
+
+    procedure RenderRect(x, y: Integer; dimx, dimy: integer);
+
+    procedure UnbindArrays;
+    procedure StartDrawingRects;
   end;
 
 
@@ -181,7 +188,6 @@ procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure Unbind(var ATextureId: GLuint); inline;
 
 procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
-procedure RenderRect(x,y: Integer; dimx,dimy:integer);
 
 procedure CheckGLErrors(Stage: string);
 
@@ -336,48 +342,6 @@ begin
   glBindVertexArray(0);
 
   CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
-end;
-
-procedure RenderRect(x, y: Integer; dimx, dimy: integer);
-const
-  RECT_COLOR: TRBGAColor = (r:200; g:200; b:200; a:255);
-var
-  position_attrib_index: integer;
-
-  vertex_data: packed array[1..8] of GLfloat;
-
-  tmp_VAO: GLuint;
-begin
-  CurrentContextState.SetFragmentColor(RECT_COLOR);
-//  glLineWidth(1);
-
-  vertex_data[1] := x;
-  vertex_data[2] := y;
-  vertex_data[3] := x + dimx;
-  vertex_data[4] := y;
-  vertex_data[5] := x + dimx;
-  vertex_data[6] := y + dimy;
-  vertex_data[7] := x;
-  vertex_data[8] := y + dimy;
-
-  glGenVertexArrays(1, @tmp_VAO);
-  glBindVertexArray(tmp_VAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
-
-  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-
-  glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
-  glDrawArrays(GL_LINE_LOOP,0,4);
-
-  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  glDeleteVertexArrays(1, @tmp_VAO);
-  CheckGLErrors('RenderRect');
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -606,6 +570,59 @@ begin
   CheckGLErrors('VAO');
 end;
 
+procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
+const
+  RECT_COLOR: TRBGAColor = (r:200; g:200; b:200; a:255);
+var
+  vertex_data: packed array[1..8] of GLfloat;
+begin
+  SetFragmentColor(RECT_COLOR);
+//  glLineWidth(1);
+
+  vertex_data[1] := x;
+  vertex_data[2] := y;
+  vertex_data[3] := x + dimx;
+  vertex_data[4] := y;
+  vertex_data[5] := x + dimx;
+  vertex_data[6] := y + dimy;
+  vertex_data[7] := x;
+  vertex_data[8] := y + dimy;
+
+
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  //glBindVertexArray(RectVAO);
+
+
+  //glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+
+  glDrawArrays(GL_LINE_LOOP,0,4);
+
+  //glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+
+
+  //glBindVertexArray(0);
+  CheckGLErrors('RenderRect');
+
+end;
+
+procedure TLocalState.UnbindArrays;
+begin
+  glBindVertexArray(0);
+
+  glDisableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+end;
+
+procedure TLocalState.StartDrawingRects;
+begin
+  glBindVertexArray(RectVAO);
+  glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
+  glDisableVertexAttribArray(GlobalContextState.UVAttrib);
+end;
+
 
 procedure TLocalState.SetOrtho(left, right, bottom, top: GLfloat);
 var
@@ -654,6 +671,15 @@ begin
     glBindVertexArray(0);
   end;
 
+end;
+
+procedure TLocalState.SetupRectVAO;
+begin
+   glGenVertexArrays(1,@RectVAO);
+   glBindVertexArray(RectVAO);
+
+   glVertexAttribPointer(GlobalContextState.DefaultCoordsAttrib, 2, GL_FLOAT, GL_FALSE, 0,nil);
+   glBindVertexArray(0);
 end;
 
 procedure TLocalState.SetFlagColor(FlagColor: TRBGAColor);

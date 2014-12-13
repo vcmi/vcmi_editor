@@ -1547,7 +1547,7 @@ begin
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-
+  editor_gl.CurrentContextState.StartDrawingRects;
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1560,9 +1560,11 @@ begin
       cx := col * OBJ_CELL_SIZE;
       cy := row * OBJ_CELL_SIZE;
 
-      RenderRect(cx,cy,OBJ_CELL_SIZE,OBJ_CELL_SIZE);
+      editor_gl.CurrentContextState.RenderRect(cx,cy,OBJ_CELL_SIZE,OBJ_CELL_SIZE);
     end;
   end;
+
+  editor_gl.CurrentContextState.UnbindArrays;
 
   CurrentContextState.UsePalettedTextures();
 
@@ -1691,8 +1693,10 @@ begin
 
   if FHightLightTile and (FTerrainBrushMode = TBrushMode.fixed) then
   begin
+    editor_gl.CurrentContextState.StartDrawingRects;
     dim := TILE_SIZE * FTerrainBrushSize;
-    editor_gl.RenderRect(cx,cy,dim,dim);
+    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+    editor_gl.CurrentContextState.UnbindArrays;
   end;
 end;
 
