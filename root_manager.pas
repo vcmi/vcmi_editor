@@ -25,9 +25,10 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LazLogger,
+  gl, glext40,
   Forms, Controls,
   progress_form, filesystem_base, root_form,
-  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl, {GLext,}glext40;
+  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl;
 
 type
 
@@ -99,6 +100,11 @@ begin
     Application.Terminate;
     raise Exception.Create('Unable to switch GL context');
   end;
+
+  DebugLn('Version: ',glGetString( GL_VERSION ));
+  DebugLn('Vendor: ', glGetString(GL_VENDOR));
+  DebugLn('renderer: ', glGetString(GL_RENDERER));
+  DebugLn('glsl: ',glGetString(GL_SHADING_LANGUAGE_VERSION));
 
   if not Load_GL_VERSION_3_3() then
   begin

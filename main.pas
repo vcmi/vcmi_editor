@@ -901,8 +901,10 @@ procedure TfMain.Init;
 begin
   RootManager.ProgressForm.NextStage('Initializing GL context.');
   glDisable(GL_DEPTH_TEST);
-  glDisable(GL_LIGHTING);
   glDisable(GL_DITHER);
+
+  ShaderContext.SetupSpriteVAO;
+
 
   glInited := True;
 end;

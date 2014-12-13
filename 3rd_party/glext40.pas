@@ -7607,7 +7607,7 @@ begin
   Result := False;
   if not Load_GL_ARB_blend_func_extended() then Exit;
   if not Load_GL_ARB_sampler_objects() then Exit;
-  if not Load_GL_ARB_timer_query() then Exit;
+//  if not Load_GL_ARB_timer_query() then Exit;
   if not Load_GL_ARB_vertex_type_2_10_10_10_rev() then Exit;
   Result := Load_GL_VERSION_3_2();
 end;
