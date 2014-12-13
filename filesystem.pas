@@ -345,7 +345,7 @@ const
   GAME_PATH_CONFIG = 'gamepath.txt';
 
   RES_TO_EXT: array[TResourceType] of string = (
-    'TXT','JSON','DEF'
+    'TXT','JSON','DEF', 'MSK'
   );
 
   CONFIG = 'config';

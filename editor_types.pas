@@ -70,10 +70,12 @@ const
   FACTION_RANDOM = TFactionID(ID_RANDOM);
 
 const
-  MASK_NOT_VISIBLE = '0';
-  MASK_VISIBLE     = 'V';
-  MASK_BLOCKED     = 'B';
-  MASK_ACTIVABLE   = 'A';
+  MASK_NOT_VISIBLE = '0'; //not visible,  passable
+  MASK_VISIBLE     = 'V'; //visible,  passable
+  MASK_BLOCKED     = 'B'; //blocked, visible
+  MASK_HIDDEN      = 'H'; //blocked, not visible
+  MASK_ACTIVABLE   = 'A'; //visible, activable
+  MASK_TRIGGER     = 'T'; //not visible, activable
 
   Z_INDEX_OVERLAY = -1000000;
 const

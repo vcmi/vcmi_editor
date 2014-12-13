@@ -361,7 +361,7 @@ type
     FHeight: Integer;
     FOwner: TVCMIMap;
     FTerrain: array of array of TMapTile; //X, Y
-    FObjects: TMapObjects;
+    FObjects: TMapObjects; //todo: use it
     FWidth: Integer;
     function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
@@ -730,7 +730,6 @@ end;
 procedure TMapObjectTemplate.SetAnimation(AValue: string);
 var
   gm: TGraphicsManager;
-
 begin
   AValue := SetDirSeparators(ExtractFileNameWithoutExt(Trim(UpperCase(AValue))));
   if FAnimation = AValue then Exit;
@@ -928,7 +927,15 @@ end;
 
 constructor TMapTile.Create;
 begin
-  //todo: set defaults
+  FTerType := TTerrainType.rock;
+  FTerSubtype := 0;
+
+  FRiverType:=0;
+  FRiverDir:=0;
+  FRoadType:=0;
+  FRoadDir:=0;
+  FFlags:=0;
+  FOwner := TPlayer.NONE;
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
