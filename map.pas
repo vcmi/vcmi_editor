@@ -591,7 +591,7 @@ var
 begin
   new_tick := GetTickCount;
 
-  if abs(new_tick - FLastTick) > 63 then
+  if abs(new_tick - FLastTick) > 155 then
   begin
     Inc(FLastFrame);
 

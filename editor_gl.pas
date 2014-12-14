@@ -35,17 +35,14 @@ type
 const
   SHADER_VERSION =  '#version 330 core'#13#10;
 
-  COORDS_ATTRIB_LOCATION_str = '1';
-  UV_ATTRIB_LOCATION_str = '2';
-
   COORDS_ATTRIB_LOCATION = 1;
   UV_ATTRIB_LOCATION = 2;
 
   VERTEX_DEFAULT_SHADER =
   SHADER_VERSION+
   'uniform mat4 projMatrix;'#13#10+
-  'layout(location = '+ COORDS_ATTRIB_LOCATION_str+') in vec2 coords;'#13#10+
-  'layout(location = '+ UV_ATTRIB_LOCATION_str+') in vec2 uv;'#13#10+
+  'layout(location = 1) in vec2 coords;'#13#10+
+  'layout(location = 2) in vec2 uv;'#13#10+
   'out vec2 UV;'#13#10+
   'void main(){'+
     'UV = uv;'+
@@ -97,11 +94,25 @@ const
       'outColor = applyFlag(outColor);'+
   '}';
 
-  VERTEX_TERRAIN_SHADER = '';
+  VERTEX_TERRAIN_SHADER =
+    SHADER_VERSION+
+    'uniform mat4 projMatrix;'#13#10+
+    'layout(location = 1) in vec2 coords;'#13#10+
+    'struct Tile{'+
+    '  uint upper;'+ //packed data     FTerType, FTerSubtype, FRiverType, FRiverDir
+    '  uint lower;'+ //packed data     FRoadType, FRoadDir,  FFlags, FOwner
+    '};'+
+    'layout(location = 2) in Tile tileIn'+
+    'out Tile tileOut'+
+    'void main(){'+
+      'tileOut = tileIn;'+
+      'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
+    '}';
 
 
-
-  GEOMETRY_TERRAIN_SHADER = '';
+  GEOMETRY_TERRAIN_SHADER =
+    SHADER_VERSION+
+    '';
 
 
 type
@@ -129,24 +140,20 @@ type
     const
        DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);//deprecated
   private
-    EmptyBufferData:array of GLfloat; //used to initialize VBO
+    EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
   private
 
     DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
-
     DefaultProjMatrixUniform: GLint;
-
     UseTextureUniform: GLint;
     UsePaletteUniform: GLint;
     UseFlagUniform: GLint;
-
     PaletteUniform: GLint;
     BitmapUniform: GLint;
     FlagColorUniform: GLint;
 
     CoordsBuffer: GLuint;
-
     MirroredUVBuffers: array[0..3] of GLuint;
 
     procedure SetupUVBuffer;

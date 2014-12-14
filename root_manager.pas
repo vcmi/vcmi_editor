@@ -101,10 +101,10 @@ begin
     raise Exception.Create('Unable to switch GL context');
   end;
 
-  DebugLn('Version: ',glGetString( GL_VERSION ));
+  DebugLn('Version: ', glGetString(GL_VERSION));
   DebugLn('Vendor: ', glGetString(GL_VENDOR));
-  DebugLn('renderer: ', glGetString(GL_RENDERER));
-  DebugLn('glsl: ',glGetString(GL_SHADING_LANGUAGE_VERSION));
+  DebugLn('Renderer: ', glGetString(GL_RENDERER));
+  DebugLn('Glsl: ', glGetString(GL_SHADING_LANGUAGE_VERSION));
 
   if not Load_GL_VERSION_3_3() then
   begin

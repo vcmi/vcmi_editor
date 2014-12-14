@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 394
+  Left = 484
   Height = 575
-  Top = 142
+  Top = 121
   Width = 822
   Caption = 'VCMI editor'
   ClientHeight = 555
@@ -1041,6 +1041,7 @@ object fMain: TfMain
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
       OpenGLMinorVersion = 3
+      AlphaBits = 8
       OnClick = MapViewClick
       OnDblClick = MapViewDblClick
       OnDragDrop = MapViewDragDrop
@@ -1362,6 +1363,7 @@ object fMain: TfMain
           AutoResizeViewport = True
           OpenGLMajorVersion = 3
           OpenGLMinorVersion = 3
+          AlphaBits = 8
           OnMouseDown = ObjectsViewMouseDown
           OnMouseWheel = ObjectsViewMouseWheel
           OnPaint = ObjectsViewPaint
@@ -2998,7 +3000,7 @@ object fMain: TfMain
     end
   end
   object AnimTimer: TTimer
-    Interval = 21
+    Interval = 50
     OnTimer = AnimTimerTimer
     left = 133
     top = 256
