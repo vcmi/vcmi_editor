@@ -29,7 +29,7 @@ uses
   lazutf8classes,
   vcmi_json,
   editor_classes,
-  filesystem_base, lod, fpjson ;
+  filesystem_base, lod, fpjson, zipper ;
 
   {
   real FS
@@ -196,6 +196,7 @@ type
 
     property Disabled:Boolean read FDisabled write SetDisabled;
     property ID: TModId read FID write SetID;
+    //realtive (to mod root) mod path
     property Path: String read FPath write SetPath;
     procedure MayBeSetDefaultFSConfig;
   published
@@ -230,17 +231,19 @@ type
   TModDependencyMatrix = array of array of boolean;
 
 
-  TLocationType = (InLod, InFile, InOtherLocation);
+  TLocationType = (InLod, InFile, InArchive);
 
   { TResLocation }
 
   TResLocation = object
     lt: TLocationType;
-    //for files. Real path
+    //for files: Real path
     path: TFilename;
     //for lods
     lod:TLod;
     FileHeader: TLodItem;
+    //for archive
+    archive: TUnZipper;
 
     procedure SetLod(ALod: TLod; AFileHeader: TLodItem); //???
     procedure SetFile(AFullPath: string); //???
@@ -260,6 +263,7 @@ type
 
   TResIDToLcationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
 
+  TArchiveList = specialize TFPGObjectList<TUnZipper>;
 
   { TFSManager }
 
@@ -270,6 +274,7 @@ type
     FGameConfig: TGameConfig;
     FResMap: TResIDToLcationMap;
     FLodList: TLodList;
+    FArchiveList: TArchiveList;
 
     FVpathMap: TPathToPathMap; //key subtituted by value
 
@@ -292,16 +297,19 @@ type
     function MakeFullPath(ARootPath: string; RelPath: string):string;
 
     function MatchFilter(AExt: string; out AType: TResourceType): boolean;
-    function VCMIRelPathToRelPath(APath: string): string;
 
     procedure OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
     procedure ScanLod(LodRelPath: string; ARootPath: TStrings);
 
     procedure OnFileFound(FileIterator: TFileIterator);
     procedure OnDirectoryFound(FileIterator: TFileIterator);
+    procedure OnArchiveFound(FileIterator: TFileIterator);
+
     procedure ScanDir(RelDir: string; ARootPath: TStrings);
 
     procedure ScanMap(MapPath: string; ARootPath: TStrings);
+
+    procedure ScanArchive(item: TFilesystemConfigItem; RelDir: string; ARootPath: TStrings);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
 
@@ -607,10 +615,13 @@ begin
 
   FGameConfig := TGameConfig.Create;
   FVpathMap := TPathToPathMap.Create;
+
+  FArchiveList := TArchiveList.Create(true);
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FArchiveList.Free;
   FVpathMap.Free;
   FGameConfig.Free;
   FModMap.Free;
@@ -647,6 +658,21 @@ begin
     finally
       srch.Free;
     end;
+
+end;
+
+procedure TFSManager.OnArchiveFound(FileIterator: TFileIterator);
+var
+  arch: TUnZipper;
+begin
+  arch := TUnZipper.Create;
+  FArchiveList.Add(arch); //to make it freed
+
+  arch.FileName:=FileIterator.FileName;
+
+  arch.Examine;
+
+  //todo: TFSManager.OnArchiveFound
 
 end;
 
@@ -789,6 +815,8 @@ var
   mod_idx: Integer;
   i: Integer;
   APath: String;
+
+  AMod: TModConfig;
 begin
   //find mods
   searcher := TFileSearcher.Create;
@@ -821,11 +849,12 @@ begin
 
       if mod_idx >=0 then
       begin
+        AMod := FModMap.Data[mod_idx];
         mod_paths.Clear;
 
         for APath in mod_roots do
         begin
-          mod_paths.Append( IncludeTrailingPathDelimiter(APath) + mod_id );
+          mod_paths.Append( IncludeTrailingPathDelimiter(APath) + AMod.Path);
         end;
 
 
@@ -861,29 +890,6 @@ begin
   SetCurrentVFSPath(VFS_PATHS[ACurrentVFSPath]);
   FCurrentFilter := VFS_FILTERS[ACurrentVFSPath];
 end;
-
-function TFSManager.VCMIRelPathToRelPath(APath: string): string;
-var
-  p: SizeInt;
-  root: String;
-begin
-  Result := '';
-  p :=  Pos('/',APath);
-
-  root := Copy(APath,1,p-1);
-
-  case root of
-    'ALL',
-    'GLOBAL': begin
-      Result := Copy(APath,p+1,MaxInt);
-    end;
-    'LOCAL':;
-  else
-    Result := APath;
-  end;
-
-end;
-
 
 function TFSManager.MakeFullPath(ARootPath: string; RelPath: string): string;
 begin
@@ -1006,7 +1012,7 @@ begin
   try
     mod_config := TModConfig.Create;
     mod_config.ID := mod_id;
-    mod_config.Path := mod_path;
+    mod_config.Path := ExtractFileNameOnly(ExcludeTrailingBackslash(ExtractFilePath(mod_path)));
     destreamer.JSONStreamToObject(stm, mod_config,'');
     mod_config.MayBeSetDefaultFSConfig;
     FMods.Add(mod_config);
@@ -1035,7 +1041,7 @@ begin
   begin
     item := APath.Items.Items[i];
 
-    rel_path := VCMIRelPathToRelPath(item.Path);
+    rel_path := item.Path;
 
     if rel_path = '' then
       Continue;
@@ -1045,7 +1051,14 @@ begin
         ScanLod(rel_path,ARootPath);
       end;
       'dir':begin
-         ScanDir(rel_path,ARootPath);
+        if item.Path = MOD_ROOT then
+        begin
+          ScanArchive(item, rel_path, ARootPath);
+          ScanDir(rel_path,ARootPath);
+        end
+        else begin
+          ScanDir(rel_path,ARootPath);
+        end;
       end;
       'map':begin
          ScanMap(rel_path,ARootPath);
@@ -1121,6 +1134,30 @@ begin
      end;
 
   end
+end;
+
+procedure TFSManager.ScanArchive(item: TFilesystemConfigItem; RelDir: string;
+  ARootPath: TStrings);
+var
+  srch: TFileSearcher;
+  root_path: String;
+  p: String;
+  smask: String;
+begin
+  for root_path in ARootPath do
+  begin
+    srch := TFileSearcher.Create;
+    srch.OnFileFound := @OnArchiveFound;
+    try
+      FCurrentRelPath := RelDir;
+      FCurrentRootPath := root_path;
+      p := IncludeTrailingPathDelimiter(root_path);
+      smask := 'Content.zip';
+      srch.Search(p, smask);
+    finally
+      srch.Free;
+    end;
+  end;
 end;
 
 procedure TFSManager.ScanFilesystem;

@@ -54,7 +54,7 @@ type
 
     FBuffer: TZBuffer;
 
-    FState: TZStream;
+    FState: Z_Stream;
 
     //FInflateFinished:  Boolean;
     procedure PreInit(ABuffer: TZBuffer; AInput: TStream; ADecompressedSize: SizeUInt);
@@ -115,7 +115,7 @@ begin
     raise Exception.Create('Error init decompression');
   end;
   //FInflateFinished := False;
-  //DecompressTill(-1);
+  DecompressTill(ADecompressedSize-1);
 end;
 
 constructor TZlibInputStream.CreateGZip(ABuffer: TZBuffer; AInput: TStream;
