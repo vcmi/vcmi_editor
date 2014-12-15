@@ -580,6 +580,7 @@ end;
 procedure TLocalState.Init;
 begin
   SetupSpriteVAO;
+  SetupRectVAO;
   CheckGLErrors('VAO');
 end;
 
@@ -714,7 +715,7 @@ begin
 
   glBindVertexArray(0);
 
-  CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
+ // CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 
 end;
 

@@ -41,7 +41,7 @@ uses
 
 begin
 
-  {$IFDEF DEBUG}
+  {$IF DEFINED(DEBUG) and not defined(FPC_PROFILE)}
   if FileExists('heap.trc') then
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');
