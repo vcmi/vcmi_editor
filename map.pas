@@ -290,6 +290,7 @@ type
     FTemplateID: integer;
     FX: integer;
     FY: integer;
+    function GetIdx: integer;
     function GetPlayer: TPlayer; inline;
     procedure Render(Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
@@ -315,6 +316,7 @@ type
     function HasOptions: boolean;
 
   published
+    property Index;
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
     property L:integer read FL write SetL;
@@ -487,7 +489,7 @@ type
 
 implementation
 
-uses FileUtil, editor_str_consts, root_manager, editor_utils;
+uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
 
 { TRumor }
 
@@ -565,6 +567,11 @@ begin
   begin
     Result := TPlayer.none;
   end;
+end;
+
+function TMapObject.GetIdx: integer;
+begin
+  Result := Index;
 end;
 
 function TMapObject.HasOptions: boolean;
@@ -645,7 +652,11 @@ end;
 
 procedure TMapObject.SetX(AValue: integer);
 begin
-  if not GetMap.IsOnMap(FL, AValue,FY) then exit;
+  if not GetMap.IsOnMap(FL, AValue,FY) then
+  begin
+    DebugLn('Invalid object X position '+IntToStr(AValue));
+    exit;
+  end;
   if FX = AValue then Exit;
   FX := AValue;
   Changed;
@@ -653,7 +664,12 @@ end;
 
 procedure TMapObject.SetY(AValue: integer);
 begin
-  if not GetMap.IsOnMap(FL, FX,AValue) then exit;
+  if not GetMap.IsOnMap(FL, FX,AValue) then
+  begin
+    DebugLn('Invalid object Y position '+IntToStr(AValue));
+    exit;
+  end;
+
   if FY = AValue then Exit;
   FY := AValue;
   Changed;
