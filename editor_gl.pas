@@ -630,8 +630,8 @@ end;
 procedure TLocalState.StartDrawingSprites;
 begin
   //glBindVertexArray(0);
-  //glEnableVertexAttribArray(GlobalContextState.DefaultCoordsAttrib);
-  //glEnableVertexAttribArray(GlobalContextState.UVAttrib);
+  //glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  //glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
 procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8
@@ -763,8 +763,9 @@ procedure TLocalState.SetupRectVAO;
 begin
    glGenVertexArrays(1,@RectVAO);
    glBindVertexArray(RectVAO);
-
+   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
    glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 end;
 
