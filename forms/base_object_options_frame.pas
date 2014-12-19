@@ -41,7 +41,7 @@ type
     procedure Commit; virtual;
 
   public //IObjectOptionsVisitor
-    procedure VisitLocalEvent({%H-}AOptions: TLocalEvenOptions); virtual;
+    procedure VisitLocalEvent({%H-}AOptions: TLocalEventOptions); virtual;
     procedure VisitSignBottle({%H-}AOptions: TSignBottleOptions);virtual;
     procedure VisitHero({%H-}AOptions: THeroOptions);virtual;
     procedure VisitMonster({%H-}AOptions: TMonsterOptions);virtual;
@@ -144,7 +144,7 @@ begin
 
 end;
 
-procedure TBaseObjectOptionsFrame.VisitLocalEvent(AOptions: TLocalEvenOptions);
+procedure TBaseObjectOptionsFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
 
 end;

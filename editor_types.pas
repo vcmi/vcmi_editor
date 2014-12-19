@@ -65,6 +65,9 @@ type
   TSex = (Male, Female);
 
 const
+  ALL_PLAYERS = [TPlayer.RED, TPlayer.BLUE, TPlayer.TAN, TPlayer.GREEN, TPlayer.ORANGE, TPlayer.PURPLE, TPlayer.TEAL, TPlayer.PINK];
+
+const
   ID_RANDOM = -1;
   ID_INVALID = -1000;
   FACTION_RANDOM = TFactionID(ID_RANDOM);

@@ -798,10 +798,10 @@ begin
     end;
   end;
 
-  if not lod_file_exists then
-  begin
-     raise Exception.Create('Lod file not found '+LodRelPath);
-  end;
+  //if not lod_file_exists then
+  //begin
+  //   raise Exception.Create('Lod file not found '+LodRelPath);
+  //end;
 
 end;
 

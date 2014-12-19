@@ -95,7 +95,7 @@ type
      procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4);
    public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
-     procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
+     procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
      procedure VisitHero(AOptions: THeroOptions);
      procedure VisitMonster(AOptions: TMonsterOptions);
      procedure VisitSeerHut(AOptions: TSeerHutOptions);
@@ -134,7 +134,7 @@ begin
     and (AVersion <> MAP_VERSION_ROE)
     and (AVersion <> MAP_VERSION_SOD)
     and (AVersion <> MAP_VERSION_WOG)
-    and (AVersion <> MAP_VERSION_HOTA)then
+    {and (AVersion <> MAP_VERSION_HOTA)}then
   begin
     raise Exception.Create('Invalid map format '+IntToHex(AVersion,8));
   end;
@@ -631,17 +631,28 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.VisitLocalEvent(AOptions: TLocalEvenOptions);
+procedure TMapReaderH3m.VisitLocalEvent(AOptions: TLocalEventOptions);
+var
+  PlayerMask: Byte;
+  Player: TPlayerColor;
 begin
   VisitPandorasBox(AOptions);
 
   with FSrc do
   begin
-    {    uchar players;
-    uchar isAICan;
-    uchar disableAfterFirstDay;
-    }
-    SkipNotImpl(3);
+    PlayerMask := ReadByte;
+    AOptions.AvailableFor:=[];
+    for Player in TPlayerColor do
+    begin
+      if (PlayerMask and (1 << Byte(Player))) > 0 then
+      begin
+        AOptions.AvailableFor := AOptions.AvailableFor + [Player];
+      end;
+    end;
+
+    AOptions.HumanActivable := true;
+    AOptions.AIActivable:=ReadBoolean;
+    AOptions.RemoveAfterVisit:=ReadBoolean;
 
     skip(4); //junk
   end;

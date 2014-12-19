@@ -150,11 +150,25 @@ type
     property Creatures: TCreatureSet read FCreatures;
   end;
 
-  { TLocalEvenOptions }
+  { TLocalEventOptions }
 
-  TLocalEvenOptions = class(TPandorasOptions)
+  TLocalEventOptions = class(TPandorasOptions)
+  private
+    FAIActivable: boolean;
+    FAvailableFor: TPlayers;
+    FHumanActivable: boolean;
+    FRemoveAfterVisit: Boolean;
+    procedure SetAIActivable(AValue: boolean);
+    procedure SetAvailableFor(AValue: TPlayers);
+    procedure SetHumanActivable(AValue: boolean);
+    procedure SetRemoveAfterVisit(AValue: Boolean);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property HumanActivable: boolean read FHumanActivable write SetHumanActivable default True;
+    property AIActivable: boolean read FAIActivable write SetAIActivable default False;
+    property RemoveAfterVisit: Boolean read FRemoveAfterVisit write SetRemoveAfterVisit default False;
+    property AvailableFor: TPlayers read FAvailableFor write SetAvailableFor default ALL_PLAYERS;
   end;
 
   { THeroOptions }
@@ -425,7 +439,7 @@ type
   { IObjectOptionsVisitor }
 
   IObjectOptionsVisitor = interface
-    procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
+    procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions);
     procedure VisitHero(AOptions: THeroOptions);
     procedure VisitMonster(AOptions: TMonsterOptions);
@@ -467,7 +481,7 @@ begin
 
     TObj.EVENT:
     begin
-      c := TLocalEvenOptions;
+      c := TLocalEventOptions;
     end;
     TObj.SIGN, TObj.OCEAN_BOTTLE:
     begin
@@ -1027,9 +1041,33 @@ begin
   inherited Destroy;
 end;
 
-{ TLocalEvenOptions }
+{ TLocalEventOptions }
 
-procedure TLocalEvenOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+procedure TLocalEventOptions.SetAIActivable(AValue: boolean);
+begin
+  if FAIActivable=AValue then Exit;
+  FAIActivable:=AValue;
+end;
+
+procedure TLocalEventOptions.SetAvailableFor(AValue: TPlayers);
+begin
+  if FAvailableFor=AValue then Exit;
+  FAvailableFor:=AValue;
+end;
+
+procedure TLocalEventOptions.SetHumanActivable(AValue: boolean);
+begin
+  if FHumanActivable=AValue then Exit;
+  FHumanActivable:=AValue;
+end;
+
+procedure TLocalEventOptions.SetRemoveAfterVisit(AValue: Boolean);
+begin
+  if FRemoveAfterVisit=AValue then Exit;
+  FRemoveAfterVisit:=AValue;
+end;
+
+procedure TLocalEventOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitLocalEvent(Self);
 end;

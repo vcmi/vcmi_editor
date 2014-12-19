@@ -51,7 +51,7 @@ type
 
     procedure SaveChanges;
   strict private //IObjectOptionsVisitor
-    procedure VisitLocalEvent(AOptions: TLocalEvenOptions);
+    procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
     procedure VisitHero(AOptions: THeroOptions);
     procedure VisitMonster(AOptions: TMonsterOptions);
@@ -181,7 +181,7 @@ begin
 
 end;
 
-procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEvenOptions);
+procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
 
 end;
