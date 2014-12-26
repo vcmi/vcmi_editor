@@ -61,6 +61,8 @@ type
 
     function ReadFaction:TFactionID;
     function ReadIDByte:TCustomID;
+
+    function GetPos: Int64;
   end;
 
   TStreamWriteAdapter = object (TStreamAdapter)
@@ -128,6 +130,11 @@ begin
     Result := FACTION_RANDOM
   else
     Result := b;
+end;
+
+function TStreamReadAdapter.GetPos: Int64;
+begin
+  Result := FStm.Position;
 end;
 
 function TStreamReadAdapter.ReadLocalizedString: TLocalizedString;

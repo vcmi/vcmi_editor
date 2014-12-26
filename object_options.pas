@@ -558,10 +558,6 @@ begin
     ABANDONED_MINE:
       c := TAbandonedOptions;
 
-    //SHRINE_OF_MAGIC_GESTURE,
-    //SHRINE_OF_MAGIC_INCANTATION,
-    //SHRINE_OF_MAGIC_THOUGHT:
-    //  c := TShrineOptions;
     SHRINE_OF_MAGIC_GESTURE:
       c := TShrine1Options;
 

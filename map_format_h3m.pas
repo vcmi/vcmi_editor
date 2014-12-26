@@ -124,7 +124,7 @@ type
 
 implementation
 
-uses editor_consts;
+uses LazLoggerBase, editor_consts;
 
 { TMapReaderH3m }
 
@@ -530,6 +530,7 @@ begin
     if IsNotROE then
     begin
       ident := ReadDWord;
+      //todo: quest ident
     end;
 
     ReadOwner(AOptions, TOwnerSize.size1);
@@ -538,7 +539,7 @@ begin
 
     if ReadBoolean then
     begin
-      hname := ReadString;
+      hname := ReadLocalizedString;
     end;
 
     if FMapVersion > MAP_VERSION_AB then
@@ -698,18 +699,28 @@ var
   cnt: Integer;
   i: Integer;
   o: TMapObject;
+  x,y,l: Byte;
+  tid: DWord;
+  spos: Int32;
 begin
   cnt := FSrc.ReadDWord;
 
   for i := 0 to cnt - 1 do
   begin
     try
+      spos := FSrc.GetPos;
       o := TMapObject(FMap.Objects.Add);
-      o.X := FSrc.ReadByte;
-      o.Y := FSrc.ReadByte;
-      o.L := FSrc.ReadByte;
+      x:=FSrc.ReadByte;
+      y:=FSrc.ReadByte;
+      l:= FSrc.ReadByte;
+      tid := FSrc.ReadDWord;
+      o.X :=x;
+      o.Y :=y;
+      o.L :=l;
+      o.TemplateID := tid;
 
-      o.TemplateID := FSrc.ReadDWord;
+
+      //DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', o.Template.Id, ' subid ',  o.Template.SubId, ' @',IntToHex(spos, 8)]);
 
       FSrc.Skip(5); //junk
 
@@ -1068,14 +1079,15 @@ begin
         cnt := ReadByte;
         for i := 0 to cnt - 1 do
         begin
-          SkipNotImpl(2);
+          SkipNotImpl(2); //artifacts
         end;
       end;
       6:begin
-         cnt := ReadByte;
-         for i := 0 to cnt - 1 do
+        cnt := ReadByte;
+        for i := 0 to cnt - 1 do
         begin
-          SkipNotImpl(4); //creatures
+          SkipNotImpl(2); //creature type
+          SkipNotImpl(2); //creature count
         end;
       end;
       7:begin
@@ -1103,15 +1115,14 @@ end;
 
 procedure TMapReaderH3m.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
 var
-  ttt: DWord;
+  ident: DWord;
 begin
   ReadOwner(AOptions);
 
-  ttt := FSrc.ReadDWord;
-  if ttt <> 0 then
+  ident := FSrc.ReadDWord;
+  if ident = 0 then
     SkipNotImpl(2); //castle1, castle2
 
-  SkipNotImpl(2) ;
   AOptions.MinLevel := FSrc.ReadByte;
   AOptions.MaxLevel := FSrc.ReadByte;
 
@@ -1120,12 +1131,12 @@ end;
 procedure TMapReaderH3m.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 var
-  ttt: DWord;
+  ident: DWord;
 begin
   ReadOwner(AOptions);
 
-  ttt := FSrc.ReadDWord;
-  if ttt <> 0 then
+  ident := FSrc.ReadDWord;
+  if ident = 0 then
     SkipNotImpl(2); //castle1, castle2
 
 end;
