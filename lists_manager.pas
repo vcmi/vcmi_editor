@@ -117,7 +117,7 @@ type
 
   TFactionInfos = class (specialize TFPGObjectList<TFactionInfo>)
   public
-
+    procedure FillWithAllIds(AList: TStrings);
   end;
 
 
@@ -213,6 +213,18 @@ procedure TFactionInfo.SetVillageDefName(AValue: AnsiString);
 begin
   if FVillageDefName = AValue then Exit;
   FVillageDefName := AValue;
+end;
+
+{ TFactionInfos }
+
+procedure TFactionInfos.FillWithAllIds(AList: TStrings);
+var
+  faction: TFactionInfo;
+begin
+  for faction in Self do
+  begin
+    AList.Add(faction.ID);
+  end;
 end;
 
 { TSkillInfo }

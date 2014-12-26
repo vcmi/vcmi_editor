@@ -381,7 +381,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
-    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 0;
+    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
   end;
 
   { TRandomDwellingLVLOptions }
@@ -403,7 +403,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
-    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 0;
+    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
   end;
 
   { TQuestGuardOptions }
