@@ -143,6 +143,7 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
+    FFactionMap: TStringList;
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
   public
     constructor Create(AOwner: TComponent); override;
@@ -166,6 +167,9 @@ type
     property SpellInfos: TSpellInfos read FSpellInfos;
     function GetSpell(const AID: AnsiString): TSpellInfo;
     property SpellMap: TStringList read FSpellMap;
+
+    property FactionInfos:TFactionInfos read FFactionInfos;
+    property FactionMap: TStringList read FFactionMap;
   end;
 
 implementation
@@ -324,10 +328,12 @@ begin
   FSpellMap := CrStrList;
 
   FFactionInfos := TFactionInfos.Create(True);
+  FFactionMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FFactionMap.Free;
   FFactionInfos.Free;
 
   FSpellMap.Free;
@@ -461,6 +467,7 @@ begin
       info.Name := o.Strings['name'];
 
       FFactionInfos.Add(info);
+      FFactionMap.AddObject(info.ID, info);
 
       DebugLn([i, ' ', info.ID, ' ', info.Name]);
     end;

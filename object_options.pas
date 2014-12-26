@@ -26,7 +26,7 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, editor_types, editor_classes;
+  Classes, SysUtils, editor_types, editor_classes, root_manager;
 
 type
 
@@ -365,23 +365,33 @@ type
   { TBaseRandomDwellingOptions }
 
   TBaseRandomDwellingOptions = class abstract (TObjectOptions)
+  private
+    FAllowedFactions: TStringList;
+    FMaxLevel: UInt8;
+    FMinLevel: UInt8;
+    function GetAllowedFactions: TStrings;
+    procedure SetMaxLevel(AValue: UInt8);
+    procedure SetMinLevel(AValue: UInt8);
   public
+    constructor Create; override;
+    destructor Destroy; override;
     class function MayBeOwned: Boolean; override;
+
+    property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
+    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
+
+    property AllowedFactions: TStrings read GetAllowedFactions;
   end;
 
   { TRandomDwellingOptions }
 
   TRandomDwellingOptions = class (TBaseRandomDwellingOptions)
-  private
-    FMaxLevel: UInt8;
-    FMinLevel: UInt8;
-    procedure SetMaxLevel(AValue: UInt8);
-    procedure SetMinLevel(AValue: UInt8);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
-    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
+    property MinLevel;
+    property MaxLevel;
+    property AllowedFactions;
   end;
 
   { TRandomDwellingLVLOptions }
@@ -389,21 +399,17 @@ type
   TRandomDwellingLVLOptions = class (TBaseRandomDwellingOptions)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    property AllowedFactions;
   end;
 
   { TRandomDwellingTownOptions }
 
   TRandomDwellingTownOptions = class (TBaseRandomDwellingOptions)
-  private
-    FMaxLevel: UInt8;
-    FMinLevel: UInt8;
-    procedure SetMaxLevel(AValue: UInt8);
-    procedure SetMinLevel(AValue: UInt8);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
-    property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
+    property MinLevel;
+    property MaxLevel;
   end;
 
   { TQuestGuardOptions }
@@ -666,6 +672,39 @@ end;
 
 { TBaseRandomDwellingOptions }
 
+procedure TBaseRandomDwellingOptions.SetMaxLevel(AValue: UInt8);
+begin
+  if FMaxLevel=AValue then Exit;
+  FMaxLevel:=AValue;
+end;
+
+function TBaseRandomDwellingOptions.GetAllowedFactions: TStrings;
+begin
+  Result := FAllowedFactions;
+end;
+
+procedure TBaseRandomDwellingOptions.SetMinLevel(AValue: UInt8);
+begin
+  if FMinLevel=AValue then Exit;
+  FMinLevel:=AValue;
+end;
+
+constructor TBaseRandomDwellingOptions.Create;
+begin
+  inherited Create;
+  FAllowedFactions := TStringList.Create;
+  FAllowedFactions.Sorted := True;
+  FAllowedFactions.Duplicates := dupIgnore;
+
+  RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
+end;
+
+destructor TBaseRandomDwellingOptions.Destroy;
+begin
+  FAllowedFactions.Free;
+  inherited Destroy;
+end;
+
 class function TBaseRandomDwellingOptions.MayBeOwned: Boolean;
 begin
   Result := True;
@@ -735,16 +774,6 @@ begin
   AVisitor.VisitRandomDwelling(Self);
 end;
 
-procedure TRandomDwellingOptions.SetMaxLevel(AValue: UInt8);
-begin
-  FMaxLevel := AValue;
-end;
-
-procedure TRandomDwellingOptions.SetMinLevel(AValue: UInt8);
-begin
-  FMinLevel := AValue;
-end;
-
 { TRandomDwellingLVLOptions }
 
 procedure TRandomDwellingLVLOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -757,16 +786,6 @@ end;
 procedure TRandomDwellingTownOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitRandomDwellingTown(Self);
-end;
-
-procedure TRandomDwellingTownOptions.SetMaxLevel(AValue: UInt8);
-begin
-  FMaxLevel := AValue;
-end;
-
-procedure TRandomDwellingTownOptions.SetMinLevel(AValue: UInt8);
-begin
-  FMinLevel := AValue;
 end;
 
 { TGrailOptions }

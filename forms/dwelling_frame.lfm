@@ -1,0 +1,121 @@
+inherited DwellingFrame: TDwellingFrame
+  Height = 262
+  Width = 369
+  ClientHeight = 262
+  ClientWidth = 369
+  Constraints.MinWidth = 330
+  DesignLeft = 585
+  DesignTop = 184
+  object gbLevel: TGroupBox[0]
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 5
+    Height = 51
+    Top = 0
+    Width = 359
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 5
+    BorderSpacing.Right = 5
+    Caption = 'Level:'
+    ClientHeight = 33
+    ClientWidth = 355
+    TabOrder = 0
+    object edMin: TSpinEdit
+      AnchorSideLeft.Control = lbMin
+      AnchorSideRight.Control = lbMax
+      AnchorSideRight.Side = asrBottom
+      Left = 85
+      Height = 23
+      Top = 0
+      Width = 79
+      Anchors = [akTop]
+      MaxValue = 7
+      MinValue = 1
+      OnChange = edMinChange
+      TabOrder = 0
+      Value = 1
+    end
+    object edMax: TSpinEdit
+      AnchorSideLeft.Control = lbMax
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideRight.Control = gbLevel
+      AnchorSideRight.Side = asrBottom
+      Left = 251
+      Height = 23
+      Top = 0
+      Width = 94
+      Anchors = [akTop, akRight]
+      BorderSpacing.Left = 10
+      BorderSpacing.Right = 10
+      MaxValue = 7
+      MinValue = 1
+      OnChange = edMaxChange
+      TabOrder = 1
+      Value = 1
+    end
+    object lbMin: TLabel
+      AnchorSideLeft.Control = gbLevel
+      AnchorSideRight.Control = edMin
+      Left = 10
+      Height = 15
+      Top = 3
+      Width = 65
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 10
+      BorderSpacing.Right = 10
+      Caption = 'Min:'
+      ParentColor = False
+    end
+    object lbMax: TLabel
+      AnchorSideLeft.Control = edMin
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideRight.Control = edMax
+      Left = 174
+      Height = 15
+      Top = 3
+      Width = 67
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 10
+      BorderSpacing.Right = 10
+      Caption = 'Max:'
+      ParentColor = False
+    end
+  end
+  object gbFaction: TGroupBox[1]
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = gbLevel
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 5
+    Height = 201
+    Top = 56
+    Width = 359
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 5
+    Caption = 'Faction'
+    ClientHeight = 183
+    ClientWidth = 355
+    TabOrder = 1
+    object edFaction: TCheckListBox
+      AnchorSideLeft.Control = gbFaction
+      AnchorSideTop.Control = gbFaction
+      AnchorSideRight.Control = gbFaction
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = gbFaction
+      AnchorSideBottom.Side = asrBottom
+      Left = 5
+      Height = 173
+      Top = 5
+      Width = 345
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderSpacing.Around = 5
+      ItemHeight = 0
+      TabOrder = 0
+    end
+  end
+end

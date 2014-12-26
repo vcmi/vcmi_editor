@@ -36,6 +36,7 @@ type
     btCancel: TButton;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
+    tsObject: TTabSheet;
     tsWog: TTabSheet;
     tsCommon: TTabSheet;
     procedure btOkClick(Sender: TObject);
@@ -50,6 +51,8 @@ type
       AOptions: TObjectOptions; AParent:TWinControl);
 
     procedure SaveChanges;
+
+    procedure VisitDwelling(AOptions: TObjectOptions);
   strict private //IObjectOptionsVisitor
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
@@ -67,9 +70,9 @@ type
     procedure VisitShrine(AOptions: TShrineOptions);
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
-    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);
-    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
-    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
+    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+?
+    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+?
+    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+?
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 
@@ -87,7 +90,7 @@ implementation
 
 uses
   signbottle_frame, grail_frame, flaggable_object_frame, witchhut_frame,
-  shrine_frame, spellscroll_frame, root_manager;
+  shrine_frame, spellscroll_frame, dwelling_frame, root_manager;
 
 {$R *.lfm}
 
@@ -128,6 +131,7 @@ begin
   FActiveEditors.Clear;
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
+  Caption:=Format('Object %d:%d at %d %d %d',[Obj.Template.Id,Obj.Template.SubId,Obj.X,Obj.Y,Obj.L]);
   ShowModal;
 end;
 
@@ -148,6 +152,13 @@ procedure TEditObjectOptions.SaveChanges;
 begin
   FActiveEditors.Commit;
   //TODO: free all editors and use cashed form
+end;
+
+procedure TEditObjectOptions.VisitDwelling(AOptions: TObjectOptions);
+begin
+  CreateFrame(TFlaggableFrame,AOptions,tsCommon);
+  CreateFrame(TDwellingFrame, AOptions,tsObject);
+  tsObject.TabVisible:=true;
 end;
 
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
@@ -209,19 +220,19 @@ end;
 procedure TEditObjectOptions.VisitRandomDwelling(
   AOptions: TRandomDwellingOptions);
 begin
-
+  VisitDwelling(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 begin
-
+  VisitDwelling(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitRandomDwellingTown(
   AOptions: TRandomDwellingTownOptions);
 begin
-
+  VisitDwelling(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitResource(AOptions: TResourceOptions);

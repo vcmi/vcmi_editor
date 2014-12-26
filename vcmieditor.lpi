@@ -134,7 +134,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="44">
+    <Units Count="45">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -396,6 +396,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="root_form"/>
       </Unit43>
+      <Unit44>
+        <Filename Value="forms\dwelling_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DwellingFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="dwelling_frame"/>
+      </Unit44>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

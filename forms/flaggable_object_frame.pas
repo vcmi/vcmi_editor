@@ -15,14 +15,17 @@ type
   TFlaggableFrame = class(TBaseObjectOptionsFrame)
     edOwnerRG: TRadioGroup;
   strict private
-    FObject: TOwnedObjectOptions;
+    FObject: TObjectOptions;
     procedure SetupControls;
   private
-    { private declarations }
+    procedure VisitOptions(AOptions:TObjectOptions);
   public
     { public declarations }
     procedure Commit; override;
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions); override;
+    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions); override;
+    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions); override;
+    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions); override;
   end;
 
 implementation
@@ -58,10 +61,10 @@ begin
   end;
 end;
 
-procedure TFlaggableFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions);
+procedure TFlaggableFrame.VisitOptions(AOptions: TObjectOptions);
 begin
   SetupControls;
-  inherited VisitOwnedObject(AOptions);
+
   FObject := AOptions;
   if AOptions.Owner = TPlayer.NONE then
   begin
@@ -70,7 +73,28 @@ begin
   else begin
     edOwnerRG.ItemIndex := Integer(AOptions.Owner)+1;
   end;
+end;
 
+procedure TFlaggableFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions);
+begin
+  VisitOptions(AOptions);
+end;
+
+procedure TFlaggableFrame.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
+begin
+  VisitOptions(AOptions);
+end;
+
+procedure TFlaggableFrame.VisitRandomDwellingLVL(
+  AOptions: TRandomDwellingLVLOptions);
+begin
+  VisitOptions(AOptions);
+end;
+
+procedure TFlaggableFrame.VisitRandomDwellingTown(
+  AOptions: TRandomDwellingTownOptions);
+begin
+  VisitOptions(AOptions);
 end;
 
 end.
