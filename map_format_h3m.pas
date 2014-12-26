@@ -278,7 +278,7 @@ procedure TMapReaderH3m.ReadAllowedSpells;
 begin
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY,@(FMapEnv.lm.SpellNidToString));
+    ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY,@(FMapEnv.lm.SpellIndexToString));
   end;
 end;
 
@@ -346,6 +346,7 @@ var
   flag: Boolean;
   id: TCustomID;
 begin
+  ADest.Clear;
   for byte_idx := 0 to AMaskSize - 1 do
   begin
     mask_byte := FSrc.ReadByte;
@@ -1120,8 +1121,15 @@ begin
   ReadOwner(AOptions);
 
   ident := FSrc.ReadDWord;
-  if ident = 0 then
-    SkipNotImpl(2); //castle1, castle2
+  AOptions.Linked:=ident <> 0;
+  if not AOptions.Linked then
+  begin
+    ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
+  end
+  else
+  begin
+    //todo: connect with town
+  end;
 
   AOptions.MinLevel := FSrc.ReadByte;
   AOptions.MaxLevel := FSrc.ReadByte;
@@ -1136,8 +1144,17 @@ begin
   ReadOwner(AOptions);
 
   ident := FSrc.ReadDWord;
-  if ident = 0 then
-    SkipNotImpl(2); //castle1, castle2
+
+  AOptions.Linked:=ident <> 0;
+
+  if not AOptions.Linked then
+  begin
+     ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
+  end
+  else
+  begin
+        //todo: connect with town
+  end;
 
 end;
 
@@ -1235,7 +1252,7 @@ begin
     AOptions.IsRandom := True;
   end
   else begin
-    AOptions.SpellID := FMapEnv.lm.SpellNidToString(raw_id);
+    AOptions.SpellID := FMapEnv.lm.SpellIndexToString(raw_id);
   end;
 
   fsrc.skip(3); //junk
@@ -1255,7 +1272,7 @@ begin
   VisitArtifact(AOptions);
 
   nid := FSrc.ReadDWord;
-  sid := FMapEnv.lm.SpellNidToString(nid);
+  sid := FMapEnv.lm.SpellIndexToString(nid);
   AOptions.SpellID := sid;
 end;
 

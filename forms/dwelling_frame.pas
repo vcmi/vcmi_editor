@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, Math, FileUtil, Forms, Controls, StdCtrls, Spin, CheckLst,
-  object_options, base_object_options_frame;
+  ExtCtrls, object_options, base_object_options_frame;
 
 type
 
@@ -35,16 +35,24 @@ type
     edFaction: TCheckListBox;
     gbLevel: TGroupBox;
     gbFaction: TGroupBox;
+    Label1: TLabel;
     lbMin: TLabel;
     lbMax: TLabel;
     edMin: TSpinEdit;
     edMax: TSpinEdit;
+    pnRandom: TPanel;
+    pnLinked: TPanel;
+    rbLinked: TRadioButton;
+    rbRandom: TRadioButton;
     procedure edMaxChange(Sender: TObject);
     procedure edMinChange(Sender: TObject);
+    procedure rbLinkedChange(Sender: TObject);
+    procedure rbRandomChange(Sender: TObject);
   private
      FOptions: TBaseRandomDwellingOptions;
      FFactionsLoaded, FLevelsLoaded: Boolean;
      procedure SetupControls;
+     procedure UpdateControls;
      procedure LoadLevels;
      procedure SaveLevels;
 
@@ -72,6 +80,18 @@ begin
   NormalizeLevels;
 end;
 
+procedure TDwellingFrame.rbLinkedChange(Sender: TObject);
+begin
+  rbRandom.Checked := not rbLinked.Checked;
+  UpdateControls;
+end;
+
+procedure TDwellingFrame.rbRandomChange(Sender: TObject);
+begin
+  rbLinked.Checked := not rbRandom.Checked;
+  UpdateControls;
+end;
+
 procedure TDwellingFrame.edMaxChange(Sender: TObject);
 begin
   NormalizeLevels;
@@ -79,6 +99,14 @@ end;
 
 procedure TDwellingFrame.SetupControls;
 begin
+  rbLinked.Checked := FOptions.Linked;
+  rbLinkedChange(rbLinked);
+  UpdateControls;
+end;
+
+procedure TDwellingFrame.UpdateControls;
+begin
+  edFaction.Enabled:=rbRandom.Checked;
 
 end;
 
@@ -116,6 +144,7 @@ end;
 procedure TDwellingFrame.Commit;
 begin
   inherited Commit;
+  FOptions.Linked:=rbLinked.Checked;
   if FLevelsLoaded then SaveLevels;
   if FFactionsLoaded then SaveFactions;
 end;

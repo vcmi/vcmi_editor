@@ -60,7 +60,7 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Objects[i] as TBaseInfo;
-    ATarget.AddObject(info.Name,info);
+    ATarget.AddObject(info.Name+'('+info.ID+')',info);
   end;
 end;
 

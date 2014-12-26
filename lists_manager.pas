@@ -162,14 +162,16 @@ type
     property SkillInfos: TSkillInfos read FSkillInfos;
     property SkillMap:TStringList read FSkillMap;
 
-    //convert legacy id to vcmi id
-    function SpellNidToString (ASpell: TCustomID): AnsiString;
+    //Spells
+    function SpellIndexToString (ASpell: TCustomID): AnsiString;
     property SpellInfos: TSpellInfos read FSpellInfos;
     function GetSpell(const AID: AnsiString): TSpellInfo;
     property SpellMap: TStringList read FSpellMap;
 
+    //Factions
     property FactionInfos:TFactionInfos read FFactionInfos;
     property FactionMap: TStringList read FFactionMap;
+    function FactionIndexToString (AFaction: TCustomID):AnsiString;
   end;
 
 implementation
@@ -423,6 +425,25 @@ begin
   Result := TSpellInfo(FSpellMap.Objects[idx]);
 end;
 
+function TListsManager.FactionIndexToString(AFaction: TCustomID): AnsiString;
+var
+  info: TFactionInfo;
+  i: Integer;
+begin
+  //todo:  optimize
+  Result := '';
+  for i := 0 to FFactionInfos.Count - 1 do
+  begin
+    info := FFactionInfos[i];
+    if info.Index = AFaction then
+    begin
+      Exit(info.ID);
+    end;
+  end;
+
+  raise Exception.CreateFmt('Faction not found: %d',[AFaction]);
+end;
+
 procedure TListsManager.Load;
 begin
   LoadSkills;
@@ -630,7 +651,7 @@ begin
   Result := {'skill.' + }editor_consts.SKILL_NAMES[ASkill];
 end;
 
-function TListsManager.SpellNidToString(ASpell: TCustomID): AnsiString;
+function TListsManager.SpellIndexToString(ASpell: TCustomID): AnsiString;
 var
   info: TSpellInfo;
   i: Integer;

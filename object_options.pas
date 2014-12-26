@@ -367,11 +367,14 @@ type
   TBaseRandomDwellingOptions = class abstract (TObjectOptions)
   private
     FAllowedFactions: TStringList;
+    FLinked: boolean;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
     function GetAllowedFactions: TStrings;
+    procedure SetLinked(AValue: boolean);
     procedure SetMaxLevel(AValue: UInt8);
     procedure SetMinLevel(AValue: UInt8);
+    function IsAllowedFactionsStored: boolean;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -380,7 +383,10 @@ type
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
 
-    property AllowedFactions: TStrings read GetAllowedFactions;
+    property AllowedFactions: TStrings read GetAllowedFactions stored IsAllowedFactionsStored;
+
+    property Linked: boolean read FLinked write SetLinked;
+
   end;
 
   { TRandomDwellingOptions }
@@ -392,6 +398,7 @@ type
     property MinLevel;
     property MaxLevel;
     property AllowedFactions;
+    property Linked;
   end;
 
   { TRandomDwellingLVLOptions }
@@ -400,6 +407,7 @@ type
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     property AllowedFactions;
+    property Linked;
   end;
 
   { TRandomDwellingTownOptions }
@@ -683,6 +691,12 @@ begin
   Result := FAllowedFactions;
 end;
 
+procedure TBaseRandomDwellingOptions.SetLinked(AValue: boolean);
+begin
+  if FLinked=AValue then Exit;
+  FLinked:=AValue;
+end;
+
 procedure TBaseRandomDwellingOptions.SetMinLevel(AValue: UInt8);
 begin
   if FMinLevel=AValue then Exit;
@@ -708,6 +722,11 @@ end;
 class function TBaseRandomDwellingOptions.MayBeOwned: Boolean;
 begin
   Result := True;
+end;
+
+function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
+begin
+  Result := not Linked;
 end;
 
 
