@@ -516,11 +516,30 @@ end;
 
 class function TObjPriorityCompare.c(a, b: TMapObject): boolean;
 begin
-  Result := (a.Template.ZIndex > b.Template.ZIndex)
-    or(
-      (a.Template.ZIndex = b.Template.ZIndex)
-      and (a.Y > b.Y)
-     );
+
+  if a.Template.ZIndex > b.Template.ZIndex then
+  begin
+    Exit(True);
+  end;
+
+  if a.Template.ZIndex < b.Template.ZIndex then
+  begin
+    Exit(False);
+  end;
+
+  if a.Y > b.Y then
+  begin
+    Exit(True);
+  end;
+
+  if a.Y < b.Y then
+  begin
+    Exit(False);
+  end;
+
+
+  Exit(a.X < b.X);
+
 end;
 
 { TMapObject }
@@ -652,11 +671,13 @@ end;
 
 procedure TMapObject.SetX(AValue: integer);
 begin
-  if not GetMap.IsOnMap(FL, AValue,FY) then
-  begin
-    DebugLn('Invalid object X position '+IntToStr(AValue));
-    exit;
-  end;
+  //todo: more accurate check
+
+  //if not GetMap.IsOnMap(FL, AValue,FY) then
+  //begin
+  //  DebugLn('Invalid object X position '+IntToStr(AValue));
+  //  exit;
+  //end;
   if FX = AValue then Exit;
   FX := AValue;
   Changed;
@@ -664,11 +685,11 @@ end;
 
 procedure TMapObject.SetY(AValue: integer);
 begin
-  if not GetMap.IsOnMap(FL, FX,AValue) then
-  begin
-    DebugLn('Invalid object Y position '+IntToStr(AValue));
-    exit;
-  end;
+  //if not GetMap.IsOnMap(FL, FX,AValue) then
+  //begin
+  //  DebugLn('Invalid object Y position '+IntToStr(AValue));
+  //  exit;
+  //end;
 
   if FY = AValue then Exit;
   FY := AValue;
