@@ -200,6 +200,7 @@ var
 begin
   destreamer := TVCMIJSONDestreamer.Create(nil);
   try
+    FreeAndNil(FRoot);
     FRoot := destreamer.JSONStreamToJSONObject(AStream,'');
   finally
     destreamer.Free;

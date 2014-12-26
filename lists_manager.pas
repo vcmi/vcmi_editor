@@ -39,11 +39,11 @@ type
   private
     FID: AnsiString;
     FName: TLocalizedString;
-    FNid: TCustomID;
+    FIndex: TCustomID;
 
     procedure SetID(AValue: AnsiString);
     procedure SetName(AValue: TLocalizedString);
-    procedure SetNid(AValue: TCustomID);
+    procedure SetIndex(AValue: TCustomID);
   protected
     function GetFullID: AnsiString; virtual;
 
@@ -51,8 +51,8 @@ type
     constructor Create;
     property ID: AnsiString read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
-    property Nid: TCustomID read FNid write SetNid;
     property FullID: AnsiString read GetFullID;
+    property Index: TCustomID read FIndex write SetIndex default -1;
   end;
 
   { TSkillInfo }
@@ -142,6 +142,8 @@ type
 
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
+  strict private
+    function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -168,7 +170,7 @@ type
 
 implementation
 
-uses FileUtil, editor_consts;
+uses FileUtil, LazLoggerBase, editor_consts;
 
 const
   SEC_SKILL_TRAITS = 'data\sstraits';
@@ -238,7 +240,7 @@ end;
 
 constructor TBaseInfo.Create;
 begin
-  FNid := ID_INVALID;
+  FIndex := ID_INVALID;
 end;
 
 function TBaseInfo.GetFullID: AnsiString;
@@ -258,10 +260,10 @@ begin
   FName := AValue;
 end;
 
-procedure TBaseInfo.SetNid(AValue: TCustomID);
+procedure TBaseInfo.SetIndex(AValue: TCustomID);
 begin
-  if FNid = AValue then Exit;
-  FNid := AValue;
+  if FIndex = AValue then Exit;
+  FIndex := AValue;
 end;
 
 { TSkillInfos }
@@ -351,6 +353,55 @@ begin
 
 end;
 
+function TListsManager.AssembleConfig(APaths: TStrings;
+  ALegacyData: TJsonObjectList): TJSONObject;
+var
+  AConfig: TJsonResource;
+  Path: String;
+  i: Integer;
+  o: TJSONObject;
+  index: LongInt;
+
+begin
+  Result := TJSONObject.Create;
+  AConfig := TJsonResource.Create;
+  try
+    try
+      for Path in APaths do
+      begin
+        ResourceLoader.LoadResource(AConfig,TResourceType.Json, Path);
+
+        MergeJson(AConfig.Root, Result);
+      end;
+
+      if Assigned(ALegacyData) then
+      begin
+
+        for i := 0 to Result.Count - 1 do
+        begin
+          o := Result.Items[i] as TJSONObject;
+
+          if o.IndexOfName('index')>=0 then
+          begin
+            index := o.Integers['index'];
+            MergeJson(o, ALegacyData[index]);
+
+            Result.Items[i] := ALegacyData[index].Clone;
+
+          end;
+
+        end;
+
+      end;
+    finally
+      FreeAndNil(AConfig);
+    end;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
 function TListsManager.GetSpell(const AID: AnsiString): TSpellInfo;
 var
   idx: Integer;
@@ -372,8 +423,52 @@ begin
 end;
 
 procedure TListsManager.LoadFactions(APaths: TStrings);
+var
+  faction_config: TJSONObject;
+  faction_names: TTextResource;
+  legacy_data: TJsonObjectList;
+  f,i: Integer;
+  o: TJSONObject;
+  info: TFactionInfo;
 begin
 
+  legacy_data := TJsonObjectList.Create(true);
+
+  faction_names := TTextResource.Create;
+
+  ResourceLoader.LoadResource(faction_names,TResourceType.Text,'DATA/TOWNTYPE.TXT');
+
+  for f in [0..9] do
+  begin
+    o := TJSONObject.Create();
+
+    o.Strings['name'] := faction_names.Value[0,f];
+
+    legacy_data.Add(o);
+  end;
+  faction_config := AssembleConfig(APaths,legacy_data);
+
+  //loading
+  try
+    DebugLn('Loading factions');
+    for i := 0 to faction_config.Count - 1 do
+    begin
+      info := TFactionInfo.Create;
+      info.ID:=faction_config.Names[i];
+
+      o := faction_config.Items[i] as TJSONObject;
+      info.Index:= o.Integers['index'];
+      info.Name := o.Strings['name'];
+
+      FFactionInfos.Add(info);
+
+      DebugLn([i, ' ', info.ID, ' ', info.Name]);
+    end;
+  finally
+    faction_config.Free;
+    faction_names.Free;
+    legacy_data.Free;
+  end;
 end;
 
 procedure TListsManager.LoadSkills;
@@ -495,7 +590,7 @@ begin
     info.Level := lc.Integers['level'];
     info.Name := lc.Strings['name'];
     info.SpellType := sp_type;
-    info.Nid := nid;
+    info.Index := nid;
 
     FNameMap.Insert('spell.'+info.ID,nid);
 
@@ -538,7 +633,7 @@ begin
   for i := 0 to FSpellInfos.Count - 1 do
   begin
     info := FSpellInfos[i];
-    if info.Nid = ASpell then
+    if info.Index = ASpell then
     begin
       Result := info.ID;
       Exit;
