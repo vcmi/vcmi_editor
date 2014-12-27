@@ -170,6 +170,9 @@ const
 
   SPELL_QUANTITY = 70;
 
+const
+  MAX_HERO_LEVEL = 199; //VCMI technical limitation
+
 implementation
 
 end.

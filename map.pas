@@ -1183,7 +1183,7 @@ begin
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
-  FHeroLevelLimit:=199;
+  FHeroLevelLimit:=MAX_HERO_LEVEL;
   AttachTo(FObjects);
 end;
 
@@ -1409,7 +1409,7 @@ begin
   FHeroLevelLimit := AValue;
   if FHeroLevelLimit = 0 then
   begin
-    FHeroLevelLimit := 199;
+    FHeroLevelLimit := MAX_HERO_LEVEL;
   end;
   Changed;
 end;
