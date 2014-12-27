@@ -80,7 +80,7 @@ type
   TPlayerAttr = class
   private
     FAITactics: TAITactics;
-    FAllowedFactions: TFactions;
+    FAllowedFactions: TStringList;
     FAreAllowerFactionsSet: Boolean;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
@@ -91,12 +91,13 @@ type
     FMainHeroName: TLocalizedString;
     FMainHeroPortrait: TCustomID;
     FMainTownL: Integer;
-    FMainTownType: TFactionID;
+    FMainTownType: AnsiString;
     FMainTownX: Integer;
     FMainTownY: Integer;
     FRandomHero: Boolean;
     FMainHeroClass: THeroClassID;
     FTeamId: Integer;
+    function GetAllowedFactions: TStrings;
     procedure SetAITactics(AValue: TAITactics);
     procedure SetAreAllowerFactionsSet(AValue: Boolean);
     procedure SetCanComputerPlay(AValue: boolean);
@@ -107,7 +108,7 @@ type
     procedure SetMainHeroName(AValue: TLocalizedString);
     procedure SetMainHeroPortrait(AValue: TCustomID);
     procedure SetMainTownL(AValue: Integer);
-    procedure SetMainTownType(AValue: TFactionID);
+    procedure SetMainTownType(AValue: AnsiString);
     procedure SetMainTownX(AValue: Integer);
     procedure SetMainTownY(AValue: Integer);
     procedure SetRandomHero(AValue: Boolean);
@@ -119,7 +120,7 @@ type
   published
     property AITactics: TAITactics read FAITactics write SetAITactics;
     property AreAllowerFactionsSet: Boolean read FAreAllowerFactionsSet write SetAreAllowerFactionsSet; //???
-    property AllowedFactions: TFactions read FAllowedFactions;
+    property AllowedFactions: TStrings read GetAllowedFactions;
     property IsFactionRandom: boolean read FIsFactionRandom write SetIsFactionRandom;
 
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
@@ -129,7 +130,7 @@ type
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown;
     property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
 
-    property MainTownType: TFactionID read FMainTownType write SetMainTownType;
+    property MainTownType: AnsiString read FMainTownType write SetMainTownType;
     property MainTownX: Integer read FMainTownX write SetMainTownX;
     property MainTownY: Integer read FMainTownY write SetMainTownY;
     property MainTownL: Integer read FMainTownL write SetMainTownL;
@@ -829,8 +830,11 @@ end;
 
 constructor TPlayerAttr.Create;
 begin
-  FAllowedFactions := TFactions.Create;
+  FAllowedFactions := CrStrList;
+  //todo: fill with all with town
+
   FCustomHeroes := TCustomHeroes.Create;
+
 end;
 
 destructor TPlayerAttr.Destroy;
@@ -844,6 +848,11 @@ procedure TPlayerAttr.SetAITactics(AValue: TAITactics);
 begin
   if FAITactics = AValue then Exit;
   FAITactics := AValue;
+end;
+
+function TPlayerAttr.GetAllowedFactions: TStrings;
+begin
+  Result := FAllowedFactions;
 end;
 
 procedure TPlayerAttr.SetAreAllowerFactionsSet(AValue: Boolean);
@@ -888,7 +897,7 @@ begin
   FMainTownL := AValue;
 end;
 
-procedure TPlayerAttr.SetMainTownType(AValue: TFactionID);
+procedure TPlayerAttr.SetMainTownType(AValue: AnsiString);
 begin
   if FMainTownType = AValue then Exit;
   FMainTownType := AValue;

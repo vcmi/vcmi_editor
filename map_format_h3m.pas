@@ -61,6 +61,8 @@ type
        TIdToString = function(AId: TCustomID): AnsiString of object;
      procedure ReadBitmask(ADest: TStrings;AMaskSize: SizeInt; ACount: SizeInt;
        ACallback: TIdToString; Negate: Boolean = True);
+
+     function ReadID1(ACallback: TIdToString; AIDRandom:TCustomID = ID_RANDOM): AnsiString;
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+
@@ -361,6 +363,23 @@ begin
         ADest.Add(ACallback(id));
       end;
     end;
+  end;
+end;
+
+function TMapReaderH3m.ReadID1(ACallback: TIdToString; AIDRandom: TCustomID
+  ): AnsiString;
+var
+  index: TCustomID;
+begin
+  index :=  FSrc.ReadIDByte;
+
+  if index = AIDRandom then
+  begin
+    Result := '';
+  end
+  else
+  begin
+     Result := ACallback(index);
   end;
 end;
 
@@ -881,9 +900,9 @@ end;
 
 procedure TMapReaderH3m.ReadPlayerAttr(Attr: TPlayerAttr);
 var
-  faction_mask: Word;
+  faction_mask_size: integer;
   faction_count: Integer;
-  faction_n: TFactionID;
+  faction_n: TCustomID;
   heroes_count: DWord;
   hero: TCustomHero;
   h: Integer;
@@ -921,24 +940,19 @@ begin
   end;
 
   case FMapVersion of
-    MAP_VERSION_ROE:begin
+    MAP_VERSION_ROE:
+    begin
       faction_count := TOTAL_FACTIONS_ROE;
-      faction_mask := FSrc.ReadByte;
+      faction_mask_size := 1;
     end;
     else
-       begin
-         faction_count := TOTAL_FACTIONS;
-         faction_mask := FSrc.ReadWord;
-       end;
-  end;
-
-  for faction_n := 0 to faction_count - 1 do
-  begin
-    if ((1 shl faction_n) and faction_mask) > 0 then
     begin
-      Attr.AllowedFactions.Insert(faction_n);
+     faction_count := TOTAL_FACTIONS;
+     faction_mask_size := 2;
     end;
   end;
+
+  ReadBitmask(Attr.AllowedFactions,faction_mask_size,faction_count,@FMap.ListsManager.FactionIndexToString, False);
 
   Attr.IsFactionRandom := FSrc.ReadBoolean;
 
@@ -948,11 +962,12 @@ begin
     if FMapVersion = MAP_VERSION_ROE then
     begin
       Attr.GenerateHeroAtMainTown := True;
-      Attr.MainTownType := FACTION_RANDOM;
+      Attr.MainTownType := '';
     end else
     begin
       Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
-      Attr.MainTownType := FSrc.ReadFaction;
+
+      Attr.MainTownType := ReadID1(@FMap.ListsManager.FactionIndexToString);
     end;
 
     with Attr,FSrc do
@@ -966,7 +981,7 @@ begin
   with Attr,FSrc do
   begin
     RandomHero := ReadBoolean; //TODO: check
-    MainHeroClass := ReadFaction;
+    MainHeroClass := ReadIDByte;
 
     if MainHeroClass <> ID_RANDOM then
     begin
@@ -984,7 +999,7 @@ begin
     begin
       hero := TCustomHero(Attr.CustomHeroes.Add);
       hero.Portrait := FSrc.ReadIDByte;
-      hero.Name := FSrc.ReadString;
+      hero.Name := FSrc.ReadLocalizedString;
     end;
   end;
 

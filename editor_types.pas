@@ -46,9 +46,9 @@ type
 
   TDefFrame = UInt8;
 
-  TFactionID = type integer;
-  TFactionIDCompare = specialize gutil.TLess<TFactionID> ;
-  TFactions  = specialize gset.TSet<TFactionID,TFactionIDCompare>;
+  //TFactionID = type integer;
+  //TFactionIDCompare = specialize gutil.TLess<TFactionID> ;
+  //TFactions  = specialize gset.TSet<TFactionID,TFactionIDCompare>;
   THeroClassID = type integer;
   THeroID = type integer;
 
@@ -70,7 +70,7 @@ const
 const
   ID_RANDOM = -1;
   ID_INVALID = -1000;
-  FACTION_RANDOM = TFactionID(ID_RANDOM);
+  FACTION_RANDOM = ID_RANDOM;
 
 const
   MASK_NOT_VISIBLE = '0'; //not visible,  passable

@@ -59,7 +59,6 @@ type
 
     procedure Skip(Count: Integer);
 
-    function ReadFaction:TFactionID;
     function ReadIDByte:TCustomID;
 
     function GetPos: Int64;
@@ -110,24 +109,13 @@ begin
   Result := LEtoN(FStm.ReadDWord);
 end;
 
-function TStreamReadAdapter.ReadFaction: TFactionID;
-var
-  b: Byte;
-begin
-  b := ReadByte;
-  if b = 255 then
-    Result := FACTION_RANDOM
-  else
-    Result := b;
-end;
-
 function TStreamReadAdapter.ReadIDByte: TCustomID;
 var
   b: Byte;
 begin
   b := ReadByte;
   if b = 255 then
-    Result := FACTION_RANDOM
+    Result := ID_RANDOM
   else
     Result := b;
 end;

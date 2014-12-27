@@ -1,7 +1,7 @@
 inherited ShrineFrame: TShrineFrame
   object GroupBox1: TGroupBox[0]
     Left = 0
-    Height = 45
+    Height = 47
     Top = 0
     Width = 320
     Align = alTop
@@ -11,23 +11,23 @@ inherited ShrineFrame: TShrineFrame
     ChildSizing.HorizontalSpacing = 5
     ChildSizing.Layout = cclTopToBottomThenLeftToRight
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 27
+    ClientHeight = 29
     ClientWidth = 316
     TabOrder = 0
     object rbRandom: TRadioButton
       Left = 5
-      Height = 17
+      Height = 19
       Top = 5
-      Width = 59
+      Width = 65
       Caption = 'Random'
       OnChange = rbRandomChange
       TabOrder = 0
     end
     object rbSpecified: TRadioButton
-      Left = 69
-      Height = 17
+      Left = 75
+      Height = 19
       Top = 5
-      Width = 63
+      Width = 68
       Caption = 'Specified'
       OnChange = rbRandomChange
       TabOrder = 1
@@ -35,8 +35,8 @@ inherited ShrineFrame: TShrineFrame
   end
   object edSpell: TListBox[1]
     Left = 5
-    Height = 185
-    Top = 50
+    Height = 183
+    Top = 52
     Width = 310
     Align = alClient
     BorderSpacing.Around = 5
