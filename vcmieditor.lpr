@@ -27,15 +27,16 @@ uses
   {$ENDIF}{$ENDIF}
   sysutils,
   Interfaces, // this includes the LCL widgetset
-  Forms, main, lod, editor_graphics, Map,
-  editor_types, terrain, undo_base, undo_map, map_actions, zlib_stream, objects,
-  new_map, minimap, filesystem_base, filesystem, vcmi_json, editor_utils,
-  map_format, map_format_h3m, stream_adapter, editor_str_consts,
-  map_format_vcmi, vcmi_fpjsonrtti, glext40, map_options, editor_classes,
-  editor_consts, root_manager, progress_form, editor_gl, object_options,
-  edit_object_options, signbottle_frame, base_object_options_frame, grail_frame,
+  Forms, main, lod, editor_graphics, Map, editor_types, terrain, undo_base,
+  undo_map, map_actions, zlib_stream, objects, new_map, minimap,
+  filesystem_base, filesystem, vcmi_json, editor_utils, map_format,
+  map_format_h3m, stream_adapter, editor_str_consts, map_format_vcmi,
+  vcmi_fpjsonrtti, glext40, map_options, editor_classes, editor_consts,
+  root_manager, progress_form, editor_gl, object_options, edit_object_options,
+  signbottle_frame, base_object_options_frame, grail_frame,
   flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers,
-  shrine_frame, spellscroll_frame, root_form, dwelling_frame;
+  shrine_frame, spellscroll_frame, root_form, dwelling_frame, map_format_zip,
+  map_format_json;
 
 {$R *.res}
 

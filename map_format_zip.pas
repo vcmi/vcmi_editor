@@ -17,45 +17,24 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit map_format;
+
+
+{
+  Multiple JSON files in zip archive format
+}
+
+unit map_format_zip;
 
 {$I compilersetup.inc}
-{$INTERFACES COM}
 
 interface
 
 uses
-  Classes, SysUtils, Map, terrain, lists_manager;
-
-type
-  //make it managed object
-  IMapReader = interface
-    function Read(AStream: TStream):TVCMIMap;
-  end;
+  Classes, SysUtils;
 
 
-
-  { TBaseMapFormatHandler }
-
-  TBaseMapFormatHandler = class abstract (TInterfacedObject)
-  protected
-    FMapEnv: TMapEnvironment;
-  public
-     constructor Create(AMapEnv: TMapEnvironment); virtual;
-
-  end;
-
-  TBaseMapFormatHandlerClass = class of TBaseMapFormatHandler;
 
 implementation
-
-{ TBaseMapFormatHandler }
-
-constructor TBaseMapFormatHandler.Create(AMapEnv: TMapEnvironment);
-begin
-  FMapEnv := AMapEnv;
-
-end;
 
 end.
 

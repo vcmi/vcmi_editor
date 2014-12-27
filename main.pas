@@ -353,8 +353,8 @@ var
 implementation
 
 uses
-  undo_map, map_format, map_format_h3m, map_format_vcmi,
-  editor_str_consts, root_manager, map_options, new_map,
+  undo_map, map_format, map_format_h3m, map_format_vcmi, editor_str_consts,
+  root_manager, map_format_json, map_format_zip, map_options, new_map,
   edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
@@ -1035,6 +1035,10 @@ begin
              cstm := stm;
           end;
         end;
+      FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
+      begin
+         raise Exception.Create('Unimplemented map format');
+      end
       else
         begin
           raise Exception.Create('Unsuported map extension');
@@ -1708,6 +1712,7 @@ procedure TfMain.SaveMap(AFileName: string);
 var
   writer: IMapWriter;
   stm: TFileStreamUTF8;
+  file_ext: String;
 begin
 
   if FileExistsUTF8(AFileName) then
@@ -1716,11 +1721,28 @@ begin
       exit;
   end;
 
+  file_ext := Trim(UpperCase(ExtractFileExt(AFileName)));
+
   stm := TFileStreamUTF8.Create(AFileName,fmCreate);
   stm.Size := 0;
 
   try
-    writer := TMapWriterVCMI.Create(FEnv);
+
+   case file_ext of
+    FORMAT_VCMI_EXT:
+      begin
+        writer := TMapWriterVCMI.Create(FEnv);
+      end;
+    FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
+    begin
+       raise Exception.Create('Unimplemented map format');
+    end
+    else
+      begin
+        raise Exception.Create('Unsuported map extension');
+      end;
+    end;
+
     FMap.SaveToStream(stm,writer);
     FMapFilename := AFileName;
   finally

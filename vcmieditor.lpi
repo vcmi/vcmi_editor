@@ -134,7 +134,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="45">
+    <Units Count="47">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -404,6 +404,16 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="dwelling_frame"/>
       </Unit44>
+      <Unit45>
+        <Filename Value="map_format_zip.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_format_zip"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="map_format_json.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_format_json"/>
+      </Unit46>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
