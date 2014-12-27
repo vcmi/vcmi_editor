@@ -138,17 +138,13 @@ var
 begin
   map_o := FDestreamer.JSONStreamToJson(AStream) as TJSONObject;
 
-  cp.Levels := map_o.Integers['levels'];
-  cp.Height := map_o.Integers['height'];
-  cp.Width  := map_o.Integers['width'];
 
-  Result := TVCMIMap.CreateExisting(FMapEnv, cp);
+  Result := TVCMIMap.CreateEmpty(FMapEnv);
   try
     try
-      DeStreamTiles(map_o,Result);
-
       FDestreamer.JSONToObject(map_o, Result);
 
+      DeStreamTiles(map_o,Result);
       FDestreamer.JSONToCollection(map_o.Elements[TEMPLATES_FIELD],Result.Templates);
       FDestreamer.JSONToCollection(map_o.Elements[OBJECTS_FIELD],Result.Objects);
 

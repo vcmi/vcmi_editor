@@ -132,19 +132,19 @@ begin
     Exit;
   if FMapImgValid then
     Exit;
-  level := FMap.CurrentLevel;
+  level := FMap.CurrentLevelIndex;
   ctx := FMapImg.Canvas;
 
   ctx.Brush.Color := clWhite;
   ctx.FillRect(0, 0, FMapImg.Width,FMapImg.Height);
 
-  scale := Double(FMapImg.Width) / Double(Fmap.Width);
+  scale := Double(FMapImg.Width) / Double(Fmap.CurrentLevel.Width);
 
   tile_size := trunc(scale)+1;
 
-  for row := 0 to FMap.Height - 1 do
+  for row := 0 to FMap.CurrentLevel.Height - 1 do
   begin
-    for col := 0 to FMap.Width - 1 do
+    for col := 0 to FMap.CurrentLevel.Width - 1 do
     begin
       tile := FMap.GetTile(level,col,row);
       tile_rect := Rect(

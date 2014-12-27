@@ -388,7 +388,7 @@ end;
 
 procedure TObjectDragProxy.Drop;
 begin
-  FOwner.MoveObject(FDraggingObject,FOwner.FMap.CurrentLevel,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
+  FOwner.MoveObject(FDraggingObject,FOwner.FMap.CurrentLevelIndex,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
 end;
 
 procedure TObjectDragProxy.Render(x, y: integer);
@@ -412,7 +412,7 @@ begin
 
   action_item := TAddObject.Create(FOwner.FMap);
 
-  action_item.L:=FOwner.FMap.CurrentLevel;
+  action_item.L:=FOwner.FMap.CurrentLevelIndex;
   action_item.X := FOwner.FMouseTileX;
   action_item.Y := FOwner.FMouseTileY;
   action_item.Template := FDraggingTemplate;
@@ -598,7 +598,7 @@ var
 begin
   under :=  (Sender as TAction).Checked;
 
-  FMap.CurrentLevel := ifthen(under,1,0);
+  FMap.CurrentLevelIndex := ifthen(under,1,0);
   FSelectedObject := nil;
   InvalidateMapDimensions;
   InvalidateMapContent;
@@ -606,7 +606,7 @@ end;
 
 procedure TfMain.actUndergroundUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FMap) and (FMap.Levels > 1);
+  (Sender as TAction).Enabled := Assigned(FMap) and (FMap.Levels.Count > 1);
 end;
 
 procedure TfMain.actUndoExecute(Sender: TObject);
@@ -863,7 +863,7 @@ begin
 
   if (dx<>0) or (dy<>0) then
   begin
-    MoveObject(FSelectedObject, FMap.CurrentLevel, FSelectedObject.X + dx, FSelectedObject.Y + dy);
+    MoveObject(FSelectedObject, FMap.CurrentLevelIndex, FSelectedObject.X + dx, FSelectedObject.Y + dy);
     Key := VK_UNKNOWN;
     Exit;
   end;
@@ -874,14 +874,14 @@ function TfMain.getMapHeight: Integer;
 begin
   Result := 0;
   if Assigned(FMap) then
-    Result := FMap.Height;
+    Result := FMap.CurrentLevel.Height;
 end;
 
 function TfMain.getMapWidth: Integer;
 begin
   Result := 0;
   if Assigned(FMap) then
-     Result := FMap.Width;
+     Result := FMap.CurrentLevel.Width;
 end;
 
 function TfMain.GetObjIdx(col, row: integer): integer;
@@ -1055,6 +1055,7 @@ begin
 
   FreeAndNil(FMap); //destroy old map
   FMap := new_map;
+  FMap.CurrentLevelIndex := 0;
   if set_filename then FMapFilename := AFileName;
 
   MapChanded;
@@ -1080,7 +1081,7 @@ var
 begin
   //TODO: handle all cases
 
-  if not FMap.IsOnMap(FMap.CurrentLevel, FMouseTileX, FMouseTileY) then
+  if not FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
   begin
     exit;
   end;
@@ -1091,7 +1092,7 @@ begin
 
     action_item.BrushMode := FTerrainBrushMode;
     action_item.TerrainType := FCurrentTerrain;
-    action_item.Level := FMap.CurrentLevel;
+    action_item.Level := FMap.CurrentLevelIndex;
 
       case FTerrainBrushMode of
       TBrushMode.fixed:begin
@@ -1126,7 +1127,7 @@ var
 begin
   if Assigned(FSelectedObject) then
   begin
-    if FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY) then
+    if FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY) then
     begin
       actProperties.Execute;
       Exit;
@@ -1134,7 +1135,7 @@ begin
   end;
 
   q := TMapObjectQueue.Create;
-  FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
+  FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
   try
     if not q.IsEmpty then
     begin
@@ -1194,7 +1195,7 @@ var
      if not DragStarted then
      begin
        if Assigned(FSelectedObject)
-         and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY)) then
+         and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
        begin
          FNextDragSubject:=TDragSubject.MapObject;
          DragManager.DragStart(self,False, TILE_SIZE div 2);
@@ -1213,10 +1214,10 @@ begin
 
     q := TMapObjectQueue.Create;
     try
-      FMap.SelectObjectsOnTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY,q);
+      FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
 
       if Assigned(FSelectedObject)
-        and (FSelectedObject.CoversTile(FMap.CurrentLevel,FMouseTileX,FMouseTileY))
+        and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
         then
       begin
         //select next object
@@ -1442,8 +1443,8 @@ begin
     cx := X / (Minimap.Width);
     cy := Y / (Minimap.Height);
 
-    pos.x := round(cx * FMap.Width);
-    pos.y := round(cy * FMap.Height);
+    pos.x := round(cx * FMap.CurrentLevel.Width);
+    pos.y := round(cy * FMap.CurrentLevel.Height);
 
     pos.x := pos.x- (FViewTilesH div 2);
     pos.y := pos.y- (FViewTilesV div 2);
@@ -1650,13 +1651,13 @@ begin
 
       case Kind of
         TAxisKind.Horizontal: begin
-          if (FMapHPos + 1 + i) <= FMap.Width then
+          if (FMapHPos + 1 + i) <= FMap.CurrentLevel.Width then
           begin
             ctx.TextOut(I * TILE_SIZE + ofs, 0, txt);
           end;
         end;
         TAxisKind.Vertical: begin
-          if (FMapVPos + 1 + i) <= FMap.Height then
+          if (FMapVPos + 1 + i) <= FMap.CurrentLevel.Height then
           begin
             ctx.Font.Orientation := 900;
             ctx.TextOut(0, I * TILE_SIZE + ofs, txt);

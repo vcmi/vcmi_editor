@@ -57,6 +57,7 @@ type
     procedure DeStreamTile(Encoded: string; Tile:PMapTile);
     procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
     procedure DeStreamTiles(AJson: TJSONArray; AMap: TVCMIMap);
+
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
     destructor Destroy; override;
@@ -119,10 +120,10 @@ var
 
   ARowArray: TJSONArray;
 begin
-  for row := 0 to AMap.Height - 1 do
+  for row := 0 to AMap.CurrentLevel.Height - 1 do
   begin
     ARowArray := TJSONArray.Create;
-    for col := 0 to AMap.Width - 1 do
+    for col := 0 to AMap.CurrentLevel.Width - 1 do
     begin
       StreamTile(ARowArray, AMap.GetTile(Level,Col,Row));
     end;
@@ -137,7 +138,7 @@ var
 begin
   result := TJSONArray.Create;
 
-  for i := 0 to AMap.Levels - 1 do
+  for i := 0 to AMap.Levels.Count - 1 do
   begin
     level_array := TJSONArray.Create;
     StreamTilesLevel(level_array,AMap,i);
@@ -226,14 +227,16 @@ var
   tile: PMapTile;
 
   ARow:TJSONArray;
+  map_level: TMapLevel;
 begin
-  for row := 0 to AMap.Height - 1 do
+  map_level := AMap.Levels[Level];
+  for row := 0 to map_level.Height - 1 do
   begin
     //todo: more error checking
     ARow := AJson.Arrays[row];
-    for col := 0 to AMap.Width - 1 do
+    for col := 0 to map_level.Width - 1 do
     begin
-      tile := AMap.GetTile(Level,col,row);
+      tile := map_level.Tile[col,row];
 
       d := ARow.Items[col];
 
@@ -254,7 +257,7 @@ var
   level_array: TJSONArray;
   i: Integer;
 begin
-  for i := 0 to AMap.Levels - 1 do
+  for i := 0 to AMap.Levels.Count - 1 do
   begin
     level_array := AJson.Arrays[i];
     DeStreamTilesLevel(level_array,AMap,i);

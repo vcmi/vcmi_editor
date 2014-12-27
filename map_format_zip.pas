@@ -191,11 +191,7 @@ begin
 
   map_o := FHeaderJson as TJSONObject;
 
-  cp.Levels := map_o.Integers['levels'];
-  cp.Height := map_o.Integers['height'];
-  cp.Width  := map_o.Integers['width'];
-
-  Result := TVCMIMap.CreateExisting(FMapEnv, cp);
+  Result := TVCMIMap.CreateEmpty(FMapEnv);
 
   FDestreamer.JSONToObject(map_o, Result);
 

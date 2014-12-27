@@ -210,14 +210,14 @@ begin
 
       if FMapVersion <> MAP_VERSION_ROE then
       begin
-        Result.HeroLevelLimit := ReadByte;
+        Result.LevelLimit := ReadByte;
       end else
       begin
-        Result.HeroLevelLimit := 0;
+        Result.LevelLimit := 0;
       end;
     end;
 
-    ReadPlayerAttrs(FMap.PlayerAttributes);
+    ReadPlayerAttrs(FMap.Players);
     ReadSVLC();
     ReadTeams();
     ReadAllowedHeros();
@@ -1322,13 +1322,13 @@ begin
     for player in TPlayerColor do
     begin
       team := FSrc.ReadByte;
-      FMap.PlayerAttributes.GetAttr(Integer(player)).TeamId := team;
+      FMap.Players.GetAttr(Integer(player)).TeamId := team;
     end;
   end
   else begin
     for player in TPlayerColor do
     begin
-      attr :=FMap.PlayerAttributes.GetAttr(Integer(player));
+      attr :=FMap.Players.GetAttr(Integer(player));
       if attr.CanComputerPlay or attr.CanHumanPlay then
       begin
         attr.TeamId := team_count;
@@ -1345,9 +1345,9 @@ procedure TMapReaderH3m.ReadTerrain;
     x: Integer;
     y: Integer;
   begin
-    for y := 0 to FMap.Height - 1 do
+    for y := 0 to FMap.CurrentLevel.Height - 1 do
     begin
-      for x := 0 to FMap.Width - 1 do
+      for x := 0 to FMap.CurrentLevel.Width - 1 do
       begin
         tile := FMap.GetTile(Level,x,y);
 
@@ -1369,7 +1369,7 @@ procedure TMapReaderH3m.ReadTerrain;
 var
   i: Integer;
 begin
-  for i := 0 to FMap.Levels - 1 do
+  for i := 0 to FMap.Levels.Count - 1 do
   begin
     ReadLevel(i);
   end;

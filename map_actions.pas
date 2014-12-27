@@ -759,8 +759,8 @@ end;
 function TEditTerrain.MapRect: TMapRect;
 begin
   Result.Create();
-  Result.FWidth:=FMap.Width;
-  Result.FHeight:=FMap.Height;
+  Result.FWidth:=FMap.CurrentLevel.Width;
+  Result.FHeight:=FMap.CurrentLevel.Height;
 end;
 
 function TEditTerrain.ExtendTileAround(X, Y: integer): TMapRect;

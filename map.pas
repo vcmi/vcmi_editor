@@ -41,9 +41,6 @@ type
     procedure Write(AStream: TStream; AMap: TVCMIMap);
   end;
 
-
-  //TMapDiscreteSize = (S = 36, M = 72, L = 108, XL = 144);
-
   TMapCreateParams = object
   public
     Width: Integer;
@@ -362,34 +359,39 @@ type
 
   { TMapLevel }
 
-  TMapLevel = class(TCollectionItem)
+  TMapLevel = class(TNamedCollectionItem)
   strict private
     FHeight: Integer;
-    FOwner: TVCMIMap;
+
     FTerrain: array of array of TMapTile; //X, Y
     FObjects: TMapObjects; //todo: use it
     FWidth: Integer;
+    function GetOwner: TVCMIMap;
     function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
-    procedure SetOwner(AValue: TVCMIMap);
     procedure SetWidth(AValue: Integer);
 
     procedure Resize;
+    procedure SetIndex(Value: Integer); override;
   public
     destructor Destroy; override;
 
     property Tile[X, Y: Integer]: PMapTile read GetTile;
 
-    property Owner: TVCMIMap read FOwner write SetOwner;
+    property Owner: TVCMIMap read GetOwner;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
+    property Index;
   end;
 
   { TMapLevels }
 
   TMapLevels = class(specialize TGNamedCollection<TMapLevel>)
-
+  private
+    FOwner: TVCMIMap;
+  public
+    constructor Create(AOwner: TVCMIMap);
   end;
 
   { TVCMIMap }
@@ -400,15 +402,15 @@ type
     FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
 
-    FHeight: Integer;
-    FHeroLevelLimit: Integer;
+
+    FLevelLimit: Integer;
     FName: TLocalizedString;
     FObjects: TMapObjects;
-    FPlayerAttributes: TPlayerAttrs;
+    FPlayers: TPlayerAttrs;
     FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
-    FWigth: Integer;
+
     FLevels: TMapLevels;
 
     FAllowedSpells: TStringList;
@@ -421,17 +423,15 @@ type
     procedure Changed;
     function GetAllowedAbilities: TStrings;
     function GetAllowedSpells: TStrings;
-    function GetCurrentLevel: Integer; inline;
-    function GetLevelCount: Integer;
-    procedure RecreateTerrainArray;
+    function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
     procedure FPOObservedChanged(ASender: TObject;
       Operation: TFPObservedOperation; Data: Pointer);
 
-    procedure SetCurrentLevel(AValue: Integer);
+    procedure SetCurrentLevelIndex(AValue: Integer);
     procedure SetDifficulty(AValue: TDifficulty);
-    procedure SetHeroLevelLimit(AValue: Integer);
+    procedure SetLevelLimit(AValue: Integer);
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetName(AValue: TLocalizedString);
 
@@ -441,7 +441,10 @@ type
     //create with specified params and set default options
     constructor Create(env: TMapEnvironment; Params: TMapCreateParams);
     //create for deserialize
-    constructor CreateExisting(env: TMapEnvironment; Params: TMapCreateParams);
+    constructor CreateExisting(env: TMapEnvironment; Params: TMapCreateParams); deprecated;
+
+    constructor CreateEmpty(env: TMapEnvironment);
+
     destructor Destroy; override;
 
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set default terrain
@@ -456,7 +459,7 @@ type
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
     procedure RenderObjects(Left, Right, Top, Bottom: Integer);
 
-    property CurrentLevel: Integer read GetCurrentLevel write SetCurrentLevel;
+    property CurrentLevelIndex: Integer read GetCurrentLevelIndex write SetCurrentLevelIndex;
 
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
@@ -467,26 +470,25 @@ type
 
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
   published
-    property Height: Integer read FHeight;
-    property Width: Integer read FWigth;
-    property Levels: Integer read GetLevelCount;
+    property Name:TLocalizedString read FName write SetName; //+
+    property Description:TLocalizedString read FDescription write SetDescription; //+
 
-    property Name:TLocalizedString read FName write SetName;
-    property Description:TLocalizedString read FDescription write SetDescription;
+    property Difficulty: TDifficulty read FDifficulty write SetDifficulty; //?
+    property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 0;//+
 
-    property Difficulty: TDifficulty read FDifficulty write SetDifficulty;
-    property HeroLevelLimit: Integer read FHeroLevelLimit write SetHeroLevelLimit;
-
-    property PlayerAttributes: TPlayerAttrs read FPlayerAttributes;
+    property Players: TPlayerAttrs read FPlayers;
 
     property Rumors: TRumors read FRumors;
 
     property AllowedSpells: TStrings read GetAllowedSpells;
     property AllowedAbilities: TStrings read GetAllowedAbilities;
 
+    property Levels: TMapLevels read FLevels;
   public //manual streamimg
     property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
+  public
+    function CurrentLevel: TMapLevel;
   end;
 
   {$pop}
@@ -494,6 +496,14 @@ type
 implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
+
+{ TMapLevels }
+
+constructor TMapLevels.Create(AOwner: TVCMIMap);
+begin
+  inherited Create;
+  FOwner := AOwner;
+end;
 
 { TRumor }
 
@@ -1055,23 +1065,18 @@ end;
 { TMapLevel }
 
 destructor TMapLevel.Destroy;
-//var
-//  X: SizeInt;
-//  Y: SizeInt;
 begin
-  //for X := 0 to Length(FTerrain) - 1 do
-  //begin
-  //  for Y := 0 to Length(FTerrain[X]) - 1 do
-  //  begin
-  //    FTerrain[X][Y].Free();
-  //  end;
-  //end;
   inherited Destroy;
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
 begin
   Result :=@FTerrain[x,y];
+end;
+
+function TMapLevel.GetOwner: TVCMIMap;
+begin
+  Result := (Collection as TMapLevels).FOwner;
 end;
 
 procedure TMapLevel.Resize;
@@ -1082,23 +1087,29 @@ var
 begin
   Assert(Height>=0, 'Invalid height');
   Assert(Width>=0, 'Invalid width');
-  if (Height=0) or (Width=0) then Exit;
+  if (Height=0) or (Width=0) or (Index <0) then Exit;
 
 
-    tt := FOwner.FTerrainManager.GetDefaultTerrain(Index);
+  tt := Owner.FTerrainManager.GetDefaultTerrain(Index);
 
-    SetLength(FTerrain,FWidth);
-    for X := 0 to FWidth - 1 do
+  SetLength(FTerrain,FWidth);
+  for X := 0 to FWidth - 1 do
+  begin
+    SetLength(FTerrain[X],FHeight);
+    for Y := 0 to FHeight - 1 do
     begin
-      SetLength(FTerrain[X],FHeight);
-      for Y := 0 to FHeight - 1 do
-      begin
-        FTerrain[X][Y].Create();
-        FTerrain[X][Y].TerType :=  tt;
-        FTerrain[X][Y].TerSubtype := FOwner.FTerrainManager.GetRandomNormalSubtype(tt);
-      end;
+      FTerrain[X][Y].Create();
+      FTerrain[X][Y].TerType :=  tt;
+      FTerrain[X][Y].TerSubtype := Owner.FTerrainManager.GetRandomNormalSubtype(tt);
     end;
+  end;
 
+end;
+
+procedure TMapLevel.SetIndex(Value: Integer);
+begin
+  inherited SetIndex(Value);
+  Resize;
 end;
 
 procedure TMapLevel.SetHeight(AValue: Integer);
@@ -1106,12 +1117,6 @@ begin
   if FHeight = AValue then Exit;
   FHeight := AValue;
   Resize();
-end;
-
-procedure TMapLevel.SetOwner(AValue: TVCMIMap);
-begin
-  if FOwner=AValue then Exit;
-  FOwner:=AValue;
 end;
 
 procedure TMapLevel.SetWidth(AValue: Integer);
@@ -1158,32 +1163,28 @@ constructor TVCMIMap.CreateExisting(env: TMapEnvironment;
 var
   ALevel: TMapLevel;
 begin
+
   FTerrainManager := env.tm;
   FListsManager := env.lm;
 
-  FHeight := Params.Height;
-  FWigth := Params.Width;
-  FLevels := TMapLevels.Create;
+  FLevels := TMapLevels.Create(Self);
 
   ALevel := FLevels.Add;
-  ALevel.Owner := Self;
-  ALevel.Width := FWigth;
-  ALevel.Height:=FHeight;
-  ALevel.DisplayName := 'Surface';
+  ALevel.Width := Params.Width;
+  ALevel.Height:=Params.Height;
+  ALevel.DisplayName := 'surface';
 
   if Params.Levels>1 then
   begin
 
     ALevel := FLevels.Add;
-    ALevel.Owner := Self;
-    ALevel.Width := FWigth;
-    ALevel.Height:=FHeight;
-    ALevel.DisplayName := 'Underground';
+    ALevel.Width := Params.Width;
+    ALevel.Height:=Params.Height;
+    ALevel.DisplayName := 'underground';
 
   end;
 
-  RecreateTerrainArray;
-  CurrentLevel := 0;
+  CurrentLevelIndex := 0;
 
   Name := rsDefaultMapName;
 
@@ -1192,11 +1193,35 @@ begin
   FAllowedAbilities := CrStrList;
   FAllowedSpells := CrStrList;
 
-  FPlayerAttributes := TPlayerAttrs.Create;
+  FPlayers := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
-  FHeroLevelLimit:=MAX_HERO_LEVEL;
+  FLevelLimit:=MAX_HERO_LEVEL;
+  AttachTo(FObjects);
+end;
+
+constructor TVCMIMap.CreateEmpty(env: TMapEnvironment);
+begin
+  FTerrainManager := env.tm;
+  FListsManager := env.lm;
+
+  FLevels := TMapLevels.Create(Self);
+
+  CurrentLevelIndex := -1;
+
+  Name := rsDefaultMapName;
+
+  FIsDirty := False;
+
+  FAllowedAbilities := CrStrList;
+  FAllowedSpells := CrStrList;
+
+  FPlayers := TPlayerAttrs.Create;
+  FTemplates := TMapObjectTemplates.Create(self);
+  FObjects := TMapObjects.Create(Self);
+  FRumors := TRumors.Create;
+  FLevelLimit:=MAX_HERO_LEVEL;
   AttachTo(FObjects);
 end;
 
@@ -1208,7 +1233,7 @@ begin
   FRumors.Free;
   FObjects.Free;
   FTemplates.Free;
-  FPlayerAttributes.Free;
+  FPlayers.Free;
   FLevels.Free;
   inherited Destroy;
 end;
@@ -1218,9 +1243,9 @@ var
   x: Integer;
   Y: Integer;
 begin
-  for x := 0 to FWigth - 1 do
+  for x := 0 to CurrentLevel.Width - 1 do
   begin
-    for Y := 0 to FHeight - 1 do
+    for Y := 0 to CurrentLevel.Height - 1 do
     begin
       SetTerrain(x,y,tt);
     end;
@@ -1250,14 +1275,9 @@ begin
   Result := FAllowedSpells;
 end;
 
-function TVCMIMap.GetCurrentLevel: Integer;
+function TVCMIMap.GetCurrentLevelIndex: Integer;
 begin
   Result := FCurrentLevel;
-end;
-
-function TVCMIMap.GetLevelCount: Integer;
-begin
-  Result := FLevels.Count;
 end;
 
 function TVCMIMap.GetTile(Level, X, Y: Integer): PMapTile;
@@ -1268,40 +1288,9 @@ end;
 function TVCMIMap.IsOnMap(Level, X, Y: Integer): boolean;
 begin
   Result := (Level >=0)
-  and (Level < Levels)
-  and (x>=0) and (x<Width)
-  and (y>=0) and (y<Height);
-end;
-
-procedure TVCMIMap.RecreateTerrainArray;
-var
-  Level: Integer;
-  X: Integer;
-  Y: Integer;
-
-  tt: TTerrainType;
-begin
-  //DestroyTiles();
-  //
-  //SetLength(FTerrain, FLevels);
-  //
-  //for Level := 0 to FLevels-1 do
-  //begin
-  //
-  //  tt := FTerrainManager.GetDefaultTerrain(Level);
-  //
-  //  SetLength(FTerrain[Level],FWigth);
-  //  for X := 0 to FWigth - 1 do
-  //  begin
-  //    SetLength(FTerrain[Level, X],FHeight);
-  //    for Y := 0 to FHeight - 1 do
-  //    begin
-  //      FTerrain[Level][X][Y] := TMapTile.Create();
-  //      FTerrain[Level][X][Y].TerType :=  tt;
-  //      FTerrain[Level][X][Y].TerSubtype := FTerrainManager.GetRandomNormalSubtype(tt);
-  //    end;
-  //  end;
-  //end;
+  and (Level < FLevels.Count)
+  and (x>=0) and (x<Levels[Level].Width)
+  and (y>=0) and (y<Levels[Level].Height);
 end;
 
 procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);
@@ -1310,8 +1299,8 @@ var
   j: Integer;
 begin
 
-  Right := Min(Right, FWigth - 1);
-  Bottom := Min(Bottom, FHeight - 1);
+  Right := Min(Right, CurrentLevel.Width - 1);
+  Bottom := Min(Bottom, CurrentLevel.Height - 1);
 
   for i := Left to Right do
   begin
@@ -1348,7 +1337,7 @@ begin
   for i := 0 to FObjects.Count - 1 do
   begin
     o := TMapObject(FObjects.Items[i]);
-    if o.L <> CurrentLevel then
+    if o.L <> CurrentLevelIndex then
       Continue;
 
     if (o.X < Left)
@@ -1396,7 +1385,12 @@ begin
   end;
 end;
 
-procedure TVCMIMap.SetCurrentLevel(AValue: Integer);
+function TVCMIMap.CurrentLevel: TMapLevel;
+begin
+  Result := FLevels[CurrentLevelIndex];
+end;
+
+procedure TVCMIMap.SetCurrentLevelIndex(AValue: Integer);
 begin
   if FCurrentLevel = AValue then Exit; //TODO: check
   FCurrentLevel := AValue;
@@ -1416,13 +1410,13 @@ begin
   Changed;
 end;
 
-procedure TVCMIMap.SetHeroLevelLimit(AValue: Integer);
+procedure TVCMIMap.SetLevelLimit(AValue: Integer);
 begin
-  if FHeroLevelLimit = AValue then Exit;
-  FHeroLevelLimit := AValue;
-  if FHeroLevelLimit = 0 then
+  if FLevelLimit = AValue then Exit;
+  FLevelLimit := AValue;
+  if FLevelLimit = 0 then
   begin
-    FHeroLevelLimit := MAX_HERO_LEVEL;
+    FLevelLimit := MAX_HERO_LEVEL;
   end;
   Changed;
 end;
@@ -1449,7 +1443,7 @@ end;
 
 procedure TVCMIMap.SetTerrain(X, Y: Integer; TT: TTerrainType);
 begin
-  SetTerrain(CurrentLevel,X,Y,TT,FTerrainManager.GetRandomNormalSubtype(TT));
+  SetTerrain(CurrentLevelIndex,X,Y,TT,FTerrainManager.GetRandomNormalSubtype(TT));
 end;
 
 end.

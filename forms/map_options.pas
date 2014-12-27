@@ -57,7 +57,7 @@ begin
   //todo: save
 
   FMap.Difficulty := TDifficulty(edDifficulty.ItemIndex);
-  FMap.HeroLevelLimit:=edLevelLimit.Value;
+  FMap.LevelLimit:=edLevelLimit.Value;
 
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
@@ -83,7 +83,7 @@ procedure TMapOptionsForm.ReadData;
 begin
 
   edDifficulty.ItemIndex := Integer(FMap.Difficulty);
-  edLevelLimit.Value := FMap.HeroLevelLimit;
+  edLevelLimit.Value := FMap.LevelLimit;
 
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;
