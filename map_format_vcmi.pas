@@ -39,7 +39,6 @@ type
   TMapReaderVCMI = class(TMapReaderJson, IMapReader)
   private
     procedure DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
-    procedure DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
 
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
@@ -123,53 +122,8 @@ begin
 end;
 
 procedure TMapReaderVCMI.DeStreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
-var
-  main_array, level_array: TJSONArray;
-  i: Integer;
 begin
-  main_array := ARoot.Arrays[TILES_FIELD];
-
-  for i := 0 to AMap.Levels - 1 do
-  begin
-    level_array := main_array.Arrays[i];
-    DeStreamTilesLevel(level_array,AMap,i);
-  end;
-end;
-
-procedure TMapReaderVCMI.DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
-  const Level: Integer);
-var
-  row: Integer;
-  col: Integer;
-  idx: Integer;
-
-  o: TJSONObject;
-  d: TJSONData;
-  tile: PMapTile;
-
-  ARow:TJSONArray;
-begin
-  for row := 0 to AMap.Height - 1 do
-  begin
-    //todo: more error checking
-    ARow := AJson.Arrays[row];
-    for col := 0 to AMap.Width - 1 do
-    begin
-      tile := AMap.GetTile(Level,col,row);
-
-      d := ARow.Items[col];
-
-      case d.JSONType of
-
-        jtString:begin
-           DeStreamTile(d.AsString,tile);
-        end;
-      else
-        raise Exception.CreateFmt('Invalid tile format at  L: %d, row: %d, col: %d',[Level, row, col]);
-      end;
-
-    end;
-  end;
+  Inherited DeStreamTiles(ARoot.Arrays[TILES_FIELD], AMap);
 end;
 
 destructor TMapReaderVCMI.Destroy;

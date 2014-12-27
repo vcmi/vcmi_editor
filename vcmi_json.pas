@@ -371,7 +371,7 @@ begin
   src.Size := AStream.Size;
   src.Seek(0,soBeginning);
   try
-    src.CopyFrom(AStream,AStream.Size);
+    src.CopyFrom(AStream,0);
     Result := ObjectFromString(src.DataString);
   finally
     src.Free;

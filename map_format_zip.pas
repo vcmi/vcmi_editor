@@ -41,12 +41,17 @@ type
   private
     FUnZipper: TUnZipper;
     FInStream:TStream;
+    FFreeList: TFPObjectList;
+
+    FHeaderJson, FTerrainJson, FTemplatesJson, FObjectsJson: TJSONData;
 
     procedure UnZipperOnOpenInputStream(Sender: TObject; var AStream: TStream);
     procedure UnZipperOnCloseInputStream(Sender: TObject; var AStream: TStream);
 
     procedure UnZipperOnCreateStream(Sender: TObject; var AStream: TStream; AItem : TFullZipFileEntry);
     procedure UnZipperOnDoneStream(Sender: TObject; var AStream: TStream; AItem : TFullZipFileEntry);
+
+    procedure CheckArchive(ARequiredFiles: array of string);
 
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
@@ -74,6 +79,11 @@ type
 
 implementation
 
+const
+  HEADER_FILENAME = 'header.json';
+  TEMPLATES_FILENAME = 'templates.json';
+  OBJECTS_FILENAME = 'objects.json';
+  TERRAIN_FILENAME = 'terrain.json';
 
 { TMapReaderZIP }
 
@@ -97,7 +107,55 @@ end;
 procedure TMapReaderZIP.UnZipperOnDoneStream(Sender: TObject;
   var AStream: TStream; AItem: TFullZipFileEntry);
 begin
+
+  case trim(LowerCase(AItem.ArchiveFileName)) of
+    HEADER_FILENAME:
+    begin
+      FHeaderJson := FDestreamer.JSONStreamToJson(AStream);
+      FFreeList.Add(FHeaderJson);
+    end;
+    TEMPLATES_FILENAME:
+    begin
+      FTemplatesJson := FDestreamer.JSONStreamToJson(AStream);
+      FFreeList.Add(FTemplatesJson);
+    end;
+    OBJECTS_FILENAME:
+    begin
+      FObjectsJson := FDestreamer.JSONStreamToJson(AStream);
+      FFreeList.Add(FObjectsJson);
+    end;
+    TERRAIN_FILENAME:
+    begin
+      FTerrainJson := FDestreamer.JSONStreamToJson(AStream);
+      FFreeList.Add(FTerrainJson);
+    end;
+  end;
+
   AStream.Free;
+end;
+
+procedure TMapReaderZIP.CheckArchive(ARequiredFiles: array of string);
+var
+  f: String;
+  i: Integer;
+  found: Boolean;
+begin
+  for f in ARequiredFiles do
+  begin
+    found := false;
+    for i := 0 to FUnZipper.Entries.Count - 1 do
+    begin
+      if FUnZipper.Entries.FullEntries[i].ArchiveFileName = f then
+      begin
+        found := true;
+        Break;
+      end;
+    end;
+    if not found then
+    begin
+      raise Exception.Create('Invalid map archive. Required file '+f+' not found');
+    end;
+  end;
 end;
 
 constructor TMapReaderZIP.Create(AMapEnv: TMapEnvironment);
@@ -108,45 +166,68 @@ begin
   FUnZipper.OnCloseInputStream:=@UnZipperOnCloseInputStream;
   FUnZipper.OnCreateStream := @UnZipperOnCreateStream;
   FUnZipper.OnDoneStream := @UnZipperOnDoneStream;
+
+  FFreeList := TFPObjectList.Create(true);
 end;
 
 destructor TMapReaderZIP.Destroy;
 begin
+  FFreeList.Free;
   FUnZipper.Free;
   inherited Destroy;
 end;
 
 function TMapReaderZIP.Read(AStream: TStream): TVCMIMap;
+var
+  cp:  TMapCreateParams;
+  map_o: TJSONObject;
 begin
   FInStream := AStream;
   FUnZipper.Examine;
-  //FUnZipper.Clear;
+
+  CheckArchive([HEADER_FILENAME, OBJECTS_FILENAME, TEMPLATES_FILENAME, TERRAIN_FILENAME]);
+
   FUnZipper.UnZipAllFiles;
 
-  Result := TVCMIMap.CreateDefault(FMapEnv);
+  map_o := FHeaderJson as TJSONObject;
+
+  cp.Levels := map_o.Integers['levels'];
+  cp.Height := map_o.Integers['height'];
+  cp.Width  := map_o.Integers['width'];
+
+  Result := TVCMIMap.CreateExisting(FMapEnv, cp);
+
+  FDestreamer.JSONToObject(map_o, Result);
+
+  FDestreamer.JSONToCollection(FTemplatesJson,Result.Templates);
+  FDestreamer.JSONToCollection(FObjectsJson,Result.Objects);
+
+  DeStreamTiles(FTerrainJson as TJSONArray, Result);
+
+  FFreeList.Clear;
 end;
 
 { TMapWriterZIP }
 
 procedure TMapWriterZIP.WriteHeader(AMap: TVCMIMap);
 begin
-  AddArchiveEntry( FStreamer.ObjectToJSON(AMap), 'header.json');
+  AddArchiveEntry( FStreamer.ObjectToJSON(AMap), HEADER_FILENAME);
   //todo: separate real header
 end;
 
 procedure TMapWriterZIP.WriteTemplates(AMap: TVCMIMap);
 begin
-  AddArchiveEntry(FStreamer.StreamCollection(AMap.Templates),'templates.json');
+  AddArchiveEntry(FStreamer.StreamCollection(AMap.Templates),TEMPLATES_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteObjects(AMap: TVCMIMap);
 begin
-  AddArchiveEntry(FStreamer.StreamCollection(AMap.Objects),'objects.json');
+  AddArchiveEntry(FStreamer.StreamCollection(AMap.Objects),OBJECTS_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteTerrain(AMap: TVCMIMap);
 begin
-  AddArchiveEntry(StreamTiles(AMap),'terrain.json');
+  AddArchiveEntry(StreamTiles(AMap),TERRAIN_FILENAME);
 end;
 
 procedure TMapWriterZIP.AddArchiveEntry(AData: TJSONData; AFilename: AnsiString
