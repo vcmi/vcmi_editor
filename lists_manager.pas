@@ -101,16 +101,19 @@ type
     FCapitolDefName: AnsiString;
     FCastleDefName: AnsiString;
     FGuildLevel: Integer;
+    FHasTown: Boolean;
     FVillageDefName: AnsiString;
     procedure SetCapitolDefName(AValue: AnsiString);
     procedure SetCastleDefName(AValue: AnsiString);
     procedure SetGuildLevel(AValue: Integer);
+    procedure SetHasTown(AValue: Boolean);
     procedure SetVillageDefName(AValue: AnsiString);
   public
     property VillageDefName: AnsiString read FVillageDefName write SetVillageDefName;
     property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
     property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
     property GuildLevel: Integer read FGuildLevel write SetGuildLevel;
+    property HasTown: Boolean read FHasTown write SetHasTown;
   end;
 
   { TFactionInfos }
@@ -118,6 +121,7 @@ type
   TFactionInfos = class (specialize TFPGObjectList<TFactionInfo>)
   public
     procedure FillWithAllIds(AList: TStrings);
+    procedure FillWithTownIds(AList: TStrings);
   end;
 
 
@@ -217,6 +221,12 @@ begin
   FGuildLevel := AValue;
 end;
 
+procedure TFactionInfo.SetHasTown(AValue: Boolean);
+begin
+  if FHasTown=AValue then Exit;
+  FHasTown:=AValue;
+end;
+
 procedure TFactionInfo.SetVillageDefName(AValue: AnsiString);
 begin
   if FVillageDefName = AValue then Exit;
@@ -229,9 +239,22 @@ procedure TFactionInfos.FillWithAllIds(AList: TStrings);
 var
   faction: TFactionInfo;
 begin
+  AList.Clear;
   for faction in Self do
   begin
     AList.Add(faction.ID);
+  end;
+end;
+
+procedure TFactionInfos.FillWithTownIds(AList: TStrings);
+var
+  faction: TFactionInfo;
+begin
+  AList.Clear;
+  for faction in Self do
+  begin
+    if faction.HasTown then
+      AList.Add(faction.ID);
   end;
 end;
 
@@ -486,6 +509,8 @@ begin
       o := faction_config.Items[i] as TJSONObject;
       info.Index:= o.Integers['index'];
       info.Name := o.Strings['name'];
+
+      info.HasTown:=o.IndexOfName('town')>=0;
 
       FFactionInfos.Add(info);
       FFactionMap.AddObject(info.ID, info);

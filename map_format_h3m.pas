@@ -904,7 +904,7 @@ var
   faction_count: Integer;
   faction_n: TCustomID;
   heroes_count: DWord;
-  hero: TCustomHero;
+  hero: TPlasedHero;
   h: Integer;
 
 begin
@@ -997,8 +997,8 @@ begin
 
     for h := 0 to heroes_count - 1 do
     begin
-      hero := TCustomHero(Attr.CustomHeroes.Add);
-      hero.Portrait := FSrc.ReadIDByte;
+      hero := TPlasedHero(Attr.PlasedHeroes.Add);
+      hero.id := FSrc.ReadIDByte;
       hero.Name := FSrc.ReadLocalizedString;
     end;
   end;

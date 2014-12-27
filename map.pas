@@ -54,22 +54,22 @@ type
   {$push}
   {$m+}
 
-  { TCustomHero }
+  { TPlasedHero }
 
-  TCustomHero = class (TCollectionItem)
+  TPlasedHero = class (TCollectionItem)
   private
     FName: string;
     FPortrait: THeroID;
     procedure SetName(AValue: string);
     procedure SetPortrait(AValue: THeroID);
   published
-    property Portrait:THeroID read FPortrait write SetPortrait nodefault;
+    property id:THeroID read FPortrait write SetPortrait nodefault;
     property Name: string read FName write SetName;
   end;
 
-  { TCustomHeroes }
+  { TPlasedHeroes }
 
-  TCustomHeroes = class (specialize TGArrayCollection<TCustomHero>)
+  TPlasedHeroes = class (specialize TGArrayCollection<TPlasedHero>)
   public
     constructor Create;
     destructor Destroy; override;
@@ -84,7 +84,7 @@ type
     FAllowerFactionsSet: Boolean;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
-    FCustomHeroes: TCustomHeroes;
+    FPlasedHeroes: TPlasedHeroes;
     FGenerateHeroAtMainTown: boolean;
     FHasMainTown: boolean;
     FRandomFaction: boolean;
@@ -129,7 +129,7 @@ type
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
 
-    property CustomHeroes: TCustomHeroes read FCustomHeroes;
+    property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown;
     property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
 
@@ -805,27 +805,27 @@ begin
   FZIndex := AValue;
 end;
 
-{ TCustomHeroes }
+{ TPlasedHeroes }
 
-constructor TCustomHeroes.Create;
+constructor TPlasedHeroes.Create;
 begin
   inherited Create();
 end;
 
-destructor TCustomHeroes.Destroy;
+destructor TPlasedHeroes.Destroy;
 begin
   inherited Destroy;
 end;
 
-{ TCustomHero }
+{ TPlasedHero }
 
-procedure TCustomHero.SetName(AValue: string);
+procedure TPlasedHero.SetName(AValue: string);
 begin
   if FName = AValue then Exit;
   FName := AValue;
 end;
 
-procedure TCustomHero.SetPortrait(AValue: THeroID);
+procedure TPlasedHero.SetPortrait(AValue: THeroID);
 begin
   if FPortrait = AValue then Exit;
   FPortrait := AValue;
@@ -834,15 +834,15 @@ end;
 constructor TPlayerAttr.Create;
 begin
   FAllowedFactions := CrStrList;
-  //todo: fill with all with town
+  RootManager.ListsManager.FactionInfos.FillWithTownIds(FAllowedFactions);
 
-  FCustomHeroes := TCustomHeroes.Create;
+  FPlasedHeroes := TPlasedHeroes.Create;
 
 end;
 
 destructor TPlayerAttr.Destroy;
 begin
-  FCustomHeroes.Free;
+  FPlasedHeroes.Free;
   FAllowedFactions.Free;
   inherited Destroy;
 end;
