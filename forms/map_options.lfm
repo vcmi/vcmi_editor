@@ -1,21 +1,22 @@
 object MapOptionsForm: TMapOptionsForm
   Left = 343
-  Height = 350
+  Height = 380
   Top = 204
-  Width = 300
+  Width = 332
   Caption = 'MapOptionsForm'
-  ClientHeight = 350
-  ClientWidth = 300
+  ClientHeight = 380
+  ClientWidth = 332
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
-  LCLVersion = '1.0.9.0'
+  OnShow = FormShow
+  LCLVersion = '1.2.7.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 124
+    Left = 156
     Height = 26
-    Top = 314
+    Top = 344
     Width = 81
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -29,9 +30,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 215
+    Left = 247
     Height = 26
-    Top = 314
+    Top = 344
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -40,7 +41,7 @@ object MapOptionsForm: TMapOptionsForm
     ModalResult = 2
     TabOrder = 1
   end
-  object PageControl1: TPageControl
+  object pcMain: TPageControl
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
@@ -48,9 +49,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 299
+    Height = 329
     Top = 3
-    Width = 294
+    Width = 326
     ActivePage = tsSpells
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
@@ -61,16 +62,8 @@ object MapOptionsForm: TMapOptionsForm
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
-      ClientHeight = 273
-      ClientWidth = 286
-      object cbEnableLevelLimit: TCheckBox
-        Left = 5
-        Height = 17
-        Top = 111
-        Width = 123
-        Caption = 'Enable hero level limit'
-        TabOrder = 0
-      end
+      ClientHeight = 301
+      ClientWidth = 318
       object edDifficulty: TRadioGroup
         AnchorSideLeft.Control = tsMain
         AnchorSideTop.Control = tsMain
@@ -79,7 +72,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 97
         Top = 0
-        Width = 276
+        Width = 308
         Anchors = [akTop, akLeft, akRight]
         AutoFill = True
         BorderSpacing.Left = 5
@@ -94,7 +87,7 @@ object MapOptionsForm: TMapOptionsForm
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
         ClientHeight = 79
-        ClientWidth = 272
+        ClientWidth = 304
         Columns = 2
         Items.Strings = (
           'Easy'
@@ -103,14 +96,17 @@ object MapOptionsForm: TMapOptionsForm
           'Expert'
           'Impossible'
         )
-        TabOrder = 1
+        TabOrder = 0
       end
       object edLevelLimit: TSpinEdit
-        Left = 137
-        Height = 21
+        Left = 160
+        Height = 23
         Top = 107
         Width = 140
-        TabOrder = 2
+        MaxValue = 199
+        MinValue = 1
+        TabOrder = 1
+        Value = 1
       end
       object lMapName: TLabel
         AnchorSideLeft.Control = tsMain
@@ -119,9 +115,9 @@ object MapOptionsForm: TMapOptionsForm
         AnchorSideBottom.Control = edName
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 14
+        Height = 15
         Top = 143
-        Width = 276
+        Width = 308
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -133,20 +129,20 @@ object MapOptionsForm: TMapOptionsForm
         AnchorSideRight.Control = tsMain
         AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 21
+        Height = 23
         Top = 164
-        Width = 275
+        Width = 307
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 6
-        TabOrder = 3
+        TabOrder = 2
         Text = 'edName'
       end
       object lMapDescription: TLabel
         Left = 5
-        Height = 14
+        Height = 15
         Top = 191
-        Width = 80
+        Width = 89
         Caption = 'Map description:'
         ParentColor = False
       end
@@ -157,9 +153,9 @@ object MapOptionsForm: TMapOptionsForm
         AnchorSideBottom.Control = tsMain
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 61
+        Height = 89
         Top = 207
-        Width = 276
+        Width = 308
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -167,18 +163,26 @@ object MapOptionsForm: TMapOptionsForm
         Lines.Strings = (
           'edDescription'
         )
-        TabOrder = 4
+        TabOrder = 3
+      end
+      object Label1: TLabel
+        Left = 8
+        Height = 15
+        Top = 112
+        Width = 83
+        Caption = 'Hero level limit:'
+        ParentColor = False
       end
     end
     object tsAbilities: TTabSheet
       Caption = 'Abilities'
-      ClientHeight = 273
-      ClientWidth = 286
+      ClientHeight = 301
+      ClientWidth = 318
       object edAbilities: TCheckListBox
         Left = 0
-        Height = 273
+        Height = 301
         Top = 0
-        Width = 286
+        Width = 318
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -187,14 +191,15 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsSpells: TTabSheet
       Caption = 'Spells'
-      ClientHeight = 273
-      ClientWidth = 286
+      ClientHeight = 301
+      ClientWidth = 318
       object edSpells: TCheckListBox
         Left = 0
-        Height = 273
+        Height = 301
         Top = 0
-        Width = 286
+        Width = 318
         Align = alClient
+        Columns = 2
         ItemHeight = 0
         TabOrder = 0
       end

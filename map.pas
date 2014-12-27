@@ -1183,6 +1183,7 @@ begin
   FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
+  FHeroLevelLimit:=199;
   AttachTo(FObjects);
 end;
 
@@ -1406,6 +1407,10 @@ procedure TVCMIMap.SetHeroLevelLimit(AValue: Integer);
 begin
   if FHeroLevelLimit = AValue then Exit;
   FHeroLevelLimit := AValue;
+  if FHeroLevelLimit = 0 then
+  begin
+    FHeroLevelLimit := 199;
+  end;
   Changed;
 end;
 
