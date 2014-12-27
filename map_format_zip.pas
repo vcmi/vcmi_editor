@@ -30,11 +30,109 @@ unit map_format_zip;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fgl, contnrs, editor_types, map, map_format, terrain,
+  vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager, map_format_json, zipper;
 
+type
 
+  { TMapReaderZIP }
+
+  TMapReaderZIP = class(TMapReaderJson, IMapReader)
+  public
+    function Read(AStream: TStream): TVCMIMap;
+  end;
+
+  { TMapWriterZIP }
+
+  TMapWriterZIP = class(TMapWriterJson, IMapWriter)
+  private
+    FZipper: TZipper;
+    FFreeList: TFPObjectList;
+    procedure WriteHeader(AMap: TVCMIMap);
+    procedure WriteTemplates(AMap: TVCMIMap);
+    procedure WriteObjects(AMap: TVCMIMap);
+    procedure WriteTerrain(AMap: TVCMIMap);
+
+    procedure AddArchiveEntry(AData: TJSONData; AFilename: AnsiString);
+  public
+    constructor Create(AMapEnv: TMapEnvironment); override;
+    destructor Destroy; override;
+    procedure Write(AStream: TStream; AMap: TVCMIMap);
+  end;
 
 implementation
+
+
+{ TMapReaderZIP }
+
+function TMapReaderZIP.Read(AStream: TStream): TVCMIMap;
+begin
+
+end;
+
+{ TMapWriterZIP }
+
+procedure TMapWriterZIP.WriteHeader(AMap: TVCMIMap);
+begin
+  AddArchiveEntry( FStreamer.ObjectToJSON(AMap), 'header.json');
+  //todo: separate real header
+end;
+
+procedure TMapWriterZIP.WriteTemplates(AMap: TVCMIMap);
+begin
+  AddArchiveEntry(FStreamer.StreamCollection(AMap.Templates),'templates.json');
+end;
+
+procedure TMapWriterZIP.WriteObjects(AMap: TVCMIMap);
+begin
+  AddArchiveEntry(FStreamer.StreamCollection(AMap.Objects),'objects.json');
+end;
+
+procedure TMapWriterZIP.WriteTerrain(AMap: TVCMIMap);
+begin
+  AddArchiveEntry(StreamTiles(AMap),'terrain.json');
+end;
+
+procedure TMapWriterZIP.AddArchiveEntry(AData: TJSONData; AFilename: AnsiString
+  );
+var
+  json_text: TJSONStringType;
+  Stream: TStringStream;
+begin
+  json_text := AData.FormatJSON([foUseTabchar], 1);
+
+  Stream := TStringStream.Create(json_text);
+
+  FZipper.Entries.AddFileEntry(Stream, AFilename);
+
+  FFreeList.Add(Stream);
+
+  FreeAndNil(AData);
+end;
+
+constructor TMapWriterZIP.Create(AMapEnv: TMapEnvironment);
+begin
+  inherited Create(AMapEnv);
+  FZipper := TZipper.Create;
+  FFreeList := TFPObjectList.Create(true);
+end;
+
+destructor TMapWriterZIP.Destroy;
+begin
+  FFreeList.Free;
+  FZipper.Free;
+  inherited Destroy;
+end;
+
+procedure TMapWriterZIP.Write(AStream: TStream; AMap: TVCMIMap);
+begin
+
+  WriteHeader(AMap);
+  WriteTemplates(AMap);
+  WriteObjects(AMap);
+  WriteTerrain(AMap);
+  FZipper.SaveToStream(AStream);
+end;
 
 end.
 

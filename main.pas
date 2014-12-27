@@ -1735,7 +1735,7 @@ begin
       end;
     FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
     begin
-       raise Exception.Create('Unimplemented map format');
+       writer := TMapWriterZIP.Create(FEnv);
     end
     else
       begin

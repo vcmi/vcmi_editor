@@ -33,6 +33,9 @@ const
   ROAD_CODES: array[TRoadType] of String = ('', 'pd','pg', 'pc');
   RIVER_CODES: array[TRiverType] of string = ('', 'rw', 'ri', 'rm', 'rl');
 
+  TILES_FIELD = 'tiles';
+  TEMPLATES_FIELD = 'templates';
+  OBJECTS_FIELD = 'objects';
 type
   TTerrainTypeMap = specialize TFPGMap<string, TTerrainType>;
   TRoadTypeMap = specialize TFPGMap<string, TRoadType>;
@@ -63,6 +66,8 @@ type
   protected
     FStreamer: TVCMIJSONStreamer;
     procedure StreamTile(AJson: TJSONArray; tile: PMapTile);
+    procedure StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
+    function StreamTiles(AMap: TVCMIMap): TJSONData;
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
     destructor Destroy; override;
@@ -98,6 +103,44 @@ begin
 
   AJson.Add(s)
 
+end;
+
+procedure TMapWriterJson.StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
+  const Level: Integer);
+var
+  row: Integer;
+  col: Integer;
+
+  o: TJSONObject;
+  //s: string;
+  tile: TMapTile;
+
+  ARowArray: TJSONArray;
+begin
+  for row := 0 to AMap.Height - 1 do
+  begin
+    ARowArray := TJSONArray.Create;
+    for col := 0 to AMap.Width - 1 do
+    begin
+      StreamTile(ARowArray, AMap.GetTile(Level,Col,Row));
+    end;
+    AJson.Add(ARowArray);
+  end;
+end;
+
+function TMapWriterJson.StreamTiles(AMap: TVCMIMap): TJSONData;
+var
+  level_array: TJSONArray;
+  i: Integer;
+begin
+  result := TJSONArray.Create;
+
+  for i := 0 to AMap.Levels - 1 do
+  begin
+    level_array := TJSONArray.Create;
+    StreamTilesLevel(level_array,AMap,i);
+    TJSONArray(result).Add(level_array);
+  end;
 end;
 
 constructor TMapWriterJson.Create(AMapEnv: TMapEnvironment);

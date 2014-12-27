@@ -52,7 +52,6 @@ type
 
   TMapWriterVCMI = class(TMapWriterJson, IMapWriter)
   private
-    procedure StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap; const Level: Integer);
     procedure StreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
@@ -65,12 +64,6 @@ implementation
 
 uses
   typinfo;
-
-const
-
-  TILES_FIELD = 'tiles';
-  TEMPLATES_FIELD = 'templates';
-  OBJECTS_FIELD = 'objects';
 
 { TMapWriterVCMI }
 
@@ -86,42 +79,11 @@ end;
 
 procedure TMapWriterVCMI.StreamTiles(ARoot: TJSONObject; AMap: TVCMIMap);
 var
-  main_array, level_array: TJSONArray;
-  i: Integer;
+  main_array: TJSONData;
 begin
-  main_array := TJSONArray.Create;
-
-  for i := 0 to AMap.Levels - 1 do
-  begin
-    level_array := TJSONArray.Create;
-    StreamTilesLevel(level_array,AMap,i);
-    main_array.Add(level_array);
-  end;
+  main_array :=  inherited StreamTiles(AMap);
 
   ARoot.Add(TILES_FIELD,main_array);
-end;
-
-procedure TMapWriterVCMI.StreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
-  const Level: Integer);
-var
-  row: Integer;
-  col: Integer;
-
-  o: TJSONObject;
-  //s: string;
-  tile: TMapTile;
-
-  ARowArray: TJSONArray;
-begin
-  for row := 0 to AMap.Height - 1 do
-  begin
-    ARowArray := TJSONArray.Create;
-    for col := 0 to AMap.Width - 1 do
-    begin
-      StreamTile(ARowArray, AMap.GetTile(Level,Col,Row));
-    end;
-    AJson.Add(ARowArray);
-  end;
 end;
 
 procedure TMapWriterVCMI.Write(AStream: TStream; AMap: TVCMIMap);
