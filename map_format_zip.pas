@@ -38,7 +38,19 @@ type
   { TMapReaderZIP }
 
   TMapReaderZIP = class(TMapReaderJson, IMapReader)
+  private
+    FUnZipper: TUnZipper;
+    FInStream:TStream;
+
+    procedure UnZipperOnOpenInputStream(Sender: TObject; var AStream: TStream);
+    procedure UnZipperOnCloseInputStream(Sender: TObject; var AStream: TStream);
+
+    procedure UnZipperOnCreateStream(Sender: TObject; var AStream: TStream; AItem : TFullZipFileEntry);
+    procedure UnZipperOnDoneStream(Sender: TObject; var AStream: TStream; AItem : TFullZipFileEntry);
+
   public
+    constructor Create(AMapEnv: TMapEnvironment); override;
+    destructor Destroy; override;
     function Read(AStream: TStream): TVCMIMap;
   end;
 
@@ -65,9 +77,53 @@ implementation
 
 { TMapReaderZIP }
 
+procedure TMapReaderZIP.UnZipperOnOpenInputStream(Sender: TObject; var AStream: TStream);
+begin
+  AStream := FInStream;
+end;
+
+procedure TMapReaderZIP.UnZipperOnCloseInputStream(Sender: TObject;
+  var AStream: TStream);
+begin
+  AStream := nil;
+end;
+
+procedure TMapReaderZIP.UnZipperOnCreateStream(Sender: TObject;
+  var AStream: TStream; AItem: TFullZipFileEntry);
+begin
+  AStream := TMemoryStream.Create;
+end;
+
+procedure TMapReaderZIP.UnZipperOnDoneStream(Sender: TObject;
+  var AStream: TStream; AItem: TFullZipFileEntry);
+begin
+  AStream.Free;
+end;
+
+constructor TMapReaderZIP.Create(AMapEnv: TMapEnvironment);
+begin
+  inherited Create(AMapEnv);
+  FUnZipper := TUnZipper.Create;
+  FUnZipper.OnOpenInputStream:=@UnZipperOnOpenInputStream;
+  FUnZipper.OnCloseInputStream:=@UnZipperOnCloseInputStream;
+  FUnZipper.OnCreateStream := @UnZipperOnCreateStream;
+  FUnZipper.OnDoneStream := @UnZipperOnDoneStream;
+end;
+
+destructor TMapReaderZIP.Destroy;
+begin
+  FUnZipper.Free;
+  inherited Destroy;
+end;
+
 function TMapReaderZIP.Read(AStream: TStream): TVCMIMap;
 begin
+  FInStream := AStream;
+  FUnZipper.Examine;
+  //FUnZipper.Clear;
+  FUnZipper.UnZipAllFiles;
 
+  Result := TVCMIMap.CreateDefault(FMapEnv);
 end;
 
 { TMapWriterZIP }
@@ -126,7 +182,6 @@ end;
 
 procedure TMapWriterZIP.Write(AStream: TStream; AMap: TVCMIMap);
 begin
-
   WriteHeader(AMap);
   WriteTemplates(AMap);
   WriteObjects(AMap);

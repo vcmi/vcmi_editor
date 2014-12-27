@@ -1037,7 +1037,9 @@ begin
         end;
       FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
       begin
-         raise Exception.Create('Unimplemented map format');
+         reader := TMapReaderZIP.Create(FEnv);
+         cstm := stm;
+         set_filename := True; //support saving
       end
       else
         begin
