@@ -81,13 +81,13 @@ type
   private
     FAITactics: TAITactics;
     FAllowedFactions: TStringList;
-    FAreAllowerFactionsSet: Boolean;
+    FAllowerFactionsSet: Boolean;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
     FCustomHeroes: TCustomHeroes;
     FGenerateHeroAtMainTown: boolean;
     FHasMainTown: boolean;
-    FIsFactionRandom: boolean;
+    FRandomFaction: boolean;
     FMainHeroName: TLocalizedString;
     FMainHeroPortrait: TCustomID;
     FMainTownL: Integer;
@@ -99,12 +99,12 @@ type
     FTeamId: Integer;
     function GetAllowedFactions: TStrings;
     procedure SetAITactics(AValue: TAITactics);
-    procedure SetAreAllowerFactionsSet(AValue: Boolean);
+    procedure SetAllowerFactionsSet(AValue: Boolean);
     procedure SetCanComputerPlay(AValue: boolean);
     procedure SetCanHumanPlay(AValue: boolean);
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
     procedure SetHasMainTown(AValue: boolean);
-    procedure SetIsFactionRandom(AValue: boolean);
+    procedure SetRandomFaction(AValue: boolean);
     procedure SetMainHeroName(AValue: TLocalizedString);
     procedure SetMainHeroPortrait(AValue: TCustomID);
     procedure SetMainTownL(AValue: Integer);
@@ -114,14 +114,17 @@ type
     procedure SetRandomHero(AValue: Boolean);
     procedure SetMainHeroClass(AValue: THeroClassID);
     procedure SetTeamId(AValue: Integer);
+
+    function IsAllowedFactionsStored: boolean;
+    function IsRandomFactionStored: boolean;
   public
     constructor Create;
     destructor Destroy; override;
   published
     property AITactics: TAITactics read FAITactics write SetAITactics;
-    property AreAllowerFactionsSet: Boolean read FAreAllowerFactionsSet write SetAreAllowerFactionsSet; //???
-    property AllowedFactions: TStrings read GetAllowedFactions;
-    property IsFactionRandom: boolean read FIsFactionRandom write SetIsFactionRandom;
+    property AllowedFactionsSet: Boolean read FAllowerFactionsSet write SetAllowerFactionsSet; //???
+    property AllowedFactions: TStrings read GetAllowedFactions stored IsAllowedFactionsStored;
+    property RandomFaction: boolean read FRandomFaction write SetRandomFaction stored IsRandomFactionStored default false;
 
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
@@ -855,10 +858,10 @@ begin
   Result := FAllowedFactions;
 end;
 
-procedure TPlayerAttr.SetAreAllowerFactionsSet(AValue: Boolean);
+procedure TPlayerAttr.SetAllowerFactionsSet(AValue: Boolean);
 begin
-  if FAreAllowerFactionsSet = AValue then Exit;
-  FAreAllowerFactionsSet := AValue;
+  if FAllowerFactionsSet = AValue then Exit;
+  FAllowerFactionsSet := AValue;
 end;
 
 procedure TPlayerAttr.SetCanComputerPlay(AValue: boolean);
@@ -885,10 +888,10 @@ begin
   FHasMainTown := AValue;
 end;
 
-procedure TPlayerAttr.SetIsFactionRandom(AValue: boolean);
+procedure TPlayerAttr.SetRandomFaction(AValue: boolean);
 begin
-  if FIsFactionRandom = AValue then Exit;
-  FIsFactionRandom := AValue;
+  if FRandomFaction = AValue then Exit;
+  FRandomFaction := AValue;
 end;
 
 procedure TPlayerAttr.SetMainTownL(AValue: Integer);
@@ -925,6 +928,16 @@ procedure TPlayerAttr.SetTeamId(AValue: Integer);
 begin
   if FTeamId = AValue then Exit;
   FTeamId := AValue;
+end;
+
+function TPlayerAttr.IsAllowedFactionsStored: boolean;
+begin
+  Result := AllowedFactionsSet and not RandomFaction;
+end;
+
+function TPlayerAttr.IsRandomFactionStored: boolean;
+begin
+  Result := AllowedFactionsSet;
 end;
 
 procedure TPlayerAttr.SetMainHeroClass(AValue: THeroClassID);

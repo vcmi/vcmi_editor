@@ -35,9 +35,9 @@ type
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
   TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK, NONE = 255);
 
-  TAITactics = (None=-1,Random = 0,Warrior,Builder,Explorer);
+  TAITactics = (NONE=-1,RANDOM = 0,WARRIOR,BUILDER,EXPLORER);
 
-  TDifficulty = (Easy = 0, Normal, Hard, Expert, Impossible);
+  TDifficulty = (EASY = 0, NORMAL, HARD, EXPERT, IMPOSSIBLE);
 
 {$pop}
 

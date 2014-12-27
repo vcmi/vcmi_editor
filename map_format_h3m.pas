@@ -65,7 +65,7 @@ type
      function ReadID1(ACallback: TIdToString; AIDRandom:TCustomID = ID_RANDOM): AnsiString;
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
-     procedure ReadPlayerAttr(Attr: TPlayerAttr);//+
+     procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
      procedure ReadSVLC();
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();
@@ -932,11 +932,11 @@ begin
 
   if FMapVersion >=MAP_VERSION_SOD then
   begin
-    Attr.AreAllowerFactionsSet := FSrc.ReadBoolean;
+    Attr.AllowedFactionsSet := FSrc.ReadBoolean;
   end
   else
   begin
-    Attr.AreAllowerFactionsSet := True;
+    Attr.AllowedFactionsSet := True;
   end;
 
   case FMapVersion of
@@ -954,7 +954,7 @@ begin
 
   ReadBitmask(Attr.AllowedFactions,faction_mask_size,faction_count,@FMap.ListsManager.FactionIndexToString, False);
 
-  Attr.IsFactionRandom := FSrc.ReadBoolean;
+  Attr.RandomFaction := FSrc.ReadBoolean;
 
   Attr.HasMainTown := FSrc.ReadBoolean;
   if Attr.HasMainTown then
