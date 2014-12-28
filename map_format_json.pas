@@ -119,13 +119,15 @@ var
   tile: TMapTile;
 
   ARowArray: TJSONArray;
+  map_level: TMapLevel;
 begin
-  for row := 0 to AMap.CurrentLevel.Height - 1 do
+  map_level := AMap.Levels[Level];
+  for row := 0 to map_level.Height - 1 do
   begin
     ARowArray := TJSONArray.Create;
-    for col := 0 to AMap.CurrentLevel.Width - 1 do
+    for col := 0 to map_level.Width - 1 do
     begin
-      StreamTile(ARowArray, AMap.GetTile(Level,Col,Row));
+      StreamTile(ARowArray, map_level.Tile[Col,Row]);
     end;
     AJson.Add(ARowArray);
   end;
