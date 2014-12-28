@@ -302,6 +302,8 @@ type
     function GetMap:TVCMIMap;
   protected
     procedure Changed;
+    procedure BeforeChange; //move settemplate setowner
+    procedure AfterChange;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -564,6 +566,16 @@ begin
   Collection.EndUpdate;
 end;
 
+procedure TMapObject.BeforeChange;
+begin
+
+end;
+
+procedure TMapObject.AfterChange;
+begin
+
+end;
+
 function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
 var
   w: UInt32;
@@ -665,7 +677,9 @@ begin
 
   if FL = AValue then Exit;
 
+  BeforeChange;
   FL := AValue;
+  AfterChange;
   Changed;
 end;
 
@@ -673,6 +687,7 @@ procedure TMapObject.SetTemplateID(AValue: integer);
 begin
   if FTemplateID = AValue then Exit; //dont remove
 
+  BeforeChange;
   FTemplate := GetMap().FTemplates.Items[AValue];
 
   FTemplateID := AValue;
@@ -680,6 +695,7 @@ begin
   FreeAndNil(FOptions);
 
   FOptions := object_options.CreateByID(FTemplate.Id,FTemplate.SubId);
+  AfterChange;
   Changed;
 end;
 
@@ -693,7 +709,9 @@ begin
   //  exit;
   //end;
   if FX = AValue then Exit;
+  BeforeChange;
   FX := AValue;
+  AfterChange;
   Changed;
 end;
 
@@ -706,7 +724,9 @@ begin
   //end;
 
   if FY = AValue then Exit;
+  BeforeChange;
   FY := AValue;
+  AfterChange;
   Changed;
 end;
 

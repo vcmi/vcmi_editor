@@ -133,11 +133,13 @@ type
     btnBrushFill: TSpeedButton;
     btnBrushArea: TSpeedButton;
     menuPlayer: TPopupMenu;
+    RoadType: TRadioGroup;
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
     ActionsToolBar: TToolBar;
+    tsRoads: TTabSheet;
     tbSelectPlayer: TToolButton;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
@@ -182,6 +184,8 @@ type
     procedure actPropertiesUpdate(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
+    procedure actRoadsExecute(Sender: TObject);
+    procedure actRoadsUpdate(Sender: TObject);
     procedure actSaveMapAsExecute(Sender: TObject);
     procedure actSaveMapExecute(Sender: TObject);
     procedure actSaveMapUpdate(Sender: TObject);
@@ -245,6 +249,7 @@ type
     procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure pbObjectsResize(Sender: TObject);
+    procedure RoadTypeClick(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure VerticalAxisPaint(Sender: TObject);
@@ -276,16 +281,24 @@ type
     FObjManager: TObjectsManager;
     FGraphicsManager: TGraphicsManager;
 
-    FHightLightTile: Boolean;
-
     FMouseTileX, FMouseTileY: Integer;  //current position of mouse in map coords
     FMouseX, FMouseY: Integer;  //current position of mouse in screen coords
 
     FMouseDown: boolean;
 
-    FCurrentTerrain:   TTerrainType;
-    FTerrainBrushMode: TBrushMode;
-    FTerrainBrushSize: Integer;
+    //all brushes
+    FIdleBrush: TIdleMapBrush;
+    FTerrainBrush: TTerrainBrush;
+
+
+    //selected brush
+    FActiveBrush: TMapBrush;
+
+    //FCurrentTerrain:   TTerrainType;
+    //FTerrainBrushMode: TTerrainBrushMode;
+    //FTerrainBrushSize: Integer;
+    //FRoadType: TRoadType;
+    //FRiverTypet: TRiverType;
 
     FUndoManager: TAbstractUndoManager;
 
@@ -339,6 +352,8 @@ type
     procedure SaveMap(AFileName: string);
 
     procedure SetCurrentPlayer(APlayer: TPlayer);
+
+    procedure SetActiveBrush(ABrush: TMapBrush);
   protected
     procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -354,8 +369,8 @@ implementation
 
 uses
   undo_map, map_format, map_format_h3m, map_format_vcmi, editor_str_consts,
-  root_manager, map_format_json, map_format_zip, map_options, new_map,
-  edit_object_options, Math, lazutf8classes;
+  root_manager, map_format_json, map_format_zip, editor_consts, map_options,
+  new_map, edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
 
@@ -493,7 +508,8 @@ end;
 
 procedure TfMain.actObjectsExecute(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.none;
+  SetActiveBrush(FIdleBrush);
+
   pcToolBox.ActivePage := tsObjects;
 
   actObjects.Checked := True;
@@ -555,6 +571,17 @@ begin
   end;
 end;
 
+procedure TfMain.actRoadsExecute(Sender: TObject);
+begin
+  pcToolBox.ActivePage := tsRoads;
+ // FRoadType := TRoadType.noRoad;
+end;
+
+procedure TfMain.actRoadsUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Checked := (pcToolBox.ActivePage = tsRoads);
+end;
+
 procedure TfMain.actSaveMapAsExecute(Sender: TObject);
 begin
   if SaveMapAsDialog.Execute then
@@ -582,9 +609,11 @@ end;
 
 procedure TfMain.actTerrainExecute(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.fixed;
-  pcToolBox.ActivePage := tsTerrain;
+  SetActiveBrush(FTerrainBrush);
+  FTerrainBrush.Mode:=TTerrainBrushMode.fixed;
 
+
+  pcToolBox.ActivePage := tsTerrain;
 end;
 
 procedure TfMain.actTerrainUpdate(Sender: TObject);
@@ -641,82 +670,82 @@ end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.fixed;
-  FTerrainBrushSize := 1;
+  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
+  FTerrainBrush.Size := 1;
 end;
 
 procedure TfMain.btnBrush2Click(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.fixed;
-  FTerrainBrushSize := 2;
+  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
+  FTerrainBrush.Size := 2;
 end;
 
 procedure TfMain.btnBrush4Click(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.fixed;
-  FTerrainBrushSize := 4;
+  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
+  FTerrainBrush.Size := 4;
 end;
 
 procedure TfMain.btnBrushAreaClick(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.area;
-  FTerrainBrushSize := 0;
+  FTerrainBrush.Mode := TTerrainBrushMode.area;
+  FTerrainBrush.Size := 0;
 end;
 
 procedure TfMain.btnBrushFillClick(Sender: TObject);
 begin
-  FTerrainBrushMode := TBrushMode.fill;
-  FTerrainBrushSize := 0;
+  FTerrainBrush.Mode := TTerrainBrushMode.fill;
+  FTerrainBrush.Size := 0;
 end;
 
 procedure TfMain.btnDirtClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.dirt;
+  FTerrainBrush.TT := TTerrainType.dirt;
 end;
 
 procedure TfMain.btnGrassClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.grass;
+  FTerrainBrush.TT := TTerrainType.grass;
 end;
 
 procedure TfMain.btnLavaClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.lava;
+  FTerrainBrush.TT := TTerrainType.lava;
 end;
 
 procedure TfMain.btnRockClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.rock;
+  FTerrainBrush.TT := TTerrainType.rock;
 end;
 
 procedure TfMain.btnRoughClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.rough;
+  FTerrainBrush.TT := TTerrainType.rough;
 end;
 
 procedure TfMain.btnSandClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.sand;
+  FTerrainBrush.TT := TTerrainType.sand;
 end;
 
 procedure TfMain.btnSnowClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.snow;
+  FTerrainBrush.TT := TTerrainType.snow;
 end;
 
 procedure TfMain.btnSubClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.sub;
+  FTerrainBrush.TT := TTerrainType.sub;
 end;
 
 procedure TfMain.btnSwampClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.swamp;
+  FTerrainBrush.TT := TTerrainType.swamp;
 end;
 
 procedure TfMain.btnWaterClick(Sender: TObject);
 begin
-  FCurrentTerrain := TTerrainType.water;
+  FTerrainBrush.TT := TTerrainType.water;
 end;
 
 function TfMain.CheckUnsavedMap: boolean;
@@ -776,10 +805,23 @@ begin
   MapView.SharedControl := RootManager.SharedContext;
   ObjectsView.SharedControl := RootManager.SharedContext;
 
-  FCurrentTerrain := TTerrainType.dirt;
-  FTerrainBrushMode := TBrushMode.fixed;
-  FTerrainBrushSize := 1;
+  FIdleBrush := TIdleMapBrush.Create(Self);
+  FTerrainBrush := TTerrainBrush.Create(Self);
+
+  SetActiveBrush(FTerrainBrush);
+
+  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
+  FTerrainBrush.Size := 1;
+  FTerrainBrush.TT :=  TTerrainType.dirt;
   pcToolBox.ActivePage := tsTerrain;
+
+
+  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(Integer(TRoadType.dirtRoad)));
+  RoadType.Items.AddObject(rsRoadTypeGrazvel, TObject(Integer(TRoadType.grazvelRoad)));
+  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(Integer(TRoadType.cobblestoneRoad)));
+  RoadType.Items.AddObject(rsRoadTypeNone, TObject(Integer(TRoadType.noRoad)));
+
+  RoadType.ItemIndex := 0;
 
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
@@ -1071,54 +1113,9 @@ begin
 end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
-var
-  action_item:TEditTerrain;
-  i,j: Integer;
-
-  q: TMapObjectQueue;
-
-  o: TMapObject;
 begin
-  //TODO: handle all cases
-
-  if not FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
-  begin
-    exit;
-  end;
-
-  if FTerrainBrushMode <> TBrushMode.none then
-  begin
-    action_item := TEditTerrain.Create(FMap);
-
-    action_item.BrushMode := FTerrainBrushMode;
-    action_item.TerrainType := FCurrentTerrain;
-    action_item.Level := FMap.CurrentLevelIndex;
-
-      case FTerrainBrushMode of
-      TBrushMode.fixed:begin
-        for i := 0 to FTerrainBrushSize -1 do
-        begin
-          for j := 0 to FTerrainBrushSize - 1 do
-          begin
-            action_item.AddTile(FMouseTileX+i,FMouseTileY+j);
-          end;
-        end;
-      end;
-      TBrushMode.area:; //todo: handle area mode, fill mode
-      TBrushMode.fill:;
-    end;
-
-
-    FUndoManager.ExecuteItem(action_item);
-
-    InvalidateMapContent;
-    Exit;
-  end;
-
-  //TODO: road/river mode
-
-
-
+  FActiveBrush.TileClicked(FMouseTileX, FMouseTileY);
+  FActiveBrush.Execute(FUndoManager,FMap);
 end;
 
 procedure TfMain.MapViewDblClick(Sender: TObject);
@@ -1205,7 +1202,7 @@ var
    end;
 begin
   SetMapViewMouse(x,y);
-  if FTerrainBrushMode=TBrushMode.none then
+  if FActiveBrush=FIdleBrush then
   begin
 
     DragStarted:=False;
@@ -1257,12 +1254,10 @@ end;
 
 procedure TfMain.MapViewMouseEnter(Sender: TObject);
 begin
-  FHightLightTile := True;
 end;
 
 procedure TfMain.MapViewMouseLeave(Sender: TObject);
 begin
-  FHightLightTile := False;
   InvalidateMapAxis;
 end;
 
@@ -1689,26 +1684,19 @@ begin
   InvalidateObjects;
 end;
 
+procedure TfMain.RoadTypeClick(Sender: TObject);
+begin
+  //FRoadType := TRoadType(Integer(RoadType.Items.Objects[RoadType.ItemIndex]));
+end;
+
 procedure TfMain.pcToolBoxChange(Sender: TObject);
 begin
   FSelectedObject := nil;
 end;
 
 procedure TfMain.RenderCursor;
-var
-  dim: Integer;
-  cx,cy: Integer;
 begin
-  cx := FMouseTileX * TILE_SIZE;
-  cy := FMouseTileY * TILE_SIZE;
-
-  if FHightLightTile and (FTerrainBrushMode = TBrushMode.fixed) then
-  begin
-    editor_gl.CurrentContextState.StartDrawingRects;
-    dim := TILE_SIZE * FTerrainBrushSize;
-    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-    editor_gl.CurrentContextState.StopDrawing;
-  end;
+  FActiveBrush.RenderCursor(FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.SaveMap(AFileName: string);
@@ -1765,6 +1753,16 @@ begin
 
   InvalidateObjects;
 
+end;
+
+procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
+begin
+  if FActiveBrush = ABrush then
+  begin
+    Exit;
+  end;
+  FActiveBrush := ABrush;
+  FActiveBrush.Clear;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);

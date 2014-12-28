@@ -30,7 +30,7 @@ uses
   terrain, objects;
 
 type
-  TBrushMode = (none,fixed, area, fill);
+  TTerrainBrushMode = (none, fixed, area, fill);
 
   { TMapCoord }
 
@@ -42,6 +42,17 @@ type
 
   operator+ (a,b:TMapCoord):TMapCoord;
 
+type
+
+  { TCompareCoord }
+
+  TCompareCoord = class
+  public
+    class function c(a,b: TMapCoord): boolean;
+  end;
+
+
+  TCoordSet = specialize TSet<TMapCoord,TCompareCoord>;
 type
   { TMapRect }
 
@@ -89,6 +100,65 @@ type
 
   TTileSet = specialize TSet<TTileInfo,TTileCompareByCoord> ;
 
+  { TMapBrush }
+
+  TMapBrush = class (TComponent)
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure Clear; virtual;
+
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); virtual;
+
+    procedure TileClicked(X,Y: integer);virtual;
+
+    procedure RenderCursor(X,Y: integer); virtual;
+  end;
+
+  { TIdleMapBrush }
+
+  TIdleMapBrush = class(TMapBrush)
+
+  end;
+
+  { TTerrainBrush }
+
+  TTerrainBrush = class(TMapBrush)
+  private
+    FMode: TTerrainBrushMode;
+    FSize: Integer;
+    FTT: TTerrainType;
+    FSelection: TCoordSet;
+    procedure SetMode(AValue: TTerrainBrushMode);
+    procedure SetSize(AValue: Integer);
+    procedure Settt(AValue: TTerrainType);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure Clear; override;
+
+    property Mode: TTerrainBrushMode read FMode write SetMode;
+    property Size: Integer read FSize write SetSize;
+    property TT: TTerrainType read FTT write Settt;
+
+    //property Level: Integer read FLevel write SetLevel;
+
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
+
+    procedure TileClicked(X,Y: integer);override;
+
+    procedure AddTile(X,Y: integer);
+
+    procedure RenderCursor(X,Y: integer); override;
+  end;
+
+
+
+
+  { TValidationResult }
+
   TValidationResult = record
     result: Boolean;
     transitionReplacement: string;
@@ -130,9 +200,7 @@ type
     FOldTileInfos: TTileInfos;
     FNewTileInfos: TTileInfos;
 
-    FBrushMode: TBrushMode;
     FTerrainType: TTerrainType;
-    procedure SetBrushMode(AValue: TBrushMode);
     procedure SetLevel(AValue: Integer);
     procedure SetTerrainType(AValue: TTerrainType);
 
@@ -154,8 +222,6 @@ type
     procedure Undo; override;
     procedure Execute; override;
     function GetDescription: string; override;
-
-    property BrushMode: TBrushMode read FBrushMode write SetBrushMode;
 
     property Level: Integer read FLevel write SetLevel;
 
@@ -245,12 +311,167 @@ type
 implementation
 
 uses
-  LazLogger;
+  LazLogger, editor_gl, editor_consts;
 
 operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TCompareCoord }
+
+class function TCompareCoord.c(a, b: TMapCoord): boolean;
+begin
+  Result := (a.X < b.X) or ((a.X=b.X) and (a.y<b.Y));
+end;
+
+{ TMapBrush }
+
+constructor TMapBrush.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
+destructor TMapBrush.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TMapBrush.Clear;
+begin
+
+end;
+
+procedure TMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+begin
+
+end;
+
+procedure TMapBrush.TileClicked(X, Y: integer);
+begin
+
+end;
+
+procedure TMapBrush.RenderCursor(X, Y: integer);
+begin
+
+end;
+
+{ TTerrainBrush }
+
+procedure TTerrainBrush.SetMode(AValue: TTerrainBrushMode);
+begin
+  if FMode=AValue then Exit;
+  FMode:=AValue;
+  Clear;
+end;
+
+procedure TTerrainBrush.SetSize(AValue: Integer);
+begin
+  if FSize=AValue then Exit;
+  FSize:=AValue;
+  Clear;
+end;
+
+procedure TTerrainBrush.Settt(AValue: TTerrainType);
+begin
+  if FTT=AValue then Exit;
+  FTT:=AValue;
+  Clear;
+end;
+
+constructor TTerrainBrush.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FSelection := TCoordSet.Create;
+end;
+
+destructor TTerrainBrush.Destroy;
+begin
+  FSelection.Free;
+  inherited Destroy;
+end;
+
+procedure TTerrainBrush.Clear;
+begin
+  inherited Clear;
+  FSelection.Free;
+  FSelection := TCoordSet.Create;
+end;
+
+procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+var
+  action: TEditTerrain;
+  it: TCoordSet.TIterator;
+begin
+  inherited Execute(AManager, AMap);
+
+  action := TEditTerrain.Create(AMap);
+  action.Level := AMap.CurrentLevelIndex;
+  action.TerrainType := tt;
+
+  it := FSelection.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      action.AddTile(it.Data.X, it.Data.Y);
+    until not it.next ;
+    FreeAndNil(it);
+  end;
+
+  AManager.ExecuteItem(action);
+  Clear;
+end;
+
+procedure TTerrainBrush.TileClicked(X, Y: integer);
+begin
+  inherited TileClicked(X, Y);
+  AddTile(X,Y);
+end;
+
+procedure TTerrainBrush.AddTile(X, Y: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    FSelection.Insert(Coord);
+  end;
+
+var
+  r: TMapRect;
+
+begin
+  case Mode of
+  TTerrainBrushMode.fixed:begin
+    r.FTopLeft.X := X;
+    r.FTopLeft.Y := Y;
+    r.FHeight := Size;
+    r.FWidth := Size;
+
+    r.Iterate(@ProcessTile);
+  end;
+  TTerrainBrushMode.area:; //todo: handle area mode, fill mode
+  TTerrainBrushMode.fill:;
+
+  end;
+end;
+
+procedure TTerrainBrush.RenderCursor(X, Y: integer);
+var
+  dim: Integer;
+  cx,cy: Integer;
+begin
+  inherited RenderCursor(X, Y);
+  cx := X * TILE_SIZE;
+  cy := Y * TILE_SIZE;
+
+  if Mode = TTerrainBrushMode.fixed then
+  begin
+    editor_gl.CurrentContextState.StartDrawingRects;
+    dim := TILE_SIZE * Size;
+    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+    editor_gl.CurrentContextState.StopDrawing;
+  end;
 end;
 
 { TMoveObject }
@@ -736,13 +957,6 @@ begin
   end;
 
 end;
-
-procedure TEditTerrain.SetBrushMode(AValue: TBrushMode);
-begin
-  if FBrushMode = AValue then Exit;
-  FBrushMode := AValue;
-end;
-
 
 procedure TEditTerrain.SetLevel(AValue: Integer);
 begin

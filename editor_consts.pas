@@ -173,6 +173,8 @@ const
 const
   MAX_HERO_LEVEL = 199; //VCMI technical limitation
 
+  TILE_SIZE = 32; //in pixels
+
 implementation
 
 end.

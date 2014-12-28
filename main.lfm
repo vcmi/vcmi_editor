@@ -1,11 +1,11 @@
 object fMain: TfMain
   Left = 484
-  Height = 575
+  Height = 573
   Top = 121
-  Width = 822
+  Width = 823
   Caption = 'VCMI editor'
-  ClientHeight = 555
-  ClientWidth = 822
+  ClientHeight = 553
+  ClientWidth = 823
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1021,22 +1021,22 @@ object fMain: TfMain
   LCLVersion = '1.2.7.0'
   object pnMap: TPanel
     Left = 0
-    Height = 474
+    Height = 472
     Top = 58
-    Width = 618
+    Width = 619
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 474
-    ClientWidth = 618
+    ClientHeight = 472
+    ClientWidth = 619
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 440
+      Height = 438
       Top = 18
-      Width = 584
+      Width = 585
       Align = alClient
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
@@ -1058,8 +1058,8 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 458
-      Width = 582
+      Top = 456
+      Width = 583
       Align = alBottom
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
@@ -1069,8 +1069,8 @@ object fMain: TfMain
       OnScroll = hScrollBarScroll
     end
     object vScrollBar: TScrollBar
-      Left = 602
-      Height = 440
+      Left = 603
+      Height = 438
       Top = 18
       Width = 16
       Align = alRight
@@ -1082,17 +1082,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 440
+      Height = 438
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 440
+      ClientHeight = 438
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 440
+        Height = 438
         Top = 0
         Width = 18
         Align = alClient
@@ -1103,19 +1103,19 @@ object fMain: TfMain
       Left = 18
       Height = 18
       Top = 0
-      Width = 582
+      Width = 583
       Align = alTop
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
       BevelOuter = bvNone
       ClientHeight = 18
-      ClientWidth = 582
+      ClientWidth = 583
       TabOrder = 4
       object HorisontalAxis: TPaintBox
         Left = 0
         Height = 18
         Top = 0
-        Width = 582
+        Width = 583
         Align = alClient
         ParentColor = False
         OnPaint = HorisontalAxisPaint
@@ -1123,13 +1123,13 @@ object fMain: TfMain
     end
   end
   object Panel3: TPanel
-    Left = 618
-    Height = 474
+    Left = 619
+    Height = 472
     Top = 58
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 474
+    ClientHeight = 472
     ClientWidth = 204
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1154,25 +1154,25 @@ object fMain: TfMain
     end
     object pcToolBox: TPageControl
       Left = 0
-      Height = 270
+      Height = 268
       Top = 204
       Width = 204
       TabStop = False
-      ActivePage = tsObjects
+      ActivePage = tsRoads
       Align = alClient
       ShowTabs = False
-      TabIndex = 1
+      TabIndex = 2
       TabOrder = 1
       OnChange = pcToolBoxChange
       object tsTerrain: TTabSheet
-        ClientHeight = 386
+        ClientHeight = 262
         ClientWidth = 196
         object lbBrush: TLabel
           Left = 10
-          Height = 14
+          Height = 15
           Top = 12
-          Width = 31
-          Caption = 'Кисть'
+          Width = 30
+          Caption = 'Brush'
           ParentColor = False
         end
         object SpeedButton11: TSpeedButton
@@ -1187,7 +1187,7 @@ object fMain: TfMain
           Height = 152
           Top = 76
           Width = 185
-          Caption = 'Тип ландшафта'
+          Caption = 'Landscape'
           ClientHeight = 134
           ClientWidth = 181
           TabOrder = 0
@@ -1196,7 +1196,7 @@ object fMain: TfMain
             Height = 22
             Top = 5
             Width = 55
-            Caption = 'Грязь'
+            Caption = 'Dirt'
             Down = True
             GroupIndex = 2
             OnClick = btnDirtClick
@@ -1207,7 +1207,7 @@ object fMain: TfMain
             Height = 22
             Top = 5
             Width = 55
-            Caption = 'Песок'
+            Caption = 'Sand'
             GroupIndex = 2
             OnClick = btnSandClick
           end
@@ -1217,7 +1217,7 @@ object fMain: TfMain
             Height = 22
             Top = 5
             Width = 55
-            Caption = 'Трава'
+            Caption = 'Grass'
             GroupIndex = 2
             OnClick = btnGrassClick
           end
@@ -1226,7 +1226,7 @@ object fMain: TfMain
             Height = 22
             Top = 32
             Width = 55
-            Caption = 'Снег'
+            Caption = 'Snow'
             GroupIndex = 2
             OnClick = btnSnowClick
           end
@@ -1236,7 +1236,7 @@ object fMain: TfMain
             Height = 22
             Top = 32
             Width = 55
-            Caption = 'Болото'
+            Caption = 'Swamp'
             GroupIndex = 2
             OnClick = btnSwampClick
           end
@@ -1246,7 +1246,7 @@ object fMain: TfMain
             Height = 22
             Top = 32
             Width = 55
-            Caption = 'Камни'
+            Caption = 'Rough'
             GroupIndex = 2
             OnClick = btnRoughClick
           end
@@ -1255,7 +1255,7 @@ object fMain: TfMain
             Height = 22
             Top = 60
             Width = 55
-            Caption = 'Подзем.'
+            Caption = 'Subter.'
             GroupIndex = 2
             OnClick = btnSubClick
           end
@@ -1265,7 +1265,7 @@ object fMain: TfMain
             Height = 22
             Top = 60
             Width = 55
-            Caption = 'Лава'
+            Caption = 'Lava'
             GroupIndex = 2
             OnClick = btnLavaClick
           end
@@ -1275,7 +1275,7 @@ object fMain: TfMain
             Height = 22
             Top = 60
             Width = 55
-            Caption = 'Вода'
+            Caption = 'Water'
             GroupIndex = 2
             OnClick = btnWaterClick
           end
@@ -1284,7 +1284,7 @@ object fMain: TfMain
             Height = 22
             Top = 88
             Width = 55
-            Caption = 'Скала'
+            Caption = 'Rock'
             GroupIndex = 2
             OnClick = btnRockClick
           end
@@ -1370,13 +1370,42 @@ object fMain: TfMain
           OnResize = ObjectsViewResize
         end
       end
+      object tsRoads: TTabSheet
+        ClientHeight = 260
+        ClientWidth = 196
+        object RoadType: TRadioGroup
+          AnchorSideLeft.Control = tsRoads
+          AnchorSideTop.Control = tsRoads
+          AnchorSideRight.Control = tsRoads
+          AnchorSideRight.Side = asrBottom
+          AnchorSideBottom.Control = tsRoads
+          AnchorSideBottom.Side = asrBottom
+          Left = 5
+          Height = 250
+          Top = 5
+          Width = 186
+          Anchors = [akTop, akLeft, akRight, akBottom]
+          AutoFill = True
+          BorderSpacing.Around = 5
+          Caption = 'RoadType'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 1
+          OnClick = RoadTypeClick
+          TabOrder = 0
+        end
+      end
     end
   end
   object MainToolBar: TToolBar
     Left = 0
     Height = 34
     Top = 0
-    Width = 822
+    Width = 823
     AutoSize = True
     ButtonHeight = 32
     ButtonWidth = 32
@@ -1436,7 +1465,7 @@ object fMain: TfMain
     Left = 0
     Height = 24
     Top = 34
-    Width = 822
+    Width = 823
     AutoSize = True
     Caption = 'ActionsToolBar'
     Images = imlMainActions
@@ -1507,8 +1536,8 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 532
-    Width = 822
+    Top = 530
+    Width = 823
     Panels = <>
     SimplePanel = False
   end
@@ -1919,6 +1948,8 @@ object fMain: TfMain
     end
     object actRoads: TAction
       Caption = 'Roads'
+      OnExecute = actRoadsExecute
+      OnUpdate = actRoadsUpdate
     end
     object actRivers: TAction
       Caption = 'Rivers'

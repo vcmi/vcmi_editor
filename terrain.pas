@@ -262,7 +262,7 @@ type
 implementation
 
 uses
-  RegExpr, LazLogger;
+  RegExpr, LazLogger, editor_consts;
 
 type
   TTerrainViewInterval = record

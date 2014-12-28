@@ -27,10 +27,9 @@ uses
   Classes, SysUtils, Math,
   gvector, fgl,
   Gl,
-  editor_types, editor_utils, filesystem_base, editor_gl;
+  editor_types, editor_consts, editor_utils, filesystem_base, editor_gl;
 
 const
-  TILE_SIZE = 32; //in pixels
 
   NEWTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
 

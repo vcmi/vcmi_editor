@@ -22,6 +22,11 @@ resourcestring
   rsRedo = 'Redo';
   rsUndo = 'Undo';
 
+  rsRoadTypeNone = 'Delete';
+  rsRoadTypeDirt = 'Dirt';
+  rsRoadTypeGrazvel= 'Grazvel';
+  rsRoadTypeCobblestone = 'Cobblestone';
+
 
 
 implementation
