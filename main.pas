@@ -663,16 +663,19 @@ end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
 begin
+  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 1;
 end;
 
 procedure TfMain.btnBrush2Click(Sender: TObject);
 begin
+  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 2;
 end;
 
 procedure TfMain.btnBrush4Click(Sender: TObject);
 begin
+  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 4;
 end;
 
