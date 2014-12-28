@@ -28,7 +28,8 @@ uses
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects,
   editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
-  zlib_stream, editor_gl, gpriorityqueue, types;
+  zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions,
+  map_object_actions, gpriorityqueue, types;
 
 type
   TAxisKind = (Vertical,Horizontal);

@@ -134,7 +134,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="47">
+    <Units Count="50">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -414,6 +414,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="map_format_json"/>
       </Unit46>
+      <Unit47>
+        <Filename Value="map_terrain_actions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_terrain_actions"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="map_road_river_actions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_road_river_actions"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="map_object_actions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="map_object_actions"/>
+      </Unit49>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
