@@ -27,7 +27,9 @@ resourcestring
   rsRoadTypeGrazvel= 'Grazvel';
   rsRoadTypeCobblestone = 'Cobblestone';
 
-
+  rsEditTerrainDescription = 'Edit terrain';
+  rsEditRoadDescription = 'Edit roads';
+  rsEditRiverDescription = 'Edit rivers';
 
 implementation
 

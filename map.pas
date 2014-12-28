@@ -368,7 +368,7 @@ type
     FTerrain: array of array of TMapTile; //X, Y
     FObjects: TMapObjects; //todo: use it
     FWidth: Integer;
-    function GetOwner: TVCMIMap;
+    function GetMap: TVCMIMap;
     function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
     procedure SetWidth(AValue: Integer);
@@ -380,7 +380,7 @@ type
 
     property Tile[X, Y: Integer]: PMapTile read GetTile;
 
-    property Owner: TVCMIMap read GetOwner;
+    property Map: TVCMIMap read GetMap;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -437,6 +437,7 @@ type
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetName(AValue: TLocalizedString);
 
+    procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set terrain with random subtype
   public
     //create with default params
     constructor CreateDefault(env: TMapEnvironment);
@@ -449,8 +450,7 @@ type
 
     destructor Destroy; override;
 
-    procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set default terrain
-    procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload; //set concete terrain
+    procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload;
     procedure FillLevel(TT: TTerrainType);
 
     function GetTile(Level, X, Y: Integer): PMapTile;
@@ -1094,7 +1094,7 @@ begin
   Result :=@FTerrain[x,y];
 end;
 
-function TMapLevel.GetOwner: TVCMIMap;
+function TMapLevel.GetMap: TVCMIMap;
 begin
   Result := (Collection as TMapLevels).FOwner;
 end;
@@ -1110,7 +1110,7 @@ begin
   if (Height=0) or (Width=0) or (Index <0) then Exit;
 
 
-  tt := Owner.FTerrainManager.GetDefaultTerrain(Index);
+  tt := Map.FTerrainManager.GetDefaultTerrain(Index);
 
   SetLength(FTerrain,FWidth);
   for X := 0 to FWidth - 1 do
@@ -1120,7 +1120,7 @@ begin
     begin
       FTerrain[X][Y].Create();
       FTerrain[X][Y].TerType :=  tt;
-      FTerrain[X][Y].TerSubtype := Owner.FTerrainManager.GetRandomNormalSubtype(tt);
+      FTerrain[X][Y].TerSubtype := Map.FTerrainManager.GetRandomNormalSubtype(tt);
     end;
   end;
 

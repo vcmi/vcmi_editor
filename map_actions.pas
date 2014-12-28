@@ -84,23 +84,23 @@ type
     procedure Iterate(Callback: TMapCoordForEach);
   end;
 
-  TTileInfo = record
+  TTileTerrainInfo = record
     X,Y: integer;
     TerType: TTerrainType;
     TerSubtype: UInt8;
     mir: UInt8;
   end;
 
-  TTileInfos = specialize TVector<TTileInfo>;
+  TTileTerrainInfos = specialize TVector<TTileTerrainInfo>;
 
   { TTileCompare }
 
   TTileCompareByCoord = class
   public
-    class function c(a,b: TTileInfo): boolean;
+    class function c(a,b: TTileTerrainInfo): boolean;
   end;
 
-  TTileSet = specialize TSet<TTileInfo,TTileCompareByCoord> ;
+  TTileSet = specialize TSet<TTileTerrainInfo,TTileCompareByCoord> ;
 
   { TMapBrush }
 
@@ -220,20 +220,20 @@ type
 
     FInvalidated: TTileSet;
 
-    function GetTinfo(x, y: integer): TTileInfo;
-    procedure UndoTile(constref Tile: TTileInfo);
+    function GetTinfo(x, y: integer): TTileTerrainInfo;
+    procedure UndoTile(constref Tile: TTileTerrainInfo);
     //no checking
-    function GetTileInfo(x,y: Integer): TTileInfo;
+    function GetTileInfo(x,y: Integer): TTileTerrainInfo;
     //safe, with checking
-    function GetTileInfo(x,y: Integer; out Info: TTileInfo): boolean;
+    function GetTileInfo(x,y: Integer; out Info: TTileTerrainInfo): boolean;
 
-    function ValidateTerrainView(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
-    function ValidateTerrainViewInner(info: TTileInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
+    function ValidateTerrainView(info: TTileTerrainInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
+    function ValidateTerrainViewInner(info: TTileTerrainInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
   strict private
     FLevel: Integer;
 
-    FOldTileInfos: TTileInfos;
-    FNewTileInfos: TTileInfos;
+    FOldTileInfos: TTileTerrainInfos;
+    FNewTileInfos: TTileTerrainInfos;
 
     FTerrainType: TTerrainType;
     procedure SetLevel(AValue: Integer);
@@ -245,7 +245,7 @@ type
 
     procedure InvalidateTerrainViews(X,Y: integer);
 
-    function GetInvalidTiles(center: TTileInfo): TInvalidTiles;
+    function GetInvalidTiles(center: TTileTerrainInfo): TInvalidTiles;
 
     procedure UpdateTerrainTypes();
     procedure	UpdateTerrainViews();
@@ -265,6 +265,29 @@ type
     property TerrainType: TTerrainType read FTerrainType write SetTerrainType;
   end;
 
+  { TEditRoadRiver }
+
+  TEditRoadRiver = class abstract (TMapUndoItem)
+  public
+    constructor Create(AMap: TVCMIMap); override;
+    destructor Destroy; override;
+
+    procedure Redo; override;
+    procedure Undo; override;
+    procedure Execute; override;
+  end;
+
+  TEditRoad = class (TEditRoadRiver)
+  public
+    function GetDescription: string; override;
+  end;
+
+  { TEditRiver }
+
+  TEditRiver = class (TEditRoadRiver)
+  public
+    function GetDescription: string; override;
+  end;
   { TObjectAction }
 
   TObjectAction = class(TMapUndoItem)
@@ -346,7 +369,7 @@ type
 implementation
 
 uses
-  LazLogger, editor_gl, editor_consts;
+  LazLogger, editor_gl, editor_consts, editor_str_consts;
 
 operator+(a, b: TMapCoord): TMapCoord;
 begin
@@ -929,7 +952,7 @@ end;
 
 { TTileCompare }
 
-class function TTileCompareByCoord.c(a, b: TTileInfo): boolean;
+class function TTileCompareByCoord.c(a, b: TTileTerrainInfo): boolean;
 begin
   Result := (a.X < b.X) or ((a.X=b.X) and (a.y<b.Y));
 end;
@@ -938,7 +961,7 @@ end;
 
 procedure TEditTerrain.AddTile(X, Y: integer);
 var
-  info: TTileInfo;
+  info: TTileTerrainInfo;
 begin
 
   if not FMap.IsOnMap(FLevel,X,Y) then
@@ -960,8 +983,8 @@ end;
 constructor TEditTerrain.Create(AMap: TVCMIMap);
 begin
   inherited Create(AMap);
-  FOldTileInfos := TTileInfos.Create;
-  FNewTileInfos := TTileInfos.Create;
+  FOldTileInfos := TTileTerrainInfos.Create;
+  FNewTileInfos := TTileTerrainInfos.Create;
 end;
 
 destructor TEditTerrain.Destroy;
@@ -974,7 +997,7 @@ end;
 
 procedure TEditTerrain.Execute;
 var
-  old_info, new_info, info: TTileInfo;
+  old_info, new_info, info: TTileTerrainInfo;
 
   i, dx,dy: Integer;
 
@@ -1037,12 +1060,12 @@ end;
 
 function TEditTerrain.GetDescription: string;
 begin
-  Result := 'Edit terrain'; //todo: l18n
+  Result := rsEditTerrainDescription;
 end;
 
-function TEditTerrain.GetTinfo(x,y: integer): TTileInfo;
+function TEditTerrain.GetTinfo(x,y: integer): TTileTerrainInfo;
 var
-  tmp: TTileInfo;
+  tmp: TTileTerrainInfo;
   n: TTileSet.PNode;
 begin
   tmp.X := x;
@@ -1067,7 +1090,7 @@ begin
   getTinfo := GetTileInfo(x,y);
 end;
 
-function TEditTerrain.GetTileInfo(x, y: Integer): TTileInfo;
+function TEditTerrain.GetTileInfo(x, y: Integer): TTileTerrainInfo;
 var
   t: PMapTile;
 begin
@@ -1081,7 +1104,7 @@ begin
   Result.mir := t^.Flags mod 4;
 end;
 
-function TEditTerrain.GetTileInfo(x, y: Integer; out Info: TTileInfo): boolean;
+function TEditTerrain.GetTileInfo(x, y: Integer; out Info: TTileTerrainInfo): boolean;
 begin
   Result := False;
   if FMap.IsOnMap(Level,x,y) then
@@ -1093,7 +1116,7 @@ end;
 
 procedure TEditTerrain.Redo;
 var
-  new_info: TTileInfo;
+  new_info: TTileTerrainInfo;
   i: Integer;
 begin
   for i := 0 to FNewTileInfos.Size - 1 do
@@ -1149,9 +1172,9 @@ begin
   SafeExtendTileAround(x,y).Iterate(@ProcessTile);
 end;
 
-function TEditTerrain.GetInvalidTiles(center: TTileInfo): TInvalidTiles;
+function TEditTerrain.GetInvalidTiles(center: TTileTerrainInfo): TInvalidTiles;
 var
-  centerTile: TTileInfo;
+  centerTile: TTileTerrainInfo;
 
   config: TTerrainPatternConfig;
 
@@ -1163,7 +1186,7 @@ var
     OTHER_P: array[0..1] of string = ('n2','n3');
   var
     valid: Boolean;
-    curTile: TTileInfo;
+    curTile: TTileTerrainInfo;
     pName: string;
   begin
     curTile := GetTinfo(Coord.X, Coord.Y);
@@ -1215,9 +1238,9 @@ end;
 procedure TEditTerrain.UpdateTerrainTypes;
 var
   tiles: TInvalidTiles;
-  centerTile:TTileInfo;
+  centerTile:TTileTerrainInfo;
 
-  procedure UpdateTerrain(tile:TTileInfo; RequiresValidation: Boolean);
+  procedure UpdateTerrain(tile:TTileTerrainInfo; RequiresValidation: Boolean);
   begin
     tile.TerType:=centerTile.TerType;
     if RequiresValidation then
@@ -1234,14 +1257,14 @@ const
 
 var
   i: Integer;
-  tile, tmp:TTileInfo;
+  tile, tmp:TTileTerrainInfo;
 
   it: TTileSet.TIterator;
   it2: TTileSet.PNode;
   rect: TMapRect;
   SuitableTiles: TTileSet;
 
-  TestTile: TTileInfo;
+  TestTile: TTileTerrainInfo;
 
   invalidForeignTilesCnt,invalidNativeTilesCnt,nativeTilesCntNorm: Integer;
   j: Integer;
@@ -1363,7 +1386,7 @@ procedure TEditTerrain.UpdateTerrainViews;
 var
   it: TTileSet.TIterator;
   groupPatterns: TPatternsVector;
-  info: TTileInfo;
+  info: TTileTerrainInfo;
   BestPattern: Integer;
   vr: TValidationResult;
   pattern: TPattern;
@@ -1459,12 +1482,12 @@ begin
   end;
 end;
 
-procedure TEditTerrain.UndoTile(constref Tile: TTileInfo);
+procedure TEditTerrain.UndoTile(constref Tile: TTileTerrainInfo);
 begin
   FMap.SetTerrain(FLevel, Tile.X, Tile.Y,Tile.TerType, Tile.TerSubtype, Tile.mir);
 end;
 
-function TEditTerrain.ValidateTerrainView(info: TTileInfo; pattern: TPattern;
+function TEditTerrain.ValidateTerrainView(info: TTileTerrainInfo; pattern: TPattern;
   recDepth: integer): TValidationResult;
 var
   flip: integer;
@@ -1488,7 +1511,7 @@ begin
   end;
 end;
 
-function TEditTerrain.ValidateTerrainViewInner(info: TTileInfo;
+function TEditTerrain.ValidateTerrainViewInner(info: TTileTerrainInfo;
   pattern: TPattern; recDepth: integer): TValidationResult;
 
   function isSandType(tt: TTerrainType ): Boolean;
@@ -1509,7 +1532,7 @@ var
 
   currentPos: TMapCoord;
 
-  cur_tinfo: TTileInfo;
+  cur_tinfo: TTileTerrainInfo;
 
   i: Integer;
   j: Integer;
@@ -1680,5 +1703,45 @@ begin
 
 end;
 
-end.
+{ TEditRoadRiver }
 
+constructor TEditRoadRiver.Create(AMap: TVCMIMap);
+begin
+  inherited Create(AMap);
+end;
+
+destructor TEditRoadRiver.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TEditRoadRiver.Redo;
+begin
+
+end;
+
+procedure TEditRoadRiver.Undo;
+begin
+
+end;
+
+procedure TEditRoadRiver.Execute;
+begin
+
+end;
+
+{ TEditRoad }
+
+function TEditRoad.GetDescription: string;
+begin
+  Result := rsEditRoadDescription;
+end;
+
+{ TEditRiver }
+
+function TEditRiver.GetDescription: string;
+begin
+  Result := rsEditRiverDescription;
+end;
+
+end.
