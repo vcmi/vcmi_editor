@@ -1404,6 +1404,8 @@ begin
     FSelectedObject.RenderSelectionRect;
   end;
 
+  FActiveBrush.RenderSelection;
+
   glDisable(GL_SCISSOR_TEST);
 
   RenderCursor;

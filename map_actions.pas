@@ -160,6 +160,7 @@ type
     procedure TileMouseMove(X,Y: integer);override;
 
     procedure RenderCursor(X,Y: integer); override;
+    procedure RenderSelection(); override;
   end;
 
 
@@ -523,6 +524,34 @@ begin
     dim := TILE_SIZE * Size;
     editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
     editor_gl.CurrentContextState.StopDrawing;
+  end;
+end;
+
+procedure TTerrainBrush.RenderSelection;
+var
+  it: TCoordSet.TIterator;
+  dim,cx,cy: Integer;
+begin
+  if (Mode = TTerrainBrushMode.fixed) and FDragging then
+  begin
+    it := FSelection.Min;
+    if Assigned(it) then
+    begin
+      editor_gl.CurrentContextState.StartDrawingRects;
+      dim := TILE_SIZE;
+      repeat
+        cx := it.Data.X * TILE_SIZE;
+        cy := it.Data.Y * TILE_SIZE;
+        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+      until not it.next ;
+      FreeAndNil(it);
+      editor_gl.CurrentContextState.StopDrawing;
+    end;
+  end
+  else
+  if (Mode = TTerrainBrushMode.area) and FDragging then
+  begin
+    //todo: RenderSelection area mode
   end;
 end;
 
