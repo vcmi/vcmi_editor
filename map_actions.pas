@@ -112,8 +112,12 @@ type
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); virtual;
 
     procedure TileClicked(X,Y: integer);virtual;
+    procedure TileMouseDown(X,Y: integer);virtual;
+    procedure TileMouseUp(X,Y: integer);virtual;
+    procedure TileMouseMove(X,Y: integer);virtual;
 
     procedure RenderCursor(X,Y: integer); virtual;
+    procedure RenderSelection(); virtual;
   end;
 
   { TIdleMapBrush }
@@ -130,9 +134,13 @@ type
     FSize: Integer;
     FTT: TTerrainType;
     FSelection: TCoordSet;
+
+    FDragging: Boolean;
+
     procedure SetMode(AValue: TTerrainBrushMode);
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
+    procedure AddTile(X,Y: integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -143,13 +151,13 @@ type
     property Size: Integer read FSize write SetSize;
     property TT: TTerrainType read FTT write Settt;
 
-    //property Level: Integer read FLevel write SetLevel;
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
 
     procedure TileClicked(X,Y: integer);override;
-
-    procedure AddTile(X,Y: integer);
+    procedure TileMouseDown(X,Y: integer);override;
+    procedure TileMouseUp(X,Y: integer);override;
+    procedure TileMouseMove(X,Y: integer);override;
 
     procedure RenderCursor(X,Y: integer); override;
   end;
@@ -353,7 +361,27 @@ begin
 
 end;
 
+procedure TMapBrush.TileMouseDown(X, Y: integer);
+begin
+
+end;
+
+procedure TMapBrush.TileMouseUp(X, Y: integer);
+begin
+
+end;
+
+procedure TMapBrush.TileMouseMove(X, Y: integer);
+begin
+
+end;
+
 procedure TMapBrush.RenderCursor(X, Y: integer);
+begin
+
+end;
+
+procedure TMapBrush.RenderSelection;
 begin
 
 end;
@@ -398,6 +426,7 @@ begin
   inherited Clear;
   FSelection.Free;
   FSelection := TCoordSet.Create;
+  FDragging := false;
 end;
 
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -419,9 +448,10 @@ begin
       action.AddTile(it.Data.X, it.Data.Y);
     until not it.next ;
     FreeAndNil(it);
+
+    AManager.ExecuteItem(action); //execute only if selection is not empty
   end;
 
-  AManager.ExecuteItem(action);
   Clear;
 end;
 
@@ -429,6 +459,28 @@ procedure TTerrainBrush.TileClicked(X, Y: integer);
 begin
   inherited TileClicked(X, Y);
   AddTile(X,Y);
+end;
+
+procedure TTerrainBrush.TileMouseDown(X, Y: integer);
+begin
+  inherited TileMouseDown(X, Y);
+  FDragging:=True;
+  AddTile(X,Y);
+end;
+
+procedure TTerrainBrush.TileMouseUp(X, Y: integer);
+begin
+  FDragging := False;
+  inherited TileMouseUp(X, Y);
+end;
+
+procedure TTerrainBrush.TileMouseMove(X, Y: integer);
+begin
+  inherited TileMouseMove(X, Y);
+  if FDragging then
+  begin
+    AddTile(X,Y);
+  end;
 end;
 
 procedure TTerrainBrush.AddTile(X, Y: integer);

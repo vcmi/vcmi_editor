@@ -294,12 +294,6 @@ type
     //selected brush
     FActiveBrush: TMapBrush;
 
-    //FCurrentTerrain:   TTerrainType;
-    //FTerrainBrushMode: TTerrainBrushMode;
-    //FTerrainBrushSize: Integer;
-    //FRoadType: TRoadType;
-    //FRiverTypet: TRiverType;
-
     FUndoManager: TAbstractUndoManager;
 
     FMinimap: TMinimap;
@@ -1114,8 +1108,8 @@ end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
 begin
-  FActiveBrush.TileClicked(FMouseTileX, FMouseTileY);
-  FActiveBrush.Execute(FUndoManager,FMap);
+  //FActiveBrush.TileClicked(FMouseTileX, FMouseTileY);
+  //FActiveBrush.Execute(FUndoManager,FMap);
 end;
 
 procedure TfMain.MapViewDblClick(Sender: TObject);
@@ -1243,12 +1237,14 @@ begin
     finally
       q.Free;
     end;
-  end;
-
-  //todo: editor mode
-  if Button = TMouseButton.mbLeft then
+  end
+  else
   begin
-    FMouseDown := True;
+    if Button = TMouseButton.mbLeft then
+    begin
+      FMouseDown := True;
+      FActiveBrush.TileMouseDown(FMouseTileX,FMouseTileY);
+    end;
   end;
 end;
 
@@ -1259,6 +1255,7 @@ end;
 procedure TfMain.MapViewMouseLeave(Sender: TObject);
 begin
   InvalidateMapAxis;
+  FActiveBrush.Clear;
 end;
 
 procedure TfMain.MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -1274,6 +1271,7 @@ begin
   begin
     InvalidateMapAxis;
   end;
+  FActiveBrush.TileMouseMove(FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
@@ -1283,6 +1281,9 @@ begin
   if Button = TMouseButton.mbLeft then
   begin
     FMouseDown := False;
+
+    FActiveBrush.TileMouseUp(FMouseTileX, FMouseTileY);
+    FActiveBrush.Execute(FUndoManager,FMap);
   end;
 
 end;
