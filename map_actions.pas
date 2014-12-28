@@ -38,6 +38,7 @@ type
     X,Y: integer;
 
     procedure Clear(); inline;
+    procedure Reset(AX,AY: integer); inline;
   end;
 
   operator+ (a,b:TMapCoord):TMapCoord;
@@ -62,8 +63,9 @@ type
     FTopLeft: TMapCoord;
     FWidth,FHeight: SizeInt;
 
-    constructor Create(); //empty
+    constructor Create();
     constructor SetFromCenter(X,Y, Width,Height: integer);
+    constructor SetFromCorners(AFirst, ASecond:TMapCoord);
 
     function Left(): integer; inline;
     function Right(): integer; inline;
@@ -77,7 +79,7 @@ type
 
     function Intersect(Other: TMapRect):TMapRect;
 
-    procedure Clear();
+    procedure Clear(); inline;
 
     procedure Iterate(Callback: TMapCoordForEach);
   end;
@@ -102,7 +104,12 @@ type
 
   { TMapBrush }
 
-  TMapBrush = class (TComponent)
+  TMapBrush = class abstract (TComponent)
+  private
+    FSize: Integer;
+    FTT: TTerrainType;
+    procedure SetSize(AValue: Integer);
+    procedure Settt(AValue: TTerrainType);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -118,6 +125,9 @@ type
 
     procedure RenderCursor(X,Y: integer); virtual;
     procedure RenderSelection(); virtual;
+
+    property TT: TTerrainType read FTT write Settt;
+    property Size: Integer read FSize write SetSize;
   end;
 
   { TIdleMapBrush }
@@ -128,42 +138,58 @@ type
 
   { TTerrainBrush }
 
-  TTerrainBrush = class(TMapBrush)
-  private
-    FMode: TTerrainBrushMode;
-    FSize: Integer;
-    FTT: TTerrainType;
+  TTerrainBrush = class abstract (TMapBrush)
+  strict private
     FSelection: TCoordSet;
-
     FDragging: Boolean;
+  protected
+    procedure AddTile(X,Y: integer); virtual; abstract;
 
-    procedure SetMode(AValue: TTerrainBrushMode);
-    procedure SetSize(AValue: Integer);
-    procedure Settt(AValue: TTerrainType);
-    procedure AddTile(X,Y: integer);
+    function GetMode: TTerrainBrushMode; virtual; abstract;
+    property Dragging: Boolean read FDragging;
+    property Selection: TCoordSet read FSelection;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Clear; override;
 
-    property Mode: TTerrainBrushMode read FMode write SetMode;
-    property Size: Integer read FSize write SetSize;
-    property TT: TTerrainType read FTT write Settt;
-
+    property Mode: TTerrainBrushMode read GetMode;
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
 
-    procedure TileClicked(X,Y: integer);override;
     procedure TileMouseDown(X,Y: integer);override;
     procedure TileMouseUp(X,Y: integer);override;
     procedure TileMouseMove(X,Y: integer);override;
 
     procedure RenderCursor(X,Y: integer); override;
-    procedure RenderSelection(); override;
   end;
 
 
+  { TFixedTerrainBrush }
+
+  TFixedTerrainBrush = class(TTerrainBrush)
+  protected
+    procedure AddTile(X,Y: integer); override;
+    function GetMode: TTerrainBrushMode; override;
+  public
+    procedure RenderSelection(); override;
+  end;
+
+  { TAreaTerrainBrush }
+
+  TAreaTerrainBrush = class(TTerrainBrush)
+  strict private
+    FStartCoord: TMapCoord;
+    FEndCooord: TMapCoord;
+  protected
+    procedure AddTile(X,Y: integer);override;
+    function GetMode: TTerrainBrushMode; override;
+  public
+    procedure RenderSelection(); override;
+    procedure TileMouseDown(X,Y: integer);override;
+    procedure TileMouseUp(X,Y: integer);override;
+  end;
 
 
   { TValidationResult }
@@ -328,6 +354,101 @@ begin
   result.Y:=a.y+b.y;
 end;
 
+{ TAreaTerrainBrush }
+
+procedure TAreaTerrainBrush.AddTile(X, Y: integer);
+begin
+  FEndCooord.Reset(x,y);
+end;
+
+function TAreaTerrainBrush.GetMode: TTerrainBrushMode;
+begin
+  Result := TTerrainBrushMode.area;
+end;
+
+procedure TAreaTerrainBrush.RenderSelection;
+var
+  dim,cx,cy: Integer;
+  r:TMapRect;
+begin
+  if Dragging then
+  begin
+    editor_gl.CurrentContextState.StartDrawingRects;
+    r.SetFromCorners(FStartCoord,FEndCooord);
+
+    cx := r.FTopLeft.X * TILE_SIZE;
+    cy := r.FTopLeft.Y * TILE_SIZE;
+
+    editor_gl.CurrentContextState.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
+    editor_gl.CurrentContextState.StopDrawing;
+  end;
+end;
+
+procedure TAreaTerrainBrush.TileMouseDown(X, Y: integer);
+begin
+  inherited TileMouseDown(X, Y);
+  FStartCoord.Reset(X,Y);
+end;
+
+procedure TAreaTerrainBrush.TileMouseUp(X, Y: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    Selection.Insert(Coord);
+  end;
+var
+  r:TMapRect;
+begin
+  inherited TileMouseUp(X, Y);
+  r.SetFromCorners(FStartCoord,FEndCooord);
+  r.Iterate(@ProcessTile);
+end;
+
+{ TFixedTerrainBrush }
+
+procedure TFixedTerrainBrush.AddTile(X, Y: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    Selection.Insert(Coord);
+  end;
+
+var
+  r: TMapRect;
+begin
+  r.Create();
+  r.FTopLeft.Reset(X,Y);
+  r.FHeight := Size;
+  r.FWidth := Size;
+  r.Iterate(@ProcessTile);
+end;
+
+function TFixedTerrainBrush.GetMode: TTerrainBrushMode;
+begin
+  Result := TTerrainBrushMode.fixed;
+end;
+
+procedure TFixedTerrainBrush.RenderSelection;
+var
+  it: TCoordSet.TIterator;
+  dim,cx,cy: Integer;
+begin
+  if Dragging then
+  begin
+    it := Selection.Min;
+    if Assigned(it) then
+    begin
+      editor_gl.CurrentContextState.StartDrawingRects;
+      dim := TILE_SIZE;
+      repeat
+        cx := it.Data.X * TILE_SIZE;
+        cy := it.Data.Y * TILE_SIZE;
+        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+      until not it.next ;
+      FreeAndNil(it);
+      editor_gl.CurrentContextState.StopDrawing;
+    end;
+  end;
+end;
+
 { TCompareCoord }
 
 class function TCompareCoord.c(a, b: TMapCoord): boolean;
@@ -336,6 +457,20 @@ begin
 end;
 
 { TMapBrush }
+
+procedure TMapBrush.SetSize(AValue: Integer);
+begin
+  if FSize=AValue then Exit;
+  FSize:=AValue;
+  Clear;
+end;
+
+procedure TMapBrush.Settt(AValue: TTerrainType);
+begin
+  if FTT=AValue then Exit;
+  FTT:=AValue;
+  Clear;
+end;
 
 constructor TMapBrush.Create(AOwner: TComponent);
 begin
@@ -389,27 +524,6 @@ end;
 
 { TTerrainBrush }
 
-procedure TTerrainBrush.SetMode(AValue: TTerrainBrushMode);
-begin
-  if FMode=AValue then Exit;
-  FMode:=AValue;
-  Clear;
-end;
-
-procedure TTerrainBrush.SetSize(AValue: Integer);
-begin
-  if FSize=AValue then Exit;
-  FSize:=AValue;
-  Clear;
-end;
-
-procedure TTerrainBrush.Settt(AValue: TTerrainType);
-begin
-  if FTT=AValue then Exit;
-  FTT:=AValue;
-  Clear;
-end;
-
 constructor TTerrainBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -456,12 +570,6 @@ begin
   Clear;
 end;
 
-procedure TTerrainBrush.TileClicked(X, Y: integer);
-begin
-  inherited TileClicked(X, Y);
-  AddTile(X,Y);
-end;
-
 procedure TTerrainBrush.TileMouseDown(X, Y: integer);
 begin
   inherited TileMouseDown(X, Y);
@@ -484,30 +592,6 @@ begin
   end;
 end;
 
-procedure TTerrainBrush.AddTile(X, Y: integer);
-  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
-  begin
-    FSelection.Insert(Coord);
-  end;
-
-var
-  r: TMapRect;
-
-begin
-  case Mode of
-  TTerrainBrushMode.fixed:begin
-    r.FTopLeft.X := X;
-    r.FTopLeft.Y := Y;
-    r.FHeight := Size;
-    r.FWidth := Size;
-
-    r.Iterate(@ProcessTile);
-  end;
-  TTerrainBrushMode.area:; //todo: handle area mode, fill mode
-  TTerrainBrushMode.fill:;
-
-  end;
-end;
 
 procedure TTerrainBrush.RenderCursor(X, Y: integer);
 var
@@ -524,34 +608,6 @@ begin
     dim := TILE_SIZE * Size;
     editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
     editor_gl.CurrentContextState.StopDrawing;
-  end;
-end;
-
-procedure TTerrainBrush.RenderSelection;
-var
-  it: TCoordSet.TIterator;
-  dim,cx,cy: Integer;
-begin
-  if (Mode = TTerrainBrushMode.fixed) and FDragging then
-  begin
-    it := FSelection.Min;
-    if Assigned(it) then
-    begin
-      editor_gl.CurrentContextState.StartDrawingRects;
-      dim := TILE_SIZE;
-      repeat
-        cx := it.Data.X * TILE_SIZE;
-        cy := it.Data.Y * TILE_SIZE;
-        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-      until not it.next ;
-      FreeAndNil(it);
-      editor_gl.CurrentContextState.StopDrawing;
-    end;
-  end
-  else
-  if (Mode = TTerrainBrushMode.area) and FDragging then
-  begin
-    //todo: RenderSelection area mode
   end;
 end;
 
@@ -741,8 +797,13 @@ end;
 
 procedure TMapCoord.Clear;
 begin
-  X:=0;
-  Y:=0;
+  Reset(0,0);
+end;
+
+procedure TMapCoord.Reset(AX, AY: integer);
+begin
+  Self.X:=AX;
+  Self.Y:=AY;
 end;
 
 { TMapRect }
@@ -854,6 +915,16 @@ begin
   FTopLeft.Y:= Y - (Height-1) div 2;
   FWidth:=Width;
   FHeight:=Height;
+end;
+
+constructor TMapRect.SetFromCorners(AFirst, ASecond: TMapCoord);
+begin
+  Clear();
+
+  FTopLeft.Reset(Min(AFirst.X,ASecond.X), Min(AFirst.Y,ASecond.Y));
+
+  FWidth := abs(AFirst.X-ASecond.X)+1;
+  FHeight := abs(AFirst.Y-ASecond.Y)+1;
 end;
 
 { TTileCompare }

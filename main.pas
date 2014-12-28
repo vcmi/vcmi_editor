@@ -288,8 +288,8 @@ type
 
     //all brushes
     FIdleBrush: TIdleMapBrush;
-    FTerrainBrush: TTerrainBrush;
-
+    FFixedTerrainBrush: TFixedTerrainBrush;
+    FAreaTerrainBrush: TAreaTerrainBrush;
 
     //selected brush
     FActiveBrush: TMapBrush;
@@ -603,9 +603,7 @@ end;
 
 procedure TfMain.actTerrainExecute(Sender: TObject);
 begin
-  SetActiveBrush(FTerrainBrush);
-  FTerrainBrush.Mode:=TTerrainBrushMode.fixed;
-
+  SetActiveBrush(FFixedTerrainBrush);
 
   pcToolBox.ActivePage := tsTerrain;
 end;
@@ -664,82 +662,77 @@ end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
 begin
-  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
-  FTerrainBrush.Size := 1;
+  FFixedTerrainBrush.Size := 1;
 end;
 
 procedure TfMain.btnBrush2Click(Sender: TObject);
 begin
-  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
-  FTerrainBrush.Size := 2;
+  FFixedTerrainBrush.Size := 2;
 end;
 
 procedure TfMain.btnBrush4Click(Sender: TObject);
 begin
-  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
-  FTerrainBrush.Size := 4;
+  FFixedTerrainBrush.Size := 4;
 end;
 
 procedure TfMain.btnBrushAreaClick(Sender: TObject);
 begin
-  FTerrainBrush.Mode := TTerrainBrushMode.area;
-  FTerrainBrush.Size := 0;
+  SetActiveBrush(FAreaTerrainBrush);
 end;
 
 procedure TfMain.btnBrushFillClick(Sender: TObject);
 begin
-  FTerrainBrush.Mode := TTerrainBrushMode.fill;
-  FTerrainBrush.Size := 0;
+  SetActiveBrush(FIdleBrush); //TODO: infinity fill mode
 end;
 
 procedure TfMain.btnDirtClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.dirt;
+  FActiveBrush.TT := TTerrainType.dirt;
 end;
 
 procedure TfMain.btnGrassClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.grass;
+  FActiveBrush.TT := TTerrainType.grass;
 end;
 
 procedure TfMain.btnLavaClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.lava;
+  FActiveBrush.TT := TTerrainType.lava;
 end;
 
 procedure TfMain.btnRockClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.rock;
+  FActiveBrush.TT := TTerrainType.rock;
 end;
 
 procedure TfMain.btnRoughClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.rough;
+  FActiveBrush.TT := TTerrainType.rough;
 end;
 
 procedure TfMain.btnSandClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.sand;
+  FActiveBrush.TT := TTerrainType.sand;
 end;
 
 procedure TfMain.btnSnowClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.snow;
+  FActiveBrush.TT := TTerrainType.snow;
 end;
 
 procedure TfMain.btnSubClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.sub;
+  FActiveBrush.TT := TTerrainType.sub;
 end;
 
 procedure TfMain.btnSwampClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.swamp;
+  FActiveBrush.TT := TTerrainType.swamp;
 end;
 
 procedure TfMain.btnWaterClick(Sender: TObject);
 begin
-  FTerrainBrush.TT := TTerrainType.water;
+  FActiveBrush.TT := TTerrainType.water;
 end;
 
 function TfMain.CheckUnsavedMap: boolean;
@@ -800,13 +793,13 @@ begin
   ObjectsView.SharedControl := RootManager.SharedContext;
 
   FIdleBrush := TIdleMapBrush.Create(Self);
-  FTerrainBrush := TTerrainBrush.Create(Self);
+  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
+  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
 
-  SetActiveBrush(FTerrainBrush);
+  SetActiveBrush(FFixedTerrainBrush);
 
-  FTerrainBrush.Mode := TTerrainBrushMode.fixed;
-  FTerrainBrush.Size := 1;
-  FTerrainBrush.TT :=  TTerrainType.dirt;
+  FActiveBrush.Size := 1;
+  FActiveBrush.TT :=  TTerrainType.dirt;
   pcToolBox.ActivePage := tsTerrain;
 
 

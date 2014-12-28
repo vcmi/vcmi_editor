@@ -1158,14 +1158,14 @@ object fMain: TfMain
       Top = 204
       Width = 204
       TabStop = False
-      ActivePage = tsRoads
+      ActivePage = tsTerrain
       Align = alClient
       ShowTabs = False
-      TabIndex = 2
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcToolBoxChange
       object tsTerrain: TTabSheet
-        ClientHeight = 262
+        ClientHeight = 260
         ClientWidth = 196
         object lbBrush: TLabel
           Left = 10
