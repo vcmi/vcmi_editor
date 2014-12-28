@@ -27,6 +27,12 @@ resourcestring
   rsRoadTypeGrazvel= 'Grazvel';
   rsRoadTypeCobblestone = 'Cobblestone';
 
+  rsRiverTypeNone = 'Delete';
+  rsRiverTypeClear = 'Water';
+  rsRiverTypeIcy = 'Ice';
+  rsRiverTypeMuddy = 'Muddy';
+  rsRiverTypeLava = 'Lava';
+
   rsEditTerrainDescription = 'Edit terrain';
   rsEditRoadDescription = 'Edit roads';
   rsEditRiverDescription = 'Edit rivers';

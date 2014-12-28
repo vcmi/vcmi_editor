@@ -27,10 +27,33 @@ unit map_road_river_actions;
 interface
 
 uses
-  Classes, SysUtils, undo_base, undo_map, Map;
+  Classes, SysUtils, undo_base, undo_map, Map, editor_types, map_actions;
 
 type
-  { TEditRoadRiver }
+
+   { TRoadRiverBrush }
+
+   TRoadRiverBrushKind = (road, river);
+
+   TRoadRiverBrush = class(TMapBrush)
+   private
+     FKind: TRoadRiverBrushKind;
+     FRiverType: TRiverType;
+     FRoadType: TRoadType;
+     procedure SetKind(AValue: TRoadRiverBrushKind);
+     procedure SetRiverType(AValue: TRiverType);
+     procedure SetRoadType(AValue: TRoadType);
+   public
+     constructor Create(AOwner: TComponent); override;
+     destructor Destroy; override;
+
+     property RoadType: TRoadType read FRoadType write SetRoadType;
+     property RiverType: TRiverType read FRiverType write SetRiverType;
+     property Kind:TRoadRiverBrushKind read FKind write SetKind;
+   end;
+
+
+   { TEditRoadRiver }
 
    TEditRoadRiver = class abstract (TMapUndoItem)
    public
@@ -59,6 +82,40 @@ type
 implementation
 
 uses editor_str_consts;
+
+{ TRoadRiverBrush }
+
+procedure TRoadRiverBrush.SetRoadType(AValue: TRoadType);
+begin
+  if FRoadType=AValue then Exit;
+  FRoadType:=AValue;
+  FRiverType:=TRiverType.noRiver;
+  Kind := TRoadRiverBrushKind.road;
+end;
+
+procedure TRoadRiverBrush.SetRiverType(AValue: TRiverType);
+begin
+  if FRiverType=AValue then Exit;
+  FRiverType:=AValue;
+  FRoadType := TRoadType.noRoad;
+  Kind := TRoadRiverBrushKind.river;
+end;
+
+procedure TRoadRiverBrush.SetKind(AValue: TRoadRiverBrushKind);
+begin
+  FKind:=AValue;
+  Clear;
+end;
+
+constructor TRoadRiverBrush.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
+destructor TRoadRiverBrush.Destroy;
+begin
+  inherited Destroy;
+end;
 
 { TEditRoadRiver }
 

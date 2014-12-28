@@ -79,7 +79,6 @@ type
     actArtifacts: TAction;
     actDelete: TAction;
     actProperties: TAction;
-    actRivers: TAction;
     actRoads: TAction;
     actMonsters: TAction;
     actUnderground: TAction;
@@ -134,6 +133,7 @@ type
     btnBrushFill: TSpeedButton;
     btnBrushArea: TSpeedButton;
     menuPlayer: TPopupMenu;
+    RiverType: TRadioGroup;
     RoadType: TRadioGroup;
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
@@ -149,7 +149,6 @@ type
     ToolButton14: TToolButton;
     ToolButton15: TToolButton;
     ToolButton16: TToolButton;
-    ToolButton17: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton5: TToolButton;
@@ -250,7 +249,10 @@ type
     procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure pbObjectsResize(Sender: TObject);
+    procedure RiverTypeClick(Sender: TObject);
+    procedure RiverTypeSelectionChanged(Sender: TObject);
     procedure RoadTypeClick(Sender: TObject);
+    procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure VerticalAxisPaint(Sender: TObject);
@@ -291,6 +293,8 @@ type
     FIdleBrush: TIdleMapBrush;
     FFixedTerrainBrush: TFixedTerrainBrush;
     FAreaTerrainBrush: TAreaTerrainBrush;
+
+    FRoadRiverBrush: TRoadRiverBrush;
 
     //selected brush
     FActiveBrush: TMapBrush;
@@ -569,7 +573,10 @@ end;
 procedure TfMain.actRoadsExecute(Sender: TObject);
 begin
   pcToolBox.ActivePage := tsRoads;
- // FRoadType := TRoadType.noRoad;
+  FActiveBrush := FRoadRiverBrush;
+  RoadType.ItemIndex := 0;
+  RiverType.ItemIndex := -1;
+  FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[0]));
 end;
 
 procedure TfMain.actRoadsUpdate(Sender: TObject);
@@ -800,6 +807,8 @@ begin
   FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
 
+  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
+
   SetActiveBrush(FFixedTerrainBrush);
 
   FActiveBrush.Size := 1;
@@ -807,12 +816,20 @@ begin
   pcToolBox.ActivePage := tsTerrain;
 
 
-  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(Integer(TRoadType.dirtRoad)));
-  RoadType.Items.AddObject(rsRoadTypeGrazvel, TObject(Integer(TRoadType.grazvelRoad)));
-  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(Integer(TRoadType.cobblestoneRoad)));
-  RoadType.Items.AddObject(rsRoadTypeNone, TObject(Integer(TRoadType.noRoad)));
+  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
+  RoadType.Items.AddObject(rsRoadTypeGrazvel, TObject(PtrInt(TRoadType.grazvelRoad)));
+  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
+  RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
 
   RoadType.ItemIndex := 0;
+
+  RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
+  RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
+  RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
+  RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
+  RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
+
+  RiverType.ItemIndex:=-1;
 
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
@@ -1684,9 +1701,33 @@ begin
   InvalidateObjects;
 end;
 
+procedure TfMain.RiverTypeClick(Sender: TObject);
+begin
+  SetActiveBrush(FRoadRiverBrush);
+end;
+
+procedure TfMain.RiverTypeSelectionChanged(Sender: TObject);
+begin
+  if RiverType.ItemIndex >=0 then
+  begin
+    FRoadRiverBrush.RiverType:=TRiverType(PtrInt(RiverType.Items.Objects[RiverType.ItemIndex]));
+    RoadType.ItemIndex:=-1;
+  end;
+end;
+
 procedure TfMain.RoadTypeClick(Sender: TObject);
 begin
-  //FRoadType := TRoadType(Integer(RoadType.Items.Objects[RoadType.ItemIndex]));
+  SetActiveBrush(FRoadRiverBrush);
+
+end;
+
+procedure TfMain.RoadTypeSelectionChanged(Sender: TObject);
+begin
+  if RoadType.ItemIndex >=0 then
+  begin
+     FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
+     RiverType.ItemIndex:=-1;
+  end;
 end;
 
 procedure TfMain.pcToolBoxChange(Sender: TObject);
@@ -1757,10 +1798,6 @@ end;
 
 procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
 begin
-  if FActiveBrush = ABrush then
-  begin
-    Exit;
-  end;
   FActiveBrush := ABrush;
   FActiveBrush.Clear;
 end;
@@ -1845,6 +1882,17 @@ begin
   end
   else
     Caption := 'VCMI editor';
+
+  //UpdateRoadRiver
+
+  //if pcToolBox.ActivePage = tsRoads then
+  //begin
+  //  case FRoadRiverBrush.Kind of
+  //    TRoadRiverBrushKind.road: RiverType.ItemIndex := -1;
+  //    TRoadRiverBrushKind.river: RoadType.ItemIndex := -1;
+  //  end;
+  //end;
+
 end;
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);

@@ -1,11 +1,11 @@
 object fMain: TfMain
   Left = 484
-  Height = 573
+  Height = 687
   Top = 121
-  Width = 823
+  Width = 826
   Caption = 'VCMI editor'
-  ClientHeight = 553
-  ClientWidth = 823
+  ClientHeight = 667
+  ClientWidth = 826
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1021,22 +1021,22 @@ object fMain: TfMain
   LCLVersion = '1.2.7.0'
   object pnMap: TPanel
     Left = 0
-    Height = 472
+    Height = 586
     Top = 58
-    Width = 619
+    Width = 622
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 472
-    ClientWidth = 619
+    ClientHeight = 586
+    ClientWidth = 622
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 438
+      Height = 552
       Top = 18
-      Width = 585
+      Width = 588
       Align = alClient
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
@@ -1058,8 +1058,8 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 456
-      Width = 583
+      Top = 570
+      Width = 586
       Align = alBottom
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
@@ -1069,8 +1069,8 @@ object fMain: TfMain
       OnScroll = hScrollBarScroll
     end
     object vScrollBar: TScrollBar
-      Left = 603
-      Height = 438
+      Left = 606
+      Height = 552
       Top = 18
       Width = 16
       Align = alRight
@@ -1082,17 +1082,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 438
+      Height = 552
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 438
+      ClientHeight = 552
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 438
+        Height = 552
         Top = 0
         Width = 18
         Align = alClient
@@ -1103,19 +1103,19 @@ object fMain: TfMain
       Left = 18
       Height = 18
       Top = 0
-      Width = 583
+      Width = 586
       Align = alTop
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
       BevelOuter = bvNone
       ClientHeight = 18
-      ClientWidth = 583
+      ClientWidth = 586
       TabOrder = 4
       object HorisontalAxis: TPaintBox
         Left = 0
         Height = 18
         Top = 0
-        Width = 583
+        Width = 586
         Align = alClient
         ParentColor = False
         OnPaint = HorisontalAxisPaint
@@ -1123,13 +1123,13 @@ object fMain: TfMain
     end
   end
   object Panel3: TPanel
-    Left = 619
-    Height = 472
+    Left = 622
+    Height = 586
     Top = 58
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 472
+    ClientHeight = 586
     ClientWidth = 204
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1154,18 +1154,18 @@ object fMain: TfMain
     end
     object pcToolBox: TPageControl
       Left = 0
-      Height = 268
+      Height = 382
       Top = 204
       Width = 204
       TabStop = False
-      ActivePage = tsTerrain
+      ActivePage = tsRoads
       Align = alClient
       ShowTabs = False
-      TabIndex = 0
+      TabIndex = 2
       TabOrder = 1
       OnChange = pcToolBoxChange
       object tsTerrain: TTabSheet
-        ClientHeight = 260
+        ClientHeight = 374
         ClientWidth = 196
         object lbBrush: TLabel
           Left = 10
@@ -1372,21 +1372,18 @@ object fMain: TfMain
         end
       end
       object tsRoads: TTabSheet
-        ClientHeight = 260
+        ClientHeight = 374
         ClientWidth = 196
         object RoadType: TRadioGroup
-          AnchorSideLeft.Control = tsRoads
-          AnchorSideTop.Control = tsRoads
-          AnchorSideRight.Control = tsRoads
-          AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = tsRoads
           AnchorSideBottom.Side = asrBottom
           Left = 5
-          Height = 250
+          Height = 19
           Top = 5
           Width = 186
-          Anchors = [akTop, akLeft, akRight, akBottom]
+          Align = alTop
           AutoFill = True
+          AutoSize = True
           BorderSpacing.Around = 5
           Caption = 'RoadType'
           ChildSizing.LeftRightSpacing = 6
@@ -1397,7 +1394,28 @@ object fMain: TfMain
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
           OnClick = RoadTypeClick
+          OnSelectionChanged = RoadTypeSelectionChanged
           TabOrder = 0
+        end
+        object RiverType: TRadioGroup
+          Left = 0
+          Height = 19
+          Top = 29
+          Width = 196
+          Align = alTop
+          AutoFill = True
+          AutoSize = True
+          Caption = 'RiverType'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 1
+          OnClick = RiverTypeClick
+          OnSelectionChanged = RiverTypeSelectionChanged
+          TabOrder = 1
         end
       end
     end
@@ -1406,7 +1424,7 @@ object fMain: TfMain
     Left = 0
     Height = 34
     Top = 0
-    Width = 823
+    Width = 826
     AutoSize = True
     ButtonHeight = 32
     ButtonWidth = 32
@@ -1466,7 +1484,7 @@ object fMain: TfMain
     Left = 0
     Height = 24
     Top = 34
-    Width = 823
+    Width = 826
     AutoSize = True
     Caption = 'ActionsToolBar'
     Images = imlMainActions
@@ -1478,41 +1496,41 @@ object fMain: TfMain
       Action = actTerrain
     end
     object ToolButton9: TToolButton
-      Left = 135
+      Left = 96
       Top = 2
       Action = actObjects
     end
     object tbSelectPlayer: TToolButton
-      Left = 337
+      Left = 298
       Top = 2
       Caption = 'Player'
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
     object ToolButton11: TToolButton
-      Left = 389
+      Left = 350
       Top = 2
       Width = 5
       Caption = 'ToolButton11'
       Style = tbsDivider
     end
     object ToolButton12: TToolButton
-      Left = 394
+      Left = 355
       Top = 2
       Action = actUnderground
     end
     object ToolButton13: TToolButton
-      Left = 183
+      Left = 144
       Top = 2
       Action = actHeroes
     end
     object ToolButton14: TToolButton
-      Left = 228
+      Left = 189
       Top = 2
       Action = actMonsters
     end
     object ToolButton15: TToolButton
-      Left = 285
+      Left = 246
       Top = 2
       Action = actArtifacts
     end
@@ -1521,13 +1539,8 @@ object fMain: TfMain
       Top = 2
       Action = actRoads
     end
-    object ToolButton17: TToolButton
-      Left = 86
-      Top = 2
-      Action = actRivers
-    end
     object ToolButton10: TToolButton
-      Left = 125
+      Left = 86
       Top = 2
       Width = 10
       Caption = 'ToolButton10'
@@ -1537,8 +1550,8 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 530
-    Width = 823
+    Top = 644
+    Width = 826
     Panels = <>
     SimplePanel = False
   end
@@ -1951,9 +1964,6 @@ object fMain: TfMain
       Caption = 'Roads'
       OnExecute = actRoadsExecute
       OnUpdate = actRoadsUpdate
-    end
-    object actRivers: TAction
-      Caption = 'Rivers'
     end
     object actProperties: TAction
       Caption = 'Properties ...'

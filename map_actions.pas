@@ -57,11 +57,15 @@ type
   { TMapBrush }
 
   TMapBrush = class abstract (TComponent)
-  private
+  strict private
     FSize: Integer;
     FTT: TTerrainType;
+    FDragging: Boolean;
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
+  protected
+    property Dragging: Boolean read FDragging;
+    procedure AddTile(X,Y: integer); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -85,7 +89,8 @@ type
   { TIdleMapBrush }
 
   TIdleMapBrush = class(TMapBrush)
-
+  protected
+    procedure AddTile(X,Y: integer); override;
   end;
 
 
@@ -96,6 +101,13 @@ operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TIdleMapBrush }
+
+procedure TIdleMapBrush.AddTile(X, Y: integer);
+begin
+  //to nothing here
 end;
 
 { TCompareCoord }
@@ -133,7 +145,7 @@ end;
 
 procedure TMapBrush.Clear;
 begin
-
+  FDragging := false;
 end;
 
 procedure TMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -148,17 +160,21 @@ end;
 
 procedure TMapBrush.TileMouseDown(X, Y: integer);
 begin
-
+  FDragging:=True;
+  AddTile(X,Y);
 end;
 
 procedure TMapBrush.TileMouseUp(X, Y: integer);
 begin
-
+  FDragging := False;
 end;
 
 procedure TMapBrush.TileMouseMove(X, Y: integer);
 begin
-
+  if Dragging then
+  begin
+    AddTile(X,Y);
+  end;
 end;
 
 procedure TMapBrush.RenderCursor(X, Y: integer);

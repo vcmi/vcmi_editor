@@ -89,12 +89,12 @@ type
   TTerrainBrush = class abstract (TMapBrush)
   strict private
     FSelection: TCoordSet;
-    FDragging: Boolean;
+
   protected
-    procedure AddTile(X,Y: integer); virtual; abstract;
+
 
     function GetMode: TTerrainBrushMode; virtual; abstract;
-    property Dragging: Boolean read FDragging;
+
     property Selection: TCoordSet read FSelection;
   public
     constructor Create(AOwner: TComponent); override;
@@ -106,9 +106,6 @@ type
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
 
-    procedure TileMouseDown(X,Y: integer);override;
-    procedure TileMouseUp(X,Y: integer);override;
-    procedure TileMouseMove(X,Y: integer);override;
 
     procedure RenderCursor(X,Y: integer); override;
   end;
@@ -365,7 +362,7 @@ begin
   inherited Clear;
   FSelection.Free;
   FSelection := TCoordSet.Create;
-  FDragging := false;
+
 end;
 
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -393,29 +390,6 @@ begin
 
   Clear;
 end;
-
-procedure TTerrainBrush.TileMouseDown(X, Y: integer);
-begin
-  inherited TileMouseDown(X, Y);
-  FDragging:=True;
-  AddTile(X,Y);
-end;
-
-procedure TTerrainBrush.TileMouseUp(X, Y: integer);
-begin
-  FDragging := False;
-  inherited TileMouseUp(X, Y);
-end;
-
-procedure TTerrainBrush.TileMouseMove(X, Y: integer);
-begin
-  inherited TileMouseMove(X, Y);
-  if FDragging then
-  begin
-    AddTile(X,Y);
-  end;
-end;
-
 
 procedure TTerrainBrush.RenderCursor(X, Y: integer);
 var
