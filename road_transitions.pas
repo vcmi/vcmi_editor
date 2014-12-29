@@ -94,7 +94,7 @@ const
           '?','-','?'
         );
         RoadMapping: (Lower:15; Upper:15);
-        RiverMapping: (Lower:-1; Upper:-1);
+        RiverMapping: (Lower:11; Upper:12);
         HasVFlip: false;
         HasHFlip: true;
       ),
@@ -107,7 +107,7 @@ const
           '?','+','?'
         );
         RoadMapping: (Lower:14; Upper:14);
-        RiverMapping: (Lower:-1; Upper:-1);
+        RiverMapping: (Lower:9; Upper:10);
         HasVFlip: true;
         HasHFlip: false;
       ),

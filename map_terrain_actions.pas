@@ -202,21 +202,10 @@ begin
 end;
 
 procedure TTerrainBrush.RenderCursor(X, Y: integer);
-var
-  dim: Integer;
-  cx,cy: Integer;
 begin
-  inherited RenderCursor(X, Y);
-  cx := X * TILE_SIZE;
-  cy := Y * TILE_SIZE;
 
   if Mode = TTerrainBrushMode.fixed then
-  begin
-    editor_gl.CurrentContextState.StartDrawingRects;
-    dim := TILE_SIZE * Size;
-    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-    editor_gl.CurrentContextState.StopDrawing;
-  end;
+    inherited RenderCursor(X,Y, Size);
 end;
 
 { TAreaTerrainBrush }

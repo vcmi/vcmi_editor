@@ -46,12 +46,15 @@ type
     procedure SetRoadType(AValue: TRoadType);
   protected
     procedure AddTile(X,Y: integer); override;
+
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
      override;
+
+    procedure RenderCursor(X,Y: integer); override;
 
     property RoadType: TRoadType read FRoadType write SetRoadType;
     property RiverType: TRiverType read FRiverType write SetRiverType;
@@ -169,6 +172,8 @@ begin
   c.Reset(x,y);
 
   //TODO:do not draw on water and rock
+  //TODO: draw line from previouse point to not skip tiles on fast mouse move
+  //TODO: connect road on diagonal move
 
   Selection.Insert(c);
 end;
@@ -218,6 +223,11 @@ begin
 
   AManager.ExecuteItem(action_item);
   Clear;
+end;
+
+procedure TRoadRiverBrush.RenderCursor(X, Y: integer);
+begin
+  inherited RenderCursor(X, Y,1);
 end;
 
 { TEditRoadRiver }

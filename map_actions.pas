@@ -104,6 +104,7 @@ type
     procedure AddTile(X,Y: integer); virtual; abstract;
 
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
+    procedure RenderCursor(X,Y, Size: integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -314,6 +315,21 @@ begin
     until not it.next ;
     FreeAndNil(it);
   end;
+end;
+
+procedure TMapBrush.RenderCursor(X, Y, Size: integer);
+var
+  dim: Integer;
+  cx,cy: Integer;
+begin
+  cx := X * TILE_SIZE;
+  cy := Y * TILE_SIZE;
+
+    editor_gl.CurrentContextState.StartDrawingRects;
+    dim := TILE_SIZE * Size;
+    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+    editor_gl.CurrentContextState.StopDrawing;
+
 end;
 
 constructor TMapBrush.Create(AOwner: TComponent);
