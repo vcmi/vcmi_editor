@@ -307,7 +307,10 @@ end;
 
 procedure TRoadRiverBrush.RenderCursor(X, Y: integer);
 begin
-  inherited RenderCursor(X, Y,1);
+  if (FMap.IsOnMap(FMap.CurrentLevelIndex,X,Y))
+    and not (FMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water])
+  then
+    inherited RenderCursor(X, Y,1);
 end;
 
 { TEditRoadRiver }
