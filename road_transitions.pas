@@ -58,19 +58,6 @@ const
         HasVFlip: false;
         HasHFlip: false;
       ),
-
-      //Road turn right
-      (
-        Rules:
-        (
-          '?','-','-',
-          '-','+','+',
-          '-','+','?'
-        );
-        Mapping: (Lower:0; Upper:1);
-        HasVFlip: true;
-        HasHFlip: true;
-      ),
       //Road straight with angle  //???
       (
         Rules:
@@ -80,8 +67,20 @@ const
           '+','+','?'
         );
         Mapping: (Lower:2; Upper:5);
-        HasVFlip: false;
-        HasHFlip: false;
+        HasVFlip: true;
+        HasHFlip: true;
+      ),
+      //Road turn right
+      (
+        Rules:
+        (
+          '?','-','?',
+          '-','+','+',
+          '?','+','?'
+        );
+        Mapping: (Lower:0; Upper:1);
+        HasVFlip: true;
+        HasHFlip: true;
       ),
       //dead end right
       (

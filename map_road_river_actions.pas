@@ -351,7 +351,7 @@ begin
         hasRoad := True;//let road to go out of map
       end;
 
-      case pattern.Rules[i] of
+      case flipped.Rules[i] of
         '+':begin
            if not hasRoad then
            begin
