@@ -382,7 +382,8 @@ type
 
     property Map: TVCMIMap read GetMap;
 
-    procedure SetRoad(x,y: integer; ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8);
+    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
+    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -1092,14 +1093,25 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapLevel.SetRoad(x, y: integer; ARoadType: TRoadType;
-  ARoadDir: UInt8; AMir: Uint8);
+procedure TMapLevel.SetRoad(x, y: integer; ARoadType: uint8; ARoadDir: UInt8;
+  AMir: Uint8);
 begin
   with Tile[x,y]^ do
   begin
-    RoadType:= UInt8(ARoadType);
+    RoadType:= ARoadType;
     RoadDir:=ARoadDir;
     Flags := (Flags and $CF) or (AMir shl 4);
+  end;
+end;
+
+procedure TMapLevel.SetRiver(x, y: integer; ARiverType: uint8;
+  ARriverDir: UInt8; AMir: Uint8);
+begin
+  with Tile[x,y]^ do
+  begin
+    RiverType:= ARiverType;
+    RiverDir:=ARriverDir;
+    Flags := (Flags and $F3) or (AMir shl 2);
   end;
 end;
 

@@ -61,9 +61,13 @@ type
   PTileRoadInfo = ^TTileRoadInfo;
   TTileRoadInfo = record
     X,Y: integer;
-    RoadType: TRoadType;
+    RoadType: UInt8;
     RoadDir: UInt8;
-    mir: UInt8;
+    RoadFlip: UInt8;
+
+    RiverType: UInt8;
+    RiverDir: UInt8;
+    RiverFlip: UInt8;
   end;
 
   TRoadInfoLess = specialize TGLessCoord <TTileRoadInfo>;
@@ -74,9 +78,33 @@ type
   { TEditRoadRiver }
 
   TEditRoadRiver = class abstract (TMultiTileMapAction)
+  strict private
+    procedure UpdateTiles();
+    function ValidateTile(info: PTileRoadInfo; pattern: TSimplePattern): TValidationResult;
+  protected
+    FInQueue: TTileRoadInfoSet;
+    FOutQueue : TTileRoadInfoSet;
+    FNewTileInfos,
+    FOldTileInfos: TTileRoadInfos;
+
+    //no checking, with changes
+    function GetTinfo(x, y: integer): TTileRoadInfo;
+    //no checking
+    function GetTileInfo(x,y: Integer): TTileRoadInfo;
+
+    procedure ChangeTiles(ASrc: TTileRoadInfos); virtual; abstract;
+    function NeedUpdateTile(ATile: PTileRoadInfo): boolean; virtual; abstract;
+    procedure UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern; flip: Integer); virtual; abstract;
+    function TileHasRoadRiver(ATile: TTileRoadInfo): boolean; virtual; abstract;
+    function CanApplyPattern(APattern: TSimplePattern): boolean; virtual; abstract;
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
+
+    procedure Redo; override;
+    procedure Undo; override;
+    procedure Execute; override;
+
   end;
 
   { TEditRoad }
@@ -84,37 +112,40 @@ type
   TEditRoad = class (TEditRoadRiver)
   strict private
     FRoadType: TRoadType;
-    FInQueue: TTileRoadInfoSet;
-    FOutQueue : TTileRoadInfoSet;
-    FNewTileInfos,
-    FOldTileInfos: TTileRoadInfos;
-    //no checking, with changes
-    function GetTinfo(x, y: integer): TTileRoadInfo;
 
-    //no checking
-    function GetTileInfo(x,y: Integer): TTileRoadInfo;
-    procedure ChangeTiles(ASrc: TTileRoadInfos);
-    procedure UpdateTiles();
-    function ValidateTile(info: PTileRoadInfo; pattern: TSimplePattern): TValidationResult;
+  protected
+    function NeedUpdateTile(ATile: PTileRoadInfo): boolean; override;
+    procedure UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern; flip: Integer); override;
+    procedure ChangeTiles(ASrc: TTileRoadInfos); override;
+    function TileHasRoadRiver(ATile: TTileRoadInfo): boolean; override;
+    function CanApplyPattern(APattern: TSimplePattern): boolean; override;
   public
     constructor Create(AMap: TVCMIMap; ARoadType: TRoadType); reintroduce;
-    destructor Destroy; override;
 
     function GetDescription: string; override;
     property RoadType: TRoadType read FRoadType;
 
     procedure AddTile(X,Y: integer); override;
 
-    procedure Redo; override;
-    procedure Undo; override;
-    procedure Execute; override;
   end;
 
   { TEditRiver }
 
   TEditRiver = class (TEditRoadRiver)
+  private
+    FRiverType: TRiverType;
+  protected
+    procedure ChangeTiles(ASrc: TTileRoadInfos); override;
+    function NeedUpdateTile(ATile: PTileRoadInfo): boolean; override;
+    procedure UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern; flip: Integer); override;
+    function TileHasRoadRiver(ATile: TTileRoadInfo): boolean; override;
+    function CanApplyPattern(APattern: TSimplePattern): boolean; override;
   public
+    constructor Create(AMap: TVCMIMap; ARiverType: TRiverType); reintroduce;
+
     function GetDescription: string; override;
+    property RiverType: TRiverType read FRiverType;
+    procedure AddTile(X,Y: integer); override;
   end;
 
 implementation
@@ -136,6 +167,9 @@ var
   c: TMapCoord = (x:0; y:0);
 begin
   c.Reset(x,y);
+
+  //TODO:do not draw on water and rock
+
   Selection.Insert(c);
 end;
 
@@ -174,87 +208,21 @@ begin
     TRoadRiverBrushKind.road:
     begin
       action_item := TEditRoad.Create(AMap, RoadType);
-      FillActionObjectTiles(action_item);
-
-      AManager.ExecuteItem(action_item);
     end;
     TRoadRiverBrushKind.river:
     begin
-      //todo: TRoadRiverBrush river case
-//      action_item := TEditRiver.c;
+      action_item := TEditRiver.Create(AMap,RiverType);
     end;
   end;
+  FillActionObjectTiles(action_item);
 
+  AManager.ExecuteItem(action_item);
   Clear;
 end;
 
 { TEditRoadRiver }
 
-constructor TEditRoadRiver.Create(AMap: TVCMIMap);
-begin
-  inherited Create(AMap);
-end;
-
-destructor TEditRoadRiver.Destroy;
-begin
-  inherited Destroy;
-end;
-
-{ TEditRoad }
-
-function TEditRoad.GetTinfo(x, y: integer): TTileRoadInfo;
-var
-  tmp: TTileRoadInfo;
-  n: TTileRoadInfoSet.PNode;
-begin
-  tmp.X := x;
-  tmp.Y := Y;
-
-  n := FOutQueue.NFind(tmp);
-
-  if Assigned(n) then
-  begin
-    exit(n^.Data);
-  end;
-
-  n := FInQueue.NFind(tmp);
-
-  if Assigned(n) then
-  begin
-    exit(n^.Data);
-  end;
-
-  Result := GetTileInfo(x,y);
-
-end;
-
-function TEditRoad.GetTileInfo(x, y: Integer): TTileRoadInfo;
-var
-  tile: PMapTile;
-begin
-  tile := FMap.GetTile(Level,X,Y);
-  Result.X:=X;
-  Result.Y:=Y;
-  Result.RoadType:=TRoadType(tile^.RoadType);
-  Result.RoadDir:=tile^.RoadDir;
-  Result.mir:=(tile^.Flags shr 4) mod 4;
-end;
-
-procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfos);
-var
-  map_level: TMapLevel;
-  i: Integer;
-begin
-  map_level := FMap.Levels[Level];
-
-  for i := 0 to ASrc.Size - 1 do
-  begin
-    with ASrc.Mutable[i]^ do
-      map_level.SetRoad(X, Y,RoadType, RoadDir, Mir);
-  end;
-end;
-
-procedure TEditRoad.UpdateTiles;
+procedure TEditRoadRiver.UpdateTiles;
 var
   i: Integer;
   tile: PTileRoadInfo;
@@ -268,7 +236,7 @@ begin
   begin
     tile := FNewTileInfos.Mutable[i];
 
-    if tile^.RoadType = TRoadType.noRoad then
+    if not NeedUpdateTile(tile) then
       Continue;
 
     BestPattern := -1;
@@ -293,30 +261,27 @@ begin
       Continue;
     end;
 
-    pattern:=ROAD_RULES[BestPattern];
-
-    mapping := pattern.Mapping;
-
-    tile^.RoadDir:=system.Random(Mapping.Upper-Mapping.Lower)+Mapping.Lower;
-    tile^.mir:=vr.flip;
-
+    UpdateTile(tile,ROAD_RULES[BestPattern], vr.flip);
   end;
 end;
 
-function TEditRoad.ValidateTile(info: PTileRoadInfo; pattern: TSimplePattern
-  ): TValidationResult;
+function TEditRoadRiver.ValidateTile(info: PTileRoadInfo;
+  pattern: TSimplePattern): TValidationResult;
 var
   flip: integer;
   flipped: TSimplePattern;
   i: Integer;
   cx: Integer;
   cy: Integer;
-  hasRoad: Boolean;
+  hasRoadRiver: Boolean;
   cur_tinfo: TTileRoadInfo;
   validated: Boolean;
 begin
   Result.result := False;
   Result.flip := 0;
+
+  if not CanApplyPattern(pattern) then
+    exit;
 
   for flip := 0 to 4 - 1 do
   begin
@@ -344,16 +309,16 @@ begin
       if FMap.IsOnMap(Level, cx,cy) then
       begin
         cur_tinfo := GetTinfo(cx, cy);
-        hasRoad := cur_tinfo.RoadType<>TRoadType.noRoad;
+        hasRoadRiver := TileHasRoadRiver(cur_tinfo);
       end
       else
       begin
-        hasRoad := True;//let road to go out of map
+        hasRoadRiver := True;//let road to go out of map
       end;
 
       case flipped.Rules[i] of
         '+':begin
-           if not hasRoad then
+           if not hasRoadRiver then
            begin
              validated:=False;
              Break;
@@ -361,7 +326,7 @@ begin
 
         end;
         '-':begin
-           if hasRoad then
+           if hasRoadRiver then
            begin
              validated:=False;
              Break;
@@ -382,20 +347,61 @@ begin
       Exit;
     end;
   end;
+
 end;
 
-constructor TEditRoad.Create(AMap: TVCMIMap; ARoadType: TRoadType);
+function TEditRoadRiver.GetTinfo(x, y: integer): TTileRoadInfo;
+var
+  tmp: TTileRoadInfo;
+  n: TTileRoadInfoSet.PNode;
+begin
+  tmp.X := x;
+  tmp.Y := Y;
+
+  n := FOutQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    exit(n^.Data);
+  end;
+
+  n := FInQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    exit(n^.Data);
+  end;
+
+  Result := GetTileInfo(x,y);
+end;
+
+function TEditRoadRiver.GetTileInfo(x, y: Integer): TTileRoadInfo;
+var
+  tile: PMapTile;
+begin
+  tile := FMap.GetTile(Level,X,Y);
+  Result.X:=X;
+  Result.Y:=Y;
+  Result.RoadType:=tile^.RoadType;
+  Result.RoadDir:=tile^.RoadDir;
+  Result.RoadFlip:=(tile^.Flags shr 4) mod 4;
+
+  Result.RiverType:=tile^.RiverType;
+  Result.RiverDir:=tile^.RiverDir;
+  Result.RiverFlip:=(tile^.Flags shr 2) mod 4;
+end;
+
+constructor TEditRoadRiver.Create(AMap: TVCMIMap);
 begin
   inherited Create(AMap);
   FInQueue := TTileRoadInfoSet.Create;
   FOutQueue := TTileRoadInfoSet.Create;
   FOldTileInfos := TTileRoadInfos.Create;
   FNewTileInfos := TTileRoadInfos.Create;
-  FRoadType := ARoadType;
   Level:=AMap.CurrentLevelIndex;
 end;
 
-destructor TEditRoad.Destroy;
+destructor TEditRoadRiver.Destroy;
 begin
   FInQueue.Free;
   FOutQueue.Free;
@@ -404,38 +410,17 @@ begin
   inherited Destroy;
 end;
 
-function TEditRoad.GetDescription: string;
-begin
-  Result := rsEditRoadDescription;
-end;
-
-procedure TEditRoad.AddTile(X, Y: integer);
-var
-  info: TTileRoadInfo;
-begin
-  if FMap.IsOnMap(Level,x,y) then
-  begin
-    info.X := X;
-    info.Y := Y;
-    info.RoadType:=RoadType;
-    info.RoadDir:=14;
-    info.mir:=0;
-
-    FInQueue.Insert(info);
-  end;
-end;
-
-procedure TEditRoad.Redo;
+procedure TEditRoadRiver.Redo;
 begin
   ChangeTiles(FNewTileInfos);
 end;
 
-procedure TEditRoad.Undo;
+procedure TEditRoadRiver.Undo;
 begin
   ChangeTiles(FOldTileInfos);
 end;
 
-procedure TEditRoad.Execute;
+procedure TEditRoadRiver.Execute;
 
   procedure CopyTile(const Coord: TMapCoord; var Stop: Boolean);
   var
@@ -480,13 +465,157 @@ begin
   FreeAndNil(FOutQueue);
 
   Redo;
+
+end;
+
+{ TEditRoad }
+
+procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfos);
+var
+  map_level: TMapLevel;
+  i: Integer;
+begin
+  map_level := FMap.Levels[Level];
+
+  for i := 0 to ASrc.Size - 1 do
+  begin
+    with ASrc.Mutable[i]^ do
+      map_level.SetRoad(X, Y,RoadType, RoadDir, RoadFlip);
+  end;
+end;
+
+function TEditRoad.TileHasRoadRiver(ATile: TTileRoadInfo): boolean;
+begin
+  Result := ATile.RoadType<>Uint8(TRoadType.noRoad);
+end;
+
+function TEditRoad.CanApplyPattern(APattern: TSimplePattern): boolean;
+begin
+  Result := APattern.RoadMapping.Lower>=0;
+end;
+
+function TEditRoad.NeedUpdateTile(ATile: PTileRoadInfo): boolean;
+begin
+  Result := ATile^.RoadType <> UInt8(TRoadType.noRoad);
+end;
+
+procedure TEditRoad.UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern;
+  flip: Integer);
+var
+  mapping: TMapping;
+begin
+  mapping := pattern.RoadMapping;
+
+  ATile^.RoadDir:=system.Random(Mapping.Upper-Mapping.Lower+1)+Mapping.Lower;
+  ATile^.RoadFlip:=flip;
+end;
+
+constructor TEditRoad.Create(AMap: TVCMIMap; ARoadType: TRoadType);
+begin
+  inherited Create(AMap);
+
+  FRoadType := ARoadType;
+
+end;
+
+function TEditRoad.GetDescription: string;
+begin
+  Result := rsEditRoadDescription;
+end;
+
+procedure TEditRoad.AddTile(X, Y: integer);
+var
+  info: TTileRoadInfo;
+begin
+  if FMap.IsOnMap(Level,x,y) then
+  begin
+    info.X := X;
+    info.Y := Y;
+    info.RoadType:=UInt8(RoadType);
+    info.RoadDir:=14;
+    info.RoadFlip:=0;
+    info.RiverType:=0;
+    info.RiverDir:=0;
+    info.RiverFlip := 0;
+
+    FInQueue.Insert(info);
+  end;
 end;
 
 { TEditRiver }
 
+procedure TEditRiver.ChangeTiles(ASrc: TTileRoadInfos);
+var
+  map_level: TMapLevel;
+  i: Integer;
+begin
+  map_level := FMap.Levels[Level];
+
+  for i := 0 to ASrc.Size - 1 do
+  begin
+    with ASrc.Mutable[i]^ do
+      map_level.SetRiver(X, Y,RiverType, RiverDir, RiverFlip);
+  end;
+end;
+
+function TEditRiver.NeedUpdateTile(ATile: PTileRoadInfo): boolean;
+begin
+  Result := atile^.RiverType <> UInt8(TRiverType.noRiver);
+end;
+
+procedure TEditRiver.UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern;
+  flip: Integer);
+var
+  mapping: TMapping;
+begin
+  mapping := pattern.RiverMapping;
+
+  Assert(mapping.Lower>=0);
+  Assert(mapping.Upper>=0);
+
+  ATile^.RiverDir:=system.Random(Mapping.Upper-Mapping.Lower+1)+Mapping.Lower;
+  Atile^.RiverDir:=flip;
+
+end;
+
+function TEditRiver.TileHasRoadRiver(ATile: TTileRoadInfo): boolean;
+begin
+  Result := ATile.RiverType<>Uint8(TRiverType.noRiver);
+end;
+
+function TEditRiver.CanApplyPattern(APattern: TSimplePattern): boolean;
+begin
+  Result := APattern.RiverMapping.Lower>=0;
+end;
+
+constructor TEditRiver.Create(AMap: TVCMIMap; ARiverType: TRiverType);
+begin
+  inherited Create(AMap);
+  FRiverType := ARiverType;
+end;
+
 function TEditRiver.GetDescription: string;
 begin
   Result := rsEditRiverDescription;
+end;
+
+procedure TEditRiver.AddTile(X, Y: integer);
+var
+  info: TTileRoadInfo;
+begin
+  if FMap.IsOnMap(Level,x,y) then
+  begin
+    info.X := X;
+    info.Y := Y;
+    info.RoadType:=0;
+    info.RoadDir:=0;
+    info.RoadFlip:=0;
+    info.RiverType:=UInt8(RiverType);
+    info.RiverDir:=9;
+    info.RiverFlip := 0;
+
+    FInQueue.Insert(info);
+  end;
 end;
 
 end.

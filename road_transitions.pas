@@ -37,7 +37,7 @@ type
 
   TSimplePattern = record
     Rules:TSimpleRulesArray;
-    Mapping: TMapping;
+    RoadMapping, RiverMapping: TMapping;
     HasVFlip: boolean;
     HasHFlip: boolean;
   end;
@@ -54,7 +54,8 @@ const
           '-','+','-',
           '-','-','-'
         );
-        Mapping: (Lower:14; Upper:14);
+        RoadMapping: (Lower:14; Upper:14);
+        RiverMapping: (Lower:9; Upper:10);
         HasVFlip: false;
         HasHFlip: false;
       ),
@@ -66,7 +67,8 @@ const
           '-','+','+',
           '+','+','?'
         );
-        Mapping: (Lower:2; Upper:5);
+        RoadMapping: (Lower:2; Upper:5);
+        RiverMapping: (Lower:-1; Upper:-1);
         HasVFlip: true;
         HasHFlip: true;
       ),
@@ -78,7 +80,8 @@ const
           '-','+','+',
           '?','+','?'
         );
-        Mapping: (Lower:0; Upper:1);
+        RoadMapping: (Lower:0; Upper:1);
+        RiverMapping: (Lower:0; Upper:3);
         HasVFlip: true;
         HasHFlip: true;
       ),
@@ -90,7 +93,8 @@ const
           '-','+','+',
           '?','-','?'
         );
-        Mapping: (Lower:15; Upper:15);
+        RoadMapping: (Lower:15; Upper:15);
+        RiverMapping: (Lower:-1; Upper:-1);
         HasVFlip: false;
         HasHFlip: true;
       ),
@@ -102,7 +106,8 @@ const
           '-','+','-',
           '?','+','?'
         );
-        Mapping: (Lower:14; Upper:14);
+        RoadMapping: (Lower:14; Upper:14);
+        RiverMapping: (Lower:-1; Upper:-1);
         HasVFlip: true;
         HasHFlip: false;
       ),
@@ -114,7 +119,8 @@ const
           '-','+','+',
           '?','+','?'
         );
-        Mapping: (Lower:6; Upper:7);
+        RoadMapping: (Lower:6; Upper:7);
+        RiverMapping: (Lower:7; Upper:8);
         HasVFlip: false;
         HasHFlip: true;
       ),
@@ -126,7 +132,8 @@ const
           '+','+','+',
           '?','+','?'
         );
-        Mapping: (Lower:8; Upper:9);
+        RoadMapping: (Lower:8; Upper:9);
+        RiverMapping: (Lower:5; Upper:6);
         HasVFlip: true;
         HasHFlip: false;
       ),
@@ -138,7 +145,8 @@ const
           '+','+','+',
           '?','-','?'
         );
-        Mapping: (Lower:12; Upper:13);
+        RoadMapping: (Lower:12; Upper:13);
+        RiverMapping: (Lower:11; Upper:12);
         HasVFlip: false;
         HasHFlip: false;
       ),
@@ -150,7 +158,8 @@ const
           '-','+','-',
           '?','+','?'
         );
-        Mapping: (Lower:10; Upper:11);
+        RoadMapping: (Lower:10; Upper:11);
+        RiverMapping: (Lower:9; Upper:10);
         HasVFlip: false;
         HasHFlip: false;
       ),
@@ -162,7 +171,8 @@ const
           '+','+','+',
           '?','+','?'
         );
-        Mapping: (Lower:16; Upper:16);
+        RoadMapping: (Lower:16; Upper:16);
+        RiverMapping: (Lower:4; Upper:4);
         HasVFlip: false;
         HasHFlip: false;
       )
