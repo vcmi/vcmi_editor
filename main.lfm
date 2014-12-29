@@ -1496,41 +1496,41 @@ object fMain: TfMain
       Action = actTerrain
     end
     object ToolButton9: TToolButton
-      Left = 96
+      Left = 132
       Top = 2
       Action = actObjects
     end
     object tbSelectPlayer: TToolButton
-      Left = 298
+      Left = 334
       Top = 2
       Caption = 'Player'
       DropdownMenu = menuPlayer
       Style = tbsDropDown
     end
     object ToolButton11: TToolButton
-      Left = 350
+      Left = 386
       Top = 2
       Width = 5
       Caption = 'ToolButton11'
       Style = tbsDivider
     end
     object ToolButton12: TToolButton
-      Left = 355
+      Left = 391
       Top = 2
       Action = actUnderground
     end
     object ToolButton13: TToolButton
-      Left = 144
+      Left = 180
       Top = 2
       Action = actHeroes
     end
     object ToolButton14: TToolButton
-      Left = 189
+      Left = 225
       Top = 2
       Action = actMonsters
     end
     object ToolButton15: TToolButton
-      Left = 246
+      Left = 282
       Top = 2
       Action = actArtifacts
     end
@@ -1540,7 +1540,7 @@ object fMain: TfMain
       Action = actRoads
     end
     object ToolButton10: TToolButton
-      Left = 86
+      Left = 122
       Top = 2
       Width = 10
       Caption = 'ToolButton10'
@@ -1961,7 +1961,7 @@ object fMain: TfMain
       Caption = 'Artifacts'
     end
     object actRoads: TAction
-      Caption = 'Roads'
+      Caption = 'Roads/Rivers'
       OnExecute = actRoadsExecute
       OnUpdate = actRoadsUpdate
     end
