@@ -287,8 +287,6 @@ type
     FMouseTileX, FMouseTileY: Integer;  //current position of mouse in map coords
     FMouseX, FMouseY: Integer;  //current position of mouse in screen coords
 
-    FMouseDown: boolean;
-
     //all brushes
     FIdleBrush: TIdleMapBrush;
     FFixedTerrainBrush: TFixedTerrainBrush;
@@ -1253,9 +1251,8 @@ begin
   end
   else
   begin
-    if Button = TMouseButton.mbLeft then
+    if (Button = TMouseButton.mbLeft) and (FMap.IsOnMap(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
     begin
-      FMouseDown := True;
       FActiveBrush.TileMouseDown(FMouseTileX,FMouseTileY);
     end;
   end;
@@ -1293,7 +1290,6 @@ begin
   //todo: editor mode
   if Button = TMouseButton.mbLeft then
   begin
-    FMouseDown := False;
 
     FActiveBrush.TileMouseUp(FMouseTileX, FMouseTileY);
     FActiveBrush.Execute(FUndoManager);

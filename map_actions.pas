@@ -39,8 +39,9 @@ type
     procedure Reset(AX,AY: integer); inline;
   end;
 
-  operator+ (a,b:TMapCoord):TMapCoord;
-
+  operator+ (a,b:TMapCoord):TMapCoord; inline;
+  operator- (a,b:TMapCoord):TMapCoord; inline;
+  operator= (a,b:TMapCoord):boolean; inline;
 type
 
   { TMapRect }
@@ -103,7 +104,7 @@ type
     FMap: TVCMIMap;
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
-    procedure AddTile(X,Y: integer); virtual; abstract;
+    procedure AddTile(AX,AY: integer); virtual; abstract;
 
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
     procedure RenderCursor(X,Y, Size: integer);
@@ -147,6 +148,17 @@ operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+operator-(a, b: TMapCoord): TMapCoord;
+begin
+  result.X:=a.x-b.X;
+  result.Y:=a.y-b.y;
+end;
+
+operator=(a, b: TMapCoord): boolean;
+begin
+  result := (a.X = b.X) and (a.Y = b.Y);
 end;
 
 { TGLessCoord }

@@ -30,6 +30,8 @@ uses
   Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, map_actions,
   editor_classes, transitions, road_transitions;
 
+const
+  INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);
 type
 
   { TRoadRiverBrush }
@@ -41,13 +43,16 @@ type
     FKind: TRoadRiverBrushKind;
     FRiverType: TRiverType;
     FRoadType: TRoadType;
+    FLastPoint: TMapCoord;
     procedure SetKind(AValue: TRoadRiverBrushKind);
     procedure SetRiverType(AValue: TRiverType);
     procedure SetRoadType(AValue: TRoadType);
   protected
-    procedure AddTile(X,Y: integer); override;
+    procedure AddTile(AX, AY: integer); override;
 
   public
+    constructor Create(AOwner: TComponent; AMap: TVCMIMap); override;
+    procedure Clear; override;
     procedure Execute(AManager: TAbstractUndoManager);override;
 
     procedure RenderCursor(X,Y: integer); override;
@@ -161,17 +166,106 @@ begin
   Kind := TRoadRiverBrushKind.road;
 end;
 
-procedure TRoadRiverBrush.AddTile(X, Y: integer);
+procedure TRoadRiverBrush.AddTile(AX, AY: integer);
+
+  procedure CheckAddTile(point: TMapCoord);
+  begin
+    //do not draw on water and rock
+    if not (FMap.CurrentLevel.Tile[point.x,point.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+       Selection.Insert(point);
+  end;
+
 var
-  c: TMapCoord = (x:0; y:0);
+  NewPoint: TMapCoord = (x:0; y:0);
+  d, c: TMapCoord;
+  SX, SY, E: integer;
 begin
-  c.Reset(x,y);
+  NewPoint.Reset(AX,AY);
 
-  //TODO:do not draw on water and rock
-  //TODO: draw line from previouse point to not skip tiles on fast mouse move
-  //TODO: connect road on diagonal move
+  if (FLastPoint <> INVALID_COORDINATE) and (FLastPoint <> NewPoint) then
+  begin
+    //draw line
+    //(modified)Bresenham's algorimth
+    //implementation based on BGRADrawLineAliased from http://sourceforge.net/projects/lazpaint (LGPL)
 
-  Selection.Insert(c);
+    D := NewPoint-FLastPoint;
+
+    if D.X < 0 then
+    begin
+      SX := -1;
+      D.X := -D.X;
+    end
+    else
+    begin
+      SX := 1;
+    end;
+
+    if D.Y < 0 then
+    begin
+      SY := -1;
+      D.Y := -D.Y;
+    end
+    else
+    begin
+      SY := 1;
+    end;
+
+    D.X := D.X shl 1;
+    D.Y := D.Y shl 1;
+
+    c := FLastPoint;
+
+    if D.X > D.Y then
+    begin
+      E := D.Y - D.X shr 1;
+
+      while c.X <> NewPoint.X do
+      begin
+        CheckAddTile(c);
+        if E >= 0 then
+        begin
+          Inc(c.Y, SY);
+          CheckAddTile(c);
+          Dec(E, D.X);
+        end;
+        Inc(c.X, SX);
+        Inc(E, D.Y);
+      end;
+    end
+    else
+    begin
+      E := D.X - D.Y shr 1;
+
+      while c.Y <> NewPoint.Y do
+      begin
+        CheckAddTile(c);
+        if E >= 0 then
+        begin
+          Inc(c.X, SX);
+          CheckAddTile(c);
+          Dec(E, D.Y);
+        end;
+        Inc(c.Y, SY);
+        Inc(E, D.X);
+      end;
+    end;
+  end;
+
+  CheckAddTile(NewPoint);
+
+  FLastPoint := NewPoint;
+end;
+
+constructor TRoadRiverBrush.Create(AOwner: TComponent; AMap: TVCMIMap);
+begin
+  inherited Create(AOwner, AMap);
+  Clear;
+end;
+
+procedure TRoadRiverBrush.Clear;
+begin
+  inherited Clear;
+  FLastPoint := INVALID_COORDINATE;
 end;
 
 procedure TRoadRiverBrush.SetRiverType(AValue: TRiverType);
