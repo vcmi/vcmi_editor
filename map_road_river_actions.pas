@@ -574,7 +574,7 @@ begin
   Assert(mapping.Upper>=0);
 
   ATile^.RiverDir:=system.Random(Mapping.Upper-Mapping.Lower+1)+Mapping.Lower;
-  Atile^.RiverDir:=flip;
+  Atile^.RiverFlip:=flip;
 
 end;
 
