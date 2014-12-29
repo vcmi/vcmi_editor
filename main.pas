@@ -1287,14 +1287,13 @@ end;
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  //todo: editor mode
   if Button = TMouseButton.mbLeft then
   begin
 
     FActiveBrush.TileMouseUp(FMouseTileX, FMouseTileY);
     FActiveBrush.Execute(FUndoManager);
+    InvalidateMapContent;
   end;
-
 end;
 
 procedure TfMain.MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
