@@ -293,7 +293,6 @@ type
     FIdleBrush: TIdleMapBrush;
     FFixedTerrainBrush: TFixedTerrainBrush;
     FAreaTerrainBrush: TAreaTerrainBrush;
-
     FRoadRiverBrush: TRoadRiverBrush;
 
     //selected brush
@@ -808,28 +807,11 @@ begin
   RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
   RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
 
-
-
   RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
   RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
   RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
   RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
   RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
-
-
-  FIdleBrush := TIdleMapBrush.Create(Self);
-  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
-  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
-  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
-
-  RoadType.ItemIndex := 0; //this must be done after construction ob brushes
-  RiverType.ItemIndex:=-1;
-
-  SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex chnges active brush
-
-  FActiveBrush.Size := 1;
-  FActiveBrush.TT :=  TTerrainType.dirt;
-  pcToolBox.ActivePage := tsTerrain;
 
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
@@ -843,6 +825,19 @@ begin
 
   FMap := TVCMIMap.CreateDefault(FEnv);
 
+  FIdleBrush := TIdleMapBrush.Create(Self, FMap);
+  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self, FMap);
+  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self, FMap);
+  FRoadRiverBrush := TRoadRiverBrush.Create(Self, FMap);
+
+  RoadType.ItemIndex := 0; //this must be done after construction ob brushes
+  RiverType.ItemIndex:=-1;
+
+  SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex changes active brush
+
+  FActiveBrush.Size := 1;
+  FActiveBrush.TT :=  TTerrainType.dirt;
+  pcToolBox.ActivePage := tsTerrain;
 
   FCurrentPlayer := TPlayer.none;
 
@@ -1118,6 +1113,10 @@ begin
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
+  FIdleBrush.Map := FMap;
+  FFixedTerrainBrush.Map := FMap;
+  FAreaTerrainBrush.Map := FMap;
+  FRoadRiverBrush.Map := FMap;
 end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
@@ -1297,7 +1296,7 @@ begin
     FMouseDown := False;
 
     FActiveBrush.TileMouseUp(FMouseTileX, FMouseTileY);
-    FActiveBrush.Execute(FUndoManager,FMap);
+    FActiveBrush.Execute(FUndoManager);
   end;
 
 end;

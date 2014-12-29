@@ -71,7 +71,7 @@ type
 
     procedure Iterate(Callback: TMapCoordForEach);
 
-    procedure DimOfMap(Amap:TVCMIMap);
+    class function DimOfMap(Amap:TVCMIMap):TMapRect; static;
   end;
 
 type
@@ -96,9 +96,11 @@ type
     FTT: TTerrainType;
     FDragging: Boolean;
     FSelection: TCoordSet;
+    procedure SetMap(AValue: TVCMIMap);
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
   protected
+    FMap: TVCMIMap;
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
     procedure AddTile(X,Y: integer); virtual; abstract;
@@ -106,12 +108,12 @@ type
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
     procedure RenderCursor(X,Y, Size: integer);
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent; AMap: TVCMIMap); reintroduce; virtual;
     destructor Destroy; override;
 
     procedure Clear; virtual;
 
-    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); virtual;
+    procedure Execute(AManager: TAbstractUndoManager); virtual; abstract;
 
     procedure TileClicked(X,Y: integer);virtual;
     procedure TileMouseDown(X,Y: integer);virtual;
@@ -123,6 +125,8 @@ type
 
     property TT: TTerrainType read FTT write Settt;
     property Size: Integer read FSize write SetSize;
+
+    property Map:TVCMIMap read FMap write SetMap;
   end;
 
   { TIdleMapBrush }
@@ -130,6 +134,7 @@ type
   TIdleMapBrush = class(TMapBrush)
   protected
     procedure AddTile(X,Y: integer); override;
+    procedure Execute(AManager: TAbstractUndoManager); override;
   end;
 
 
@@ -156,6 +161,11 @@ end;
 procedure TIdleMapBrush.AddTile(X, Y: integer);
 begin
   //to nothing here
+end;
+
+procedure TIdleMapBrush.Execute(AManager: TAbstractUndoManager);
+begin
+  //do nothing
 end;
 
 { TMapRect }
@@ -257,11 +267,11 @@ begin
   end;
 end;
 
-procedure TMapRect.DimOfMap(Amap: TVCMIMap);
+class function TMapRect.DimOfMap(Amap: TVCMIMap): TMapRect;
 begin
-  Clear();
-  FWidth:=Amap.CurrentLevel.Width;
-  FHeight:=Amap.CurrentLevel.Height;
+  Result.Create;
+  Result.FWidth:=Amap.CurrentLevel.Width;
+  Result.FHeight:=Amap.CurrentLevel.Height;
 end;
 
 constructor TMapRect.SetFromCenter(X, Y, Width, Height: integer);
@@ -293,6 +303,12 @@ begin
   if FSize=AValue then Exit;
   FSize:=AValue;
   Clear;
+end;
+
+procedure TMapBrush.SetMap(AValue: TVCMIMap);
+begin
+  if FMap=AValue then Exit;
+  FMap:=AValue;
 end;
 
 procedure TMapBrush.Settt(AValue: TTerrainType);
@@ -332,10 +348,11 @@ begin
 
 end;
 
-constructor TMapBrush.Create(AOwner: TComponent);
+constructor TMapBrush.Create(AOwner: TComponent; AMap: TVCMIMap);
 begin
   inherited Create(AOwner);
   FSelection := TCoordSet.Create;
+  FMap := AMap;
 end;
 
 destructor TMapBrush.Destroy;
@@ -349,11 +366,6 @@ begin
   FDragging := false;
   FSelection.Free;
   FSelection := TCoordSet.Create;
-end;
-
-procedure TMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
-begin
-
 end;
 
 procedure TMapBrush.TileClicked(X, Y: integer);

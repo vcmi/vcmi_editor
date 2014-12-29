@@ -48,11 +48,7 @@ type
     procedure AddTile(X,Y: integer); override;
 
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
-     override;
+    procedure Execute(AManager: TAbstractUndoManager);override;
 
     procedure RenderCursor(X,Y: integer); override;
 
@@ -192,31 +188,18 @@ begin
   Clear;
 end;
 
-constructor TRoadRiverBrush.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TRoadRiverBrush.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TRoadRiverBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap
-  );
+procedure TRoadRiverBrush.Execute(AManager: TAbstractUndoManager);
 var
   action_item : TEditRoadRiver;
 begin
-  inherited Execute(AManager, AMap);
-
   case Kind of
     TRoadRiverBrushKind.road:
     begin
-      action_item := TEditRoad.Create(AMap, RoadType);
+      action_item := TEditRoad.Create(FMap, RoadType);
     end;
     TRoadRiverBrushKind.river:
     begin
-      action_item := TEditRiver.Create(AMap,RiverType);
+      action_item := TEditRiver.Create(FMap,RiverType);
     end;
   end;
   FillActionObjectTiles(action_item);
@@ -442,7 +425,7 @@ procedure TEditRoadRiver.Execute;
 var
   it: TTileRoadInfoSet.TIterator;
   map_level: TMapLevel;
-  r,mr: TMapRect;
+  r: TMapRect;
 begin
   it := FInQueue.Min;
 
@@ -450,8 +433,7 @@ begin
   begin
     repeat
       r.SetFromCenter(it.data.x,it.data.Y, 3,3);
-      mr.DimOfMap(FMap);
-      r := r.Intersect(mr);
+      r := TMapRect.DimOfMap(FMap).Intersect(r);
 
       r.Iterate(@CopyTile);
 

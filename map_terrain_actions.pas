@@ -59,12 +59,8 @@ type
   protected
     function GetMode: TTerrainBrushMode; virtual; abstract;
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    procedure Clear; override;
     property Mode: TTerrainBrushMode read GetMode;
-    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
+    procedure Execute(AManager: TAbstractUndoManager); override;
     procedure RenderCursor(X,Y: integer); override;
   end;
 
@@ -167,30 +163,13 @@ end;
 
 { TTerrainBrush }
 
-constructor TTerrainBrush.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-end;
-
-destructor TTerrainBrush.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TTerrainBrush.Clear;
-begin
-  inherited Clear;
-end;
-
-procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager);
 var
   action: TEditTerrain;
   it: TCoordSet.TIterator;
 begin
-  inherited Execute(AManager, AMap);
-
-  action := TEditTerrain.Create(AMap);
-  action.Level := AMap.CurrentLevelIndex;
+  action := TEditTerrain.Create(FMap);
+  action.Level := FMap.CurrentLevelIndex;
   action.TerrainType := tt;
 
   FillActionObjectTiles(action);
@@ -485,8 +464,7 @@ end;
 
 function TEditTerrain.SafeExtendTileAround(X, Y: integer): TMapRect;
 begin
-  Result.DimOfMap(FMap);
-  Result := Result.Intersect(ExtendTileAround(x,y));
+  Result := TMapRect.DimOfMap(FMap).Intersect(ExtendTileAround(x,y));
 end;
 
 procedure TEditTerrain.InvalidateTerrainViews(X, Y: integer);
