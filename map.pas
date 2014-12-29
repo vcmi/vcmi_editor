@@ -381,6 +381,8 @@ type
     property Tile[X, Y: Integer]: PMapTile read GetTile;
 
     property Map: TVCMIMap read GetMap;
+
+    procedure SetRoad(x,y: integer; ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8);
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -451,6 +453,7 @@ type
     destructor Destroy; override;
 
     procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload;
+
     procedure FillLevel(TT: TTerrainType);
 
     function GetTile(Level, X, Y: Integer): PMapTile;
@@ -1087,6 +1090,17 @@ end;
 destructor TMapLevel.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TMapLevel.SetRoad(x, y: integer; ARoadType: TRoadType;
+  ARoadDir: UInt8; AMir: Uint8);
+begin
+  with Tile[x,y]^ do
+  begin
+    RoadType:= UInt8(ARoadType);
+    RoadDir:=ARoadDir;
+    Flags := (Flags and $CF) or (AMir shl 4);
+  end;
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;

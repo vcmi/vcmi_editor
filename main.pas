@@ -803,25 +803,12 @@ begin
   MapView.SharedControl := RootManager.SharedContext;
   ObjectsView.SharedControl := RootManager.SharedContext;
 
-  FIdleBrush := TIdleMapBrush.Create(Self);
-  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
-  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
-
-  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
-
-  SetActiveBrush(FFixedTerrainBrush);
-
-  FActiveBrush.Size := 1;
-  FActiveBrush.TT :=  TTerrainType.dirt;
-  pcToolBox.ActivePage := tsTerrain;
-
-
   RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
   RoadType.Items.AddObject(rsRoadTypeGrazvel, TObject(PtrInt(TRoadType.grazvelRoad)));
   RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
   RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
 
-  RoadType.ItemIndex := 0;
+
 
   RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
   RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
@@ -829,7 +816,20 @@ begin
   RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
   RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
 
+
+  FIdleBrush := TIdleMapBrush.Create(Self);
+  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
+  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
+  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
+
+  RoadType.ItemIndex := 0; //this must be done after construction ob brushes
   RiverType.ItemIndex:=-1;
+
+  SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex chnges active brush
+
+  FActiveBrush.Size := 1;
+  FActiveBrush.TT :=  TTerrainType.dirt;
+  pcToolBox.ActivePage := tsTerrain;
 
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
@@ -1718,15 +1718,14 @@ end;
 procedure TfMain.RoadTypeClick(Sender: TObject);
 begin
   SetActiveBrush(FRoadRiverBrush);
-
 end;
 
 procedure TfMain.RoadTypeSelectionChanged(Sender: TObject);
 begin
   if RoadType.ItemIndex >=0 then
   begin
-     FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
-     RiverType.ItemIndex:=-1;
+   FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
+   RiverType.ItemIndex:=-1;
   end;
 end;
 
@@ -1882,17 +1881,6 @@ begin
   end
   else
     Caption := 'VCMI editor';
-
-  //UpdateRoadRiver
-
-  //if pcToolBox.ActivePage = tsRoads then
-  //begin
-  //  case FRoadRiverBrush.Kind of
-  //    TRoadRiverBrushKind.road: RiverType.ItemIndex := -1;
-  //    TRoadRiverBrushKind.river: RoadType.ItemIndex := -1;
-  //  end;
-  //end;
-
 end;
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);

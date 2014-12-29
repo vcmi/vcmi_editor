@@ -27,57 +27,87 @@ unit map_road_river_actions;
 interface
 
 uses
-  Classes, SysUtils, undo_base, undo_map, Map, editor_types, map_actions;
+  Classes, SysUtils, gset, undo_base, undo_map, Map, editor_types, map_actions,
+  editor_classes;
 
 type
 
-   { TRoadRiverBrush }
+  { TRoadRiverBrush }
 
-   TRoadRiverBrushKind = (road, river);
+  TRoadRiverBrushKind = (road, river);
 
-   TRoadRiverBrush = class(TMapBrush)
-   private
-     FKind: TRoadRiverBrushKind;
-     FRiverType: TRiverType;
-     FRoadType: TRoadType;
-     procedure SetKind(AValue: TRoadRiverBrushKind);
-     procedure SetRiverType(AValue: TRiverType);
-     procedure SetRoadType(AValue: TRoadType);
-   public
-     constructor Create(AOwner: TComponent); override;
-     destructor Destroy; override;
+  TRoadRiverBrush = class(TMapBrush)
+  private
+    FKind: TRoadRiverBrushKind;
+    FRiverType: TRiverType;
+    FRoadType: TRoadType;
+    procedure SetKind(AValue: TRoadRiverBrushKind);
+    procedure SetRiverType(AValue: TRiverType);
+    procedure SetRoadType(AValue: TRoadType);
+  protected
+    procedure AddTile(X,Y: integer); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
-     property RoadType: TRoadType read FRoadType write SetRoadType;
-     property RiverType: TRiverType read FRiverType write SetRiverType;
-     property Kind:TRoadRiverBrushKind read FKind write SetKind;
-   end;
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+     override;
 
+    property RoadType: TRoadType read FRoadType write SetRoadType;
+    property RiverType: TRiverType read FRiverType write SetRiverType;
+    property Kind:TRoadRiverBrushKind read FKind write SetKind;
+  end;
 
-   { TEditRoadRiver }
+  TTileRoadInfo = record
+    X,Y: integer;
+    RoadType: TRoadType;
+    RoadDir: UInt8;
+    mir: UInt8;
+  end;
 
-   TEditRoadRiver = class abstract (TMapUndoItem)
-   public
-     constructor Create(AMap: TVCMIMap); override;
-     destructor Destroy; override;
+  TRoadInfoLess = specialize TGLessCoord <TTileRoadInfo>;
 
-     procedure Redo; override;
-     procedure Undo; override;
-     procedure Execute; override;
-   end;
+  TTileRoadInfoSet = specialize TSet<TTileRoadInfo,TRoadInfoLess>;
 
-   { TEditRoad }
+  { TEditRoadRiver }
 
-   TEditRoad = class (TEditRoadRiver)
-   public
-     function GetDescription: string; override;
-   end;
+  TEditRoadRiver = class abstract (TMultiTileMapAction)
+  public
+    constructor Create(AMap: TVCMIMap); override;
+    destructor Destroy; override;
+  end;
 
-   { TEditRiver }
+  { TEditRoad }
 
-   TEditRiver = class (TEditRoadRiver)
-   public
-     function GetDescription: string; override;
-   end;
+  TEditRoad = class (TEditRoadRiver)
+  strict private
+    FRoadType: TRoadType;
+    FInQueue: TTileRoadInfoSet;
+    FOutQueue : TTileRoadInfoSet; //also new tile infos
+    FOldTileInfos: TTileRoadInfoSet;
+    //no checking
+    function GetTileInfo(x,y: Integer): TTileRoadInfo;
+    procedure ChangeTiles(ASrc: TTileRoadInfoSet);
+  public
+    constructor Create(AMap: TVCMIMap; ARoadType: TRoadType); reintroduce;
+    destructor Destroy; override;
+
+    function GetDescription: string; override;
+    property RoadType: TRoadType read FRoadType;
+
+    procedure AddTile(X,Y: integer); override;
+
+    procedure Redo; override;
+    procedure Undo; override;
+    procedure Execute; override;
+  end;
+
+  { TEditRiver }
+
+  TEditRiver = class (TEditRoadRiver)
+  public
+    function GetDescription: string; override;
+  end;
 
 implementation
 
@@ -91,6 +121,14 @@ begin
   FRoadType:=AValue;
   FRiverType:=TRiverType.noRiver;
   Kind := TRoadRiverBrushKind.road;
+end;
+
+procedure TRoadRiverBrush.AddTile(X, Y: integer);
+var
+  c: TMapCoord = (x:0; y:0);
+begin
+  c.Reset(x,y);
+  Selection.Insert(c);
 end;
 
 procedure TRoadRiverBrush.SetRiverType(AValue: TRiverType);
@@ -117,6 +155,31 @@ begin
   inherited Destroy;
 end;
 
+procedure TRoadRiverBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap
+  );
+var
+  action_item : TEditRoadRiver;
+begin
+  inherited Execute(AManager, AMap);
+
+  case Kind of
+    TRoadRiverBrushKind.road:
+    begin
+      action_item := TEditRoad.Create(AMap, RoadType);
+      FillActionObjectTiles(action_item);
+
+      AManager.ExecuteItem(action_item);
+    end;
+    TRoadRiverBrushKind.river:
+    begin
+      //todo: TRoadRiverBrush river case
+//      action_item := TEditRiver.c;
+    end;
+  end;
+
+  Clear;
+end;
+
 { TEditRoadRiver }
 
 constructor TEditRoadRiver.Create(AMap: TVCMIMap);
@@ -129,26 +192,117 @@ begin
   inherited Destroy;
 end;
 
-procedure TEditRoadRiver.Redo;
-begin
-
-end;
-
-procedure TEditRoadRiver.Undo;
-begin
-
-end;
-
-procedure TEditRoadRiver.Execute;
-begin
-
-end;
-
 { TEditRoad }
+
+function TEditRoad.GetTileInfo(x, y: Integer): TTileRoadInfo;
+var
+  tile: PMapTile;
+begin
+  tile := FMap.GetTile(Level,X,Y);
+  Result.X:=X;
+  Result.Y:=Y;
+  Result.RoadType:=TRoadType(tile^.RoadType);
+  Result.RoadDir:=tile^.RoadDir;
+  Result.mir:=(tile^.Flags shr 4) mod 4;
+end;
+
+procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfoSet);
+var
+  it: TTileRoadInfoSet.TIterator;
+  map_level: TMapLevel;
+begin
+  it := ASrc.Min;
+  map_level := FMap.Levels[Level];
+  if Assigned(it) then
+  begin
+    repeat
+      with it.Data do
+        map_level.SetRoad(X, Y,RoadType, RoadDir, Mir);
+    until not it.next;
+    FreeAndNil(it);
+  end;
+end;
+
+constructor TEditRoad.Create(AMap: TVCMIMap; ARoadType: TRoadType);
+begin
+  inherited Create(AMap);
+  FInQueue := TTileRoadInfoSet.Create;
+  FOutQueue := TTileRoadInfoSet.Create;
+  FOldTileInfos := TTileRoadInfoSet.Create;
+  FRoadType := ARoadType;
+end;
+
+destructor TEditRoad.Destroy;
+begin
+  FInQueue.Free;
+  FOutQueue.Free;
+  FOldTileInfos.Free;
+  inherited Destroy;
+end;
 
 function TEditRoad.GetDescription: string;
 begin
   Result := rsEditRoadDescription;
+end;
+
+procedure TEditRoad.AddTile(X, Y: integer);
+var
+  info: TTileRoadInfo;
+begin
+  if FMap.IsOnMap(Level,x,y) then
+  begin
+    info.X := X;
+    info.Y := Y;
+    info.RoadType:=RoadType;
+    info.RoadDir:=0;//???
+    info.mir:=0;
+
+    FInQueue.Insert(info);
+  end;
+end;
+
+procedure TEditRoad.Redo;
+begin
+  ChangeTiles(FOutQueue);
+end;
+
+procedure TEditRoad.Undo;
+begin
+  ChangeTiles(FOldTileInfos);
+end;
+
+procedure TEditRoad.Execute;
+var
+  it: TTileRoadInfoSet.TIterator;
+  map_level: TMapLevel;
+begin
+
+  //STUB
+
+  it := FInQueue.Min;
+  map_level := FMap.Levels[Level];
+  if Assigned(it) then
+  begin
+    repeat
+      FOutQueue.Insert(it.data);
+    until not it.next;
+    FreeAndNil(it);
+  end;
+
+
+  //save old state
+  it := FOutQueue.Min;
+  map_level := FMap.Levels[Level];
+  if Assigned(it) then
+  begin
+    repeat
+      FOldTileInfos.Insert(GetTileInfo(it.Data.X, it.Data.Y));
+    until not it.next;
+    FreeAndNil(it);
+  end;
+
+  //apply new state
+  redo;
 end;
 
 { TEditRiver }

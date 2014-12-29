@@ -83,30 +83,18 @@ type
   TTileSet = specialize TSet<TTileTerrainInfo,TTileCompareByCoord> ;
 
 
-
   { TTerrainBrush }
 
   TTerrainBrush = class abstract (TMapBrush)
-  strict private
-    FSelection: TCoordSet;
-
   protected
-
-
     function GetMode: TTerrainBrushMode; virtual; abstract;
-
-    property Selection: TCoordSet read FSelection;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Clear; override;
-
     property Mode: TTerrainBrushMode read GetMode;
-
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
-
-
     procedure RenderCursor(X,Y: integer); override;
   end;
 
@@ -118,7 +106,6 @@ type
     procedure AddTile(X,Y: integer); override;
     function GetMode: TTerrainBrushMode; override;
   public
-    procedure RenderSelection(); override;
   end;
 
   { TAreaTerrainBrush }
@@ -157,7 +144,7 @@ type
 
   { TEditTerrain }
 
-  TEditTerrain = class(TMapUndoItem)
+  TEditTerrain = class(TMultiTileMapAction)
   strict private
 
     FInQueue: TTileSet;
@@ -175,13 +162,10 @@ type
     function ValidateTerrainView(info: TTileTerrainInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
     function ValidateTerrainViewInner(info: TTileTerrainInfo; pattern: TPattern; recDepth: integer = 0): TValidationResult;
   strict private
-    FLevel: Integer;
-
     FOldTileInfos: TTileTerrainInfos;
     FNewTileInfos: TTileTerrainInfos;
 
     FTerrainType: TTerrainType;
-    procedure SetLevel(AValue: Integer);
     procedure SetTerrainType(AValue: TTerrainType);
 
     function MapRect:TMapRect;
@@ -203,9 +187,7 @@ type
     procedure Execute; override;
     function GetDescription: string; override;
 
-    property Level: Integer read FLevel write SetLevel;
-
-    procedure AddTile(X,Y: integer);
+    procedure AddTile(X,Y: integer); override;
 
     property TerrainType: TTerrainType read FTerrainType write SetTerrainType;
   end;
@@ -348,21 +330,16 @@ end;
 constructor TTerrainBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSelection := TCoordSet.Create;
 end;
 
 destructor TTerrainBrush.Destroy;
 begin
-  FSelection.Free;
   inherited Destroy;
 end;
 
 procedure TTerrainBrush.Clear;
 begin
   inherited Clear;
-  FSelection.Free;
-  FSelection := TCoordSet.Create;
-
 end;
 
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -376,17 +353,10 @@ begin
   action.Level := AMap.CurrentLevelIndex;
   action.TerrainType := tt;
 
-  it := FSelection.Min;
+  FillActionObjectTiles(action);
 
-  if Assigned(it) then
-  begin
-    repeat
-      action.AddTile(it.Data.X, it.Data.Y);
-    until not it.next ;
-    FreeAndNil(it);
-
-    AManager.ExecuteItem(action); //execute only if selection is not empty
-  end;
+  if not Selection.IsEmpty then
+    AManager.ExecuteItem(action); //execute only if there are changes
 
   Clear;
 end;
@@ -481,29 +451,6 @@ begin
   Result := TTerrainBrushMode.fixed;
 end;
 
-procedure TFixedTerrainBrush.RenderSelection;
-var
-  it: TCoordSet.TIterator;
-  dim,cx,cy: Integer;
-begin
-  if Dragging then
-  begin
-    it := Selection.Min;
-    if Assigned(it) then
-    begin
-      editor_gl.CurrentContextState.StartDrawingRects;
-      dim := TILE_SIZE;
-      repeat
-        cx := it.Data.X * TILE_SIZE;
-        cy := it.Data.Y * TILE_SIZE;
-        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-      until not it.next ;
-      FreeAndNil(it);
-      editor_gl.CurrentContextState.StopDrawing;
-    end;
-  end;
-end;
-
 { TInvalidTiles }
 
 constructor TInvalidTiles.Create;
@@ -526,7 +473,7 @@ var
   info: TTileTerrainInfo;
 begin
 
-  if not FMap.IsOnMap(FLevel,X,Y) then
+  if not FMap.IsOnMap(Level,X,Y) then
   begin
     exit; //silently ignore
   end;
@@ -657,7 +604,7 @@ var
   t: PMapTile;
 begin
 
-  t := FMap.GetTile(FLevel,X,Y);
+  t := FMap.GetTile(Level,X,Y);
 
   Result.X := X;
   Result.Y := Y;
@@ -685,7 +632,7 @@ begin
   begin
     new_info := FNewTileInfos[i];
 
-    FMap.SetTerrain(FLevel,
+    FMap.SetTerrain(Level,
       new_info.X,
       new_info.Y,
       new_info.TerType,
@@ -693,12 +640,6 @@ begin
       new_info.mir);
   end;
 
-end;
-
-procedure TEditTerrain.SetLevel(AValue: Integer);
-begin
-  if FLevel = AValue then Exit;
-  FLevel := AValue;
 end;
 
 procedure TEditTerrain.SetTerrainType(AValue: TTerrainType);
@@ -1046,7 +987,7 @@ end;
 
 procedure TEditTerrain.UndoTile(constref Tile: TTileTerrainInfo);
 begin
-  FMap.SetTerrain(FLevel, Tile.X, Tile.Y,Tile.TerType, Tile.TerSubtype, Tile.mir);
+  FMap.SetTerrain(Level, Tile.X, Tile.Y,Tile.TerType, Tile.TerSubtype, Tile.mir);
 end;
 
 function TEditTerrain.ValidateTerrainView(info: TTileTerrainInfo; pattern: TPattern;
@@ -1144,7 +1085,7 @@ begin
     isAlien := false;
 
 
-    if not FMap.IsOnMap(FLevel, cx,cy) then
+    if not FMap.IsOnMap(Level, cx,cy) then
     begin
       cur_tinfo := info;
     end
@@ -1165,7 +1106,7 @@ begin
 
       if not rule.IsStandartRule then
       begin
-        if (recDepth = 0) and FMap.IsOnMap(FLevel, currentPos.X,currentPos.Y) then
+        if (recDepth = 0) and FMap.IsOnMap(Level, currentPos.X,currentPos.Y) then
         begin
           if cur_tinfo.TerType = info.TerType  then
           begin

@@ -37,6 +37,17 @@ type
     constructor Create(AMap: TVCMIMap); virtual;
   end;
 
+  { TMultiTileMapAction }
+
+  TMultiTileMapAction = class(TMapUndoItem)
+  private
+    FLevel: Integer;
+    procedure SetLevel(AValue: Integer);
+  public
+    procedure AddTile(X,Y: integer); virtual; abstract;
+    property Level: Integer read FLevel write SetLevel;
+  end;
+
   TItemStack = specialize TFPGObjectList<TAbstractUndoItem>;
 
   { TMapUndoManger }
@@ -64,6 +75,14 @@ type
   end;
 
 implementation
+
+{ TMultiTileMapAction }
+
+procedure TMultiTileMapAction.SetLevel(AValue: Integer);
+begin
+  if FLevel=AValue then Exit;
+  FLevel:=AValue;
+end;
 
 { TMapUndoItem }
 

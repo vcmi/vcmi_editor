@@ -26,7 +26,7 @@ unit map_actions;
 interface
 
 uses
-  Classes, SysUtils, Math, Map, gset, undo_base, editor_types;
+  Classes, SysUtils, Math, Map, gset, undo_base, editor_types, undo_map;
 
 type
 
@@ -43,13 +43,14 @@ type
 
 type
 
-  { TCompareCoord }
+  { TGLessCoord }
 
-  TCompareCoord = class
+  generic TGLessCoord <T> = class
   public
-    class function c(a,b: TMapCoord): boolean;
+    class function c(a,b: T): boolean;
   end;
 
+  TCompareCoord = specialize TGLessCoord<TMapCoord>;
 
   TCoordSet = specialize TSet<TMapCoord,TCompareCoord>;
 type
@@ -61,11 +62,15 @@ type
     FSize: Integer;
     FTT: TTerrainType;
     FDragging: Boolean;
+    FSelection: TCoordSet;
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
   protected
+    property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
     procedure AddTile(X,Y: integer); virtual; abstract;
+
+    procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -97,10 +102,19 @@ type
 
 implementation
 
+uses editor_gl, editor_consts;
+
 operator+(a, b: TMapCoord): TMapCoord;
 begin
   result.X:=a.x+b.X;
   result.Y:=a.y+b.y;
+end;
+
+{ TGLessCoord }
+
+class function TGLessCoord.c(a, b: T): boolean;
+begin
+  Result := (a.X < b.X) or ((a.X=b.X) and (a.y<b.Y));
 end;
 
 { TIdleMapBrush }
@@ -108,13 +122,6 @@ end;
 procedure TIdleMapBrush.AddTile(X, Y: integer);
 begin
   //to nothing here
-end;
-
-{ TCompareCoord }
-
-class function TCompareCoord.c(a, b: TMapCoord): boolean;
-begin
-  Result := (a.X < b.X) or ((a.X=b.X) and (a.y<b.Y));
 end;
 
 { TMapBrush }
@@ -133,19 +140,38 @@ begin
   Clear;
 end;
 
+procedure TMapBrush.FillActionObjectTiles(AObject: TMultiTileMapAction);
+var
+  it: TCoordSet.TIterator;
+begin
+  it := Selection.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      AObject.AddTile(it.Data.X, it.Data.Y);
+    until not it.next ;
+    FreeAndNil(it);
+  end;
+end;
+
 constructor TMapBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FSelection := TCoordSet.Create;
 end;
 
 destructor TMapBrush.Destroy;
 begin
+  FSelection.Free;
   inherited Destroy;
 end;
 
 procedure TMapBrush.Clear;
 begin
   FDragging := false;
+  FSelection.Free;
+  FSelection := TCoordSet.Create;
 end;
 
 procedure TMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -183,8 +209,26 @@ begin
 end;
 
 procedure TMapBrush.RenderSelection;
+var
+  it: TCoordSet.TIterator;
+  dim,cx,cy: Integer;
 begin
-
+  if Dragging then
+  begin
+    it := Selection.Min;
+    if Assigned(it) then
+    begin
+      editor_gl.CurrentContextState.StartDrawingRects;
+      dim := TILE_SIZE;
+      repeat
+        cx := it.Data.X * TILE_SIZE;
+        cy := it.Data.Y * TILE_SIZE;
+        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+      until not it.next ;
+      FreeAndNil(it);
+      editor_gl.CurrentContextState.StopDrawing;
+    end;
+  end;
 end;
 
 { TMapCoord }
