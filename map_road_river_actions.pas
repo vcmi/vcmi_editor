@@ -180,6 +180,9 @@ var
   d, c: TMapCoord;
   SX, SY, E: integer;
 begin
+  if not (FMap.IsOnMap(FMap.CurrentLevelIndex,AX,AY)) then
+    exit;
+
   NewPoint.Reset(AX,AY);
 
   if (FLastPoint <> INVALID_COORDINATE) and (FLastPoint <> NewPoint) then

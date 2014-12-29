@@ -1251,7 +1251,7 @@ begin
   end
   else
   begin
-    if (Button = TMouseButton.mbLeft) and (FMap.IsOnMap(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
+    if (Button = TMouseButton.mbLeft) then
     begin
       FActiveBrush.TileMouseDown(FMouseTileX,FMouseTileY);
     end;
