@@ -37,7 +37,7 @@ uses
   flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers,
   shrine_frame, spellscroll_frame, root_form, dwelling_frame, map_format_zip,
   map_format_json, map_terrain_actions, map_road_river_actions, 
-map_object_actions;
+map_object_actions, road_transitions, transitions;
 
 {$R *.res}
 

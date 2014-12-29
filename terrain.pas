@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, contnrs,
    fgl, gvector,
   editor_types, editor_graphics, vcmi_json,
-  filesystem_base, editor_classes;
+  filesystem_base, editor_classes, transitions;
 
 const
 
@@ -37,12 +37,6 @@ const
   RULE_NATIVE = 'N';
   RULE_NATIVE_STRONG = 'N!';
   RULE_ANY = '?';
-
-
-  FLIP_PATTERN_HORIZONTAL = 1;
-  FLIP_PATTERN_VERTICAL = 2;
-  FLIP_PATTERN_BOTH = 3;
-
 
 type
 
@@ -92,12 +86,6 @@ type
 
 
   TRulesArray =  array[0..8] of TRules ;
-
-  TMapping = record
-    Lower, Upper: Integer;
-  end;
-
-  TMappings = specialize TVector<TMapping>;
 
 
   {$push}

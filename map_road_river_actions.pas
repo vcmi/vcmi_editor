@@ -27,8 +27,8 @@ unit map_road_river_actions;
 interface
 
 uses
-  Classes, SysUtils, gset, undo_base, undo_map, Map, editor_types, map_actions,
-  editor_classes;
+  Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, map_actions,
+  editor_classes, transitions, road_transitions;
 
 type
 
@@ -58,6 +58,7 @@ type
     property Kind:TRoadRiverBrushKind read FKind write SetKind;
   end;
 
+  PTileRoadInfo = ^TTileRoadInfo;
   TTileRoadInfo = record
     X,Y: integer;
     RoadType: TRoadType;
@@ -68,6 +69,7 @@ type
   TRoadInfoLess = specialize TGLessCoord <TTileRoadInfo>;
 
   TTileRoadInfoSet = specialize TSet<TTileRoadInfo,TRoadInfoLess>;
+  TTileRoadInfos = specialize TVector<TTileRoadInfo>;
 
   { TEditRoadRiver }
 
@@ -83,11 +85,17 @@ type
   strict private
     FRoadType: TRoadType;
     FInQueue: TTileRoadInfoSet;
-    FOutQueue : TTileRoadInfoSet; //also new tile infos
-    FOldTileInfos: TTileRoadInfoSet;
+    FOutQueue : TTileRoadInfoSet;
+    FNewTileInfos,
+    FOldTileInfos: TTileRoadInfos;
+    //no checking, with changes
+    function GetTinfo(x, y: integer): TTileRoadInfo;
+
     //no checking
     function GetTileInfo(x,y: Integer): TTileRoadInfo;
-    procedure ChangeTiles(ASrc: TTileRoadInfoSet);
+    procedure ChangeTiles(ASrc: TTileRoadInfos);
+    procedure UpdateTiles();
+    function ValidateTile(info: PTileRoadInfo; pattern: TSimplePattern): TValidationResult;
   public
     constructor Create(AMap: TVCMIMap; ARoadType: TRoadType); reintroduce;
     destructor Destroy; override;
@@ -194,6 +202,32 @@ end;
 
 { TEditRoad }
 
+function TEditRoad.GetTinfo(x, y: integer): TTileRoadInfo;
+var
+  tmp: TTileRoadInfo;
+  n: TTileRoadInfoSet.PNode;
+begin
+  tmp.X := x;
+  tmp.Y := Y;
+
+  n := FOutQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    exit(n^.Data);
+  end;
+
+  n := FInQueue.NFind(tmp);
+
+  if Assigned(n) then
+  begin
+    exit(n^.Data);
+  end;
+
+  Result := GetTileInfo(x,y);
+
+end;
+
 function TEditRoad.GetTileInfo(x, y: Integer): TTileRoadInfo;
 var
   tile: PMapTile;
@@ -206,20 +240,147 @@ begin
   Result.mir:=(tile^.Flags shr 4) mod 4;
 end;
 
-procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfoSet);
+procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfos);
 var
-  it: TTileRoadInfoSet.TIterator;
   map_level: TMapLevel;
+  i: Integer;
 begin
-  it := ASrc.Min;
   map_level := FMap.Levels[Level];
-  if Assigned(it) then
+
+  for i := 0 to ASrc.Size - 1 do
   begin
-    repeat
-      with it.Data do
-        map_level.SetRoad(X, Y,RoadType, RoadDir, Mir);
-    until not it.next;
-    FreeAndNil(it);
+    with ASrc.Mutable[i]^ do
+      map_level.SetRoad(X, Y,RoadType, RoadDir, Mir);
+  end;
+end;
+
+procedure TEditRoad.UpdateTiles;
+var
+  i: Integer;
+  tile: PTileRoadInfo;
+  vr: TValidationResult;
+  BestPattern: Integer;
+  k: Integer;
+  pattern: TSimplePattern;
+  mapping: TMapping;
+begin
+  for i := 0 to FNewTileInfos.Size - 1 do
+  begin
+    tile := FNewTileInfos.Mutable[i];
+
+    if tile^.RoadType = TRoadType.noRoad then
+      Continue;
+
+    BestPattern := -1;
+
+    for k := Low(ROAD_RULES) to High(ROAD_RULES) do
+    begin
+
+      pattern := ROAD_RULES[k];
+
+      vr := ValidateTile(tile,pattern);
+
+      if vr.result then
+      begin
+        BestPattern:=k;
+        Break;
+      end;
+
+    end;
+
+    if BestPattern = -1 then
+    begin
+      Continue;
+    end;
+
+    pattern:=ROAD_RULES[BestPattern];
+
+    mapping := pattern.Mapping;
+
+    tile^.RoadDir:=system.Random(Mapping.Upper-Mapping.Lower)+Mapping.Lower;
+    tile^.mir:=vr.flip;
+
+  end;
+end;
+
+function TEditRoad.ValidateTile(info: PTileRoadInfo; pattern: TSimplePattern
+  ): TValidationResult;
+var
+  flip: integer;
+  flipped: TSimplePattern;
+  i: Integer;
+  cx: Integer;
+  cy: Integer;
+  hasRoad: Boolean;
+  cur_tinfo: TTileRoadInfo;
+  validated: Boolean;
+begin
+  Result.result := False;
+  Result.flip := 0;
+
+  for flip := 0 to 4 - 1 do
+  begin
+
+    if (flip in [FLIP_PATTERN_BOTH,FLIP_PATTERN_VERTICAL]) and not pattern.HasVFlip then
+    begin
+      Continue;
+    end;
+
+    if (flip in [FLIP_PATTERN_BOTH,FLIP_PATTERN_HORIZONTAL]) and not pattern.HasHFlip then
+    begin
+      Continue;
+    end;
+
+    flipped := road_transitions.GetFlippedPattern(pattern,flip);
+    validated := true;
+    for i := 0 to 9 - 1 do
+    begin
+      if i = 4 then
+         Continue;// skip self
+
+      cx := info^.x + (i mod 3) - 1;
+      cy := info^.Y + (i div 3) - 1;
+
+      if FMap.IsOnMap(Level, cx,cy) then
+      begin
+        cur_tinfo := GetTinfo(cx, cy);
+        hasRoad := cur_tinfo.RoadType<>TRoadType.noRoad;
+      end
+      else
+      begin
+        hasRoad := True;//let road to go out of map
+      end;
+
+      case pattern.Rules[i] of
+        '+':begin
+           if not hasRoad then
+           begin
+             validated:=False;
+             Break;
+           end;
+
+        end;
+        '-':begin
+           if hasRoad then
+           begin
+             validated:=False;
+             Break;
+           end;
+        end;
+        else
+        begin
+          //ANY
+        end;
+      end;
+
+    end;
+
+    if validated then
+    begin
+      Result.result:=True;
+      Result.flip:=flip;
+      Exit;
+    end;
   end;
 end;
 
@@ -228,14 +389,17 @@ begin
   inherited Create(AMap);
   FInQueue := TTileRoadInfoSet.Create;
   FOutQueue := TTileRoadInfoSet.Create;
-  FOldTileInfos := TTileRoadInfoSet.Create;
+  FOldTileInfos := TTileRoadInfos.Create;
+  FNewTileInfos := TTileRoadInfos.Create;
   FRoadType := ARoadType;
+  Level:=AMap.CurrentLevelIndex;
 end;
 
 destructor TEditRoad.Destroy;
 begin
   FInQueue.Free;
   FOutQueue.Free;
+  FNewTileInfos.Free;
   FOldTileInfos.Free;
   inherited Destroy;
 end;
@@ -254,7 +418,7 @@ begin
     info.X := X;
     info.Y := Y;
     info.RoadType:=RoadType;
-    info.RoadDir:=0;//???
+    info.RoadDir:=14;
     info.mir:=0;
 
     FInQueue.Insert(info);
@@ -263,7 +427,7 @@ end;
 
 procedure TEditRoad.Redo;
 begin
-  ChangeTiles(FOutQueue);
+  ChangeTiles(FNewTileInfos);
 end;
 
 procedure TEditRoad.Undo;
@@ -272,37 +436,50 @@ begin
 end;
 
 procedure TEditRoad.Execute;
+
+  procedure CopyTile(const Coord: TMapCoord; var Stop: Boolean);
+  var
+    info: TTileRoadInfo;
+  begin
+    info := GetTinfo(Coord.X, Coord.Y);
+    FOutQueue.Insert(info);
+  end;
 var
   it: TTileRoadInfoSet.TIterator;
   map_level: TMapLevel;
+  r,mr: TMapRect;
 begin
-
-  //STUB
-
   it := FInQueue.Min;
-  map_level := FMap.Levels[Level];
+
   if Assigned(it) then
   begin
     repeat
-      FOutQueue.Insert(it.data);
+      r.SetFromCenter(it.data.x,it.data.Y, 3,3);
+      mr.DimOfMap(FMap);
+      r := r.Intersect(mr);
+
+      r.Iterate(@CopyTile);
+
     until not it.next;
     FreeAndNil(it);
   end;
 
-
-  //save old state
   it := FOutQueue.Min;
-  map_level := FMap.Levels[Level];
   if Assigned(it) then
   begin
     repeat
-      FOldTileInfos.Insert(GetTileInfo(it.Data.X, it.Data.Y));
+      FNewTileInfos.PushBack(it.Data);
+      FOldTileInfos.PushBack(GetTileInfo(it.Data.X, it.Data.Y));
     until not it.next;
     FreeAndNil(it);
   end;
 
-  //apply new state
-  redo;
+  UpdateTiles;
+
+  FreeAndNil(FInQueue);
+  FreeAndNil(FOutQueue);
+
+  Redo;
 end;
 
 { TEditRiver }

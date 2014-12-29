@@ -28,42 +28,12 @@ interface
 
 uses
   Classes, SysUtils, Math, Map, gvector, gset, undo_map, undo_base, editor_types,
-  terrain, map_actions;
+  terrain, map_actions, transitions;
 
 type
   TTerrainBrushMode = (none, fixed, area, fill);
 
 type
-  { TMapRect }
-
-  TMapCoordForEach = procedure (const Coord: TMapCoord; var Stop: Boolean) is nested;
-
-  TMapRect = object
-    FTopLeft: TMapCoord;
-    FWidth,FHeight: SizeInt;
-
-    constructor Create();
-    constructor SetFromCenter(X,Y, Width,Height: integer);
-    constructor SetFromCorners(AFirst, ASecond:TMapCoord);
-
-    function Left(): integer; inline;
-    function Right(): integer; inline;
-    function Top(): integer; inline;
-    function Bottom(): integer; inline;
-
-    function TopLeft():TMapCoord; inline;
-    function TopRight():TMapCoord; inline;
-    function BottomLeft():TMapCoord; inline;
-    function BottomRight():TMapCoord; inline;
-
-    function Intersect(Other: TMapRect):TMapRect;
-
-    procedure Clear(); inline;
-
-    procedure Iterate(Callback: TMapCoordForEach);
-  end;
-
-
   TTileTerrainInfo = record
     X,Y: integer;
     TerType: TTerrainType;
@@ -124,14 +94,6 @@ type
   end;
 
 
-  { TValidationResult }
-
-  TValidationResult = record
-    result: Boolean;
-    transitionReplacement: string;
-    flip: Integer;
-  end;
-
   { TInvalidTiles }
 
   TInvalidTiles = class
@@ -168,7 +130,6 @@ type
     FTerrainType: TTerrainType;
     procedure SetTerrainType(AValue: TTerrainType);
 
-    function MapRect:TMapRect;
     function ExtendTileAround(X,Y: integer):TMapRect;
     function SafeExtendTileAround(X,Y: integer):TMapRect;
 
@@ -196,127 +157,6 @@ implementation
 
 uses
   editor_gl, editor_consts, editor_str_consts;
-
-{ TMapRect }
-
-constructor TMapRect.Create;
-begin
-  Clear();
-end;
-
-function TMapRect.Left: integer;
-begin
-  Result := FTopLeft.x;
-end;
-
-function TMapRect.Right: integer;
-begin
-  Result := FTopLeft.x + FWidth;
-end;
-
-function TMapRect.Top: integer;
-begin
-  Result := FTopLeft.y;
-end;
-
-function TMapRect.Bottom: integer;
-begin
-  Result := FTopLeft.y + FHeight;
-end;
-
-function TMapRect.TopLeft: TMapCoord;
-begin
-  Result := FTopLeft;
-end;
-
-function TMapRect.TopRight: TMapCoord;
-begin
-  Result.X := Top();
-  Result.Y := Right();
-end;
-
-function TMapRect.BottomLeft: TMapCoord;
-begin
-  Result.X := Bottom();
-  Result.Y := Left();
-end;
-
-function TMapRect.BottomRight: TMapCoord;
-begin
-  Result.X := Bottom();
-  Result.Y := Right();
-end;
-
-function TMapRect.Intersect(Other: TMapRect): TMapRect;
-var
-  intersects: Boolean;
-begin
-  intersects := (Right() > Other.Left())
-    and (Other.Right() > Left())
-    and (Bottom()>Other.Top())
-    and (Other.Bottom()>Top());
-
-  Result.Create();
-
-  if intersects then
-  begin
-    Result.FTopLeft.X:= max(Left(),Other.Left());
-    Result.FTopLeft.Y:= max(Top(),Other.Top());
-
-    Result.FWidth:= Min(Right(),Other.Right()) - Result.FTopLeft.X;
-    Result.FHeight:= Min(Bottom(),Other.Bottom()) - Result.FTopLeft.Y;
-  end;
-end;
-
-procedure TMapRect.Clear;
-begin
-  FTopLeft.Clear();
-  FHeight:=0;
-  FWidth:=0;
-end;
-
-procedure TMapRect.Iterate(Callback: TMapCoordForEach);
-var
-  Current: TMapCoord;
-  Stop: Boolean;
-  i,j: SizeInt;
-begin
-  Stop := false;
-
-  for i := 0 to FWidth - 1 do
-  begin
-    for j := 0 to FHeight - 1 do
-    begin
-      Current.X := FTopLeft.X+i;
-      Current.Y := FTopLeft.Y+j;
-
-      Callback(Current, Stop);
-      if Stop then Exit;
-    end;
-  end;
-end;
-
-constructor TMapRect.SetFromCenter(X, Y, Width, Height: integer);
-begin
-  Assert(width mod 2 = 1);
-  Assert(Height mod 2 = 1);
-  Clear();
-
-  FTopLeft.X:= X - (Width-1) div 2;
-  FTopLeft.Y:= Y - (Height-1) div 2;
-  FWidth:=Width;
-  FHeight:=Height;
-end;
-
-constructor TMapRect.SetFromCorners(AFirst, ASecond: TMapCoord);
-begin
-  Clear();
-
-  FTopLeft.Reset(Min(AFirst.X,ASecond.X), Min(AFirst.Y,ASecond.Y));
-
-  FWidth := abs(AFirst.X-ASecond.X)+1;
-  FHeight := abs(AFirst.Y-ASecond.Y)+1;
-end;
 
 { TTileCompareByCoord }
 
@@ -648,12 +488,6 @@ begin
   FTerrainType := AValue;
 end;
 
-function TEditTerrain.MapRect: TMapRect;
-begin
-  Result.Create();
-  Result.FWidth:=FMap.CurrentLevel.Width;
-  Result.FHeight:=FMap.CurrentLevel.Height;
-end;
 
 function TEditTerrain.ExtendTileAround(X, Y: integer): TMapRect;
 begin
@@ -662,7 +496,8 @@ end;
 
 function TEditTerrain.SafeExtendTileAround(X, Y: integer): TMapRect;
 begin
-  Result := ExtendTileAround(x,y).Intersect(MapRect());
+  Result.DimOfMap(FMap);
+  Result := Result.Intersect(ExtendTileAround(x,y));
 end;
 
 procedure TEditTerrain.InvalidateTerrainViews(X, Y: integer);
