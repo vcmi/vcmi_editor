@@ -29,31 +29,9 @@ uses
   gmap, fgl,
   fpjson,
   filesystem_base, editor_types, editor_utils,
-  vcmi_json,h3_txt;
+  vcmi_json,h3_txt, base_info;
 
 type
-
-  { TBaseInfo }
-
-  TBaseInfo = class abstract
-  private
-    FID: AnsiString;
-    FName: TLocalizedString;
-    FIndex: TCustomID;
-
-    procedure SetID(AValue: AnsiString);
-    procedure SetName(AValue: TLocalizedString);
-    procedure SetIndex(AValue: TCustomID);
-  protected
-    function GetFullID: AnsiString; virtual;
-
-  public
-    constructor Create;
-    property ID: AnsiString read FID write SetID;
-    property Name: TLocalizedString read FName write SetName;
-    property FullID: AnsiString read GetFullID;
-    property Index: TCustomID read FIndex write SetIndex default -1;
-  end;
 
   { TSkillInfo }
 
@@ -263,36 +241,6 @@ end;
 function TSkillInfo.GetFullID: AnsiString;
 begin
   Result := 'skill.'+ID
-end;
-
-{ TBaseInfo }
-
-constructor TBaseInfo.Create;
-begin
-  FIndex := ID_INVALID;
-end;
-
-function TBaseInfo.GetFullID: AnsiString;
-begin
-  Result := ID;
-end;
-
-procedure TBaseInfo.SetID(AValue: AnsiString);
-begin
-  if FID = AValue then Exit;
-  FID := AValue;
-end;
-
-procedure TBaseInfo.SetName(AValue: TLocalizedString);
-begin
-  if FName = AValue then Exit;
-  FName := AValue;
-end;
-
-procedure TBaseInfo.SetIndex(AValue: TCustomID);
-begin
-  if FIndex = AValue then Exit;
-  FIndex := AValue;
 end;
 
 { TSkillInfos }

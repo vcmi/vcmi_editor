@@ -146,7 +146,7 @@ begin
   ProgressForm.NextStage('Loading objects.');
 
   FObjManager := TObjectsManager.Create(FGraphicsManager);
-  FObjManager.LoadObjects(RootManager.ProgressForm);
+  FObjManager.LoadObjects(RootManager.ProgressForm, FResourceManager.GameConfig.Objects);
 
 end;
 

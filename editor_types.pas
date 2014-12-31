@@ -93,7 +93,7 @@ const
   TTerrainType.water];
 
 type
-  TLocalizedString = AnsiString; //LCL use ansisring encode to UTF8
+  TLocalizedString = type AnsiString; //LCL use ansisring encode to UTF8
 
 implementation
 

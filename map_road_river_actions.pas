@@ -318,7 +318,7 @@ end;
 
 procedure TEditRoadRiver.UpdateTiles;
 var
-  i: Integer;
+  i: SizeInt;
   tile: PTileRoadInfo;
   vr: TValidationResult;
   BestPattern: Integer;
@@ -326,7 +326,7 @@ var
   pattern: TSimplePattern;
   mapping: TMapping;
 begin
-  for i := 0 to FNewTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
     tile := FNewTileInfos.Mutable[i];
 

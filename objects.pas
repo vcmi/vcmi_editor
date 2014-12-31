@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, fgl, gvector, ghashmap, FileUtil,
   editor_types,
-  filesystem_base, editor_graphics, editor_classes, h3_txt;
+  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt;
 
 type
 
@@ -34,9 +34,9 @@ type
 
   TDefBitmask = packed array[0..5] of uint8; //top to bottom, right to left as in H3M
 
-  { TObjTemplate }
+  { TLegacyObjTemplate }
 
-  TObjTemplate = class
+  TLegacyObjTemplate = class
   private
     FDef: TDef;
     FFilename: AnsiString;
@@ -63,29 +63,108 @@ type
 
   end;
 
-  TDefVector = specialize TFPGObjectList<TObjTemplate>;
+  TLegacyObjTemplateList = specialize TFPGObjectList<TLegacyObjTemplate>;
 
+  {$push}
+  {$m+}
+
+  { TObjTemplate }
+
+  TObjTemplate = class (TNamedCollectionItem)
+  private
+    FDef: TDef;
+  strict private
+    FAllowedTerrains: TTerrainTypes;
+    FAnimation: AnsiString;
+    FVisitableFrom: TStringList;
+    FMask: TStringList;
+    function GetMask: TStrings;
+    function GetVisitableFrom: TStrings;
+    procedure SetAllowedTerrains(AValue: TTerrainTypes);
+    procedure SetAnimation(AValue: AnsiString);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+    property Def: TDef read FDef;
+  published
+    property Animation: AnsiString read FAnimation write SetAnimation;
+    property VisitableFrom: TStrings read GetVisitableFrom;
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
+    property Mask: TStrings read GetMask;
+  end;
+
+  TObjTemplates = class (specialize TGNamedCollection<TObjTemplate>)
+  end;
+
+  { TObjSubType }
+
+  TObjSubType = class (TNamedCollectionItem)
+  private
+    FName: TLocalizedString;
+    FNid: TCustomID;
+    FTemplates: TObjTemplates;
+    function GetIndexAsID: TCustomID;
+    procedure SetIndexAsID(AValue: TCustomID);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
+    property Index: TCustomID read GetIndexAsID write SetIndexAsID default -1;
+    property Templates:TObjTemplates read FTemplates;
+    property Name: TLocalizedString read FName write FName;
+  end;
+
+  TObjSubTypes = class (specialize TGNamedCollection<TObjSubType>)
+
+  end;
+
+  { TObjType }
+
+  TObjType = class (TNamedCollectionItem)
+  private
+    FHandler: AnsiString;
+    FName: TLocalizedString;
+    FNid: TCustomID;
+    FSubTypes: TObjSubTypes;
+    procedure SetHandler(AValue: AnsiString);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
+    property Index: TCustomID read FNid write FNid default -1;
+    property Types:TObjSubTypes read FSubTypes;
+    property Name: TLocalizedString read FName write FName;
+    property Handler: AnsiString read FHandler write SetHandler;
+  end;
+
+  TObjTypes = class (specialize TGNamedCollection<TObjType>)
+
+  end;
+
+  {$pop}
 
   { TObjectsManager }
 
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
 
-    FDefs: TDefVector; //all aviable defs
+    FDefs: TLegacyObjTemplateList; //all aviable defs
 
-   function TypToId(Typ,SubType: uint32):TDefId; inline;
+    FObjTypes: TObjTypes;
+
+    function TypToId(Typ,SubType: uint32):TDefId; inline;
 
 
   private
     function GetObjCount: Integer;
-    function GetObjcts(AIndex: Integer): TObjTemplate;
+    function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadObjects(AProgressCallback: IProgressCallback);
+    procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TStrings);
 
-    property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
+    property Objcts[AIndex: Integer]: TLegacyObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
 
 
@@ -99,14 +178,96 @@ uses
 const
   OBJECT_LIST = 'DATA/OBJECTS';
 
+{ TObjType }
+
+procedure TObjType.SetHandler(AValue: AnsiString);
+begin
+  if FHandler=AValue then Exit;
+  FHandler:=AValue;
+end;
+
+constructor TObjType.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FSubTypes := TObjSubTypes.Create;
+end;
+
+destructor TObjType.Destroy;
+begin
+  FSubTypes.Free;
+  inherited Destroy;
+end;
+
+{ TObjSubType }
+
+function TObjSubType.GetIndexAsID: TCustomID;
+begin
+  Result := FNid;
+end;
+
+procedure TObjSubType.SetIndexAsID(AValue: TCustomID);
+begin
+  FNid := AValue;
+end;
+
+constructor TObjSubType.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FTemplates := TObjTemplates.Create;
+end;
+
+destructor TObjSubType.Destroy;
+begin
+  FTemplates.Free;
+  inherited Destroy;
+end;
+
 { TObjTemplate }
 
-constructor TObjTemplate.Create;
+procedure TObjTemplate.SetAnimation(AValue: AnsiString);
+begin
+  if FAnimation=AValue then Exit;
+  FAnimation:=AValue;
+end;
+
+function TObjTemplate.GetVisitableFrom: TStrings;
+begin
+  Result := FVisitableFrom;
+end;
+
+function TObjTemplate.GetMask: TStrings;
+begin
+  Result := FMask;
+end;
+
+procedure TObjTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
+begin
+  if FAllowedTerrains=AValue then Exit;
+  FAllowedTerrains:=AValue;
+end;
+
+constructor TObjTemplate.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FVisitableFrom := TStringList.Create;
+  FMask := TStringList.Create;
+end;
+
+destructor TObjTemplate.Destroy;
+begin
+  FMask.Free;
+  FVisitableFrom.Free;
+  inherited Destroy;
+end;
+
+{ TLegacyObjTemplate }
+
+constructor TLegacyObjTemplate.Create;
 begin
   inherited;
 end;
 
-procedure TObjTemplate.SetDef(AValue: TDef);
+procedure TLegacyObjTemplate.SetDef(AValue: TDef);
 begin
   if FDef = AValue then Exit;
   FDef := AValue;
@@ -118,11 +279,13 @@ constructor TObjectsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FDefs := TDefVector.Create(True);
+  FDefs := TLegacyObjTemplateList.Create(True);
+  FObjTypes := TObjTypes.Create;
 end;
 
 destructor TObjectsManager.Destroy;
 begin
+  FObjTypes.Free;
   FDefs.Free;
 
   inherited Destroy;
@@ -133,12 +296,13 @@ begin
   Result := FDefs.Count;
 end;
 
-function TObjectsManager.GetObjcts(AIndex: Integer): TObjTemplate;
+function TObjectsManager.GetObjcts(AIndex: Integer): TLegacyObjTemplate;
 begin
   Result := FDefs[AIndex];
 end;
 
-procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback);
+procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
+  APaths: TStrings);
 var
   row, col: Integer;
 
@@ -208,14 +372,12 @@ var
   end;
 
 var
-  def: TObjTemplate;
+  def: TLegacyObjTemplate;
   id: TDefId;
 
   s_tmp: string;
   progess_delta: Integer;
 begin
-
-  //todo: suppport for custom (ERA) object lists
 
   //todo: support for vcmi object lists
 
@@ -239,7 +401,7 @@ begin
 
       col := 0;
 
-      def := TObjTemplate.Create;
+      def := TLegacyObjTemplate.Create;
 
       s_tmp := '';
 
@@ -257,14 +419,6 @@ begin
       def.FSubType := CellToInt;
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
-
-      {$ifdef QUICK_OBJECT_LOAD}
-      if def.FTyp in [114..211] then
-      begin
-        def.Free;
-        Continue;
-      end;
-      {$endif}
 
       id := TypToId(def.FTyp,def.FSubType);
       def.Def := GraphicsManager.GetGraphics(def.FFilename);

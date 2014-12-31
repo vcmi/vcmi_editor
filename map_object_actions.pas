@@ -49,13 +49,13 @@ type
   private
     FCurrentPlayer: TPlayer;
     FL: Integer;
-    FTemplate: TObjTemplate;
+    FTemplate: TLegacyObjTemplate;
     FX: Integer;
     FY: Integer;
 
     procedure SetCurrentPlayer(AValue: TPlayer);
     procedure SetL(AValue: Integer);
-    procedure SetTemplate(AValue: TObjTemplate);
+    procedure SetTemplate(AValue: TLegacyObjTemplate);
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
@@ -65,7 +65,7 @@ type
     procedure Redo; override;
     procedure Undo; override;
 
-    property  Template: TObjTemplate read FTemplate write SetTemplate;
+    property  Template: TLegacyObjTemplate read FTemplate write SetTemplate;
 
     property X:Integer read FX write SetX;
     property Y:Integer read FY write SetY;
@@ -120,7 +120,7 @@ end;
 
 { TAddObject }
 
-procedure TAddObject.SetTemplate(AValue: TObjTemplate);
+procedure TAddObject.SetTemplate(AValue: TLegacyObjTemplate);
 begin
   if FTemplate=AValue then Exit;
   FTemplate:=AValue;

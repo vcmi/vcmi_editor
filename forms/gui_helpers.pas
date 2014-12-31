@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
-  editor_types, lists_manager;
+  editor_types, base_info;
 
 type
 

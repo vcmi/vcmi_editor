@@ -213,7 +213,7 @@ type
     destructor Destroy; override;
 
     //TODO: refactor this temproary solution
-    procedure FillFrom(AOther: TObjTemplate);
+    procedure FillFrom(AOther: TLegacyObjTemplate);
   published
 
     property TID: integer read GetTID;
@@ -776,7 +776,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapObjectTemplate.FillFrom(AOther: TObjTemplate);
+procedure TMapObjectTemplate.FillFrom(AOther: TLegacyObjTemplate);
 begin
   FAnimation := AOther.Filename;
   FDef := AOther.Def;

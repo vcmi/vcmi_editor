@@ -134,7 +134,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="52">
+    <Units Count="53">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -439,6 +439,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="transitions"/>
       </Unit51>
+      <Unit52>
+        <Filename Value="base_info.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="base_info"/>
+      </Unit52>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -144,11 +144,13 @@ type
     FHeroClasses: TStringList;
     FHeroes: TStringList;
     FSpells: TStringList;
+    FObjects: TStringList;
     function GetArtifacts: TStrings;
     function GetCreatures: TStrings;
     function GetFactions: TStrings;
     function GetHeroClasses: TStrings;
     function GetHeroes: TStrings;
+    function GetObjects: TStrings;
     function GetSpells: TStrings;
   public
     constructor Create;
@@ -160,6 +162,7 @@ type
     property HeroClasses: TStrings read GetHeroClasses ;
     property Heroes: TStrings read GetHeroes;
     property Spells: TStrings read GetSpells;
+    property Objects: TStrings read GetObjects;
   end;
 
   { TGameConfig }
@@ -390,10 +393,12 @@ begin
   FHeroClasses := TStringList.Create;
   FHeroes := TStringList.Create;
   FSpells := TStringList.Create;
+  FObjects := TStringList.Create;
 end;
 
 destructor TBaseConfig.Destroy;
 begin
+  FObjects.Free;
   FSpells.Free;
   FHeroes.Free;
   FHeroClasses.Free;
@@ -427,6 +432,11 @@ end;
 function TBaseConfig.GetHeroes: TStrings;
 begin
   Result := FHeroes;
+end;
+
+function TBaseConfig.GetObjects: TStrings;
+begin
+  Result := FObjects;
 end;
 
 function TBaseConfig.GetSpells: TStrings;

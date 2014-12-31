@@ -52,9 +52,9 @@ type
 
   TTemplateDragProxy = class(TDragProxy)
   private
-    FDraggingTemplate: TObjTemplate;
+    FDraggingTemplate: TLegacyObjTemplate;
   public
-    constructor Create(AOwner: TfMain;ADraggingTemplate: TObjTemplate);
+    constructor Create(AOwner: TfMain;ADraggingTemplate: TLegacyObjTemplate);
 
     procedure Drop; override;
     procedure Render(x, y: integer); override;
@@ -313,7 +313,7 @@ type
 
     FMapDragging: boolean;
     FNextDragSubject: TDragSubject;
-    FSelectedTemplate: TObjTemplate;
+    FSelectedTemplate: TLegacyObjTemplate;
 
     FCurrentPlayer: TPlayer;
 
@@ -410,7 +410,7 @@ end;
 { TTemplateDragProxy }
 
 constructor TTemplateDragProxy.Create(AOwner: TfMain;
-  ADraggingTemplate: TObjTemplate);
+  ADraggingTemplate: TLegacyObjTemplate);
 begin
   FDraggingTemplate := ADraggingTemplate;
   inherited Create(AOwner);
@@ -1523,7 +1523,7 @@ var
   row: Integer;
   col: Integer;
   o_idx: Integer;
-  o_def: TObjTemplate;
+  o_def: TLegacyObjTemplate;
   cx: Integer;
   cy: Integer;
   dim: Integer;
