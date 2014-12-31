@@ -162,7 +162,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TStrings);
+    procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigVector);
 
     property Objcts[AIndex: Integer]: TLegacyObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
@@ -173,7 +173,7 @@ type
 implementation
 
 uses
-  CsvDocument, editor_consts;
+  CsvDocument, editor_consts, editor_utils;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -302,7 +302,7 @@ begin
 end;
 
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
-  APaths: TStrings);
+  APaths: TModdedConfigVector);
 var
   row, col: Integer;
 
@@ -407,7 +407,7 @@ begin
 
       CellToStr(s_tmp);
 
-      def.FFilename := Trim(UpperCase(ExtractFileNameWithoutExt(s_tmp)));
+      def.FFilename := NormalizeResourceName(s_tmp);
 
 
       CellToBitMask(def.FPassability);

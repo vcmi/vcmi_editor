@@ -24,11 +24,9 @@ unit root_manager;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazLogger,
-  gl, glext40,
-  Forms, Controls,
-  progress_form, filesystem_base, root_form,
-  filesystem, terrain, objects, editor_graphics, lists_manager, OpenGLContext, editor_gl;
+  Classes, SysUtils, FileUtil, LazLogger, gl, glext40, Forms, Controls,
+  progress_form, filesystem_base, root_form, filesystem, terrain, objects,
+  editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types;
 
 type
 
@@ -47,11 +45,13 @@ type
     FGraphicsManager: TGraphicsManager;
     FListsManager:    TListsManager;
 
+
     FGLContext: TOpenGLControl;
-
-    //FShaderContext: TGlobalState;
-
     function GetResourceManager: IResourceLoader;
+
+    procedure ConvertModConfig(AMetaClass: string; AConverted: TModdedConfigVector);
+
+    procedure LoadObjects;
   public
     procedure InitComplete;
 
@@ -71,7 +71,7 @@ var
 implementation
 
 uses
-  Math, editor_types;
+  Math, editor_utils;
 
 {$R *.lfm}
 
@@ -143,10 +143,9 @@ begin
   FTerrianManager.LoadTerrainGraphics;
 
   //stage 3
-  ProgressForm.NextStage('Loading objects.');
 
-  FObjManager := TObjectsManager.Create(FGraphicsManager);
-  FObjManager.LoadObjects(RootManager.ProgressForm, FResourceManager.GameConfig.Objects);
+  ProgressForm.NextStage('Loading objects.');
+  LoadObjects;
 
 end;
 
@@ -159,6 +158,38 @@ end;
 function TRootManager.GetResourceManager: IResourceLoader;
 begin
   Result := FResourceManager;
+end;
+
+procedure TRootManager.ConvertModConfig(AMetaClass: string;
+  AConverted: TModdedConfigVector);
+var
+  i: Integer;
+  mod_config: TBaseConfig;
+  item: TModdedConfig;
+begin
+  for i := 0 to FResourceManager.Configs.Count - 1 do
+  begin
+    mod_config :=  FResourceManager.Configs.Data[i];
+    item.ModID:=FResourceManager.Configs.Keys[i];
+
+    FillStringArray(mod_config.ConfigPath[AMetaClass],item.Config);
+    AConverted.PushBack(item);
+  end;
+end;
+
+procedure TRootManager.LoadObjects;
+var
+  ObjectTypesConfig: TModdedConfigVector;
+begin
+  ObjectTypesConfig := TModdedConfigVector.Create;
+  try
+    FObjManager := TObjectsManager.Create(FGraphicsManager);
+    FObjManager.LoadObjects(RootManager.ProgressForm, ObjectTypesConfig);
+  finally
+    ObjectTypesConfig.Free;
+  end;
+
+
 end;
 
 procedure TRootManager.InitComplete;

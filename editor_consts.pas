@@ -149,10 +149,18 @@ const
   WOG_OBJECT = TObj.PYRAMID;//subtype > 0
 
 const
-  ARTIFACT_NAMESPACE = 'artifact';
-  CREATURE_NAMESPACE = 'creature';
-  RESORCE_NAMESPACE = 'resource';
-  SPELL_NAMESPACE = 'spell';
+
+  MODID_CORE = 'core';
+
+  ARTIFACT_METACLASS = 'artifact';
+  CREATURE_METACLASS = 'creature';
+  FACTION_METACLASS = 'faction';
+  HEROCLASS_METACLASS = 'heroClass';
+  HERO_METACLASS = 'hero';
+
+  RESOURCE_NAMESPACE = 'resource';
+  SPELL_METACLASS = 'spell';
+  OBJECT_METACLASS = 'object';
 
   SKILL_QUANTITY = 28;
 

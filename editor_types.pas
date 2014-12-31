@@ -24,7 +24,7 @@ unit editor_types;
 interface
 
 uses
-  Classes, SysUtils,gset,gutil;
+  Classes, SysUtils, gset, gutil, gvector;
 
 type
 {$push}
@@ -94,6 +94,15 @@ const
 
 type
   TLocalizedString = type AnsiString; //LCL use ansisring encode to UTF8
+
+  TModId = AnsiString;
+
+  TModdedConfig = record
+    ModID: AnsiString;
+    Config: array of string; //list of resource ids of config files
+  end;
+
+  TModdedConfigVector = specialize TVector<TModdedConfig>;
 
 implementation
 

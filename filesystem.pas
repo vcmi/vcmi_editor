@@ -29,7 +29,7 @@ uses
   lazutf8classes,
   vcmi_json,
   editor_classes,
-  filesystem_base, lod, fpjson, zipper ;
+  filesystem_base, lod, editor_types, fpjson, zipper ;
 
   {
   real FS
@@ -129,8 +129,6 @@ type
     destructor Destroy; override;
   end;
 
-  TModId = AnsiString;
-
   {$push}
   {$M+}
 
@@ -146,6 +144,7 @@ type
     FSpells: TStringList;
     FObjects: TStringList;
     function GetArtifacts: TStrings;
+    function GetConfigPath(AMetaClass: AnsiString): TStrings;
     function GetCreatures: TStrings;
     function GetFactions: TStrings;
     function GetHeroClasses: TStrings;
@@ -155,6 +154,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    property ConfigPath[AMetaClass: AnsiString]:TStrings read GetConfigPath;
   published
     property Artifacts: TStrings read GetArtifacts ;
     property Creatures: TStrings read GetCreatures ;
@@ -213,8 +214,6 @@ type
     property Conflicts: TStrings read GetConflicts;
 
     //TODO: Spells
-    //TODO: ObjectTypes
-    //TODO: Objects
 
     property Filesystem: TFilesystemConfig read FFilesystem;
 
@@ -224,6 +223,8 @@ type
   TModConfigs = specialize TFPGObjectList<TModConfig>;
 
   TIdToModMap = specialize TFPGMap<TModId,TModConfig>;
+
+  TIdToConfigMap = specialize TFPGMap<TModId,TBaseConfig>;
 
   TPathToPathMap = specialize TFPGMap<TFilename,TFilename>;
 
@@ -281,6 +282,7 @@ type
 
     FVpathMap: TPathToPathMap; //key subtituted by value
 
+    FConfigMap: TIdToConfigMap; //includes core mod
     FModMap: TIdToModMap;
     FMods: TModConfigs;
 
@@ -338,19 +340,15 @@ type
 
     procedure LoadResource(AResource: IResource; AResType: TResourceType;
       AName: string);
-
   public
-    class function NormalizeModId(AModId: TModId): TModId; static;
-    class function NormalizeResName(const AName: string): string; static;
-  public
-    property GameConfig: TGameConfig read FGameConfig;
-
+    property GameConfig: TGameConfig read FGameConfig; deprecated;
+    property Configs:TIdToConfigMap read FConfigMap;
   end;
 
 
 implementation
 uses
-  LazLoggerBase;
+  LazLoggerBase, editor_consts, editor_utils;
 
 const
   GAME_PATH_CONFIG = 'gamepath.txt';
@@ -412,6 +410,21 @@ end;
 function TBaseConfig.GetArtifacts: TStrings;
 begin
   Result := FArtifacts;
+end;
+
+function TBaseConfig.GetConfigPath(AMetaClass: AnsiString): TStrings;
+begin
+  case AMetaClass of
+    ARTIFACT_METACLASS: Result := Artifacts;
+    CREATURE_METACLASS: Result := Creatures;
+    FACTION_METACLASS: Result := Factions;
+    HEROCLASS_METACLASS: Result := HeroClasses ;
+    HERO_METACLASS: Result := Heroes ;
+    OBJECT_METACLASS: Result := Objects ;
+    SPELL_METACLASS: Result := Spells ;
+  else
+    raise Exception.CreateFmt('Invalid metaclass %s',[AMetaClass]);
+  end;
 end;
 
 function TBaseConfig.GetCreatures: TStrings;
@@ -621,16 +634,20 @@ begin
   FLodList := TLodList.Create(True);
   FMods := TModConfigs.Create(True);
   FModMap := TIdToModMap.Create;
-  FModMap.OnKeyCompare := @ComapreModId;
+  FModMap.OnKeyCompare := @ComapreModId; //todo: use only FConfigMap
 
   FGameConfig := TGameConfig.Create;
   FVpathMap := TPathToPathMap.Create;
 
   FArchiveList := TArchiveList.Create(true);
+
+  FConfigMap := TIdToConfigMap.Create;
+  FConfigMap.OnKeyCompare := @ComapreModId;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FConfigMap.Free;
   FArchiveList.Free;
   FVpathMap.Free;
   FGameConfig.Free;
@@ -736,6 +753,7 @@ begin
   finally
     res.Free;
   end;
+  FConfigMap.Add(MODID_CORE,FGameConfig);
 end;
 
 procedure TFSManager.LoadResource(AResource: IResource;
@@ -747,7 +765,7 @@ var
   res_loc: TResLocation;
   it : TResIDToLcationMap.TIterator;
 begin
-  AName := NormalizeResName(AName);
+  AName := NormalizeResourceName(AName);
 
   if FVpathMap.IndexOf(AName) >=0 then
   begin
@@ -927,18 +945,6 @@ begin
   end;
 end;
 
-class function TFSManager.NormalizeModId(AModId: TModId): TModId;
-begin
-  Result := Trim(LowerCase(AModId));
-end;
-
-class function TFSManager.NormalizeResName(const AName: string): string;
-begin
-  Result := SetDirSeparators(AName);
-  Result := UpperCase(Result);
-  Result := ExtractFileNameWithoutExt(Result);
-end;
-
 procedure TFSManager.OnFileFound(FileIterator: TFileIterator);
 var
   res_id: TResId;
@@ -1027,6 +1033,7 @@ begin
     mod_config.MayBeSetDefaultFSConfig;
     FMods.Add(mod_config);
     FModMap.Add(mod_config.ID,mod_config);
+    FConfigMap.Add(mod_config.ID,mod_config);
   finally
     stm.Free;
     destreamer.Free;
@@ -1132,11 +1139,11 @@ begin
        begin
           KeyVPath :=  item.Key;
           KeyVPath := IncludeTrailingPathDelimiter(ExtractFilePath(KeyVPath)) + ExtractFileNameOnly(KeyVPath);
-          KeyVPath := NormalizeResName(KeyVPath);
+          KeyVPath := NormalizeResourceName(KeyVPath);
 
           ValueVPath := item.Value.AsString;
           ValueVPath := IncludeTrailingPathDelimiter(ExtractFilePath(ValueVPath)) + ExtractFileNameOnly(ValueVPath);
-          ValueVPath := NormalizeResName(ValueVPath);
+          ValueVPath := NormalizeResourceName(ValueVPath);
 
           FVpathMap.KeyData[KeyVPath] := ValueVPath;
        end;

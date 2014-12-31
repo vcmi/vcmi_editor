@@ -214,6 +214,10 @@ type
 
     //TODO: refactor this temproary solution
     procedure FillFrom(AOther: TLegacyObjTemplate);
+
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
+    property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains default ALL_TERRAINS;
+
   published
 
     property TID: integer read GetTID;
@@ -221,8 +225,7 @@ type
     property Animation:string read FAnimation write SetAnimation;
 
     property Mask:TStrings read GetMask;
-    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
-    property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains default ALL_TERRAINS;
+
 
     property Id: TObjectTypeID read FID write SetID nodefault;
     property SubId: TCustomID read FSubID write SetSubID nodefault;
@@ -806,7 +809,7 @@ procedure TMapObjectTemplate.SetAnimation(AValue: string);
 var
   gm: TGraphicsManager;
 begin
-  AValue := SetDirSeparators(ExtractFileNameWithoutExt(Trim(UpperCase(AValue))));
+  AValue := NormalizeResourceName(AValue);
   if FAnimation = AValue then Exit;
   FAnimation := AValue;
 

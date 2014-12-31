@@ -76,6 +76,7 @@ type
   TDef = class
   private
     FPaletteID: GLuint;
+    FResourceID: AnsiString;
 
     //typ: UInt32;
     FWidth: UInt32;
@@ -88,6 +89,7 @@ type
     function GetFrameCount: Integer; inline;
 
     procedure MayBeUnBindTextures; inline;
+    procedure SetResourceID(AValue: AnsiString);
     procedure UnBindTextures;
     class procedure SetPalyerColor(color: TPlayer); static;
   public
@@ -108,6 +110,8 @@ type
 
     property Width: UInt32 read FWidth;
     property Height: UInt32 read FHeight;
+
+    property ResourceID: AnsiString read FResourceID write SetResourceID;
   end;
 
   TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
@@ -757,6 +761,12 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := False;
+end;
+
+procedure TDef.SetResourceID(AValue: AnsiString);
+begin
+  if FResourceID=AValue then Exit;
+  FResourceID:=AValue;
 end;
 
 procedure TDef.Render(const SpriteIndex: UInt8; X, Y: Integer; dim: integer;

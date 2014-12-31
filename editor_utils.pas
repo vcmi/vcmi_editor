@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, Classes, editor_types, gmap, gutil;
+  sysutils, Classes, types, editor_types, gmap, gutil;
 
 type
 
@@ -45,7 +45,16 @@ type
 
   function CrStrList: TStringList;
 
+  procedure FillStringArray(ASrc: TStrings; var ADest: TStringDynArray);
+
+  function NormalizeModId(AModId: TModId): TModId;
+
+  function NormalizeResourceName(const AName: string): string;
+
 implementation
+
+uses
+  FileUtil;
 
 procedure LeToNInPlase(var Val:Int32); inline;
 begin
@@ -58,6 +67,30 @@ begin
   Result := TStringList.Create;
   Result.Sorted := True;
   Result.Duplicates := dupIgnore;
+end;
+
+procedure FillStringArray(ASrc: TStrings; var ADest: TStringDynArray);
+var
+  i: Integer;
+begin
+  SetLength(ADest, ASrc.Count);
+
+  for i := 0 to ASrc.Count - 1 do
+  begin
+    ADest[i] := ASrc[i];
+  end;
+end;
+
+function NormalizeModId(AModId: TModId): TModId;
+begin
+  Result := Trim(LowerCase(AModId));
+end;
+
+function NormalizeResourceName(const AName: string): string;
+begin
+  Result := SetDirSeparators(AName);
+  Result := UpperCase(Result);
+  Result := ExtractFileNameWithoutExt(Result);
 end;
 
 { TStringCompare }
