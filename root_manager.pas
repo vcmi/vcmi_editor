@@ -49,7 +49,7 @@ type
     FGLContext: TOpenGLControl;
     function GetResourceManager: IResourceLoader;
 
-    procedure ConvertModConfig(AMetaClass: string; AConverted: TModdedConfigVector);
+    procedure GetConvertedModConfig(AMetaClass: string; AConverted: TModdedConfigPaths);
 
     procedure LoadObjects;
   public
@@ -58,7 +58,7 @@ type
     property ProgressForm: TProgressForm read FProgressForm;
     property ResourceManager: IResourceLoader read GetResourceManager;
 
-    property GraphicsManger: TGraphicsManager read FGraphicsManager;
+    property GraphicsManager: TGraphicsManager read FGraphicsManager;
     property ObjectsManager: TObjectsManager read FObjManager;
     property TerrainManager: TTerrainManager read FTerrianManager;
     property SharedContext: TOpenGLControl read FGLContext;
@@ -160,12 +160,12 @@ begin
   Result := FResourceManager;
 end;
 
-procedure TRootManager.ConvertModConfig(AMetaClass: string;
-  AConverted: TModdedConfigVector);
+procedure TRootManager.GetConvertedModConfig(AMetaClass: string;
+  AConverted: TModdedConfigPaths);
 var
   i: Integer;
   mod_config: TBaseConfig;
-  item: TModdedConfig;
+  item: TModdedConfigPath;
 begin
   for i := 0 to FResourceManager.Configs.Count - 1 do
   begin
@@ -179,12 +179,12 @@ end;
 
 procedure TRootManager.LoadObjects;
 var
-  ObjectTypesConfig: TModdedConfigVector;
+  ObjectTypesConfig: TModdedConfigPaths;
 begin
-  ObjectTypesConfig := TModdedConfigVector.Create;
+  ObjectTypesConfig := TModdedConfigPaths.Create;
   try
     FObjManager := TObjectsManager.Create(FGraphicsManager);
-    ConvertModConfig(OBJECT_METACLASS, ObjectTypesConfig);
+    GetConvertedModConfig(OBJECT_METACLASS, ObjectTypesConfig);
     FObjManager.LoadObjects(RootManager.ProgressForm, ObjectTypesConfig);
   finally
     ObjectTypesConfig.Free;

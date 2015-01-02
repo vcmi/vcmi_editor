@@ -946,9 +946,9 @@ end;
 
 procedure TDef.UnBindTextures;
 var
-  SpriteIndex: Integer;
+  SpriteIndex: SizeInt;
 begin
-  for SpriteIndex := 0 to entries.Size - 1 do
+  for SpriteIndex := 0 to SizeInt(entries.Size) - 1 do
   begin
     entries.Mutable[SpriteIndex]^.UnBind();
   end;

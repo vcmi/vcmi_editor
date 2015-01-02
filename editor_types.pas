@@ -29,7 +29,7 @@ uses
 type
 {$push}
 {$packenum 1}
-  TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, sub, lava, water, rock{,border=$FF});
+  TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, subterranean, lava, water, rock{,border=$FF});
   TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
@@ -88,7 +88,7 @@ const
   TTerrainType.snow,
   TTerrainType.swamp,
   TTerrainType.rough,
-  TTerrainType.sub,
+  TTerrainType.subterranean,
   TTerrainType.lava,
   TTerrainType.water];
 
@@ -97,12 +97,18 @@ type
 
   TModId = AnsiString;
 
-  TModdedConfig = record
+  TModdedConfigPath = record
     ModID: AnsiString;
     Config: array of string; //list of resource ids of config files
   end;
 
-  TModdedConfigVector = specialize TVector<TModdedConfig>;
+  TModdedConfigPaths = specialize TVector<TModdedConfigPath>;
+
+type
+  //raised if there are errors in VCMI configuration
+  EConfigurationError = class (Exception)
+
+  end;
 
 implementation
 

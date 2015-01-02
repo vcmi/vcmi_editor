@@ -937,7 +937,7 @@ begin
     TTerrainType.snow,
     TTerrainType.swamp,
     TTerrainType.rough,
-    TTerrainType.sub,
+    TTerrainType.subterranean,
     TTerrainType.lava:SetView(vews,49,63); //SetView(vews,49,72);
     TTerrainType.water:SetView(vews,20,32);
     TTerrainType.rock: SetView(vews,0,0);

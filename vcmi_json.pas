@@ -24,7 +24,8 @@ unit vcmi_json;
 interface
 
 uses
-  Classes, SysUtils, fpjson, fgl, vcmi_fpjsonrtti, typinfo, filesystem_base;
+  Classes, SysUtils, contnrs, fpjson, fgl, RegExpr, vcmi_fpjsonrtti, typinfo, filesystem_base,
+  editor_classes, editor_types;
 
 type
 
@@ -89,14 +90,56 @@ type
 
   TJsonObjectList = specialize TFPGObjectList<TJSONObject>;
 
+
+  { TModdedConfig }
+
+  TModdedConfig = class
+  private
+    FConfig: TJSONObject;
+    FModId: TModId;
+    FPatches: TJSONObject;
+    procedure SetModId(AValue: TModId);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property ModId: TModId read FModId write SetModId;
+    property Config: TJSONObject read FConfig;
+    property Patches: TJSONObject read FPatches;
+  end;
+
+  { TModdedConfigs }
+
+  TModdedConfigs = class
+  strict private
+     type
+       TMap = specialize TObjectMap<TModId, TModdedConfig>;
+     var
+       FMap: TMap;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Preload(APaths: TModdedConfigPaths; ALoader:IResourceLoader);
+    procedure ExtractPatches;
+    procedure ApplyPatches;
+    procedure CombineTo(ADest: TJSONObject);
+  end;
+
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
 
   procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); overload ;
   procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); overload ;
 
+  procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out AObjectId: AnsiString);
+
 implementation
 
-uses editor_classes;
+uses
+  LazLoggerBase, editor_consts, types;
+
+var
+
+  rexp_oid: TRegExpr;
 
 procedure MakeCamelCase(var s:string);
 var
@@ -160,6 +203,19 @@ end;
 procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
 begin
   Assert(false,'MergeJsonStruct for arrays Not implemented');
+end;
+
+procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out
+  AObjectId: AnsiString);
+begin
+  if not rexp_oid.Exec(AID) then
+  begin
+    raise EConfigurationError.CreateFmt('Invalid object ID %s',[AID]);
+  end;
+
+  AModId:=rexp_oid.Match[2];
+  AObjectId:=rexp_oid.Match[3];
+  Assert(Length(AObjectId)>0,'ObjectId is empty');
 end;
 
 { TJsonResource }
@@ -571,6 +627,209 @@ begin
   if FOnBeforeReadObject = AValue then Exit;
   FOnBeforeReadObject := AValue;
 end;
+
+
+{ TModdedConfig }
+
+procedure TModdedConfig.SetModId(AValue: TModId);
+begin
+  if FModId=AValue then Exit;
+  FModId:=AValue;
+end;
+
+constructor TModdedConfig.Create;
+begin
+  FConfig := TJSONObject.Create;
+  FPatches := TJSONObject.Create;
+end;
+
+destructor TModdedConfig.Destroy;
+begin
+  FPatches.Free;
+  FConfig.Free;
+  inherited Destroy;
+end;
+
+{ TModdedConfigs }
+
+constructor TModdedConfigs.Create;
+begin
+  inherited Create;
+  FMap := TMap.Create;
+
+  FMap.OnKeyCompare:=@CompareStr; //todo: compare by mod load priority
+  FMap.Sorted:=True;
+  FMap.Duplicates:=dupError;
+end;
+
+destructor TModdedConfigs.Destroy;
+begin
+  FMap.Free;
+  inherited Destroy;
+end;
+
+procedure TModdedConfigs.Preload(APaths: TModdedConfigPaths;
+  ALoader: IResourceLoader);
+var
+  AModdedPath: TModdedConfigPath;
+  i: SizeInt;
+
+  current: TJsonResource;
+  APath: String;
+  item: TModdedConfig;
+  key: TModId;
+begin
+  current := TJsonResource.Create;
+
+  try
+    for i := 0 to SizeInt(APaths.Size) - 1 do
+    begin
+      AModdedPath := APaths.Items[i];
+
+      item := TModdedConfig.Create;
+
+      item.ModId:=AModdedPath.ModID;
+
+      FMap.Add(item.ModId,item);
+
+      for APath in AModdedPath.Config do
+      begin
+        ALoader.LoadResource(current,TResourceType.Json, APath);
+        MergeJson(current.Root, item.Config);
+      end;
+    end;
+  finally
+    current.Free;
+  end;
+end;
+
+procedure TModdedConfigs.ExtractPatches;
+
+   procedure MayBeSetFullID(AConfig: TJSONObject; AFullKey, AId: AnsiString; AModID: TModId);
+   var
+     new_key: AnsiString;
+   begin
+     if AModID = MODID_CORE then
+     begin
+       new_key := AId;
+     end
+     else
+     begin
+       new_key:= AModID+':'+AId;
+     end;
+
+     if new_key<>AFullKey then
+     begin
+       AConfig.Add(new_key,AConfig.Extract(AFullKey));
+     end;
+
+   end;
+
+var
+  i,other_mod_index: Integer;
+  mod_id, other_mod_id: TModId;
+  mod_data, other_mod_data : TModdedConfig;
+  object_data: TJSONEnum;
+  id: TJSONStringType;
+  config: TJSONObject;
+
+  all_fields: TStringDynArray;
+  key: String;
+begin
+
+  for i := 0 to FMap.Count - 1 do
+  begin
+    mod_id := FMap.Keys[i];
+    mod_data:= FMap.Data[i];
+
+    SetLength(all_fields, mod_data.Config.Count);
+
+    for object_data in mod_data.Config do
+    begin
+      all_fields[object_data.KeyNum] := object_data.Key;
+    end;
+
+
+    for key in all_fields do
+    begin
+      id := Key;
+
+      ParseObjectId(id, other_mod_id, id);
+
+      if other_mod_id = mod_id then
+      begin
+        DebugLn(['Redundant namespace definition for "',Key,'"']); //this is error, need to report
+        MayBeSetFullID(mod_data.Config, Key, id, mod_id);
+      end
+      else if (other_mod_id='') then
+      begin
+        MayBeSetFullID(mod_data.Config, Key, id, mod_id);
+      end
+      else
+      begin
+        //this is a patch
+
+        config := mod_data.Config.Extract(key) as TJSONObject;
+
+        if not FMap.Find(other_mod_id, other_mod_index) then
+        begin
+          DebugLn(['Mod not found "',other_mod_id,'"']);
+          config.Free;
+          Continue;
+        end;
+
+        other_mod_data := FMap.Data[other_mod_index];
+
+        if other_mod_data.Patches.IndexOfName(id)>=0 then
+        begin
+          MergeJson(config,other_mod_data.Patches.Objects[id]);
+          config.Free;
+        end
+        else begin
+          other_mod_data.Patches.Objects[id] := config;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TModdedConfigs.ApplyPatches;
+var
+  mod_id: String;
+  mod_data: TModdedConfig;
+  i: Integer;
+begin
+  for i := 0 to FMap.Count - 1 do
+  begin
+    mod_id := FMap.Keys[i];
+    mod_data:= FMap.Data[i];
+
+    MergeJson(mod_data.Patches, mod_data.Config);
+  end;
+end;
+
+procedure TModdedConfigs.CombineTo(ADest: TJSONObject);
+var
+  mod_data: TModdedConfig;
+  i: Integer;
+begin
+  for i := 0 to FMap.Count - 1 do
+  begin
+    mod_data:= FMap.Data[i];
+
+    MergeJson(mod_data.Config, ADest);
+  end;
+end;
+
+initialization
+
+  rexp_oid := TRegExpr.Create;
+  rexp_oid.Expression := '^((.*):)?(.*)$';
+  rexp_oid.Compile;
+
+finalization
+
+  rexp_oid.Free;
 
 end.
 

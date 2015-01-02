@@ -193,7 +193,7 @@ Type
 
 implementation
 
-uses variants;
+uses variants, LazLoggerBase;
 
 ResourceString
   SErrUnknownPropertyKind     = 'Unknown property kind for property : "%s"';
@@ -384,6 +384,7 @@ Var
   I,J,S : Integer;
   A : TJSONArray;
   JS : TJSONStringType;
+  tmp: String;
 begin
   PI:=PropInfo;
   TI:=PropInfo^.PropType;
@@ -424,7 +425,11 @@ begin
           if A.types[i]=jtNumber then
             J:=A.Integers[i]
           else
-            J:=GetEnumValue(TI,A.strings[i]);
+          begin
+            tmp := A.strings[i];
+            DebugLn(tmp);
+            J:=GetEnumValue(TI,tmp);
+          end;
           TSet(S):=TSet(S)+[j];
           end;
         SetOrdProp(AObject,PI,S);

@@ -26,7 +26,7 @@ unit editor_classes;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fgl;
 
 type
 
@@ -102,6 +102,14 @@ type
   end;
 
 
+  { TObjectMap }
+
+  generic TObjectMap <TKey, TValue> = class (specialize TFPGMap<TKey, TValue>)
+  protected
+    procedure Deref(Item: Pointer); override;
+  end;
+
+
 implementation
 
 { TNamedCollectionItem }
@@ -139,6 +147,14 @@ begin
   inherited Items[Idx] := AValue;
 end;
 
+{ TObjectMap }
+
+procedure TObjectMap.Deref(Item: Pointer);
+begin
+  Finalize(TKey(Item^));
+
+  TData(Pointer(PByte(Item)+KeySize)^).Free;
+end;
 
 end.
 

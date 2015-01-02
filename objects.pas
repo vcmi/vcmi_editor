@@ -131,7 +131,7 @@ type
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
-    property Index: TCustomID read FNid write FNid default -1;
+    property Index: TCustomID read FNid write FNid default ID_INVALID;
     property Types:TObjSubTypes read FSubTypes;
     property Name: TLocalizedString read FName write FName;
     property Handler: AnsiString read FHandler write SetHandler;
@@ -154,7 +154,7 @@ type
 
     function TypToId(Typ,SubType: uint32):TDefId; inline;
 
-
+    procedure LoadLegacy(AProgressCallback: IProgressCallback);
   private
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
@@ -162,7 +162,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigVector);
+    procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
 
     property Objcts[AIndex: Integer]: TLegacyObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
@@ -174,7 +174,7 @@ type
 implementation
 
 uses
-  CsvDocument, editor_consts, editor_utils;
+  CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager, fpjson;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -191,6 +191,7 @@ constructor TObjType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FSubTypes := TObjSubTypes.Create;
+  Index:=ID_INVALID;
 end;
 
 destructor TObjType.Destroy;
@@ -227,8 +228,11 @@ end;
 
 procedure TObjTemplate.SetAnimation(AValue: AnsiString);
 begin
+  AValue := NormalizeResourceName(AValue);
   if FAnimation=AValue then Exit;
   FAnimation:=AValue;
+
+  FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FAnimation);
 end;
 
 function TObjTemplate.GetVisitableFrom: TStrings;
@@ -252,6 +256,8 @@ begin
   inherited Create(ACollection);
   FVisitableFrom := TStringList.Create;
   FMask := TStringList.Create;
+
+  AllowedTerrains := ALL_TERRAINS;
 end;
 
 destructor TObjTemplate.Destroy;
@@ -303,87 +309,123 @@ begin
 end;
 
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
-  APaths: TModdedConfigVector);
-var
-  row, col: Integer;
-
-  objects_txt: TTextResource;
-
-  procedure CellToStr(var s: string);
-  begin
-    if not objects_txt.HasCell(col, row) then
-       raise Exception.CreateFmt('OBJTXT error cell not exists. row:%d, col:%d',[row,col]);
-
-    s := objects_txt.Value[col,row];
-    inc(col);
-  end;
-
-
-  procedure CellToBitMask(var mask: TDefBitmask);
-  var
-    i: Integer;
-    j: Integer;
-
-    ss: string;
-    m: UInt8;
-    s: string;
-  begin
-    s:='';
-    CellToStr(s);
-    if not Length(s)=6*8 then
-       raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
-
-    for i:=5 downto 0 do //in object.txt bottom line is first
-    begin
-      ss := Copy(s,i*8+1,8);
-      if not (Length(ss)=8) then
-        raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
-      m := 0;
-      for j := 0 to 7 do
-      begin
-        if ss[j+1] = '1' then
-          m := m or (1 shl j) ;
-      end;
-      mask[i] := m;
-    end;
-  end;
-
-
-  procedure CellToUint16Mask(var v: uint16);
-  var
-    temp: string;
-    len: Integer;
-    i: Integer;
-  begin
-    temp := '';
-    CellToStr(temp);
-    len:= Length(temp);
-    v := 0;
-    for i := len to 1 do
-    begin
-      if temp[i] = '1' then
-        v := v or 1 shl i;
-    end;
-  end;
-
-  function CellToInt: uint32;
-  begin
-    result := StrToIntDef(objects_txt.Value[col,row],0);
-    inc(col);
-  end;
+  APaths: TModdedConfigPaths);
 
 var
-  def: TLegacyObjTemplate;
-  id: TDefId;
-
-  s_tmp: string;
-  progess_delta: Integer;
-  i: SizeInt;
-  APath: TModdedConfig;
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+  destreamer: TVCMIJSONDestreamer;
 begin
+
+  LoadLegacy(AProgressCallback);
 
   //todo: support for vcmi object lists
 
+
+
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
+  destreamer := TVCMIJSONDestreamer.Create(nil);
+  try
+    FConfig.Preload(APaths,ResourceLoader);
+    FConfig.ExtractPatches;
+    FConfig.ApplyPatches;
+    FConfig.CombineTo(FCombinedConfig);
+
+    destreamer.JSONToObject(FCombinedConfig,FObjTypes);
+
+  finally
+    FCombinedConfig.Free;
+    FConfig.Free;
+     destreamer.Free;
+  end;
+
+end;
+
+
+function TObjectsManager.TypToId(Typ, SubType: uint32): TDefId;
+begin
+  Int64Rec(Result).Hi := Typ;
+  Int64Rec(Result).Lo := SubType;
+end;
+
+procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback);
+  var
+    row, col: Integer;
+
+    objects_txt: TTextResource;
+
+    procedure CellToStr(var s: string);
+    begin
+      if not objects_txt.HasCell(col, row) then
+         raise Exception.CreateFmt('OBJTXT error cell not exists. row:%d, col:%d',[row,col]);
+
+      s := objects_txt.Value[col,row];
+      inc(col);
+    end;
+
+
+    procedure CellToBitMask(var mask: TDefBitmask);
+    var
+      i: Integer;
+      j: Integer;
+
+      ss: string;
+      m: UInt8;
+      s: string;
+    begin
+      s:='';
+      CellToStr(s);
+      if not Length(s)=6*8 then
+         raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
+
+      for i:=5 downto 0 do //in object.txt bottom line is first
+      begin
+        ss := Copy(s,i*8+1,8);
+        if not (Length(ss)=8) then
+          raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
+        m := 0;
+        for j := 0 to 7 do
+        begin
+          if ss[j+1] = '1' then
+            m := m or (1 shl j) ;
+        end;
+        mask[i] := m;
+      end;
+    end;
+
+
+    procedure CellToUint16Mask(var v: uint16);
+    var
+      temp: string;
+      len: Integer;
+      i: Integer;
+    begin
+      temp := '';
+      CellToStr(temp);
+      len:= Length(temp);
+      v := 0;
+      for i := len to 1 do
+      begin
+        if temp[i] = '1' then
+          v := v or 1 shl i;
+      end;
+    end;
+
+    function CellToInt: uint32;
+    begin
+      result := StrToIntDef(objects_txt.Value[col,row],0);
+      inc(col);
+    end;
+
+  var
+    def: TLegacyObjTemplate;
+    id: TDefId;
+
+    s_tmp: string;
+    progess_delta: Integer;
+    i: SizeInt;
+begin
   objects_txt := TTextResource.Create;
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
 
@@ -424,7 +466,6 @@ begin
       def.FIsOverlay := CellToInt;
 
       id := TypToId(def.FTyp,def.FSubType);
-      //def.Def := GraphicsManager.GetGraphics(def.FFilename);
       def.Def := GraphicsManager.GetPreloadedGraphics(def.FFilename);
       FDefs.Add(def);
 
@@ -433,18 +474,6 @@ begin
   finally
     objects_txt.Free;
   end;
-
-  for i := 0 to SizeInt(APaths.Size) - 1 do
-  begin
-    APath := APaths.Items[i];
-  end;
-end;
-
-
-function TObjectsManager.TypToId(Typ, SubType: uint32): TDefId;
-begin
-  Int64Rec(Result).Hi := Typ;
-  Int64Rec(Result).Lo := SubType;
 end;
 
 end.

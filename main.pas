@@ -730,7 +730,7 @@ end;
 
 procedure TfMain.btnSubClick(Sender: TObject);
 begin
-  FActiveBrush.TT := TTerrainType.sub;
+  FActiveBrush.TT := TTerrainType.subterranean;
 end;
 
 procedure TfMain.btnSwampClick(Sender: TObject);
@@ -814,7 +814,7 @@ begin
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
   FObjManager := RootManager.ObjectsManager;
-  FGraphicsManager := RootManager.GraphicsManger;
+  FGraphicsManager := RootManager.GraphicsManager;
   FEnv.lm := RootManager.ListsManager;
 
   FUndoManager := TMapUndoManager.Create;

@@ -640,7 +640,7 @@ begin
 
   if (owner <> TPlayer.none) and (TObj(Template.Id) in [TObj.HERO, TObj.RANDOM_HERO, TObj.HERO_PLACEHOLDER]) then
   begin
-    RootManager.GraphicsManger.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
+    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
   end;
 end;
 

@@ -316,7 +316,9 @@ procedure TEditTerrain.Execute;
 var
   old_info, new_info, info: TTileTerrainInfo;
 
-  i, dx,dy: Integer;
+  dx,dy: Integer;
+
+  i:SizeInt;
 
   loop_guard: Integer;
   x: LongInt;
@@ -328,12 +330,12 @@ begin
   FOutQueue := TTileSet.Create;
   FInvalidated := TTileSet.Create;
 
-  for i := 0 to FNewTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
     InvalidateTerrainViews(FNewTileInfos[i].X,FNewTileInfos[i].Y);
   end;
 
-  for i := 0 to FNewTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
      FInQueue.Insert(FNewTileInfos[i]);
   end;
@@ -359,7 +361,7 @@ begin
 
   //save old state
   FOldTileInfos.Clear;
-  for i := 0 to FNewTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
     new_info := FNewTileInfos[i];
 
@@ -779,9 +781,9 @@ end;
 
 procedure TEditTerrain.Undo;
 var
-  i: Integer;
+  i: SizeInt;
 begin
-  for i := 0 to FOldTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FOldTileInfos.Size) - 1 do
   begin
     UndoTile(FOldTileInfos[i]);
   end;

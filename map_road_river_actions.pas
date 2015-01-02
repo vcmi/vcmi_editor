@@ -566,11 +566,11 @@ end;
 procedure TEditRoad.ChangeTiles(ASrc: TTileRoadInfos);
 var
   map_level: TMapLevel;
-  i: Integer;
+  i: SizeInt;
 begin
   map_level := FMap.Levels[Level];
 
-  for i := 0 to ASrc.Size - 1 do
+  for i := 0 to SizeInt(ASrc.Size) - 1 do
   begin
     with ASrc.Mutable[i]^ do
       map_level.SetRoad(X, Y,RoadType, RoadDir, RoadFlip);
@@ -640,11 +640,11 @@ end;
 procedure TEditRiver.ChangeTiles(ASrc: TTileRoadInfos);
 var
   map_level: TMapLevel;
-  i: Integer;
+  i: SizeInt;
 begin
   map_level := FMap.Levels[Level];
 
-  for i := 0 to ASrc.Size - 1 do
+  for i := 0 to SizeInt(ASrc.Size) - 1 do
   begin
     with ASrc.Mutable[i]^ do
       map_level.SetRiver(X, Y,RiverType, RiverDir, RiverFlip);
