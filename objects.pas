@@ -167,6 +167,7 @@ type
     property Objcts[AIndex: Integer]: TLegacyObjTemplate read GetObjcts;
     property ObjCount:Integer read GetObjCount;
 
+    property ObjTypes: TObjTypes read FObjTypes;
 
   end;
 
@@ -377,6 +378,8 @@ var
 
   s_tmp: string;
   progess_delta: Integer;
+  i: SizeInt;
+  APath: TModdedConfig;
 begin
 
   //todo: support for vcmi object lists
@@ -421,7 +424,8 @@ begin
       def.FIsOverlay := CellToInt;
 
       id := TypToId(def.FTyp,def.FSubType);
-      def.Def := GraphicsManager.GetGraphics(def.FFilename);
+      //def.Def := GraphicsManager.GetGraphics(def.FFilename);
+      def.Def := GraphicsManager.GetPreloadedGraphics(def.FFilename);
       FDefs.Add(def);
 
     end;
@@ -430,6 +434,10 @@ begin
     objects_txt.Free;
   end;
 
+  for i := 0 to SizeInt(APaths.Size) - 1 do
+  begin
+    APath := APaths.Items[i];
+  end;
 end;
 
 

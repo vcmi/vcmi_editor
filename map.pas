@@ -780,9 +780,14 @@ begin
 end;
 
 procedure TMapObjectTemplate.FillFrom(AOther: TLegacyObjTemplate);
+var
+  gm: TGraphicsManager;
 begin
   FAnimation := AOther.Filename;
   FDef := AOther.Def;
+
+  gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
+  gm.LoadGraphics(FDef);
 
   FID := AOther.Typ;
   FSubID := AOther.SubType;

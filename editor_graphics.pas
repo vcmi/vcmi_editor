@@ -75,6 +75,7 @@ type
 
   TDef = class
   private
+    FLoaded: Boolean;
     FPaletteID: GLuint;
     FResourceID: AnsiString;
 
@@ -89,6 +90,7 @@ type
     function GetFrameCount: Integer; inline;
 
     procedure MayBeUnBindTextures; inline;
+    procedure SetLoaded(AValue: Boolean);
     procedure SetResourceID(AValue: AnsiString);
     procedure UnBindTextures;
     class procedure SetPalyerColor(color: TPlayer); static;
@@ -112,6 +114,8 @@ type
     property Height: UInt32 read FHeight;
 
     property ResourceID: AnsiString read FResourceID write SetResourceID;
+
+    property Loaded: Boolean read FLoaded write SetLoaded;
   end;
 
   TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
@@ -125,6 +129,8 @@ type
     constructor Create;
   end;
 
+  TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
+
   { TDefFormatLoader }
 
   TDefFormatLoader = class (IResource)
@@ -137,16 +143,18 @@ type
     procedure IncreaseBuffer(ANewSize: SizeInt);
   private
     FCurrentDef: TDef;
+    FMode: TGraphicsLoadMode;
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
-    procedure LoadFromStream(AStream: TStream);//IResource
+
     procedure SetCurrentDef(AValue: TDef);
-
-
+  public
+    procedure LoadFromStream(AStream: TStream);//IResource
   public
     constructor Create;
     destructor Destroy; override;
 
     property CurrentDef: TDef read FCurrentDef write SetCurrentDef;
+    property Mode: TGraphicsLoadMode read FMode write FMode;
   end;
 
   { TGraphicsManager }
@@ -160,14 +168,20 @@ type
 
     FBuffer: TMemoryStream;
 
-    procedure LoadDef(const AResourceName:string; ADef: TDef);
+    procedure LoadDef(const AResourceName:string; ADef: TDef; ALoadComplete: Boolean);
+
+    function DoGetGraphics (const AResourceName:string; ALoadComplete: Boolean): TDef;
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    //complete load
     function GetGraphics (const AResourceName:string): TDef;
-
+    //load first frame
+    function GetPreloadedGraphics(const AResourceName:string): TDef;
+    //load all expect first
+    procedure LoadGraphics(Adef: TDef);
 
     function GetHeroFlagDef(APlayer: TPlayer): TDef;
   end;
@@ -532,10 +546,10 @@ var
   id_s: array of GLuint;
   total_entries: Integer;
 
-  procedure GenerateTextureIds;
+  procedure GenerateTextureIds(count, offcet: Integer);
     begin
       SetLength(id_s,total_entries);
-      glGenTextures(total_entries, @id_s[0]);
+      glGenTextures(count, @id_s[offcet]);
     end;
 var
   offsets : packed array of UInt32;
@@ -547,7 +561,7 @@ var
 
   current_offcet: UInt32;
 
-  i: Uint8;
+  i: Integer;
 
   blockCount: UInt32;
 
@@ -556,7 +570,8 @@ var
 begin
   Assert(Assigned(FCurrentDef),'TDefFormatLoader.LoadFromStream: nil CurrentDef');
 
-  FCurrentDef.MayBeUnBindTextures;
+  if Mode <> TGraphicsLoadMode.LoadRest then
+    FCurrentDef.MayBeUnBindTextures;
 
   orig_position := AStream.Position;
 
@@ -569,60 +584,92 @@ begin
 
   //TODO: use color comparison instead of index
 
-  for i := 0 to 7 do
+  if mode <> TGraphicsLoadMode.LoadRest then
   begin
-    palette[i] := STANDARD_COLORS[i];
+
+    for i := 0 to 7 do
+    begin
+      palette[i] := STANDARD_COLORS[i];
+    end;
+
+    for i := 8 to 255 do
+    begin
+      palette[i].a := 255; //no alpha in h3 def
+      palette[i].b := header.palette[i].b;
+      palette[i].g := header.palette[i].g;
+      palette[i].r := header.palette[i].r;
+    end;
+
+    glGenTextures(1,@FCurrentDef.FPaletteID);
+    BindPalette(FCurrentDef.FPaletteID,@palette);
+
   end;
 
-  for i := 8 to 255 do
+    total_entries := 0;
+
+    for block_nomber := 0 to header.blockCount - 1 do
+    begin
+       AStream.Read(current_block_head{%H-},SizeOf(current_block_head));
+
+       total_in_block := current_block_head.totalInBlock;
+
+       SetLength(offsets, total_entries + total_in_block);
+
+       //entries.Resize(total_entries + total_in_block);
+
+       //names
+       AStream.Seek(13*total_in_block,soCurrent);
+
+       //offcets
+       for i := 0 to total_in_block - 1 do
+       begin
+         AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
+         offsets[total_entries+i] := current_offcet+UInt32(orig_position);
+
+         //todo: use block_nomber to load heroes defs from mods
+
+         //entries.Mutable[total_entries+i]^.group := block_nomber;
+       end;
+
+       total_entries += total_in_block;
+
+    end;
+
+  if mode <> TGraphicsLoadMode.LoadRest then
   begin
-    palette[i].a := 255; //no alpha in h3 def
-    palette[i].b := header.palette[i].b;
-    palette[i].g := header.palette[i].g;
-    palette[i].r := header.palette[i].r;
+    FCurrentDef.entries.Resize(total_entries);
   end;
 
-  glGenTextures(1,@FCurrentDef.FPaletteID);
-  BindPalette(FCurrentDef.FPaletteID,@palette);
 
-  total_entries := 0;
 
-  for block_nomber := 0 to header.blockCount - 1 do
-  begin
-     AStream.Read(current_block_head{%H-},SizeOf(current_block_head));
+  case Mode of
+    TGraphicsLoadMode.LoadFisrt: begin
+      GenerateTextureIds(1,0);
+      LoadSprite(AStream, 0, id_s[0], offsets[0]);
+    end;
+    TGraphicsLoadMode.LoadRest:
+    begin
+      if total_entries > 1 then
+      begin
+        GenerateTextureIds(total_entries-1,1);
+        for i := 1 to total_entries - 1 do
+        begin
+          LoadSprite(AStream, i, id_s[i], offsets[i]);
+        end;
+      end;
 
-     total_in_block := current_block_head.totalInBlock;
-
-     SetLength(offsets, total_entries + total_in_block);
-
-     //entries.Resize(total_entries + total_in_block);
-
-     //names
-     AStream.Seek(13*total_in_block,soCurrent);
-
-     //offcets
-     for i := 0 to total_in_block - 1 do
-     begin
-       AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
-       offsets[total_entries+i] := current_offcet+UInt32(orig_position);
-
-       //todo: use block_nomber to load heroes defs from mods
-
-       //entries.Mutable[total_entries+i]^.group := block_nomber;
-     end;
-
-     total_entries += total_in_block;
+      FCurrentDef.Loaded:=True;
+    end;
+    TGraphicsLoadMode.LoadComplete:
+    begin
+      GenerateTextureIds(total_entries, 0);
+      for i := 0 to total_entries - 1 do
+      begin
+        LoadSprite(AStream, i, id_s[i], offsets[i]);
+      end;
+      FCurrentDef.Loaded:=True;
+    end;
   end;
-
-  FCurrentDef.entries.Resize(total_entries);
-
-  GenerateTextureIds;
-
-  for i := 0 to total_entries - 1 do
-  begin
-    LoadSprite(AStream, i, id_s[i], offsets[i]);
-  end;
-
 end;
 
 procedure TDefFormatLoader.SetCurrentDef(AValue: TDef);
@@ -630,7 +677,6 @@ begin
   if FCurrentDef = AValue then Exit;
   FCurrentDef := AValue;
 end;
-
 
 { TBaseSprite }
 
@@ -686,22 +732,21 @@ begin
 end;
 
 function TGraphicsManager.GetGraphics(const AResourceName: string): TDef;
-var
-  res_index: Integer;
 begin
+  Result := DoGetGraphics(AResourceName, True);
+end;
 
-  res_index :=  FNameToDefMap.IndexOf(AResourceName);
+function TGraphicsManager.GetPreloadedGraphics(const AResourceName: string
+  ): TDef;
+begin
+  Result := DoGetGraphics(AResourceName, False);
+end;
 
-  if res_index >= 0 then
-  begin
-    Result := FNameToDefMap.Data[res_index];
-  end
-  else begin
-    Result := TDef.Create;
-    LoadDef(AResourceName,Result);
-    FNameToDefMap.Add(AResourceName,Result);
-  end;
-
+procedure TGraphicsManager.LoadGraphics(Adef: TDef);
+begin
+  FDefLoader.CurrentDef := ADef;
+  FDefLoader.Mode := TGraphicsLoadMode.LoadRest;
+  ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+ADef.ResourceID);
 end;
 
 function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TDef;
@@ -709,11 +754,42 @@ begin
   Result := FHeroFlagDefs[APlayer];
 end;
 
-procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef);
+procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef;
+  ALoadComplete: Boolean);
 begin
   FDefLoader.CurrentDef := ADef;
+
+  if ALoadComplete then
+    FDefLoader.Mode := TGraphicsLoadMode.LoadComplete
+  else
+    FDefLoader.Mode := TGraphicsLoadMode.LoadFisrt;
+
   ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+AResourceName);
 
+end;
+
+function TGraphicsManager.DoGetGraphics(const AResourceName: string;
+  ALoadComplete: Boolean): TDef;
+var
+  res_index: Integer;
+begin
+  res_index :=  FNameToDefMap.IndexOf(AResourceName);
+
+  if res_index >= 0 then
+  begin
+    Result := FNameToDefMap.Data[res_index];
+
+    if ALoadComplete and not Result.Loaded then
+    begin
+      LoadGraphics(Result);
+    end;
+  end
+  else begin
+    Result := TDef.Create;
+    LoadDef(AResourceName,Result, ALoadComplete);
+    FNameToDefMap.Add(AResourceName,Result);
+    Result.ResourceID := AResourceName;
+  end;
 end;
 
 
@@ -761,6 +837,12 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := False;
+end;
+
+procedure TDef.SetLoaded(AValue: Boolean);
+begin
+  if FLoaded=AValue then Exit;
+  FLoaded:=AValue;
 end;
 
 procedure TDef.SetResourceID(AValue: AnsiString);

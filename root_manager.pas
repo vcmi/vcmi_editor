@@ -71,7 +71,7 @@ var
 implementation
 
 uses
-  Math, editor_utils;
+  Math, editor_utils, editor_consts;
 
 {$R *.lfm}
 
@@ -184,12 +184,11 @@ begin
   ObjectTypesConfig := TModdedConfigVector.Create;
   try
     FObjManager := TObjectsManager.Create(FGraphicsManager);
+    ConvertModConfig(OBJECT_METACLASS, ObjectTypesConfig);
     FObjManager.LoadObjects(RootManager.ProgressForm, ObjectTypesConfig);
   finally
     ObjectTypesConfig.Free;
   end;
-
-
 end;
 
 procedure TRootManager.InitComplete;
