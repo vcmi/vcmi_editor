@@ -73,11 +73,18 @@ type
   {$push}
   {$m+}
 
+  TObjSubType = class;
+  TObjType = class;
+
   { TObjTemplate }
 
   TObjTemplate = class (TNamedCollectionItem)
   private
     FDef: TDef;
+
+    FObjType:TObjType;
+    FObjSubtype: TObjSubType;
+
   strict private
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
@@ -91,6 +98,9 @@ type
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     property Def: TDef read FDef;
+
+    property ObjType: TObjType read FObjType;
+    property ObjSubType: TObjSubType read FObjSubtype;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property VisitableFrom: TStrings read GetVisitableFrom;
@@ -98,8 +108,17 @@ type
     property Mask: TStrings read GetMask;
   end;
 
+  { TObjTemplates }
+
   TObjTemplates = class (specialize TGNamedCollection<TObjTemplate>)
+  private
+    FObjSubType: TObjSubType;
+  public
+    constructor Create(AOwner: TObjSubType);
+    property ObjSubType: TObjSubType read FObjSubType;
   end;
+
+  TObjTemplatesList = specialize TFPGObjectList<TObjTemplate>;
 
   { TObjSubType }
 
@@ -108,6 +127,7 @@ type
     FName: TLocalizedString;
     FNid: TCustomID;
     FTemplates: TObjTemplates;
+    FObjType:TObjType;
     function GetIndexAsID: TCustomID;
     procedure SetIndexAsID(AValue: TCustomID);
   public
@@ -119,8 +139,14 @@ type
     property Name: TLocalizedString read FName write FName;
   end;
 
-  TObjSubTypes = class (specialize TGNamedCollection<TObjSubType>)
+  { TObjSubTypes }
 
+  TObjSubTypes = class (specialize TGNamedCollection<TObjSubType>)
+  private
+    FOwner: TObjType;
+  public
+    constructor Create(AOwner: TObjType);
+    property owner: TObjType read FOwner;
   end;
 
   { TObjType }
@@ -142,11 +168,26 @@ type
     property Handler: AnsiString read FHandler write SetHandler;
   end;
 
-  TObjTypes = class (specialize TGNamedCollection<TObjType>)
-
-  end;
+  TObjTypes = specialize TGNamedCollection<TObjType>;
 
   {$pop}
+
+  TObjectsManager = class;
+
+  { TObjectsSelection }
+
+  TObjectsSelection = class
+  private
+    FManager: TObjectsManager;
+    FData: TObjTemplatesList;
+    function GetCount: Integer;
+    function GetObjcts(AIndex: Integer): TObjTemplate;
+  public
+    constructor Create(AManager: TObjectsManager);
+    destructor Destroy; override;
+    property Count:Integer read GetCount;
+    property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
+  end;
 
   { TObjectsManager }
 
@@ -177,6 +218,8 @@ type
 
     property ObjTypes: TObjTypes read FObjTypes;
 
+
+    function SelectAll: TObjectsSelection;
   end;
 
 implementation
@@ -186,6 +229,46 @@ uses
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
+
+{ TObjSubTypes }
+
+constructor TObjSubTypes.Create(AOwner: TObjType);
+begin
+  inherited Create;
+  FOwner := AOwner;
+end;
+
+{ TObjTemplates }
+
+constructor TObjTemplates.Create(AOwner: TObjSubType);
+begin
+  inherited Create;
+  FObjSubType := AOwner;
+end;
+
+{ TObjectsSelection }
+
+function TObjectsSelection.GetCount: Integer;
+begin
+  Result := FData.Count;
+end;
+
+function TObjectsSelection.GetObjcts(AIndex: Integer): TObjTemplate;
+begin
+  Result := FData.Items[AIndex];
+end;
+
+constructor TObjectsSelection.Create(AManager: TObjectsManager);
+begin
+  FManager := AManager;
+  FData := TObjTemplatesList.Create(False);
+end;
+
+destructor TObjectsSelection.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
 
 { TObjType }
 
@@ -198,7 +281,7 @@ end;
 constructor TObjType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FSubTypes := TObjSubTypes.Create;
+  FSubTypes := TObjSubTypes.Create(self);
   Index:=ID_INVALID;
 end;
 
@@ -223,7 +306,9 @@ end;
 constructor TObjSubType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FTemplates := TObjTemplates.Create;
+  FTemplates := TObjTemplates.Create(Self);
+
+  FObjType :=  (ACollection as TObjSubTypes).Owner;
 end;
 
 destructor TObjSubType.Destroy;
@@ -266,6 +351,10 @@ begin
   FMask := TStringList.Create;
 
   AllowedTerrains := ALL_TERRAINS;
+
+  FObjSubtype :=  (ACollection as TObjTemplates).ObjSubtype;
+
+  FObjType := (ACollection as TObjTemplates).ObjSubtype.FObjType;
 end;
 
 destructor TObjTemplate.Destroy;
@@ -328,12 +417,9 @@ var
   FCombinedConfig: TJSONObject;
   destreamer: TVCMIJSONDestreamer;
 begin
-
   LoadLegacy(AProgressCallback);
 
   //todo: support for vcmi object lists
-
-
 
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
@@ -354,6 +440,37 @@ begin
     destreamer.Free;
   end;
 
+end;
+
+function TObjectsManager.SelectAll: TObjectsSelection;
+var
+ i,j,k: Integer;
+ obj_type: TObjType;
+ obj_subtype: TObjSubType;
+ obj_template: TObjTemplate;
+begin
+  Result := TObjectsSelection.Create(Self);
+
+  for i := 0 to FObjTypes.Count - 1 do
+  begin
+
+    obj_type := FObjTypes.Items[i];
+
+    for j := 0 to obj_type.Types.Count - 1 do
+    begin
+      obj_subtype := obj_type.Types[j];
+
+      for k := 0 to obj_subtype.Templates.count - 1 do
+      begin
+        obj_template := obj_subtype.Templates[k];
+
+        Result.FData.Add(obj_template);
+
+        Assert(Assigned(obj_template.FObjType));
+        Assert(Assigned(obj_template.FObjSubtype));
+      end;
+    end;
+  end;
 end;
 
 
@@ -542,12 +659,14 @@ end;
 procedure TObjectsManager.MergeLegacy(ACombinedConfig: TJSONObject);
 var
   obj_id, obj_subid: Int32;
-  i: Integer;
+  i,j,k: Integer;
   idx: Integer;
   obj, subTypes: TJSONObject;
   obj_name: AnsiString;
-  j: Integer;
-  subTypeObj: TJSONObject;
+  subTypeObj, templates_obj: TJSONObject;
+  full_id: TLegacyTemplateId;
+  legacy_data: TLegacyObjConfigList;
+  t: TJSONObject;
 begin
   //cycle by type
   for i := 0 to ACombinedConfig.Count - 1 do
@@ -592,6 +711,30 @@ begin
       end;
 
 
+      full_id := TypToId(obj_id, obj_subid);
+
+      idx :=  FFullIdToDefMap.IndexOf(full_id);
+
+      if idx < 0 then
+      begin
+        Continue; //no legacy data for this id
+      end;
+
+      legacy_data :=  FFullIdToDefMap.Data[idx];
+
+      //subTypeObj => legacy_data
+
+      templates_obj :=  subTypeObj.GetOrCreateObject('templates');
+
+      for k := legacy_data.Count - 1 downto 0 do
+      begin
+
+        t := legacy_data.Items[k];
+
+        legacy_data.Extract(t);
+
+        templates_obj.Add('legacy_'+IntToStr(k), t);
+      end;
 
     end;
   end;

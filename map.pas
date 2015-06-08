@@ -212,8 +212,7 @@ type
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
-    //TODO: refactor this temproary solution
-    procedure FillFrom(AOther: TLegacyObjTemplate);
+    procedure FillFrom(AOther: TObjTemplate);
 
     property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
     property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains default ALL_TERRAINS;
@@ -779,19 +778,21 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapObjectTemplate.FillFrom(AOther: TLegacyObjTemplate);
+procedure TMapObjectTemplate.FillFrom(AOther: TObjTemplate);
 var
   gm: TGraphicsManager;
 begin
-  FAnimation := AOther.Filename;
+  FAnimation := AOther.Animation;
   FDef := AOther.Def;
 
   gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
   gm.LoadGraphics(FDef);
 
-  FID := AOther.Typ;
-  FSubID := AOther.SubType;
-  FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
+  //todo: set string ids
+
+  //FID := AOther.ObjType;
+  //FSubID := AOther.SubType;
+  //FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
 end;
 
 function TMapObjectTemplate.GetMask: TStrings;

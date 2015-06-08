@@ -1018,7 +1018,7 @@ object fMain: TfMain
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   Position = poDefault
-  LCLVersion = '1.2.7.0'
+  LCLVersion = '1.4.1.0'
   object pnMap: TPanel
     Left = 0
     Height = 586
@@ -1158,10 +1158,10 @@ object fMain: TfMain
       Top = 204
       Width = 204
       TabStop = False
-      ActivePage = tsTerrain
+      ActivePage = tsObjects
       Align = alClient
       ShowTabs = False
-      TabIndex = 0
+      TabIndex = 1
       TabOrder = 1
       OnChange = pcToolBoxChange
       object tsTerrain: TTabSheet
@@ -1188,7 +1188,7 @@ object fMain: TfMain
           Top = 76
           Width = 185
           Caption = 'Landscape'
-          ClientHeight = 134
+          ClientHeight = 132
           ClientWidth = 181
           TabOrder = 0
           object btnDirt: TSpeedButton
@@ -1341,11 +1341,11 @@ object fMain: TfMain
         end
       end
       object tsObjects: TTabSheet
-        ClientHeight = 262
+        ClientHeight = 374
         ClientWidth = 196
         object sbObjects: TScrollBar
           Left = 180
-          Height = 262
+          Height = 374
           Top = 0
           Width = 16
           Align = alRight
@@ -1357,7 +1357,7 @@ object fMain: TfMain
         end
         object ObjectsView: TOpenGLControl
           Left = 0
-          Height = 262
+          Height = 374
           Top = 0
           Width = 180
           Align = alClient
@@ -1447,6 +1447,7 @@ object fMain: TfMain
     end
     object ToolButton4: TToolButton
       Left = 109
+      Height = 32
       Top = 2
       Width = 5
       Caption = 'ToolButton4'
@@ -1464,6 +1465,7 @@ object fMain: TfMain
     end
     object ToolButton7: TToolButton
       Left = 186
+      Height = 32
       Top = 2
       Width = 10
       Caption = 'ToolButton7'
@@ -1509,6 +1511,7 @@ object fMain: TfMain
     end
     object ToolButton11: TToolButton
       Left = 386
+      Height = 22
       Top = 2
       Width = 5
       Caption = 'ToolButton11'
@@ -1523,16 +1526,19 @@ object fMain: TfMain
       Left = 180
       Top = 2
       Action = actHeroes
+      Enabled = False
     end
     object ToolButton14: TToolButton
       Left = 225
       Top = 2
       Action = actMonsters
+      Enabled = False
     end
     object ToolButton15: TToolButton
       Left = 282
       Top = 2
       Action = actArtifacts
+      Enabled = False
     end
     object ToolButton16: TToolButton
       Left = 46
@@ -1541,6 +1547,7 @@ object fMain: TfMain
     end
     object ToolButton10: TToolButton
       Left = 122
+      Height = 22
       Top = 2
       Width = 10
       Caption = 'ToolButton10'
@@ -1951,10 +1958,12 @@ object fMain: TfMain
     object actHeroes: TAction
       Category = 'Objects'
       Caption = 'Heroes'
+      OnExecute = actHeroesExecute
     end
     object actMonsters: TAction
       Category = 'Objects'
       Caption = 'Monsters'
+      OnExecute = actMonstersExecute
     end
     object actArtifacts: TAction
       Category = 'Objects'

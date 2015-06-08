@@ -125,6 +125,13 @@ type
     procedure CombineTo(ADest: TJSONObject);
   end;
 
+  { TJSONObjectHelper }
+
+  TJSONObjectHelper = class helper for TJSONObject
+  public
+    function GetOrCreateObject(AName: AnsiString): TJSONObject;
+  end;
+
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
 
   procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); overload ;
@@ -216,6 +223,24 @@ begin
   AModId:=rexp_oid.Match[2];
   AObjectId:=rexp_oid.Match[3];
   Assert(Length(AObjectId)>0,'ObjectId is empty');
+end;
+
+{ TJSONObjectHelper }
+
+function TJSONObjectHelper.GetOrCreateObject(AName: AnsiString): TJSONObject;
+var
+  idx: SizeInt;
+begin
+  idx := IndexofName(AName);
+
+  if idx < 0 then
+  begin
+    Result := TJSONObject.Create;
+    add(AName, Result);
+  end
+  else begin
+    Result := Objects[AName];
+  end;
 end;
 
 { TJsonResource }

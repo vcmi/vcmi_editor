@@ -52,9 +52,9 @@ type
 
   TTemplateDragProxy = class(TDragProxy)
   private
-    FDraggingTemplate: TLegacyObjTemplate;
+    FDraggingTemplate: TObjTemplate;
   public
-    constructor Create(AOwner: TfMain;ADraggingTemplate: TLegacyObjTemplate);
+    constructor Create(AOwner: TfMain; ADraggingTemplate: TObjTemplate);
 
     procedure Drop; override;
     procedure Render(x, y: integer); override;
@@ -176,7 +176,9 @@ type
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
+    procedure actHeroesExecute(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
+    procedure actMonstersExecute(Sender: TObject);
     procedure actObjectsExecute(Sender: TObject);
     procedure actObjectsUpdate(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
@@ -300,6 +302,8 @@ type
 
     FMinimap: TMinimap;
 
+    FTemplatesSelection: TObjectsSelection;
+
     FObjectCount: integer;
     FObjectRows: integer;
     FObjectReminder: integer;
@@ -313,7 +317,7 @@ type
 
     FMapDragging: boolean;
     FNextDragSubject: TDragSubject;
-    FSelectedTemplate: TLegacyObjTemplate;
+    FSelectedTemplate: TObjTemplate;
 
     FCurrentPlayer: TPlayer;
 
@@ -350,6 +354,8 @@ type
     procedure SetCurrentPlayer(APlayer: TPlayer);
 
     procedure SetActiveBrush(ABrush: TMapBrush);
+
+    procedure UncheckObjectActions();
   protected
     procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -410,7 +416,7 @@ end;
 { TTemplateDragProxy }
 
 constructor TTemplateDragProxy.Create(AOwner: TfMain;
-  ADraggingTemplate: TLegacyObjTemplate);
+  ADraggingTemplate: TObjTemplate);
 begin
   FDraggingTemplate := ADraggingTemplate;
   inherited Create(AOwner);
@@ -492,6 +498,13 @@ begin
   (Sender as TAction).Enabled := Assigned(FSelectedObject);
 end;
 
+procedure TfMain.actHeroesExecute(Sender: TObject);
+begin
+  SetActiveBrush(FIdleBrush);
+  UncheckObjectActions;
+  actHeroes.Checked:=true;
+end;
+
 procedure TfMain.actMapOptionsExecute(Sender: TObject);
 var
   f: TMapOptionsForm;
@@ -502,14 +515,25 @@ begin
   f.ShowModal;
 end;
 
+procedure TfMain.actMonstersExecute(Sender: TObject);
+begin
+  SetActiveBrush(FIdleBrush);
+end;
+
 procedure TfMain.actObjectsExecute(Sender: TObject);
 begin
   SetActiveBrush(FIdleBrush);
 
   pcToolBox.ActivePage := tsObjects;
 
+  UncheckObjectActions;
   actObjects.Checked := True;
-  actTerrain.Checked := False;
+
+  FreeAndNil(FTemplatesSelection);
+
+  FTemplatesSelection := FObjManager.SelectAll;
+
+  InvalidateObjects;
 end;
 
 procedure TfMain.actObjectsUpdate(Sender: TObject);
@@ -880,6 +904,8 @@ begin
   FMap.Free;
 
   FUndoManager.Free;
+
+  FreeAndNil(FTemplatesSelection);
 end;
 
 procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
@@ -1008,7 +1034,12 @@ end;
 
 procedure TfMain.InvalidateObjects;
 begin
-  FObjectCount := FObjManager.ObjCount;
+  if not Assigned(FTemplatesSelection) then
+  begin
+    FTemplatesSelection := FObjManager.SelectAll;
+  end;
+
+  FObjectCount := FTemplatesSelection.Count;
 
   FObjectRows := FObjectCount div 3;
   FObjectReminder := FObjectCount mod 3;
@@ -1508,10 +1539,10 @@ begin
 
   o_idx := GetObjIdx(col, row);
 
-  if (Button = TMouseButton.mbLeft) and (o_idx < FObjManager.ObjCount) then
+  if (Button = TMouseButton.mbLeft) and (o_idx < FObjectCount) then
   begin
     FNextDragSubject:=TDragSubject.MapTemplate;
-    FSelectedTemplate := FObjManager.Objcts[o_idx];
+    FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
     DragManager.DragStart(self, True,0); //after state change
   end;
 
@@ -1523,7 +1554,7 @@ var
   row: Integer;
   col: Integer;
   o_idx: Integer;
-  o_def: TLegacyObjTemplate;
+  o_def: TObjTemplate;
   cx: Integer;
   cy: Integer;
   dim: Integer;
@@ -1546,7 +1577,7 @@ begin
 
     FObjectsViewState.Init;
   end;
-  CurrentContextState := FObjectsViewState;
+  editor_gl.CurrentContextState := FObjectsViewState;
 
   glEnable(GL_SCISSOR_TEST);
 
@@ -1555,9 +1586,9 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  CurrentContextState.UseNoTextures();
+  editor_gl.CurrentContextState.UseNoTextures();
 
-  CurrentContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
+  editor_gl.CurrentContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -1581,8 +1612,8 @@ begin
 
   editor_gl.CurrentContextState.StopDrawing;
 
-  CurrentContextState.UsePalettedTextures();
-  editor_gl.CurrentContextState.StartDrawingSprites;
+  editor_gl.CurrentContextState.UsePalettedTextures();
+  editor_gl.CurrentContextState.StartDrawingSprites();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1595,7 +1626,7 @@ begin
       cx := col * OBJ_CELL_SIZE;
       cy := row * OBJ_CELL_SIZE;
 
-      o_def := FObjManager.Objcts[o_idx];
+      o_def := FTemplatesSelection.Objcts[o_idx];
       o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
 
     end;
@@ -1793,6 +1824,14 @@ procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
 begin
   FActiveBrush := ABrush;
   FActiveBrush.Clear;
+end;
+
+procedure TfMain.UncheckObjectActions;
+begin
+  actObjects.Checked:=False;
+  actHeroes.Checked:=False;
+  actMonsters.Checked:=False;
+  actArtifacts.Checked:=False;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);
