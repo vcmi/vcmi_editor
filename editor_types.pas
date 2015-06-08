@@ -29,7 +29,7 @@ uses
 type
 {$push}
 {$packenum 1}
-  TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, subterranean, lava, water, rock{,border=$FF});
+  TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, subterra, lava, water, rock{,border=$FF});
   TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
@@ -88,7 +88,7 @@ const
   TTerrainType.snow,
   TTerrainType.swamp,
   TTerrainType.rough,
-  TTerrainType.subterranean,
+  TTerrainType.subterra,
   TTerrainType.lava,
   TTerrainType.water];
 

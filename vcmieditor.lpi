@@ -55,11 +55,7 @@
             </Options>
           </Linking>
           <Other>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
             <CustomOptions Value="-dRELEASE"/>
-            <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item2>
@@ -96,11 +92,7 @@
               <ShowHints Value="False"/>
               <ShoLineNum Value="True"/>
             </Verbosity>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
             <CustomOptions Value="-dDEBUG"/>
-            <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item3>
@@ -138,7 +130,6 @@
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="vcmieditor"/>
       </Unit0>
       <Unit1>
         <Filename Value="main.pas"/>
@@ -146,17 +137,14 @@
         <ComponentName Value="fMain"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="main"/>
       </Unit1>
       <Unit2>
         <Filename Value="lod.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="lod"/>
       </Unit2>
       <Unit3>
         <Filename Value="editor_graphics.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_graphics"/>
       </Unit3>
       <Unit4>
         <Filename Value="map.pas"/>
@@ -166,37 +154,30 @@
       <Unit5>
         <Filename Value="editor_types.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_types"/>
       </Unit5>
       <Unit6>
         <Filename Value="terrain.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="terrain"/>
       </Unit6>
       <Unit7>
         <Filename Value="undo_base.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="undo_base"/>
       </Unit7>
       <Unit8>
         <Filename Value="undo_map.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="undo_map"/>
       </Unit8>
       <Unit9>
         <Filename Value="map_actions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_actions"/>
       </Unit9>
       <Unit10>
         <Filename Value="zlib_stream.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="zlib_stream"/>
       </Unit10>
       <Unit11>
         <Filename Value="objects.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="objects"/>
       </Unit11>
       <Unit12>
         <Filename Value="forms\new_map.pas"/>
@@ -204,57 +185,46 @@
         <ComponentName Value="NewMapForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="new_map"/>
       </Unit12>
       <Unit13>
         <Filename Value="minimap.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="minimap"/>
       </Unit13>
       <Unit14>
         <Filename Value="filesystem_base.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="filesystem_base"/>
       </Unit14>
       <Unit15>
         <Filename Value="filesystem.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="filesystem"/>
       </Unit15>
       <Unit16>
         <Filename Value="vcmi_json.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="vcmi_json"/>
       </Unit16>
       <Unit17>
         <Filename Value="editor_utils.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_utils"/>
       </Unit17>
       <Unit18>
         <Filename Value="map_format.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_format"/>
       </Unit18>
       <Unit19>
         <Filename Value="map_format_h3m.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_format_h3m"/>
       </Unit19>
       <Unit20>
         <Filename Value="stream_adapter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="stream_adapter"/>
       </Unit20>
       <Unit21>
         <Filename Value="editor_str_consts.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_str_consts"/>
       </Unit21>
       <Unit22>
         <Filename Value="map_format_vcmi.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_format_vcmi"/>
       </Unit22>
       <Unit23>
         <Filename Value="forms\map_options.pas"/>
@@ -262,22 +232,18 @@
         <ComponentName Value="MapOptionsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="map_options"/>
       </Unit23>
       <Unit24>
         <Filename Value="3rd_party\vcmi_fpjsonrtti.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="vcmi_fpjsonrtti"/>
       </Unit24>
       <Unit25>
         <Filename Value="editor_classes.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_classes"/>
       </Unit25>
       <Unit26>
         <Filename Value="editor_consts.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_consts"/>
       </Unit26>
       <Unit27>
         <Filename Value="root_manager.pas"/>
@@ -285,7 +251,6 @@
         <ComponentName Value="RootManager"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="DataModule"/>
-        <UnitName Value="root_manager"/>
       </Unit27>
       <Unit28>
         <Filename Value="progress_form.pas"/>
@@ -293,17 +258,14 @@
         <ComponentName Value="ProgressForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="progress_form"/>
       </Unit28>
       <Unit29>
         <Filename Value="editor_gl.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="editor_gl"/>
       </Unit29>
       <Unit30>
         <Filename Value="object_options.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="object_options"/>
       </Unit30>
       <Unit31>
         <Filename Value="forms\edit_object_options.pas"/>
@@ -311,7 +273,6 @@
         <ComponentName Value="EditObjectOptions"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="edit_object_options"/>
       </Unit31>
       <Unit32>
         <Filename Value="forms\signbottle_frame.pas"/>
@@ -319,7 +280,6 @@
         <ComponentName Value="SignBottleFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="signbottle_frame"/>
       </Unit32>
       <Unit33>
         <Filename Value="forms\base_object_options_frame.pas"/>
@@ -327,7 +287,6 @@
         <ComponentName Value="BaseObjectOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="base_object_options_frame"/>
       </Unit33>
       <Unit34>
         <Filename Value="forms\grail_frame.pas"/>
@@ -335,7 +294,6 @@
         <ComponentName Value="GrailFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="grail_frame"/>
       </Unit34>
       <Unit35>
         <Filename Value="forms\flaggable_object_frame.pas"/>
@@ -343,12 +301,10 @@
         <ComponentName Value="FlaggableFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="flaggable_object_frame"/>
       </Unit35>
       <Unit36>
         <Filename Value="lists_manager.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="lists_manager"/>
       </Unit36>
       <Unit37>
         <Filename Value="forms\witchhut_frame.pas"/>
@@ -356,17 +312,14 @@
         <ComponentName Value="WitchHutFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="witchhut_frame"/>
       </Unit37>
       <Unit38>
         <Filename Value="h3_txt.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="h3_txt"/>
       </Unit38>
       <Unit39>
         <Filename Value="forms\gui_helpers.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gui_helpers"/>
       </Unit39>
       <Unit40>
         <Filename Value="forms\shrine_frame.pas"/>
@@ -374,7 +327,6 @@
         <ComponentName Value="ShrineFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="shrine_frame"/>
       </Unit40>
       <Unit41>
         <Filename Value="forms\spellscroll_frame.pas"/>
@@ -382,19 +334,16 @@
         <ComponentName Value="SpellScrollFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="spellscroll_frame"/>
       </Unit41>
       <Unit42>
         <Filename Value="3rd_party\glext40.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="glext40"/>
       </Unit42>
       <Unit43>
         <Filename Value="root_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RootForm"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="root_form"/>
       </Unit43>
       <Unit44>
         <Filename Value="forms\dwelling_frame.pas"/>
@@ -402,47 +351,38 @@
         <ComponentName Value="DwellingFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="dwelling_frame"/>
       </Unit44>
       <Unit45>
         <Filename Value="map_format_zip.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_format_zip"/>
       </Unit45>
       <Unit46>
         <Filename Value="map_format_json.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_format_json"/>
       </Unit46>
       <Unit47>
         <Filename Value="map_terrain_actions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_terrain_actions"/>
       </Unit47>
       <Unit48>
         <Filename Value="map_road_river_actions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_road_river_actions"/>
       </Unit48>
       <Unit49>
         <Filename Value="map_object_actions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="map_object_actions"/>
       </Unit49>
       <Unit50>
         <Filename Value="road_transitions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="road_transitions"/>
       </Unit50>
       <Unit51>
         <Filename Value="transitions.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="transitions"/>
       </Unit51>
       <Unit52>
         <Filename Value="base_info.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="base_info"/>
       </Unit52>
     </Units>
   </ProjectOptions>
@@ -486,11 +426,7 @@
         <ShowHints Value="False"/>
         <ShoLineNum Value="True"/>
       </Verbosity>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
       <CustomOptions Value="-dDEBUG"/>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>

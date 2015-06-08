@@ -730,7 +730,7 @@ end;
 
 procedure TfMain.btnSubClick(Sender: TObject);
 begin
-  FActiveBrush.TT := TTerrainType.subterranean;
+  FActiveBrush.TT := TTerrainType.subterra;
 end;
 
 procedure TfMain.btnSwampClick(Sender: TObject);

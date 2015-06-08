@@ -74,7 +74,7 @@ begin
   FterrainColors[TTerrainType.snow] := RGBToColor(181, 199, 198);
 
   FterrainColors[TTerrainType.rough] := RGBToColor(132, 113, 49);
-  FterrainColors[TTerrainType.subterranean] := RGBToColor(132, 48, 0);
+  FterrainColors[TTerrainType.subterra] := RGBToColor(132, 48, 0);
   FterrainColors[TTerrainType.lava] := RGBToColor(74, 73, 74);
   FterrainColors[TTerrainType.water] := RGBToColor (8, 81, 148);
 

@@ -26,11 +26,11 @@ interface
 uses
   Classes, SysUtils, fgl, gvector, ghashmap, FileUtil,
   editor_types,
-  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt;
+  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt, fpjson;
 
 type
 
-  TdefId = UInt64;
+  TLegacyTemplateId = UInt64;
 
   TDefBitmask = packed array[0..5] of uint8; //top to bottom, right to left as in H3M
 
@@ -64,6 +64,11 @@ type
   end;
 
   TLegacyObjTemplateList = specialize TFPGObjectList<TLegacyObjTemplate>;
+
+  TLegacyObjTemplateIdMap = specialize TObjectMap<UInt32, TLegacyObjTemplateList>;
+
+  TLegacyObjConfigList = specialize TFPGObjectList<TJSONObject>;
+  TLegacyObjConfigFullIdMap = specialize TObjectMap<TLegacyTemplateId, TLegacyObjConfigList>;
 
   {$push}
   {$m+}
@@ -149,12 +154,15 @@ type
   strict private
 
     FDefs: TLegacyObjTemplateList; //all aviable defs
-
+    FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
+    FIdToDefMap: TLegacyObjTemplateIdMap; //type => template list
     FObjTypes: TObjTypes;
 
-    function TypToId(Typ,SubType: uint32):TDefId; inline;
+    function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
+    procedure AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
 
     procedure LoadLegacy(AProgressCallback: IProgressCallback);
+    procedure MergeLegacy(ACombinedConfig: TJSONObject);
   private
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
@@ -174,7 +182,7 @@ type
 implementation
 
 uses
-  CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager, fpjson;
+  CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -287,11 +295,15 @@ begin
   inherited Create(AOwner);
 
   FDefs := TLegacyObjTemplateList.Create(True);
+  FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
+  FIdToDefMap := TLegacyObjTemplateIdMap.Create;
   FObjTypes := TObjTypes.Create;
 end;
 
 destructor TObjectsManager.Destroy;
 begin
+  FFullIdToDefMap.Free;
+  FIdToDefMap.Free;
   FObjTypes.Free;
   FDefs.Free;
 
@@ -332,21 +344,46 @@ begin
     FConfig.ApplyPatches;
     FConfig.CombineTo(FCombinedConfig);
 
+    MergeLegacy(FCombinedConfig);
+
     destreamer.JSONToObject(FCombinedConfig,FObjTypes);
 
   finally
     FCombinedConfig.Free;
     FConfig.Free;
-     destreamer.Free;
+    destreamer.Free;
   end;
 
 end;
 
 
-function TObjectsManager.TypToId(Typ, SubType: uint32): TDefId;
+function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;
 begin
   Int64Rec(Result).Hi := Typ;
   Int64Rec(Result).Lo := SubType;
+end;
+
+procedure TObjectsManager.AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
+var
+  id: TLegacyTemplateId;
+  idx: LongInt;
+  list: TLegacyObjTemplateList;
+begin
+  id := TypToId(ATemplate.FTyp,ATemplate.FSubType);
+
+  idx := FIdToDefMap.IndexOf(ATemplate.FTyp);
+
+  if idx = -1 then
+  begin
+    list := TLegacyObjTemplateList.Create(False);
+    FIdToDefMap.Add(ATemplate.FTyp, list);
+  end
+  else
+  begin
+    list := FIdToDefMap.Data[idx];
+  end;
+
+  list.Add(ATemplate);
 end;
 
 procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback);
@@ -420,11 +457,14 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback);
 
   var
     def: TLegacyObjTemplate;
-    id: TDefId;
 
     s_tmp: string;
     progess_delta: Integer;
     i: SizeInt;
+    legacy_config: TJSONObject;
+    list: TLegacyObjConfigList;
+    full_id: TLegacyTemplateId;
+    idx: LongInt;
 begin
   objects_txt := TTextResource.Create;
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
@@ -464,15 +504,96 @@ begin
       def.FSubType := CellToInt;
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
-
-      id := TypToId(def.FTyp,def.FSubType);
       def.Def := GraphicsManager.GetPreloadedGraphics(def.FFilename);
       FDefs.Add(def);
+      AddLegacyTemplate(def);
+
+      //
+
+      full_id := TypToId(def.FTyp, def.FSubType);
+
+      legacy_config := TJSONObject.Create;
+
+      legacy_config.Strings['animation'] := def.Filename;
+
+      //TODO: visitableFrom, allowedTerrains, mask, zindex
+
+      idx := FFullIdToDefMap.IndexOf(full_id);
+
+      if idx = -1 then
+      begin
+        list := TLegacyObjConfigList.Create(True);
+        FFullIdToDefMap.Add(full_id, list);
+      end
+      else
+      begin
+        list := FFullIdToDefMap.Data[idx];
+      end;
+
+      list.Add(legacy_config);
 
     end;
 
   finally
     objects_txt.Free;
+  end;
+end;
+
+procedure TObjectsManager.MergeLegacy(ACombinedConfig: TJSONObject);
+var
+  obj_id, obj_subid: Int32;
+  i: Integer;
+  idx: Integer;
+  obj, subTypes: TJSONObject;
+  obj_name: AnsiString;
+  j: Integer;
+  subTypeObj: TJSONObject;
+begin
+  //cycle by type
+  for i := 0 to ACombinedConfig.Count - 1 do
+  begin
+    obj := ACombinedConfig.Items[i] as TJSONObject;
+    obj_name := ACombinedConfig.Names[i];
+    idx := obj.IndexOfName('index');
+
+    obj_id := -1;
+
+    if idx >=0 then
+    begin
+      obj_id := obj.Integers['index'];
+    end;
+
+    if obj_id < 0 then
+    begin
+      Continue; //no index property or invalid
+    end;
+
+    if obj.IndexOfName('types')<0 then
+      Continue;
+
+    subTypes := obj.Objects['types'] as TJSONObject;
+
+    for j := 0 to subTypes.Count - 1 do
+    begin
+      subTypeObj := subTypes.Items[j] as TJSONObject;
+
+      idx := subTypeObj.IndexOfName('index');
+
+      obj_subid := -1;
+
+      if idx >=0 then
+      begin
+        obj_subid := subTypeObj.Integers['index'];
+      end;
+
+      if obj_subid < 0 then
+      begin
+        Continue; //no index property or invalid
+      end;
+
+
+
+    end;
   end;
 end;
 
