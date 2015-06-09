@@ -130,9 +130,12 @@ type
   TJSONObjectHelper = class helper for TJSONObject
   public
     function GetOrCreateObject(AName: AnsiString): TJSONObject;
+    procedure InheritFrom(ABase:TJSONObject);
+    procedure Assign(AValue: TJSONObject);
   end;
 
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
+  procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
 
   procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); overload ;
   procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); overload ;
@@ -183,6 +186,19 @@ begin
     end;
   end;
 
+end;
+
+procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
+var
+  temp: TJSONObject;
+begin
+  temp := ABase.Clone as TJSONObject;
+
+  MergeJsonStruct(Adest, temp);
+
+  ADest.Assign(temp);
+
+  temp.Free;
 end;
 
 procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject);
@@ -240,6 +256,23 @@ begin
   end
   else begin
     Result := Objects[AName];
+  end;
+end;
+
+procedure TJSONObjectHelper.InheritFrom(ABase: TJSONObject);
+begin
+  InheritJson(ABase, self);
+end;
+
+procedure TJSONObjectHelper.Assign(AValue: TJSONObject);
+var
+  iter: TJSONEnum;
+begin
+  Self.Clear;
+
+  for iter in AValue do
+  begin
+    Self.Add(iter.Key, iter.Value.Clone);
   end;
 end;
 

@@ -210,6 +210,12 @@ type
 
     procedure LoadLegacy(AProgressCallback: IProgressCallback);
     procedure MergeLegacy(ACombinedConfig: TJSONObject);
+
+    procedure HandleInteritanceObjectTemplate(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
+    procedure HandleInteritanceObjectSubType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
+    procedure HandleInteritanceObjectType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
+    procedure HandleInteritance(AConfig: TJSONObject);
+
     procedure PopulateMapOfLegacyObjects;
   private
     function GetObjCount: Integer;
@@ -233,7 +239,7 @@ type
 implementation
 
 uses
-  CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager;
+  LazLoggerBase, CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -444,13 +450,11 @@ begin
 
     MergeLegacy(FCombinedConfig);
 
-
+    HandleInteritance(FCombinedConfig);
 
     destreamer.JSONToObject(FCombinedConfig,FObjTypes);
 
     PopulateMapOfLegacyObjects;
-
-
   finally
     FCombinedConfig.Free;
     FConfig.Free;
@@ -764,6 +768,103 @@ begin
 
     end;
   end;
+end;
+
+procedure TObjectsManager.HandleInteritanceObjectTemplate(
+  const AName: TJSONStringType; Item: TJSONData; Data: TObject;
+  var Continue: Boolean);
+var
+  obj_template: TJSONObject;
+  base: TJSONObject;
+begin
+  obj_template := Item as TJSONObject;
+
+  base := nil;
+
+  if Assigned(data) then
+  begin
+    base := data as TJSONObject;
+
+    obj_template.InheritFrom(base);
+  end;
+end;
+
+procedure TObjectsManager.HandleInteritanceObjectSubType(
+  const AName: TJSONStringType; Item: TJSONData; Data: TObject;
+  var Continue: Boolean);
+var
+  obj_subtype: TJSONObject;
+  base: TJSONObject;
+  idx: Integer;
+begin
+  obj_subtype := Item as TJSONObject;
+
+  base := nil;
+
+  if Assigned(data) then
+  begin
+    base := data as TJSONObject;
+
+    obj_subtype.InheritFrom(base);
+
+  end;
+
+  //now handle base for templates
+
+  idx :=  obj_subtype.IndexOfName('templates');
+  if idx<0 then
+  begin
+    if Assigned(base) then
+      DebugLn(['Subtype ', AName, ' has "base" but no templates'])
+    else
+      DebugLn(['Subtype ', AName, ' has no templates']);
+    exit; //no templates - nothing to do
+    //todo: display full name
+  end;
+
+  obj_subtype.Objects['templates'].Iterate(@HandleInteritanceObjectTemplate, base);
+end;
+
+procedure TObjectsManager.HandleInteritanceObjectType(
+  const AName: TJSONStringType; Item: TJSONData; Data: TObject;
+  var Continue: Boolean);
+var
+  obj_type: TJSONObject;
+
+  base: TJSONObject;
+  idx: Integer;
+begin
+  //AName = jbject type id
+
+  obj_type  := Item as TJSONObject;
+
+  base := nil;
+
+  idx := obj_type.IndexOfName('base');
+
+  if idx>=0 then
+  begin
+    base := obj_type.Objects['base'];
+  end;
+
+  idx :=  obj_type.IndexOfName('types');
+
+  if idx<0 then
+  begin
+    if Assigned(base) then
+      DebugLn(['Object ', AName, ' has "base" but no types'])
+    else
+      DebugLn(['Object ', AName, ' has no types']);
+    exit; //no types - nothing to do
+  end;
+
+  obj_type.Objects['types'].Iterate(@HandleInteritanceObjectSubType, base);
+
+end;
+
+procedure TObjectsManager.HandleInteritance(AConfig: TJSONObject);
+begin
+  AConfig.Iterate(@HandleInteritanceObjectType, nil);
 end;
 
 procedure TObjectsManager.PopulateMapOfLegacyObjects;

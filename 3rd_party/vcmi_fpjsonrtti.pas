@@ -427,7 +427,6 @@ begin
           else
           begin
             tmp := A.strings[i];
-            DebugLn(tmp);
             J:=GetEnumValue(TI,tmp);
           end;
           TSet(S):=TSet(S)+[j];
