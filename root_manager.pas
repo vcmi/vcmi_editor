@@ -184,6 +184,7 @@ begin
   ObjectTypesConfig := TModdedConfigPaths.Create;
   try
     FObjManager := TObjectsManager.Create(FGraphicsManager);
+    FObjManager.ListsManager := FListsManager;
     GetConvertedModConfig(OBJECT_METACLASS, ObjectTypesConfig);
     FObjManager.LoadObjects(RootManager.ProgressForm, ObjectTypesConfig);
   finally

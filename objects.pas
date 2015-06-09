@@ -24,9 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil,
+  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, fpjson,
   editor_types,
-  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt, fpjson;
+  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt, lists_manager ;
 
 type
 
@@ -199,7 +199,7 @@ type
   strict private
 
     FDefs: TLegacyObjTemplateList; //all aviable defs
-    FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
+
     FIdToDefMap: TLegacyObjTemplateIdMap; //type => template list
     FObjTypes: TObjTypes;
 
@@ -208,21 +208,27 @@ type
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
     procedure AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
 
-    procedure LoadLegacy(AProgressCallback: IProgressCallback);
-    procedure MergeLegacy(ACombinedConfig: TJSONObject);
+    procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
+    procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
 
     procedure HandleInteritanceObjectTemplate(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritanceObjectSubType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritanceObjectType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritance(AConfig: TJSONObject);
 
+    procedure AddFactions(AConfig: TJSONObject);
+
     procedure PopulateMapOfLegacyObjects;
   private
+    FListsManager: TListsManager;
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
+    procedure SetListsManager(AValue: TListsManager);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    property ListsManager:TListsManager read FListsManager write SetListsManager;
 
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
 
@@ -398,7 +404,7 @@ begin
   inherited Create(AOwner);
 
   FDefs := TLegacyObjTemplateList.Create(True);
-  FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
+
   FIdToDefMap := TLegacyObjTemplateIdMap.Create;
   FObjTypes := TObjTypes.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
@@ -407,7 +413,6 @@ end;
 destructor TObjectsManager.Destroy;
 begin
   FLegacyObjTypes.Free;
-  FFullIdToDefMap.Free;
   FIdToDefMap.Free;
   FObjTypes.Free;
   FDefs.Free;
@@ -425,6 +430,12 @@ begin
   Result := FDefs[AIndex];
 end;
 
+procedure TObjectsManager.SetListsManager(AValue: TListsManager);
+begin
+  if FListsManager=AValue then Exit;
+  FListsManager:=AValue;
+end;
+
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
   APaths: TModdedConfigPaths);
 
@@ -432,8 +443,11 @@ var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
   destreamer: TVCMIJSONDestreamer;
+
+  FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
 begin
-  LoadLegacy(AProgressCallback);
+  FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
+  LoadLegacy(AProgressCallback,FFullIdToDefMap);
 
   //todo: support for vcmi object lists
 
@@ -447,8 +461,9 @@ begin
     FConfig.CombineTo(FCombinedConfig);
 
     //todo: add factions, heroes etc
+    AddFactions(FCombinedConfig);
 
-    MergeLegacy(FCombinedConfig);
+    MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
     HandleInteritance(FCombinedConfig);
 
@@ -459,6 +474,10 @@ begin
     FCombinedConfig.Free;
     FConfig.Free;
     destreamer.Free;
+
+    //todo: report unused objects
+
+    FFullIdToDefMap.Free;
   end;
 
 end;
@@ -533,7 +552,8 @@ begin
   list.Add(ATemplate);
 end;
 
-procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback);
+procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
+  AFullIdToDefMap: TLegacyObjConfigFullIdMap);
   var
     row, col: Integer;
 
@@ -665,16 +685,16 @@ begin
 
       //TODO: visitableFrom, allowedTerrains, mask, zindex
 
-      idx := FFullIdToDefMap.IndexOf(full_id);
+      idx := AFullIdToDefMap.IndexOf(full_id);
 
       if idx = -1 then
       begin
         list := TLegacyObjConfigList.Create(True);
-        FFullIdToDefMap.Add(full_id, list);
+        AFullIdToDefMap.Add(full_id, list);
       end
       else
       begin
-        list := FFullIdToDefMap.Data[idx];
+        list := AFullIdToDefMap.Data[idx];
       end;
 
       list.Add(legacy_config);
@@ -686,7 +706,8 @@ begin
   end;
 end;
 
-procedure TObjectsManager.MergeLegacy(ACombinedConfig: TJSONObject);
+procedure TObjectsManager.MergeLegacy(ACombinedConfig: TJSONObject;
+  AFullIdToDefMap: TLegacyObjConfigFullIdMap);
 var
   obj_id, obj_subid: Int32;
   i,j,k: Integer;
@@ -743,14 +764,14 @@ begin
 
       full_id := TypToId(obj_id, obj_subid);
 
-      idx :=  FFullIdToDefMap.IndexOf(full_id);
+      idx :=  AFullIdToDefMap.IndexOf(full_id);
 
       if idx < 0 then
       begin
         Continue; //no legacy data for this id
       end;
 
-      legacy_data :=  FFullIdToDefMap.Data[idx];
+      legacy_data :=  AFullIdToDefMap.Data[idx];
 
       //subTypeObj => legacy_data
 
@@ -766,6 +787,7 @@ begin
         templates_obj.Add('legacy_'+IntToStr(k), t);
       end;
 
+      AFullIdToDefMap.Remove(full_id); //delete merged data
     end;
   end;
 end;
@@ -865,6 +887,33 @@ end;
 procedure TObjectsManager.HandleInteritance(AConfig: TJSONObject);
 begin
   AConfig.Iterate(@HandleInteritanceObjectType, nil);
+end;
+
+procedure TObjectsManager.AddFactions(AConfig: TJSONObject);
+var
+  town_object, town_types: TJSONObject;
+  i: Integer;
+  faction: TFactionInfo;
+  town_type: TJSONObject;
+begin
+  town_object := AConfig.Objects['town'];
+
+  town_types := town_object.GetOrCreateObject('types');
+
+
+  for i := 0 to ListsManager.FactionInfos.Count - 1 do
+  begin
+    faction := ListsManager.FactionInfos[i];
+
+    if not faction.HasTown then
+      Continue;
+
+    town_type := TJSONObject.Create;
+    town_type.Add('index', faction.Index);
+
+    town_types.Add(faction.ID , town_type);
+  end;
+
 end;
 
 procedure TObjectsManager.PopulateMapOfLegacyObjects;
