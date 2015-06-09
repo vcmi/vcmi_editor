@@ -478,7 +478,8 @@ type
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
-function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions;
+//function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions;
+function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
 
 implementation
 
@@ -599,6 +600,107 @@ begin
   end;
   Result := c.Create;
 
+end;
+
+function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
+var
+  c: TObjectOptionsClass;
+begin
+  //TODO: CreateByID
+  c := TObjectOptions;
+
+  case ID of
+    'event':
+      c := TLocalEventOptions;
+    'oceanBottle', 'sign':
+      c := TSignBottleOptions;
+    'hero', 'randomHero', 'prison':
+      c := THeroOptions;
+    'monster',
+    'randomMonster',
+    'randomMonsterLevel1',
+    'randomMonsterLevel2',
+    'randomMonsterLevel3',
+    'randomMonsterLevel4',
+    'randomMonsterLevel5',
+    'randomMonsterLevel6',
+    'randomMonsterLevel7':
+      c := TMonsterOptions;
+    'seerHut':
+      c := TSeerHutOptions;
+    'witchHut':
+      c := TWitchHutOptions;
+    'scholar':
+      c := TScholarOptions;
+    'garrisonHorizontal', 'garrisonVertical':
+      c := TGarrisonOptions;
+
+    'artifact', 'randomArtifact',
+    'randomArtifactTreasure',
+    'randomArtifactMinor',
+    'randomArtifactMajor',
+    'randomArtifactRelic':
+      c := TArtifactOptions;
+    'spellScroll':
+      c := TSpellScrollOptions;
+    'resource',
+    'randomResource':
+      c := TResourceOptions;
+    'randomTown', 'town':
+      c := TTownOptions;
+
+    'creatureGeneratorCommon',
+
+    //todo:  CREATURE_GENERATOR2, CREATURE_GENERATOR3
+    //CREATURE_GENERATOR2,
+    //CREATURE_GENERATOR3,
+
+    'creatureGeneratorSpecial':
+      c := TOwnedObjectOptions;
+    'mine':
+    begin
+      //todo: mine SubID  7
+
+      //if SubID = 7 then
+      //begin
+      //  c := TAbandonedOptions;
+      //end else
+      //begin
+        c := TOwnedObjectOptions;
+      //end;
+    end;
+
+    'abandonedMine':
+      c := TAbandonedOptions;
+
+    'shrineOfMagicLevel1':
+      c := TShrine1Options;
+
+    'shrineOfMagicLevel2':
+      c := TShrine2Options;
+
+    'shrineOfMagicLevel3':
+      c := TShrine3Options;
+
+    'pandoraBox':
+      c := TPandorasOptions;
+    'grail':
+      c := TGrailOptions;
+
+    'randomDwelling':
+      c := TRandomDwellingOptions;
+
+    'randomDwellingLvl':
+      c := TRandomDwellingLVLOptions;
+    'randomDwellingFaction':
+      c := TRandomDwellingTownOptions;
+    'questGuard':
+      c := TQuestGuardOptions;
+    'shipyard','lighthouse':
+      c := TOwnedObjectOptions;
+  end;
+
+  Result := c.Create;
 end;
 
 { TAbandonedOptions }

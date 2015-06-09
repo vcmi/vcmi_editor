@@ -133,6 +133,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    property ObjType: TObjType read FObjType;
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default -1;
     property Templates:TObjTemplates read FTemplates;
@@ -172,6 +174,8 @@ type
 
   {$pop}
 
+  TLegacyIdMap = specialize TObjectMap<TLegacyTemplateId, TObjSubType>;
+
   TObjectsManager = class;
 
   { TObjectsSelection }
@@ -199,11 +203,14 @@ type
     FIdToDefMap: TLegacyObjTemplateIdMap; //type => template list
     FObjTypes: TObjTypes;
 
+    FLegacyObjTypes: TLegacyIdMap;
+
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
     procedure AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
 
     procedure LoadLegacy(AProgressCallback: IProgressCallback);
     procedure MergeLegacy(ACombinedConfig: TJSONObject);
+    procedure PopulateMapOfLegacyObjects;
   private
     function GetObjCount: Integer;
     function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
@@ -218,8 +225,9 @@ type
 
     property ObjTypes: TObjTypes read FObjTypes;
 
-
     function SelectAll: TObjectsSelection;
+
+    function ResolveLegacyID(Typ,SubType: uint32):TObjSubType;
   end;
 
 implementation
@@ -387,10 +395,12 @@ begin
   FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
   FIdToDefMap := TLegacyObjTemplateIdMap.Create;
   FObjTypes := TObjTypes.Create;
+  FLegacyObjTypes := TLegacyIdMap.Create;
 end;
 
 destructor TObjectsManager.Destroy;
 begin
+  FLegacyObjTypes.Free;
   FFullIdToDefMap.Free;
   FIdToDefMap.Free;
   FObjTypes.Free;
@@ -430,9 +440,16 @@ begin
     FConfig.ApplyPatches;
     FConfig.CombineTo(FCombinedConfig);
 
+    //todo: add factions, heroes etc
+
     MergeLegacy(FCombinedConfig);
 
+
+
     destreamer.JSONToObject(FCombinedConfig,FObjTypes);
+
+    PopulateMapOfLegacyObjects;
+
 
   finally
     FCombinedConfig.Free;
@@ -471,6 +488,15 @@ begin
       end;
     end;
   end;
+end;
+
+function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
+var
+  internal_id: TLegacyTemplateId;
+begin
+  internal_id := TypToId(Typ, SubType);
+
+  Result := FLegacyObjTypes.KeyData[internal_id];
 end;
 
 
@@ -738,6 +764,32 @@ begin
 
     end;
   end;
+end;
+
+procedure TObjectsManager.PopulateMapOfLegacyObjects;
+var
+  i,j: SizeInt;
+  obj_type: TObjType;
+  obj_sub_type: TObjSubType;
+  full_id: TLegacyTemplateId;
+begin
+
+  for i := 0 to FObjTypes.Count - 1 do
+  begin
+
+    obj_type := FObjTypes[i];
+
+    for j := 0 to obj_type.Types.Count - 1 do
+    begin
+      obj_sub_type := obj_type.Types[j];
+
+      full_id := TypToId(obj_type.Index, obj_sub_type.Index);
+
+      FLegacyObjTypes.KeyData[full_id] := obj_sub_type ;
+    end;
+
+  end;
+
 end;
 
 end.

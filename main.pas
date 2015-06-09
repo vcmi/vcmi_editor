@@ -838,6 +838,8 @@ begin
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
   FObjManager := RootManager.ObjectsManager;
+  FEnv.om := FObjManager;
+
   FGraphicsManager := RootManager.GraphicsManager;
   FEnv.lm := RootManager.ListsManager;
 

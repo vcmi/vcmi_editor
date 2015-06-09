@@ -131,7 +131,7 @@ begin
   FActiveEditors.Clear;
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
-  Caption:=Format('Object %d:%d at %d %d %d',[Obj.Template.Id,Obj.Template.SubId,Obj.X,Obj.Y,Obj.L]);
+  Caption:=Format('Object %s::%s at %d %d %d',[Obj.Template.&type, Obj.Template.subtype,Obj.X,Obj.Y,Obj.L]);
   ShowModal;
 end;
 

@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, map, math, FileUtil, map_format, terrain, stream_adapter,
-  editor_types, object_options, editor_classes, lists_manager;
+  editor_types, object_options, editor_classes, lists_manager, objects;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -449,6 +449,9 @@ var
   i: Integer;
   w: Word;
   b: Byte;
+  obj_type: TObjSubType;
+  ID: DWord;
+  sub_id: DWord;
 
 begin
   cnt := FSrc.ReadDWord;
@@ -464,8 +467,12 @@ begin
 
     obj.MenuTerrains := read_terrains();
 
-    obj.ID := FSrc.ReadDWord;
-    obj.SubID := FSrc.ReadDWord;
+    ID := FSrc.ReadDWord;
+    sub_id :=  FSrc.ReadDWord;
+    obj_type := FMapEnv.om.ResolveLegacyID(id,sub_id);
+
+    obj.&type := obj_type.ObjType.DisplayName;
+    obj.subtype:=obj_type.DisplayName;
 
     b := FSrc.ReadByte;  //todo: read type
     b := FSrc.ReadByte;

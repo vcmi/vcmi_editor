@@ -193,20 +193,22 @@ type
   private
     FDef: TDef;
   private
+    FType: AnsiString;
     FAllowedTerrains: TTerrainTypes;
     FID: TObjectTypeID;
     FMask: TStringList;
     FAnimation: string;
     FMenuTerrains: TTerrainTypes;
-    FSubID: TCustomID;
+    Fsubtype: AnsiString;
     FZIndex: Integer;
     function GetMask: TStrings;
     function GetTID: integer;
+    procedure SetType(AValue: AnsiString);
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: string);
     procedure SetID(AValue: TObjectTypeID);
     procedure SetMenuTerrains(AValue: TTerrainTypes);
-    procedure SetSubID(AValue: TCustomID);
+    procedure Setsubtype(AValue: AnsiString);
     procedure SetZIndex(AValue: Integer);
   public
     constructor Create(ACollection: TCollection); override;
@@ -222,12 +224,10 @@ type
     property TID: integer read GetTID;
 
     property Animation:string read FAnimation write SetAnimation;
-
     property Mask:TStrings read GetMask;
 
-
-    property Id: TObjectTypeID read FID write SetID nodefault;
-    property SubId: TCustomID read FSubID write SetSubID nodefault;
+    property &type: AnsiString read FType write SetType;
+    property subtype: AnsiString read Fsubtype write Setsubtype;
 
     property ZIndex: Integer read FZIndex write SetZIndex default 0;
   end;
@@ -357,6 +357,7 @@ type
   TMapEnvironment = record
     tm: TTerrainManager;
     lm: TListsManager;
+    om: TObjectsManager;
   end;
 
   ///WIP, MULTILEVEL MAP
@@ -691,7 +692,7 @@ end;
 
 procedure TMapObject.SetTemplateID(AValue: integer);
 begin
-  if FTemplateID = AValue then Exit; //dont remove
+  if FTemplateID = AValue then Exit; //(!)important check
 
   BeforeChange;
   FTemplate := GetMap().FTemplates.Items[AValue];
@@ -700,7 +701,7 @@ begin
 
   FreeAndNil(FOptions);
 
-  FOptions := object_options.CreateByID(FTemplate.Id,FTemplate.SubId);
+  FOptions := object_options.CreateByID(FTemplate.&type, FTemplate.subtype);
   AfterChange;
   Changed;
 end;
@@ -805,6 +806,12 @@ begin
   Result := inherited ID;
 end;
 
+procedure TMapObjectTemplate.SetType(AValue: AnsiString);
+begin
+  if FType=AValue then Exit;
+  FType:=AValue;
+end;
+
 procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
 begin
   if FAllowedTerrains = AValue then Exit;
@@ -836,10 +843,10 @@ begin
   FMenuTerrains := AValue;
 end;
 
-procedure TMapObjectTemplate.SetSubID(AValue: TCustomID);
+procedure TMapObjectTemplate.Setsubtype(AValue: AnsiString);
 begin
-  if FSubID = AValue then Exit;
-  FSubID := AValue;
+  if Fsubtype=AValue then Exit;
+  Fsubtype:=AValue;
 end;
 
 procedure TMapObjectTemplate.SetZIndex(AValue: Integer);
