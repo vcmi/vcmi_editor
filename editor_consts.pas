@@ -156,6 +156,7 @@ const
   CREATURE_METACLASS = 'creature';
   FACTION_METACLASS = 'faction';
   HEROCLASS_METACLASS = 'heroClass';
+  HEROCLASS_QUANTITY = 18;
   HERO_METACLASS = 'hero';
 
   RESOURCE_NAMESPACE = 'resource';
@@ -163,7 +164,6 @@ const
   OBJECT_METACLASS = 'object';
 
   SKILL_QUANTITY = 28;
-
   SKILL_NAMESPACE = 'skill';
 
   SKILL_NAMES: array[0..SKILL_QUANTITY - 1] of string =

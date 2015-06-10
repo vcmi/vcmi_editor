@@ -217,6 +217,7 @@ type
     procedure HandleInteritance(AConfig: TJSONObject);
 
     procedure AddFactions(AConfig: TJSONObject);
+    procedure AddHeroClasses(AConfig: TJSONObject);
 
     procedure PopulateMapOfLegacyObjects;
   private
@@ -438,7 +439,6 @@ end;
 
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
   APaths: TModdedConfigPaths);
-
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
@@ -455,13 +455,11 @@ begin
   FCombinedConfig := TJSONObject.Create;
   destreamer := TVCMIJSONDestreamer.Create(nil);
   try
-    FConfig.Preload(APaths,ResourceLoader);
-    FConfig.ExtractPatches;
-    FConfig.ApplyPatches;
-    FConfig.CombineTo(FCombinedConfig);
+    FConfig.Load(APaths,ResourceLoader, FCombinedConfig);
 
     //todo: add factions, heroes etc
     AddFactions(FCombinedConfig);
+    AddHeroClasses(FCombinedConfig);
 
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
@@ -479,7 +477,6 @@ begin
 
     FFullIdToDefMap.Free;
   end;
-
 end;
 
 function TObjectsManager.SelectAll: TObjectsSelection;
@@ -891,14 +888,12 @@ end;
 
 procedure TObjectsManager.AddFactions(AConfig: TJSONObject);
 var
-  town_object, town_types: TJSONObject;
+  town_type, town_types: TJSONObject;
   i: Integer;
   faction: TFactionInfo;
-  town_type: TJSONObject;
 begin
-  town_object := AConfig.Objects['town'];
 
-  town_types := town_object.GetOrCreateObject('types');
+  town_types := AConfig.Objects['town'].GetOrCreateObject('types');
 
 
   for i := 0 to ListsManager.FactionInfos.Count - 1 do
@@ -914,6 +909,27 @@ begin
     town_types.Add(faction.ID , town_type);
   end;
 
+end;
+
+procedure TObjectsManager.AddHeroClasses(AConfig: TJSONObject);
+var
+  hero_classes: TJSONObject;
+  i: Integer;
+  hcinfo: THeroClassInfo;
+  hc: TJSONObject;
+begin
+  hero_classes := AConfig.Objects['hero'].GetOrCreateObject('types');
+
+  for i := 0 to ListsManager.HeroClassInfos.Count - 1 do
+  begin
+    hcinfo := ListsManager.HeroClassInfos[i];
+
+
+    hc := TJSONObject.Create;
+    hc.Add('index', hcinfo.Index);
+
+    hero_classes.Add(hcinfo.ID, hc);
+  end;
 end;
 
 procedure TObjectsManager.PopulateMapOfLegacyObjects;

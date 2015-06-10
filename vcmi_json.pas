@@ -118,11 +118,14 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
+  private
     procedure Preload(APaths: TModdedConfigPaths; ALoader:IResourceLoader);
     procedure ExtractPatches;
     procedure ApplyPatches;
     procedure CombineTo(ADest: TJSONObject);
+
+  public
+    procedure Load(APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
   end;
 
   { TJSONObjectHelper }
@@ -877,6 +880,15 @@ begin
 
     MergeJson(mod_data.Config, ADest);
   end;
+end;
+
+procedure TModdedConfigs.Load(APaths: TModdedConfigPaths;
+  ALoader: IResourceLoader; ADest: TJSONObject);
+begin
+  Preload(APaths,ALoader);
+  ExtractPatches;
+  ApplyPatches;
+  CombineTo(ADest);
 end;
 
 initialization

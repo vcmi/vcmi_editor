@@ -51,7 +51,11 @@ type
 
     procedure GetConvertedModConfig(AMetaClass: string; AConverted: TModdedConfigPaths);
 
+    procedure LoadHeroClasses;
+
     procedure LoadObjects;
+
+
   public
     procedure InitComplete;
 
@@ -133,6 +137,9 @@ begin
   FListsManager.Load;
 
   FListsManager.LoadFactions(FResourceManager.GameConfig.Factions);
+
+  LoadHeroClasses;
+
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
   //stage 2
@@ -174,6 +181,19 @@ begin
 
     FillStringArray(mod_config.ConfigPath[AMetaClass],item.Config);
     AConverted.PushBack(item);
+  end;
+end;
+
+procedure TRootManager.LoadHeroClasses;
+var
+  Config: TModdedConfigPaths;
+begin
+  Config := TModdedConfigPaths.Create;
+  try
+    GetConvertedModConfig(HEROCLASS_METACLASS, Config);
+    FListsManager.LoadHeroClasses(Config);
+  finally
+    Config.Free;
   end;
 end;
 

@@ -96,13 +96,29 @@ type
 
   { TFactionInfos }
 
-  TFactionInfos = class (specialize TFPGObjectList<TFactionInfo>)
+  TFactionInfoList = specialize TFPGObjectList<TFactionInfo>;
+
+  TFactionInfos = class (TFactionInfoList)
   public
     procedure FillWithAllIds(AList: TStrings);
     procedure FillWithTownIds(AList: TStrings);
   end;
 
 
+  { THeroClassInfo }
+
+  THeroClassInfo = class(TBaseInfo)
+  public
+
+  end;
+
+  { THeroClassInfos }
+
+  THeroClassInfoList = specialize TFPGObjectList<THeroClassInfo>;
+
+  THeroClassInfos = class(THeroClassInfoList)
+
+  end;
 
   { TListsManager }
 
@@ -116,6 +132,10 @@ type
     FSpellMap: TStringList;
 
     FFactionInfos: TFactionInfos;
+    FFactionMap: TStringList;
+
+    FHeroClassInfos: THeroClassInfos;
+    FHeroClassMap: TStringList;
 
     procedure LoadSkills;
 
@@ -125,7 +145,8 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
-    FFactionMap: TStringList;
+
+    procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
   public
     constructor Create(AOwner: TComponent); override;
@@ -134,6 +155,7 @@ type
     procedure Load;
 
     procedure LoadFactions(APaths: TStrings);
+    procedure LoadHeroClasses(APaths: TModdedConfigPaths);
     procedure LoadSpells(APaths: TStrings);
   public
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
@@ -154,6 +176,11 @@ type
     property FactionInfos:TFactionInfos read FFactionInfos;
     property FactionMap: TStringList read FFactionMap;
     function FactionIndexToString (AFaction: TCustomID):AnsiString;
+
+    //Hero classes
+    property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
+    property HeroClassMap: TStringList read FHeroClassMap;
+
   end;
 
 implementation
@@ -161,8 +188,9 @@ implementation
 uses FileUtil, LazLoggerBase, editor_consts;
 
 const
-  SEC_SKILL_TRAITS = 'data\sstraits';
-  SPELL_TRAITS     = 'data\sptraits';
+  SEC_SKILL_TRAITS  = 'data\sstraits';
+  SPELL_TRAITS      = 'data\sptraits';
+  HERO_CLASS_TRAITS = 'data\hctraits';
 
   SPELL_INFO_NAME       = 'config\spell_info';
 
@@ -302,10 +330,16 @@ begin
 
   FFactionInfos := TFactionInfos.Create(True);
   FFactionMap := CrStrList;
+
+  FHeroClassInfos := THeroClassInfos.Create(True);
+  FHeroClassMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FHeroClassMap.Free;
+  FHeroClassInfos.Free;
+
   FFactionMap.Free;
   FFactionInfos.Free;
 
@@ -332,15 +366,33 @@ begin
 
 end;
 
+procedure TListsManager.MergeLegacy(ASrc: TJsonObjectList; ADest: TJSONObject);
+var
+  o: TJSONObject;
+  index: LongInt;
+  i: Integer;
+begin
+  for i := 0 to ADest.Count - 1 do
+  begin
+    o := ADest.Items[i] as TJSONObject;
+
+    if o.IndexOfName('index')>=0 then
+    begin
+      index := o.Integers['index'];
+      MergeJson(o, ASrc[index]);
+
+      ADest.Items[i] := ASrc[index].Clone;
+
+    end;
+
+  end;
+end;
+
 function TListsManager.AssembleConfig(APaths: TStrings;
   ALegacyData: TJsonObjectList): TJSONObject;
 var
   AConfig: TJsonResource;
   Path: String;
-  i: Integer;
-  o: TJSONObject;
-  index: LongInt;
-
 begin
   Result := TJSONObject.Create;
   AConfig := TJsonResource.Create;
@@ -356,21 +408,7 @@ begin
       if Assigned(ALegacyData) then
       begin
 
-        for i := 0 to Result.Count - 1 do
-        begin
-          o := Result.Items[i] as TJSONObject;
-
-          if o.IndexOfName('index')>=0 then
-          begin
-            index := o.Integers['index'];
-            MergeJson(o, ALegacyData[index]);
-
-            Result.Items[i] := ALegacyData[index].Clone;
-
-          end;
-
-        end;
-
+        MergeLegacy(ALegacyData, Result);
       end;
     finally
       FreeAndNil(AConfig);
@@ -429,7 +467,6 @@ var
   o: TJSONObject;
   info: TFactionInfo;
 begin
-
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create;
@@ -469,6 +506,59 @@ begin
     faction_config.Free;
     faction_names.Free;
     legacy_data.Free;
+  end;
+end;
+
+procedure TListsManager.LoadHeroClasses(APaths: TModdedConfigPaths);
+var
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+  hctraits: TTextResource;
+
+  legacy_data: TJsonObjectList;
+  i: SizeInt;
+  o: TJSONObject;
+  iter: TJSONEnum;
+  info: THeroClassInfo;
+begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
+  hctraits := TTextResource.Create;
+  legacy_data := TJsonObjectList.Create(true);
+  try
+    ResourceLoader.LoadResource(hctraits,TResourceType.Text, HERO_CLASS_TRAITS);
+
+    for i in [0..HEROCLASS_QUANTITY-1] do
+    begin
+      o := TJSONObject.Create();
+
+      o.Strings['name'] := hctraits.Value[0,i+2];
+
+      legacy_data.Add(o);
+    end;
+
+    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_data, FCombinedConfig);
+
+
+    for iter in FCombinedConfig do
+    begin
+      info := THeroClassInfo.Create;
+
+      info.ID := iter.Key;
+      info.Index:=(iter.Value as TJSONObject).Integers['index'];
+
+      info.Name:=(iter.Value as TJSONObject).Strings['name'];
+
+      HeroClassInfos.Add(info);
+      HeroClassMap.AddObject(info.ID, info);
+    end;
+  finally
+    legacy_data.Free;
+    hctraits.free;
+    FCombinedConfig.Free;
+    FConfig.Free;
   end;
 end;
 
@@ -516,7 +606,6 @@ var
 begin
   sptrairs := TTextResource.Create;
   legacy_config := TJsonObjectList.Create(True);
-
 
   try
     //load sptraits
