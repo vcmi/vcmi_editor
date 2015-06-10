@@ -201,8 +201,10 @@ type
     FMenuTerrains: TTerrainTypes;
     Fsubtype: AnsiString;
     FZIndex: Integer;
+    FVisitableFrom: TStringList;
     function GetMask: TStrings;
     function GetTID: integer;
+    function GetVisitableFrom: TStrings;
     procedure SetType(AValue: AnsiString);
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: string);
@@ -225,6 +227,7 @@ type
 
     property Animation:string read FAnimation write SetAnimation;
     property Mask:TStrings read GetMask;
+    property VisitableFrom: TStrings read GetVisitableFrom;
 
     property &type: AnsiString read FType write SetType;
     property subtype: AnsiString read Fsubtype write Setsubtype;
@@ -770,11 +773,12 @@ begin
   inherited Create(ACollection);
   FMask := TStringList.Create;
   FAllowedTerrains := ALL_TERRAINS;
-
+  FVisitableFrom := TStringList.Create;
 end;
 
 destructor TMapObjectTemplate.Destroy;
 begin
+  FVisitableFrom.Free;
   FMask.Free;
   inherited Destroy;
 end;
@@ -789,10 +793,12 @@ begin
   gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
   gm.LoadGraphics(FDef);
 
-  //todo: set string ids
 
   FType := AOther.ObjType.DisplayName;
   Fsubtype := AOther.ObjSubType.DisplayName;
+
+  FMask.Assign(AOther.Mask);
+  FVisitableFrom.Assign(AOther.VisitableFrom);
   //FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
 end;
 
@@ -804,6 +810,11 @@ end;
 function TMapObjectTemplate.GetTID: integer;
 begin
   Result := inherited ID;
+end;
+
+function TMapObjectTemplate.GetVisitableFrom: TStrings;
+begin
+
 end;
 
 procedure TMapObjectTemplate.SetType(AValue: AnsiString);

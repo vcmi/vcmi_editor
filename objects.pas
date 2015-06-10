@@ -63,10 +63,6 @@ type
 
   end;
 
-  TLegacyObjTemplateList = specialize TFPGObjectList<TLegacyObjTemplate>;
-
-  TLegacyObjTemplateIdMap = specialize TObjectMap<UInt32, TLegacyObjTemplateList>;
-
   TLegacyObjConfigList = specialize TFPGObjectList<TJSONObject>;
   TLegacyObjConfigFullIdMap = specialize TObjectMap<TLegacyTemplateId, TLegacyObjConfigList>;
 
@@ -91,11 +87,13 @@ type
     FEditorAnimation: AnsiString;
     FVisitableFrom: TStringList;
     FMask: TStringList;
+    FzIndex: Integer;
     function GetMask: TStrings;
     function GetVisitableFrom: TStrings;
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
+    procedure SetZIndex(AValue: Integer);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -109,6 +107,7 @@ type
     property VisitableFrom: TStrings read GetVisitableFrom;
     property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
     property Mask: TStrings read GetMask;
+    property ZIndex: Integer read FzIndex write SetzIndex default 0;
   end;
 
   { TObjTemplates }
@@ -200,16 +199,11 @@ type
 
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
-
-    FDefs: TLegacyObjTemplateList; //all aviable defs
-
-    FIdToDefMap: TLegacyObjTemplateIdMap; //type => template list
     FObjTypes: TObjTypes;
 
     FLegacyObjTypes: TLegacyIdMap;
 
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
-    procedure AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
 
     procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
     procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
@@ -227,8 +221,6 @@ type
     procedure PopulateMapOfLegacyObjects;
   private
     FListsManager: TListsManager;
-    function GetObjCount: Integer;
-    function GetObjcts(AIndex: Integer): TLegacyObjTemplate;
     procedure SetListsManager(AValue: TListsManager);
   public
     constructor Create(AOwner: TComponent); override;
@@ -237,9 +229,6 @@ type
     property ListsManager:TListsManager read FListsManager write SetListsManager;
 
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
-
-    property Objcts[AIndex: Integer]: TLegacyObjTemplate read GetObjcts;
-    property ObjCount:Integer read GetObjCount;
 
     property ObjTypes: TObjTypes read FObjTypes;
 
@@ -368,6 +357,12 @@ begin
   FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
 end;
 
+procedure TObjTemplate.SetZIndex(AValue: Integer);
+begin
+  if FzIndex=AValue then Exit;
+  FzIndex:=AValue;
+end;
+
 function TObjTemplate.GetVisitableFrom: TStrings;
 begin
   Result := FVisitableFrom;
@@ -423,9 +418,6 @@ constructor TObjectsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FDefs := TLegacyObjTemplateList.Create(True);
-
-  FIdToDefMap := TLegacyObjTemplateIdMap.Create;
   FObjTypes := TObjTypes.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
 end;
@@ -433,21 +425,8 @@ end;
 destructor TObjectsManager.Destroy;
 begin
   FLegacyObjTypes.Free;
-  FIdToDefMap.Free;
   FObjTypes.Free;
-  FDefs.Free;
-
   inherited Destroy;
-end;
-
-function TObjectsManager.GetObjCount: Integer;
-begin
-  Result := FDefs.Count;
-end;
-
-function TObjectsManager.GetObjcts(AIndex: Integer): TLegacyObjTemplate;
-begin
-  Result := FDefs[AIndex];
 end;
 
 procedure TObjectsManager.SetListsManager(AValue: TListsManager);
@@ -540,29 +519,6 @@ function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;
 begin
   Int64Rec(Result).Hi := Typ;
   Int64Rec(Result).Lo := SubType;
-end;
-
-procedure TObjectsManager.AddLegacyTemplate(ATemplate: TLegacyObjTemplate);
-var
-  id: TLegacyTemplateId;
-  idx: LongInt;
-  list: TLegacyObjTemplateList;
-begin
-  id := TypToId(ATemplate.FTyp,ATemplate.FSubType);
-
-  idx := FIdToDefMap.IndexOf(ATemplate.FTyp);
-
-  if idx = -1 then
-  begin
-    list := TLegacyObjTemplateList.Create(False);
-    FIdToDefMap.Add(ATemplate.FTyp, list);
-  end
-  else
-  begin
-    list := FIdToDefMap.Data[idx];
-  end;
-
-  list.Add(ATemplate);
 end;
 
 procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
@@ -685,8 +641,7 @@ begin
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
       def.Def := GraphicsManager.GetPreloadedGraphics(def.FFilename);
-      FDefs.Add(def);
-      AddLegacyTemplate(def);
+      //FDefs.Add(def);
 
       //
 
@@ -695,6 +650,7 @@ begin
       legacy_config := TJSONObject.Create;
 
       legacy_config.Strings['animation'] := def.Filename;
+      legacy_config.Integers['zIndex'] := (-def.IsOverlay) * 1000000;
 
       //TODO: visitableFrom, allowedTerrains, mask, zindex
 
@@ -869,7 +825,7 @@ var
   base: TJSONObject;
   idx: Integer;
 begin
-  //AName = jbject type id
+  //AName = object type id
 
   obj_type  := Item as TJSONObject;
 
@@ -995,8 +951,6 @@ begin
       templates := ar.GetOrCreateObject('templates');
       templates.Add('default', TJSONObject.Create(['animation', info.Graphics.Map]));
     end;
-
-    DebugLn(ar.AsJSON);
 
     artifacts.Add(info.ID, ar);
   end;
