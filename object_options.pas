@@ -658,15 +658,13 @@ begin
       c := TOwnedObjectOptions;
     'mine':
     begin
-      //todo: mine SubID  7
-
-      //if SubID = 7 then
-      //begin
-      //  c := TAbandonedOptions;
-      //end else
-      //begin
+      if SubID = 'abandoned' then
+      begin
+        c := TAbandonedOptions;
+      end else
+      begin
         c := TOwnedObjectOptions;
-      //end;
+      end;
     end;
 
     'abandonedMine':

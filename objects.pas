@@ -502,8 +502,18 @@ begin
 end;
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
+var
+  full_id: TLegacyTemplateId;
 begin
-  Result := FLegacyObjTypes.KeyData[TypToId(Typ, SubType)];
+  full_id := TypToId(Typ, SubType);
+
+  if FLegacyObjTypes.IndexOf(full_id) <0 then
+  begin
+    DebugLn(['Unknown object ', Typ, ' ', SubType]);
+    Result := nil;
+  end
+  else
+    Result := FLegacyObjTypes.KeyData[full_id];
 end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;

@@ -471,8 +471,11 @@ begin
     sub_id :=  FSrc.ReadDWord;
     obj_type := FMapEnv.om.ResolveLegacyID(id,sub_id);
 
-    obj.&type := obj_type.ObjType.DisplayName;
-    obj.subtype:=obj_type.DisplayName;
+    if Assigned(obj_type) then
+    begin
+      obj.&type := obj_type.ObjType.DisplayName;
+      obj.subtype:=obj_type.DisplayName;
+    end;
 
     b := FSrc.ReadByte;  //todo: read type
     b := FSrc.ReadByte;
@@ -747,7 +750,7 @@ begin
       o.TemplateID := tid;
 
 
-      //DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', o.Template.Id, ' subid ',  o.Template.SubId, ' @',IntToHex(spos, 8)]);
+      DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', o.Template.&type, ' subid ',  o.Template.subtype, ' @',IntToHex(spos, 8)]);
 
       FSrc.Skip(5); //junk
 
