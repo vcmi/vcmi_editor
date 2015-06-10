@@ -478,7 +478,6 @@ type
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
-//function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions;
 function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
 
 implementation
@@ -486,7 +485,7 @@ implementation
 uses
   editor_consts;
 
-function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions;
+function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions; deprecated;
 var
   c: TObjectOptionsClass;
 begin

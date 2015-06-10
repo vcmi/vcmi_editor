@@ -24,7 +24,7 @@ unit base_info;
 interface
 
 uses
-  Classes, SysUtils, editor_types;
+  Classes, SysUtils, fpjson, editor_types;
 
 type
   {$push}
@@ -47,15 +47,42 @@ type
   public
     constructor Create;
     property ID: AnsiString read FID write SetID;
-    property Name: TLocalizedString read FName write SetName;
+
     property FullID: AnsiString read GetFullID;
   published
+    property Name: TLocalizedString read FName write SetName;
     property Index: TCustomID read FIndex write SetIndex default -1;
+  end;
+
+  { TMapObjectInfo }
+
+  TMapObjectInfo = class abstract (TBaseInfo)
+  private
+    FMapObject: TJSONObject;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property MapObject: TJSONObject read FMapObject;
   end;
 
   {$pop}
 
 implementation
+
+{ TMapObjectInfo }
+
+constructor TMapObjectInfo.Create;
+begin
+  inherited;
+  FMapObject := TJSONObject.Create;
+end;
+
+destructor TMapObjectInfo.Destroy;
+begin
+  FMapObject.Free;
+  inherited Destroy;
+end;
 
 { TBaseInfo }
 

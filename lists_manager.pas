@@ -107,7 +107,7 @@ type
 
   { THeroClassInfo }
 
-  THeroClassInfo = class(TBaseInfo)
+  THeroClassInfo = class(TMapObjectInfo)
   public
 
   end;
@@ -117,13 +117,30 @@ type
   THeroClassInfoList = specialize TFPGObjectList<THeroClassInfo>;
 
   THeroClassInfos = class(THeroClassInfoList)
+  public
+  end;
 
+
+  { TCreatureInfo }
+
+  TCreatureInfo = class(TBaseInfo)
+  public
+  end;
+
+  { TCreatureInfos }
+
+  TCreatureInfoList = specialize TFPGObjectList<TCreatureInfo>;
+
+  TCreatureInfos = class(TCreatureInfoList)
+  public
   end;
 
   { TListsManager }
 
   TListsManager = class (TFSConsumer)
   strict private
+    FDestreamer: TVCMIJSONDestreamer;
+
     FNameMap: TNameToIdMap;
     FSkillInfos: TSkillInfos;
     FSkillMap: TStringList;
@@ -136,6 +153,9 @@ type
 
     FHeroClassInfos: THeroClassInfos;
     FHeroClassMap: TStringList;
+
+    FCreatureInfos: TCreatureInfos;
+    FCreatureMap: TStringList;
 
     procedure LoadSkills;
 
@@ -156,6 +176,7 @@ type
 
     procedure LoadFactions(APaths: TStrings);
     procedure LoadHeroClasses(APaths: TModdedConfigPaths);
+    procedure LoadCreatures(APaths: TModdedConfigPaths);
     procedure LoadSpells(APaths: TStrings);
   public
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
@@ -180,6 +201,11 @@ type
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
     property HeroClassMap: TStringList read FHeroClassMap;
+
+    //Creatures
+
+    property CreatureInfos: TCreatureInfos read FCreatureInfos;
+    property CreatureMap: TStringList read FCreatureMap;
 
   end;
 
@@ -320,6 +346,9 @@ end;
 constructor TListsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  FDestreamer := TVCMIJSONDestreamer.Create(Self);
+
   FNameMap := TNameToIdMap.Create;
 
   FSkillInfos := TSkillInfos.Create(True);
@@ -333,10 +362,16 @@ begin
 
   FHeroClassInfos := THeroClassInfos.Create(True);
   FHeroClassMap := CrStrList;
+
+  FCreatureInfos := TCreatureInfos.Create(True);
+  FCreatureMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FCreatureInfos.free;
+  FCreatureMap.free;
+
   FHeroClassMap.Free;
   FHeroClassInfos.Free;
 
@@ -541,15 +576,13 @@ begin
 
     MergeLegacy(legacy_data, FCombinedConfig);
 
-
     for iter in FCombinedConfig do
     begin
       info := THeroClassInfo.Create;
 
       info.ID := iter.Key;
-      info.Index:=(iter.Value as TJSONObject).Integers['index'];
 
-      info.Name:=(iter.Value as TJSONObject).Strings['name'];
+      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
 
       HeroClassInfos.Add(info);
       HeroClassMap.AddObject(info.ID, info);
@@ -560,6 +593,14 @@ begin
     FCombinedConfig.Free;
     FConfig.Free;
   end;
+end;
+
+procedure TListsManager.LoadCreatures(APaths: TModdedConfigPaths);
+var
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+begin
+
 end;
 
 procedure TListsManager.LoadSkills;

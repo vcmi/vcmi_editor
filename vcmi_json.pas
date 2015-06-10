@@ -220,7 +220,7 @@ begin
       MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
     end
     else begin
-      ADest.Add(name,ASrc.Items[src_idx].Clone()); //todo: use safe extract?
+      ADest.Add(name,ASrc.Items[src_idx].Clone());
     end;
 
   end;
@@ -590,6 +590,10 @@ begin
   if AObject is IEmbeddedCollection then
   begin
     JSONToCollection(JSON,(AObject as IEmbeddedCollection).GetCollection);
+  end
+  else if AObject is TJSONObject then
+  begin
+    (AObject as TJSONObject).Assign(Json);
   end
   else begin
     inherited JSONToObject(JSON, AObject);

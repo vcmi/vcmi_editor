@@ -88,12 +88,14 @@ type
   strict private
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
+    FEditorAnimation: AnsiString;
     FVisitableFrom: TStringList;
     FMask: TStringList;
     function GetMask: TStrings;
     function GetVisitableFrom: TStrings;
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: AnsiString);
+    procedure SetEditorAnimation(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -103,6 +105,7 @@ type
     property ObjSubType: TObjSubType read FObjSubtype;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
+    property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
     property VisitableFrom: TStrings read GetVisitableFrom;
     property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
     property Mask: TStrings read GetMask;
@@ -346,7 +349,21 @@ begin
   if FAnimation=AValue then Exit;
   FAnimation:=AValue;
 
-  FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FAnimation);
+  //use this animation only if there is no editor animation
+  //todo: delay animation loading(load after serialize)
+
+  if FEditorAnimation='' then
+    FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FAnimation);
+end;
+
+procedure TObjTemplate.SetEditorAnimation(AValue: AnsiString);
+begin
+  AValue := NormalizeResourceName(AValue);
+
+  if FEditorAnimation=AValue then Exit;
+  FEditorAnimation:=AValue;
+
+  FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
 end;
 
 function TObjTemplate.GetVisitableFrom: TStrings;
@@ -511,12 +528,8 @@ begin
 end;
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
-var
-  internal_id: TLegacyTemplateId;
 begin
-  internal_id := TypToId(Typ, SubType);
-
-  Result := FLegacyObjTypes.KeyData[internal_id];
+  Result := FLegacyObjTypes.KeyData[TypToId(Typ, SubType)];
 end;
 
 
@@ -923,10 +936,10 @@ begin
   for i := 0 to ListsManager.HeroClassInfos.Count - 1 do
   begin
     hcinfo := ListsManager.HeroClassInfos[i];
-
-
     hc := TJSONObject.Create;
     hc.Add('index', hcinfo.Index);
+
+    MergeJson(hcinfo.MapObject, hc);
 
     hero_classes.Add(hcinfo.ID, hc);
   end;

@@ -791,8 +791,8 @@ begin
 
   //todo: set string ids
 
-  //FID := AOther.ObjType;
-  //FSubID := AOther.SubType;
+  FType := AOther.ObjType.DisplayName;
+  Fsubtype := AOther.ObjSubType.DisplayName;
   //FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
 end;
 
