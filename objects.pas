@@ -222,6 +222,7 @@ type
     procedure AddFactions(AConfig: TJSONObject);
     procedure AddHeroClasses(AConfig: TJSONObject);
     procedure AddCreatures(AConfig: TJSONObject);
+    procedure AddArtifacts(AConfig: TJSONObject);
 
     procedure PopulateMapOfLegacyObjects;
   private
@@ -479,6 +480,7 @@ begin
     AddFactions(FCombinedConfig);
     AddHeroClasses(FCombinedConfig);
     AddCreatures(FCombinedConfig);
+    AddArtifacts(FCombinedConfig);
 
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
@@ -533,7 +535,6 @@ function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
 begin
   Result := FLegacyObjTypes.KeyData[TypToId(Typ, SubType)];
 end;
-
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;
 begin
@@ -968,6 +969,32 @@ begin
 
     creatures.Add(cr_info.ID, cr);
   end;
+end;
+
+procedure TObjectsManager.AddArtifacts(AConfig: TJSONObject);
+var
+  artifacts: TJSONObject;
+  info: TCreatureInfo;
+  ar, t: TJSONObject;
+  i: Integer;
+begin
+  artifacts := AConfig.Objects['artifact'].GetOrCreateObject('types');
+
+  for i := 0 to ListsManager.CreatureInfos.Count - 1 do
+  begin
+    info := ListsManager.CreatureInfos[i];
+
+    ar := TJSONObject.Create;
+    ar.Add('index', info.Index);
+
+    if info.Graphics.Map <> '' then
+    begin
+      ar.Add('default', TJSONObject.Create(['animation', info.Graphics.Map]));
+    end;
+
+    artifacts.Add(info.ID, ar);
+  end;
+
 end;
 
 procedure TObjectsManager.PopulateMapOfLegacyObjects;

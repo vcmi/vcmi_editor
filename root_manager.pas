@@ -143,7 +143,7 @@ begin
 
   DoLoadObjects(HEROCLASS_METACLASS, @FListsManager.LoadHeroClasses);
   DoLoadObjects(CREATURE_METACLASS, @FListsManager.LoadCreatures);
-
+  DoLoadObjects(ARTIFACT_METACLASS, @FListsManager.LoadArtifacts);
 
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 

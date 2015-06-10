@@ -241,7 +241,7 @@ type
 
   TResLocation = object
     lt: TLocationType;
-    //for files: Real path
+    //for files: Real path; for archive: archive filename
     path: TFilename;
     //for lods
     lod:TLod;
@@ -249,8 +249,9 @@ type
     //for archive
     archive: TUnZipper;
 
-    procedure SetLod(ALod: TLod; AFileHeader: TLodItem); //???
-    procedure SetFile(AFullPath: string); //???
+    procedure SetLod(ALod: TLod; AFileHeader: TLodItem);
+    procedure SetFile(AFullPath: string);
+    procedure SetArchive(AArchive: TUnZipper;APath: TFilename);
   end;
 
   TResId = record
@@ -272,13 +273,14 @@ type
   { TFSManager }
 
   TFSManager = class (TComponent,IResourceLoader)
-
   private
     FConfig: TFilesystemConfig;
     FGameConfig: TGameConfig;
     FResMap: TResIDToLcationMap;
     FLodList: TLodList;
     FArchiveList: TArchiveList;
+
+    FUnzipBuffer: TMemoryStream;
 
     FVpathMap: TPathToPathMap; //key subtituted by value
 
@@ -318,6 +320,11 @@ type
     procedure ScanArchive(item: TFilesystemConfigItem; RelDir: string; ARootPath: TStrings);
 
     procedure LoadFileResource(AResource: IResource; APath: TFilename);
+
+    procedure UnzipperCreateStream(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry);
+    procedure UnzipperDoneStream(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry);
+
+    procedure LoadArchiveResource(AResource: IResource; AArchive: TUnZipper; AArchivePath: TFilename);
 
     procedure ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: TStrings);
     procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
@@ -465,6 +472,13 @@ begin
   lt := TLocationType.InFile;
   path := AFullPath;
   lod := nil;
+end;
+
+procedure TResLocation.SetArchive(AArchive: TUnZipper; APath: TFilename);
+begin
+  lt := TLocationType.InArchive;
+  archive := AArchive;
+  path := APath;
 end;
 
 procedure TResLocation.SetLod(ALod: TLod; AFileHeader: TLodItem);
@@ -646,10 +660,14 @@ begin
   FConfigMap.OnKeyCompare := @ComapreModId;
 
   FEnabledModList := TStringListUTF8.Create;
+
+  FUnzipBuffer := TMemoryStream.Create;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FUnzipBuffer.Free;
+
   FEnabledModList.Free;
   FConfigMap.Free;
   FArchiveList.Free;
@@ -680,31 +698,72 @@ var
   p: string;
 
 begin
-    srch := TFileSearcher.Create;
-    srch.OnFileFound := @OnFileFound;
-    srch.OnDirectoryFound:=@OnDirectoryFound;
-    try
-      p := IncludeTrailingPathDelimiter(FileIterator.FileName);
-      srch.Search(p);
-    finally
-      srch.Free;
-    end;
-
+  srch := TFileSearcher.Create;
+  srch.OnFileFound := @OnFileFound;
+  srch.OnDirectoryFound:=@OnDirectoryFound;
+  try
+    p := IncludeTrailingPathDelimiter(FileIterator.FileName);
+    srch.Search(p);
+  finally
+    srch.Free;
+  end;
 end;
 
 procedure TFSManager.OnArchiveFound(FileIterator: TFileIterator);
 var
   arch: TUnZipper;
+  i: Integer;
+
+var
+  res_id: TResId;
+  res_loc: TResLocation;
+  res_typ: TResourceType;
+
+  src_file_name: string;
+
+  file_name: String;
+  file_ext: String;
+
+  rel_path: string;
+
 begin
   arch := TUnZipper.Create;
+  arch.OnCreateStream:=@UnzipperCreateStream;
+  arch.OnDoneStream:=@UnzipperDoneStream;
+
   FArchiveList.Add(arch); //to make it freed
 
   arch.FileName:=FileIterator.FileName;
 
   arch.Examine;
 
-  //todo: TFSManager.OnArchiveFound
+  for i := 0 to arch.Entries.Count - 1 do
+  begin
 
+    if arch.Entries[i].IsDirectory then
+      Continue;
+
+    res_loc.SetArchive(arch, arch.Entries[i].ArchiveFileName);
+
+    src_file_name := arch.Entries[i].ArchiveFileName;
+
+    file_ext := ExtractFileExt(src_file_name);
+
+    if not MatchFilter(file_ext,res_typ) then
+      Continue;
+
+    rel_path := CreateRelativePath(ExtractFilePath(src_file_name), MakeFullPath(FCurrentRootPath, FCurrentRelPath)); //???
+
+    if rel_path <> '' then
+       rel_path := IncludeTrailingPathDelimiter(rel_path);
+
+    file_name := ExtractFileNameOnly(src_file_name);
+
+    res_id.Typ := res_typ;
+    res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));//
+
+    FResMap.Insert(res_id,res_loc);
+  end;
 end;
 
 function TFSManager.GetPrivateConfigPath: string;
@@ -733,6 +792,33 @@ begin
   finally
     stm.Free;
   end;
+end;
+
+procedure TFSManager.UnzipperCreateStream(Sender: TObject;
+  var AStream: TStream; AItem: TFullZipFileEntry);
+begin
+  FUnzipBuffer.Clear;
+  AStream := FUnzipBuffer;
+end;
+
+procedure TFSManager.UnzipperDoneStream(Sender: TObject; var AStream: TStream;
+  AItem: TFullZipFileEntry);
+begin
+  Assert(AStream = FUnzipBuffer);
+end;
+
+procedure TFSManager.LoadArchiveResource(AResource: IResource;
+  AArchive: TUnZipper; AArchivePath: TFilename);
+begin
+  AArchive.Files.Clear;
+  AArchive.Files.Add(AArchivePath);
+
+  AArchive.UnZipAllFiles;
+
+  FUnzipBuffer.Seek(0, soBeginning);
+  AResource.LoadFromStream(FUnzipBuffer);
+
+  AArchive.Files.Clear;
 end;
 
 procedure TFSManager.LoadFSConfig;
@@ -794,6 +880,7 @@ begin
   case res_loc.lt of
     TLocationType.InLod: res_loc.lod.LoadResource(AResource,res_loc.FileHeader) ;
     TLocationType.InFile: LoadFileResource(AResource,res_loc.path);
+    TLocationType.InArchive: LoadArchiveResource(AResource, res_loc.archive, res_loc.path);
   end;
 end;
 

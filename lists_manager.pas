@@ -142,9 +142,9 @@ type
 
   end;
 
-  { THeroClassInfos }
-
   THeroClassInfoList = specialize TFPGObjectList<THeroClassInfo>;
+
+  { THeroClassInfos }
 
   THeroClassInfos = class(THeroClassInfoList)
   public
@@ -153,17 +153,21 @@ type
   {$push}
   {$m+}
 
-  { TCreatureGraphics }
 
-  TCreatureGraphics = class
+  { TBaseGraphics }
+
+  TBaseGraphics = class
   private
     FMap: AnsiString;
-    procedure SetMap(AValue: AnsiString);
   published
-    property Map: AnsiString read FMap write SetMap;
+    property Map: AnsiString read FMap write FMap;
   end;
 
   {$pop}
+
+  TCreatureGraphics = class(TBaseGraphics)
+
+  end;
 
   { TCreatureInfo }
 
@@ -177,11 +181,39 @@ type
     property Graphics: TCreatureGraphics read FGraphics;
   end;
 
-  { TCreatureInfos }
+
 
   TCreatureInfoList = specialize TFPGObjectList<TCreatureInfo>;
 
+  { TCreatureInfos }
+
   TCreatureInfos = class(TCreatureInfoList)
+  public
+  end;
+
+
+  { TArtifactGraphics }
+
+  TArtifactGraphics = class(TBaseGraphics)
+  end;
+
+  { TArtifactInfo }
+
+  TArtifactInfo = class(TBaseInfo)
+  private
+    FGraphics: TArtifactGraphics;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Graphics: TArtifactGraphics read FGraphics;
+  end;
+
+  TArtifactInfoList = specialize TFPGObjectList<TArtifactInfo>;
+
+  { TArtifactInfos }
+
+  TArtifactInfos = class(TArtifactInfoList)
   public
   end;
 
@@ -216,6 +248,8 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
+    FArtifactInfos: TArtifactInfos;
+    FArtifactMap: TStringList;
     FTextDataConfig: TTextDataConfig;
 
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
@@ -229,6 +263,7 @@ type
     procedure LoadFactions(APaths: TStrings); //todo: mod support for factions
     procedure LoadHeroClasses(APaths: TModdedConfigPaths);
     procedure LoadCreatures(APaths: TModdedConfigPaths);
+    procedure LoadArtifacts(APaths: TModdedConfigPaths);
     procedure LoadSpells(APaths: TStrings); //todo: mod support for spells
   public
 
@@ -262,6 +297,11 @@ type
     property CreatureInfos: TCreatureInfos read FCreatureInfos;
     property CreatureMap: TStringList read FCreatureMap;
 
+    //Artifacts
+
+    property ArtifactInfos: TArtifactInfos read FArtifactInfos;
+    property ArtifactMap: TStringList read FArtifactMap;
+
   end;
 
 implementation
@@ -273,6 +313,7 @@ const
   SPELL_TRAITS      = 'data\sptraits';
   HERO_CLASS_TRAITS = 'data\hctraits';
   CREATURE_TRAITS   = 'data\crtraits';
+  ARTIFACT_TRAITS   = 'data\artraits';
 
   TEXT_DATA_CONFIG  = 'config\defaultMods';
   SPELL_INFO_NAME   = 'config\spell_info';
@@ -289,6 +330,19 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TArtifactInfo }
+
+constructor TArtifactInfo.Create;
+begin
+  FGraphics := TArtifactGraphics.Create;
+end;
+
+destructor TArtifactInfo.Destroy;
+begin
+  FGraphics.Free;
+  inherited Destroy;
+end;
 
 { TTextDataConfig }
 
@@ -339,14 +393,6 @@ destructor TCreatureInfo.Destroy;
 begin
   FGraphics.Free;
   inherited Destroy;
-end;
-
-{ TCreatureGraphics }
-
-procedure TCreatureGraphics.SetMap(AValue: AnsiString);
-begin
-  if FMap=AValue then Exit;
-  FMap:=AValue;
 end;
 
 { TFactionInfo }
@@ -482,10 +528,16 @@ begin
 
   FCreatureInfos := TCreatureInfos.Create(True);
   FCreatureMap := CrStrList;
+
+  FArtifactInfos := TArtifactInfos.Create(True);
+  FArtifactMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FArtifactInfos.Free;
+  FArtifactMap.Free;
+
   FCreatureInfos.free;
   FCreatureMap.free;
 
@@ -761,6 +813,60 @@ begin
     FCombinedConfig.Free;
     FConfig.Free;
     crtraits.free;
+    legacy_data.Free;
+  end;
+end;
+
+procedure TListsManager.LoadArtifacts(APaths: TModdedConfigPaths);
+var
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+  legacy_data: TJsonObjectList;
+  artraits: TTextResource;
+  iter: TJSONEnum;
+
+  i: SizeInt;
+  o: TJSONObject;
+  info: TArtifactInfo;
+begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
+
+  legacy_data := TJsonObjectList.Create(true);
+  artraits := TTextResource.Create(ARTIFACT_TRAITS);
+  try
+
+    artraits.Load(ResourceLoader);
+
+    for i in [0..TextDataConfig.Artifact-1] do
+    begin
+      o := TJSONObject.Create();
+
+      o.GetOrCreateObject('text').Strings['name'] := artraits.Value[0,i+2];
+
+      legacy_data.Add(o);
+    end;
+
+    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_data, FCombinedConfig);
+
+    for iter in FCombinedConfig do
+    begin
+      info := TArtifactInfo.Create;
+
+      info.ID := iter.Key;
+
+      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+
+      ArtifactInfos.Add(info);
+      ArtifactMap.AddObject(info.ID, info);
+    end;
+
+  finally
+    FCombinedConfig.Free;
+    FConfig.Free;
+    artraits.free;
     legacy_data.Free;
   end;
 end;
