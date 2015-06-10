@@ -27,14 +27,11 @@ uses
   Classes, SysUtils,
   CsvDocument,
   filesystem_base,editor_types;
-
 type
-
-
 
   { TTextResource }
 
-  TTextResource = class (IResource)
+  TTextResource = class (TBaseResource, IResource)
   public
     type
       TDelimiter = (Tab,Space);
@@ -45,9 +42,9 @@ type
     function GetValue(Col, Row: Integer): TLocalizedString;
     procedure SetDelimiter(AValue: TDelimiter);
   public
-    constructor Create;
+    constructor Create(APath: AnsiString);
     destructor Destroy; override;
-    procedure LoadFromStream(AStream: TStream);
+    procedure LoadFromStream(AStream: TStream); override;
 
     property Value[Col,Row: Integer]:TLocalizedString read GetValue;
     function HasCell(Col,Row: Integer):boolean;
@@ -63,8 +60,9 @@ implementation
 
 { TTextResource }
 
-constructor TTextResource.Create;
+constructor TTextResource.Create(APath: AnsiString);
 begin
+  Inherited Create(TResourceType.Text, APath);
   FDoc := TCSVDocument.Create;
   FDoc.Delimiter := #9; //tab
   FDoc.EqualColCountPerRow := False;

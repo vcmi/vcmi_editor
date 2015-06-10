@@ -36,6 +36,9 @@ type
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
+    type
+      TLoadObjectProc = procedure(APaths: TModdedConfigPaths) of object;
+  private
     FProgressForm:    TProgressForm;
     FHiddenForm:      TRootForm;
     FResourceManager: TFSManager;
@@ -51,7 +54,7 @@ type
 
     procedure GetConvertedModConfig(AMetaClass: string; AConverted: TModdedConfigPaths);
 
-    procedure LoadHeroClasses;
+    procedure DoLoadObjects(AMetaClass: AnsiString; ALoader: TLoadObjectProc);
 
     procedure LoadObjects;
 
@@ -134,11 +137,13 @@ begin
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
 
   FListsManager := TListsManager.Create(FResourceManager);
-  FListsManager.Load;
+  FListsManager.PreLoad;
 
   FListsManager.LoadFactions(FResourceManager.GameConfig.Factions);
 
-  LoadHeroClasses;
+  DoLoadObjects(HEROCLASS_METACLASS, @FListsManager.LoadHeroClasses);
+  DoLoadObjects(CREATURE_METACLASS, @FListsManager.LoadCreatures);
+
 
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
@@ -184,14 +189,15 @@ begin
   end;
 end;
 
-procedure TRootManager.LoadHeroClasses;
+procedure TRootManager.DoLoadObjects(AMetaClass: AnsiString;
+  ALoader: TLoadObjectProc);
 var
   Config: TModdedConfigPaths;
 begin
   Config := TModdedConfigPaths.Create;
   try
-    GetConvertedModConfig(HEROCLASS_METACLASS, Config);
-    FListsManager.LoadHeroClasses(Config);
+    GetConvertedModConfig(AMetaClass, Config);
+    ALoader(Config);
   finally
     Config.Free;
   end;

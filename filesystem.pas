@@ -293,6 +293,7 @@ type
     FCurrentRelPath: string;
     FCurrentRootPath: string;
 
+    FEnabledModList: TStringListUTF8;
 
     function GetPrivateConfigPath: string;
 
@@ -643,10 +644,13 @@ begin
 
   FConfigMap := TIdToConfigMap.Create;
   FConfigMap.OnKeyCompare := @ComapreModId;
+
+  FEnabledModList := TStringListUTF8.Create;
 end;
 
 destructor TFSManager.Destroy;
 begin
+  FEnabledModList.Free;
   FConfigMap.Free;
   FArchiveList.Free;
   FVpathMap.Free;
@@ -712,6 +716,8 @@ procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   ScanFilesystem;
 
+  FEnabledModList.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');   //<STUB>
+
   ScanMods;
   LoadGameConfig;
 end;
@@ -733,7 +739,7 @@ procedure TFSManager.LoadFSConfig;
 var
   config_res: TJsonResource;
 begin
-  config_res := TJsonResource.Create;
+  config_res := TJsonResource.Create(FGamePath[0]+FS_CONFIG);
   try
     LoadFileResource(config_res, FGamePath[0]+FS_CONFIG);
     config_res.DestreamTo(FConfig,FS_CONFIG_FIELD);
@@ -746,9 +752,9 @@ procedure TFSManager.LoadGameConfig;
 var
   res: TJsonResource;
 begin
-  res := TJsonResource.Create;
+  res := TJsonResource.Create(GAME_CONFIG);
   try
-    LoadResource(res,TResourceType.Json,GAME_CONFIG);
+    res.Load(Self);
     res.DestreamTo(FGameConfig);
   finally
     res.Free;
@@ -837,7 +843,7 @@ procedure TFSManager.ScanMods;
 var
   searcher: TFileSearcher;
 
-  mod_roots, mod_paths, mod_list: TStringListUTF8;
+  mod_roots, mod_paths: TStringListUTF8;
   mod_paths_config: String;
   mod_id: String;
   mod_idx: Integer;
@@ -852,7 +858,6 @@ begin
 
   mod_roots := TStringListUTF8.Create;
   mod_paths := TStringListUTF8.Create;
-  mod_list := TStringListUTF8.Create;
 
   try
     mod_paths_config := GetPrivateConfigPath + 'modpath.txt';
@@ -867,11 +872,9 @@ begin
 
     //<STUB>
 
-    mod_list.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');
-
-    for i := 0 to mod_list.Count - 1 do
+    for i := 0 to FEnabledModList.Count - 1 do
     begin
-      mod_id := NormalizeModId(mod_list[i]);
+      mod_id := NormalizeModId(FEnabledModList[i]);
 
       mod_idx := FModMap.IndexOf(mod_id);
 
@@ -899,7 +902,6 @@ begin
     mod_roots.Free;
     searcher.Free;
     mod_paths.Free;
-    mod_list.Free;
   end;
 
   //configs loaded at this point
@@ -1018,12 +1020,18 @@ var
   mod_config: TModConfig;
 begin
   //iterator points to mod.json
-  destreamer := TVCMIJSONDestreamer.Create(nil);
+
 
   mod_path := FileIterator.Path;
 
   mod_id := NormalizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
 
+  if FEnabledModList.IndexOf(mod_id) < 0 then
+  begin
+    exit;
+  end;
+
+  destreamer := TVCMIJSONDestreamer.Create(nil);
   stm := TFileStreamUTF8.Create(FileIterator.FileName,fmOpenRead or fmShareDenyWrite);
   try
     mod_config := TModConfig.Create;
@@ -1132,7 +1140,7 @@ begin
     current_path := MakeFullPath(root_path,MapPath);
      if FileExistsUTF8(current_path) then
      begin
-       map_config:=TJsonResource.Create;
+       map_config:=TJsonResource.Create(current_path);
        LoadFileResource(map_config,current_path);
 
        for item in map_config.Root do

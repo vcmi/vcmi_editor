@@ -28,10 +28,40 @@ uses
   Classes, SysUtils,
   gmap, fgl,
   fpjson,
-  filesystem_base, editor_types, editor_utils,
+  filesystem_base, editor_consts, editor_types, editor_utils,
   vcmi_json,h3_txt, base_info;
 
 type
+
+  {$push}
+  {$m+}
+
+  { TTextDataConfig }
+
+  TTextDataConfig = class
+  private
+    FArtifact: integer;
+    FCreature: integer;
+    FFaction: integer;
+    FHero: integer;
+    FHeroClass: integer;
+    FSpell: integer;
+    procedure SetArtifact(AValue: integer);
+    procedure SetCreature(AValue: integer);
+    procedure SetFaction(AValue: integer);
+    procedure SetHero(AValue: integer);
+    procedure SetHeroClass(AValue: integer);
+    procedure SetSpell(AValue: integer);
+  published
+    property HeroClass: integer read FHeroClass write SetHeroClass default HEROCLASS_QUANTITY;
+    property Artifact: integer read FArtifact write SetArtifact default ARTIFACT_QUANTITY;
+    property Creature: integer read FCreature write SetCreature default CREATURE_QUANTITY;
+    property Faction: integer read FFaction write SetFaction default FACTION_QUANTITY;
+    property Hero: integer read FHero write SetHero default HERO_QUANTITY;
+    property Spell: integer read FSpell write SetSpell default SPELL_QUANTITY;
+  end;
+
+  {$pop}
 
   { TSkillInfo }
 
@@ -120,11 +150,31 @@ type
   public
   end;
 
+  {$push}
+  {$m+}
+
+  { TCreatureGraphics }
+
+  TCreatureGraphics = class
+  private
+    FMap: AnsiString;
+    procedure SetMap(AValue: AnsiString);
+  published
+    property Map: AnsiString read FMap write SetMap;
+  end;
+
+  {$pop}
 
   { TCreatureInfo }
 
   TCreatureInfo = class(TBaseInfo)
+  private
+    FGraphics: TCreatureGraphics;
   public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Graphics: TCreatureGraphics read FGraphics;
   end;
 
   { TCreatureInfos }
@@ -158,6 +208,7 @@ type
     FCreatureMap: TStringList;
 
     procedure LoadSkills;
+    procedure LoadTextDataConfig;
 
     procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
       Data: TObject; var Continue: Boolean);
@@ -165,6 +216,7 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
+    FTextDataConfig: TTextDataConfig;
 
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
@@ -172,13 +224,16 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Load;
+    procedure PreLoad;
 
-    procedure LoadFactions(APaths: TStrings);
+    procedure LoadFactions(APaths: TStrings); //todo: mod support for factions
     procedure LoadHeroClasses(APaths: TModdedConfigPaths);
     procedure LoadCreatures(APaths: TModdedConfigPaths);
-    procedure LoadSpells(APaths: TStrings);
+    procedure LoadSpells(APaths: TStrings); //todo: mod support for spells
   public
+
+    property TextDataConfig: TTextDataConfig read FTextDataConfig;
+
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
     function SIDIdNID(AID: AnsiString): TCustomID;
@@ -211,14 +266,16 @@ type
 
 implementation
 
-uses FileUtil, LazLoggerBase, editor_consts;
+uses FileUtil, LazLoggerBase;
 
 const
   SEC_SKILL_TRAITS  = 'data\sstraits';
   SPELL_TRAITS      = 'data\sptraits';
   HERO_CLASS_TRAITS = 'data\hctraits';
+  CREATURE_TRAITS   = 'data\crtraits';
 
-  SPELL_INFO_NAME       = 'config\spell_info';
+  TEXT_DATA_CONFIG  = 'config\defaultMods';
+  SPELL_INFO_NAME   = 'config\spell_info';
 
 const
   NEWTRAL_PLAYER_NAME = 'No player';
@@ -232,6 +289,65 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TTextDataConfig }
+
+procedure TTextDataConfig.SetHeroClass(AValue: integer);
+begin
+  if FHeroClass=AValue then Exit;
+  FHeroClass:=AValue;
+end;
+
+procedure TTextDataConfig.SetArtifact(AValue: integer);
+begin
+  if FArtifact=AValue then Exit;
+  FArtifact:=AValue;
+end;
+
+procedure TTextDataConfig.SetCreature(AValue: integer);
+begin
+  if FCreature=AValue then Exit;
+  FCreature:=AValue;
+end;
+
+procedure TTextDataConfig.SetFaction(AValue: integer);
+begin
+  if FFaction=AValue then Exit;
+  FFaction:=AValue;
+end;
+
+procedure TTextDataConfig.SetHero(AValue: integer);
+begin
+  if FHero=AValue then Exit;
+  FHero:=AValue;
+end;
+
+procedure TTextDataConfig.SetSpell(AValue: integer);
+begin
+  if FSpell=AValue then Exit;
+  FSpell:=AValue;
+end;
+
+{ TCreatureInfo }
+
+constructor TCreatureInfo.Create;
+begin
+  FGraphics := TCreatureGraphics.Create;
+end;
+
+destructor TCreatureInfo.Destroy;
+begin
+  FGraphics.Free;
+  inherited Destroy;
+end;
+
+{ TCreatureGraphics }
+
+procedure TCreatureGraphics.SetMap(AValue: AnsiString);
+begin
+  if FMap=AValue then Exit;
+  FMap:=AValue;
+end;
 
 { TFactionInfo }
 
@@ -346,6 +462,7 @@ end;
 constructor TListsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FTextDataConfig := TTextDataConfig.Create;
 
   FDestreamer := TVCMIJSONDestreamer.Create(Self);
 
@@ -385,6 +502,8 @@ begin
   FSkillInfos.Free;
 
   FNameMap.Free;
+
+  FTextDataConfig.Free;
   inherited Destroy;
 end;
 
@@ -417,9 +536,7 @@ begin
       MergeJson(o, ASrc[index]);
 
       ADest.Items[i] := ASrc[index].Clone;
-
     end;
-
   end;
 end;
 
@@ -430,23 +547,21 @@ var
   Path: String;
 begin
   Result := TJSONObject.Create;
-  AConfig := TJsonResource.Create;
   try
-    try
-      for Path in APaths do
-      begin
-        ResourceLoader.LoadResource(AConfig,TResourceType.Json, Path);
-
+    for Path in APaths do
+    begin
+      AConfig := TJsonResource.Create(Path);
+      try
+        AConfig.Load(ResourceLoader);
         MergeJson(AConfig.Root, Result);
+      finally
+        FreeAndNil(AConfig);
       end;
+    end;
 
-      if Assigned(ALegacyData) then
-      begin
-
-        MergeLegacy(ALegacyData, Result);
-      end;
-    finally
-      FreeAndNil(AConfig);
+    if Assigned(ALegacyData) then
+    begin
+      MergeLegacy(ALegacyData, Result);
     end;
   except
     Result.Free;
@@ -488,8 +603,9 @@ begin
   raise Exception.CreateFmt('Faction not found: %d',[AFaction]);
 end;
 
-procedure TListsManager.Load;
+procedure TListsManager.PreLoad;
 begin
+  LoadTextDataConfig;
   LoadSkills;
 end;
 
@@ -504,9 +620,9 @@ var
 begin
   legacy_data := TJsonObjectList.Create(true);
 
-  faction_names := TTextResource.Create;
+  faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
 
-  ResourceLoader.LoadResource(faction_names,TResourceType.Text,'DATA/TOWNTYPE.TXT');
+  faction_names.Load(ResourceLoader);
 
   for f in [0..9] do
   begin
@@ -558,10 +674,10 @@ var
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
-  hctraits := TTextResource.Create;
+  hctraits := TTextResource.Create(HERO_CLASS_TRAITS);
   legacy_data := TJsonObjectList.Create(true);
   try
-    ResourceLoader.LoadResource(hctraits,TResourceType.Text, HERO_CLASS_TRAITS);
+    hctraits.Load(ResourceLoader);
 
     for i in [0..HEROCLASS_QUANTITY-1] do
     begin
@@ -599,8 +715,54 @@ procedure TListsManager.LoadCreatures(APaths: TModdedConfigPaths);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
-begin
 
+  crtraits: TTextResource;
+  legacy_data: TJsonObjectList;
+
+  i: SizeInt;
+  o: TJSONObject;
+  iter: TJSONEnum;
+  info: TCreatureInfo;
+begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
+
+  legacy_data := TJsonObjectList.Create(true);
+  crtraits := TTextResource.Create(CREATURE_TRAITS);
+  try
+    crtraits.Load(ResourceLoader);
+
+    for i in [0..TextDataConfig.Creature-1] do
+    begin
+      o := TJSONObject.Create();
+
+      o.Strings['name'] := crtraits.Value[0,i+1];
+
+      legacy_data.Add(o);
+    end;
+
+    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_data, FCombinedConfig);
+
+    for iter in FCombinedConfig do
+    begin
+      info := TCreatureInfo.Create;
+
+      info.ID := iter.Key;
+
+      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+
+      CreatureInfos.Add(info);
+      CreatureMap.AddObject(info.ID, info);
+    end;
+
+  finally
+    FCombinedConfig.Free;
+    FConfig.Free;
+    crtraits.free;
+    legacy_data.Free;
+  end;
 end;
 
 procedure TListsManager.LoadSkills;
@@ -615,9 +777,9 @@ begin
   end;
 
   FSkillInfos.Clear;
-  sstraits := TTextResource.Create;
+  sstraits := TTextResource.Create(SEC_SKILL_TRAITS);
   try
-    ResourceLoader.LoadResource(sstraits,TResourceType.Text, SEC_SKILL_TRAITS);
+    sstraits.Load(ResourceLoader);
 
     for i := 2 to sstraits.RowCount - 1 do
     begin
@@ -633,6 +795,19 @@ begin
   end;
 end;
 
+procedure TListsManager.LoadTextDataConfig;
+var
+  config: TJsonResource;
+begin
+  config := TJsonResource.Create(TEXT_DATA_CONFIG);
+  try
+    config.Load(ResourceLoader);
+    config.DestreamTo(FTextDataConfig, 'textData');
+  finally
+    config.free;
+  end;
+end;
+
 procedure TListsManager.LoadSpells(APaths: TStrings);
 var
   sptrairs: TTextResource;
@@ -645,12 +820,12 @@ var
   spell_info: TJsonResource;
   loc_name: String;
 begin
-  sptrairs := TTextResource.Create;
+  sptrairs := TTextResource.Create(SPELL_TRAITS);
   legacy_config := TJsonObjectList.Create(True);
 
   try
-    //load sptraits
-    ResourceLoader.LoadResource(sptrairs,TResourceType.Text,SPELL_TRAITS);
+    //PreLoad sptraits
+    sptrairs.Load(ResourceLoader);
 
     row := 2;
 
@@ -673,11 +848,10 @@ begin
 
     for i := 0 to APaths.Count - 1 do
     begin
-      spell_info := TJsonResource.Create;
+      spell_info := TJsonResource.Create(APaths[i]);
       try
-        ResourceLoader.LoadResource(spell_info,TResourceType.Json,APaths[i]);
-        spell_config := spell_info.Root;
-        spell_config.Iterate(@ProcessSpellConfig,legacy_config);
+        spell_info.Load(ResourceLoader);
+        spell_info.Root.Iterate(@ProcessSpellConfig,legacy_config);
       finally
          spell_info.Free;
       end;

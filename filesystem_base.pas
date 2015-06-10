@@ -31,7 +31,7 @@ type
 
   TResourceType = (Text,Json,Animation, Mask);  //TODO: other types
 
-  TResourceTypes =set of TResourceType;
+  TResourceTypes = set of TResourceType;
 
   IResource = interface
     procedure LoadFromStream(AStream: TStream);
@@ -48,6 +48,23 @@ type
     procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
   end;
 
+  { TBaseResource }
+
+  TBaseResource = class abstract (TObject, IResource)
+  private
+    FPath: AnsiString;
+    FTyp: TResourceType;
+  public
+    constructor Create(AType: TResourceType; APath: AnsiString);
+    property Typ: TResourceType read FTyp;
+    property Path: AnsiString read FPath;
+
+     procedure LoadFromStream(AStream: TStream); virtual; abstract;
+
+    procedure Load(ALoader: IResourceLoader);
+
+  end;
+
   { TFSConsumer }
 
   TFSConsumer = class abstract (TComponent)
@@ -61,6 +78,18 @@ type
 
 implementation
 
+{ TBaseResource }
+
+constructor TBaseResource.Create(AType: TResourceType; APath: AnsiString);
+begin
+  FTyp:=AType;
+  FPath:=APath;
+end;
+
+procedure TBaseResource.Load(ALoader: IResourceLoader);
+begin
+  ALoader.LoadResource(Self, Typ, Path);
+end;
 
 
 { TFSConsumer }

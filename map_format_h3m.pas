@@ -280,7 +280,7 @@ procedure TMapReaderH3m.ReadAllowedSpells;
 begin
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY,@(FMapEnv.lm.SpellIndexToString));
+    ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY_ACTUAL,@(FMapEnv.lm.SpellIndexToString));
   end;
 end;
 

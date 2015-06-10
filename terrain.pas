@@ -954,9 +954,9 @@ procedure TTerrainManager.LoadConfig;
 var
   config: TJsonResource;
 begin
-  config := TJsonResource.Create;
+  config := TJsonResource.Create(TERRAIN_CONFIG_FILE);
   try
-    ResourceLoader.LoadResource (config,TResourceType.Json,TERRAIN_CONFIG_FILE);
+    config.Load(ResourceLoader);
     config.DestreamTo(FPatternConfig,'');
 
   finally

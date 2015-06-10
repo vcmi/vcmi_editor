@@ -76,13 +76,13 @@ type
 
   { TJsonResource }
 
-  TJsonResource = class (IResource)
+  TJsonResource = class (TBaseResource,IResource)
   private
     FRoot: TJSONObject;
   public
-    constructor Create;
+    constructor Create(APath: AnsiString);
     destructor Destroy; override;
-    procedure LoadFromStream(AStream: TStream);
+    procedure LoadFromStream(AStream: TStream); override;
     property Root: TJSONObject read FRoot;
 
     procedure DestreamTo(AObject: TObject; AFieldName: string = '');
@@ -281,9 +281,9 @@ end;
 
 { TJsonResource }
 
-constructor TJsonResource.Create;
+constructor TJsonResource.Create(APath: AnsiString);
 begin
-
+  inherited Create(TResourceType.Json, APath);
 end;
 
 procedure TJsonResource.DestreamTo(AObject: TObject; AFieldName: string);
@@ -744,27 +744,26 @@ var
   item: TModdedConfig;
   key: TModId;
 begin
-  current := TJsonResource.Create;
+  for i := 0 to SizeInt(APaths.Size) - 1 do
+  begin
+    AModdedPath := APaths.Items[i];
 
-  try
-    for i := 0 to SizeInt(APaths.Size) - 1 do
+    item := TModdedConfig.Create;
+
+    item.ModId:=AModdedPath.ModID;
+
+    FMap.Add(item.ModId,item);
+
+    for APath in AModdedPath.Config do
     begin
-      AModdedPath := APaths.Items[i];
-
-      item := TModdedConfig.Create;
-
-      item.ModId:=AModdedPath.ModID;
-
-      FMap.Add(item.ModId,item);
-
-      for APath in AModdedPath.Config do
-      begin
-        ALoader.LoadResource(current,TResourceType.Json, APath);
+      current := TJsonResource.Create(APath);
+      try
+        current.Load(ALoader);
         MergeJson(current.Root, item.Config);
+      finally
+        current.Free;
       end;
     end;
-  finally
-    current.Free;
   end;
 end;
 

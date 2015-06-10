@@ -153,15 +153,26 @@ const
   MODID_CORE = 'core';
 
   ARTIFACT_METACLASS = 'artifact';
+  ARTIFACT_QUANTITY = 144;
+
   CREATURE_METACLASS = 'creature';
+  CREATURE_QUANTITY = 150;
+
   FACTION_METACLASS = 'faction';
+  FACTION_QUANTITY = 9;
+
   HEROCLASS_METACLASS = 'heroClass';
   HEROCLASS_QUANTITY = 18;
+
   HERO_METACLASS = 'hero';
+  HERO_QUANTITY = 156;
+
+  SPELL_METACLASS = 'spell';
+  SPELL_QUANTITY = 81;
+
+  OBJECT_METACLASS = 'object';
 
   RESOURCE_NAMESPACE = 'resource';
-  SPELL_METACLASS = 'spell';
-  OBJECT_METACLASS = 'object';
 
   SKILL_QUANTITY = 28;
   SKILL_NAMESPACE = 'skill';
@@ -176,7 +187,7 @@ const
     'sorcery',      'resistance',   'firstAid'
   );
 
-  SPELL_QUANTITY = 70;
+  SPELL_QUANTITY_ACTUAL = 70;
 
 const
   MAX_HERO_LEVEL = 199; //VCMI technical limitation

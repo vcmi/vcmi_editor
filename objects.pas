@@ -221,6 +221,7 @@ type
 
     procedure AddFactions(AConfig: TJSONObject);
     procedure AddHeroClasses(AConfig: TJSONObject);
+    procedure AddCreatures(AConfig: TJSONObject);
 
     procedure PopulateMapOfLegacyObjects;
   private
@@ -477,6 +478,7 @@ begin
     //todo: add factions, heroes etc
     AddFactions(FCombinedConfig);
     AddHeroClasses(FCombinedConfig);
+    AddCreatures(FCombinedConfig);
 
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
@@ -643,11 +645,11 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
     full_id: TLegacyTemplateId;
     idx: LongInt;
 begin
-  objects_txt := TTextResource.Create;
+  objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
 
   try
-    ResourceLoader.LoadResource(objects_txt,TResourceType.Text,OBJECT_LIST);
+    objects_txt.Load(ResourceLoader);
 
     AProgressCallback.Max := 200;
 
@@ -905,9 +907,7 @@ var
   i: Integer;
   faction: TFactionInfo;
 begin
-
   town_types := AConfig.Objects['town'].GetOrCreateObject('types');
-
 
   for i := 0 to ListsManager.FactionInfos.Count - 1 do
   begin
@@ -942,6 +942,31 @@ begin
     MergeJson(hcinfo.MapObject, hc);
 
     hero_classes.Add(hcinfo.ID, hc);
+  end;
+end;
+
+procedure TObjectsManager.AddCreatures(AConfig: TJSONObject);
+var
+  creatures: TJSONObject;
+  cr_info: TCreatureInfo;
+  cr, t: TJSONObject;
+  i: Integer;
+begin
+  creatures := AConfig.Objects['monster'].GetOrCreateObject('types');
+
+  for i := 0 to ListsManager.CreatureInfos.Count - 1 do
+  begin
+    cr_info := ListsManager.CreatureInfos[i];
+
+    cr := TJSONObject.Create;
+    cr.Add('index', cr_info.Index);
+
+    if cr_info.Graphics.Map <> '' then
+    begin
+      cr.Add('default', TJSONObject.Create(['animation', cr_info.Graphics.Map]));
+    end;
+
+    creatures.Add(cr_info.ID, cr);
   end;
 end;
 
