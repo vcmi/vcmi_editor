@@ -216,6 +216,7 @@ type
 
   TArtifactInfos = class(TArtifactInfoList)
   public
+    procedure FillWithAllIds(AList: TStrings);
   end;
 
   { TListsManager }
@@ -287,19 +288,19 @@ type
     //Factions
     property FactionInfos:TFactionInfos read FFactionInfos;
     property FactionMap: TStringList read FFactionMap;
-    function FactionIndexToString (AFaction: TCustomID):AnsiString;
+    function FactionIndexToString (AIndex: TCustomID):AnsiString;
 
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
     property HeroClassMap: TStringList read FHeroClassMap;
 
     //Creatures
-
+    function CreatureIndexToString (AIndex: TCustomID): AnsiString;
     property CreatureInfos: TCreatureInfos read FCreatureInfos;
     property CreatureMap: TStringList read FCreatureMap;
 
     //Artifacts
-
+    function ArtifactIndexToString (AIndex: TCustomID): AnsiString;
     property ArtifactInfos: TArtifactInfos read FArtifactInfos;
     property ArtifactMap: TStringList read FArtifactMap;
 
@@ -331,6 +332,19 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TArtifactInfos }
+
+procedure TArtifactInfos.FillWithAllIds(AList: TStrings);
+var
+  obj: TArtifactInfo;
+begin
+  //todo: exclude overpowered
+  for obj in Self do
+  begin
+    AList.Add(obj.ID);
+  end;
+end;
 
 { TBaseGraphics }
 
@@ -645,7 +659,7 @@ begin
   Result := TSpellInfo(FSpellMap.Objects[idx]);
 end;
 
-function TListsManager.FactionIndexToString(AFaction: TCustomID): AnsiString;
+function TListsManager.FactionIndexToString(AIndex: TCustomID): AnsiString;
 var
   info: TFactionInfo;
   i: Integer;
@@ -655,13 +669,54 @@ begin
   for i := 0 to FFactionInfos.Count - 1 do
   begin
     info := FFactionInfos[i];
-    if info.Index = AFaction then
+    if info.Index = AIndex then
     begin
       Exit(info.ID);
     end;
   end;
 
-  raise Exception.CreateFmt('Faction not found: %d',[AFaction]);
+  raise Exception.CreateFmt('Faction not found: %d',[AIndex]);
+end;
+
+function TListsManager.CreatureIndexToString(AIndex: TCustomID): AnsiString;
+var
+  info: TCreatureInfo;
+  i: Integer;
+begin
+  //todo:  optimize
+  Result := '';
+
+  for i := 0 to FCreatureInfos.Count - 1 do
+  begin
+    info := FCreatureInfos[i];
+    if info.Index = AIndex then
+    begin
+      Exit(info.ID);
+    end;
+  end;
+
+  raise Exception.CreateFmt('Creature index not found: %d',[AIndex]);
+
+end;
+
+function TListsManager.ArtifactIndexToString(AIndex: TCustomID): AnsiString;
+var
+  info: TArtifactInfo;
+  i: Integer;
+begin
+  //todo:  optimize
+  Result := '';
+
+  for i := 0 to FArtifactInfos.Count - 1 do
+  begin
+    info := FArtifactInfos[i];
+    if info.Index = AIndex then
+    begin
+      Exit(info.ID);
+    end;
+  end;
+
+  raise Exception.CreateFmt('Artifact index not found: %d',[AIndex]);
 end;
 
 procedure TListsManager.PreLoad;

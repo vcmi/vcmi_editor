@@ -70,7 +70,7 @@ type
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();
      procedure ReadDisposedHeros();
-     procedure ReadAllowedArtifacts();
+     procedure ReadAllowedArtifacts();//+
      procedure ReadAllowedSpells();//+
      procedure ReadAllowedAbilities();//+
      procedure ReadRumors();//+
@@ -82,7 +82,7 @@ type
      procedure ReadDefInfo();//+
 
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet; nomber: Integer);
-     procedure ReadArtifactsOfHero(obj: TMapObject);
+     procedure ReadArtifactsOfHero(obj: TMapObject);//+
      procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
 
      //result = Mission type
@@ -244,16 +244,20 @@ procedure TMapReaderH3m.ReadAllowedAbilities;
 begin
   if FMapVersion>=MAP_VERSION_SOD then
   begin
-    ReadBitmask(FMap.AllowedAbilities,4,SKILL_QUANTITY,@(FMapEnv.lm.SkillNidToString));
+    ReadBitmask(FMap.AllowedAbilities,4,SKILL_QUANTITY,@FMapEnv.lm.SkillNidToString);
   end;
 end;
 
 procedure TMapReaderH3m.ReadAllowedArtifacts;
+var
+  cnt: Integer;
 begin
-  //todo: ReadAllowedArtifacts
-
   if FMapVersion <> MAP_VERSION_ROE then
-    FSrc.Skip(ifthen(FMapVersion=MAP_VERSION_AB,17,18));
+  begin
+    cnt := ifthen(FMapVersion=MAP_VERSION_AB,17,18);
+
+    ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString);
+  end;
 end;
 
 procedure TMapReaderH3m.ReadAllowedHeros;
@@ -294,7 +298,6 @@ var
   i: Integer;
   cnt: Word;
 begin
-  //todo: ReadArtifactsOfHero
   with FSrc do
   begin
     if not ReadBoolean then exit;
@@ -336,6 +339,9 @@ begin
   else begin
     aid := FSrc.ReadByte;
   end;
+
+  if aid = artmask then
+    exit;
 
 end;
 
@@ -413,7 +419,7 @@ begin
       if creid = maxID then
         Continue;// empty slot, leave with default values
 
-      info.CreID := creid;
+      info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
       info.CreCount := crecnt;
 
       //todo: random count
@@ -1223,9 +1229,9 @@ end;
 
 procedure TMapReaderH3m.VisitSeerHut(AOptions: TSeerHutOptions);
 var
-    mis_type: Integer;
-    reward_type: Byte;
-    aid: Byte;
+  mis_type: Integer;
+  reward_type: Byte;
+  aid: Byte;
 begin
   with FSrc do begin
     if IsNotROE then

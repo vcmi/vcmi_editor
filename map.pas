@@ -426,6 +426,7 @@ type
 
     FAllowedSpells: TStringList;
     FAllowedAbilities: TStringList;
+    FAllowedArtifacts: TStringList;
 
     FRumors: TRumors;
 
@@ -433,6 +434,7 @@ type
 
     procedure Changed;
     function GetAllowedAbilities: TStrings;
+    function GetAllowedArtifacts: TStrings;
     function GetAllowedSpells: TStrings;
     function GetCurrentLevelIndex: Integer; inline;
 
@@ -494,6 +496,7 @@ type
 
     property AllowedSpells: TStrings read GetAllowedSpells;
     property AllowedAbilities: TStrings read GetAllowedAbilities;
+    property AllowedArtifacts: TStrings read GetAllowedArtifacts;
 
     property Levels: TMapLevels read FLevels;
   public //manual streamimg
@@ -1218,6 +1221,7 @@ begin
 
   FListsManager.SpellInfos.FillWithAllIds(FAllowedSpells);
   FListsManager.SkillInfos.FillWithAllIds(FAllowedAbilities);
+  FListsManager.ArtifactInfos.FillWithAllIds(FAllowedArtifacts);
 end;
 
 constructor TVCMIMap.CreateDefault(env: TMapEnvironment);
@@ -1266,6 +1270,7 @@ begin
 
   FAllowedAbilities := CrStrList;
   FAllowedSpells := CrStrList;
+  FAllowedArtifacts := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
@@ -1290,6 +1295,7 @@ begin
 
   FAllowedAbilities := CrStrList;
   FAllowedSpells := CrStrList;
+  FAllowedArtifacts := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
@@ -1301,6 +1307,7 @@ end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FAllowedArtifacts.Free;
   FAllowedAbilities.Free;
   FAllowedSpells.Free;
 
@@ -1342,6 +1349,11 @@ end;
 function TVCMIMap.GetAllowedAbilities: TStrings;
 begin
   Result := FAllowedAbilities;
+end;
+
+function TVCMIMap.GetAllowedArtifacts: TStrings;
+begin
+  Result := FAllowedArtifacts;
 end;
 
 function TVCMIMap.GetAllowedSpells: TStrings;

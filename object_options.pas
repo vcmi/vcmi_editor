@@ -58,16 +58,15 @@ type
   TCreatureInstInfo = class (TCollectionItem)
   private
     FCreCount: Integer;
-    FCreID: TCreatureID;
+    FCreID: AnsiString;
     FRandomCount: boolean;
     procedure SetCreCount(AValue: Integer);
-    procedure SetCreID(AValue: TCreatureID);
+    procedure SetCreID(AValue: AnsiString);
     procedure SetRandomCount(AValue: boolean);
   public
     constructor Create(ACollection: TCollection); override;
   published
-    //todo: use string id
-    property CreID: TCreatureID read FCreID write SetCreID default -1;
+    property CreID: AnsiString read FCreID write SetCreID;
     property CreCount: Integer read FCreCount write SetCreCount default 0;
     property RandomCount: boolean read FRandomCount write SetRandomCount default False;
   end;
@@ -834,7 +833,6 @@ end;
 constructor TCreatureInstInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FCreID := -1;
 end;
 
 procedure TCreatureInstInfo.SetCreCount(AValue: Integer);
@@ -842,10 +840,12 @@ begin
   FCreCount := AValue;
 end;
 
-procedure TCreatureInstInfo.SetCreID(AValue: TCreatureID);
+procedure TCreatureInstInfo.SetCreID(AValue: AnsiString);
 begin
-  FCreID := AValue;
+  if FCreID=AValue then Exit;
+  FCreID:=AValue;
 end;
+
 
 procedure TCreatureInstInfo.SetRandomCount(AValue: boolean);
 begin
