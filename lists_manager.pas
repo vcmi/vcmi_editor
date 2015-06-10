@@ -159,8 +159,9 @@ type
   TBaseGraphics = class
   private
     FMap: AnsiString;
+    procedure SetMap(AValue: AnsiString);
   published
-    property Map: AnsiString read FMap write FMap;
+    property Map: AnsiString read FMap write SetMap;
   end;
 
   {$pop}
@@ -330,6 +331,14 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TBaseGraphics }
+
+procedure TBaseGraphics.SetMap(AValue: AnsiString);
+begin
+  if FMap=AValue then Exit;
+  FMap:=AValue;
+end;
 
 { TArtifactInfo }
 

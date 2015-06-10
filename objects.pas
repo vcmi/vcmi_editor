@@ -948,7 +948,7 @@ end;
 
 procedure TObjectsManager.AddCreatures(AConfig: TJSONObject);
 var
-  creatures: TJSONObject;
+  creatures, templates: TJSONObject;
   cr_info: TCreatureInfo;
   cr, t: TJSONObject;
   i: Integer;
@@ -964,7 +964,10 @@ begin
 
     if cr_info.Graphics.Map <> '' then
     begin
-      cr.Add('default', TJSONObject.Create(['animation', cr_info.Graphics.Map]));
+
+      templates := cr.GetOrCreateObject('templates');
+
+      templates.Add('default', TJSONObject.Create(['animation', cr_info.Graphics.Map]));
     end;
 
     creatures.Add(cr_info.ID, cr);
@@ -973,24 +976,27 @@ end;
 
 procedure TObjectsManager.AddArtifacts(AConfig: TJSONObject);
 var
-  artifacts: TJSONObject;
-  info: TCreatureInfo;
+  artifacts, templates: TJSONObject;
+  info: TArtifactInfo;
   ar, t: TJSONObject;
   i: Integer;
 begin
   artifacts := AConfig.Objects['artifact'].GetOrCreateObject('types');
 
-  for i := 0 to ListsManager.CreatureInfos.Count - 1 do
+  for i := 0 to ListsManager.ArtifactInfos.Count - 1 do
   begin
-    info := ListsManager.CreatureInfos[i];
+    info := ListsManager.ArtifactInfos[i];
 
     ar := TJSONObject.Create;
     ar.Add('index', info.Index);
 
     if info.Graphics.Map <> '' then
     begin
-      ar.Add('default', TJSONObject.Create(['animation', info.Graphics.Map]));
+      templates := ar.GetOrCreateObject('templates');
+      templates.Add('default', TJSONObject.Create(['animation', info.Graphics.Map]));
     end;
+
+    DebugLn(ar.AsJSON);
 
     artifacts.Add(info.ID, ar);
   end;
