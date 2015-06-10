@@ -38,18 +38,14 @@ type
 
   TLegacyObjTemplate = class
   private
-    FDef: TDef;
     FFilename: AnsiString;
     FPassability,
     FActions: TDefBitmask;
     FLandscape,FLandEditGroups: uint16;
     FTyp,FSubType: uint32;
     FGroup,FIsOverlay: uint8;
-    procedure SetDef(AValue: TDef);
   public
     constructor Create;
-
-    property Def: TDef read FDef write SetDef;
 
     property Filename: AnsiString read FFilename;
     property Actions: TDefBitmask read FActions;
@@ -240,7 +236,8 @@ type
 implementation
 
 uses
-  LazLoggerBase, CsvDocument, editor_consts, editor_utils, vcmi_json, root_manager;
+  LazLoggerBase, CsvDocument, editor_consts, editor_utils, vcmi_json,
+  root_manager, math;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -404,12 +401,6 @@ end;
 constructor TLegacyObjTemplate.Create;
 begin
   inherited;
-end;
-
-procedure TLegacyObjTemplate.SetDef(AValue: TDef);
-begin
-  if FDef = AValue then Exit;
-  FDef := AValue;
 end;
 
 { TObjectsManager }
@@ -601,6 +592,14 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
     list: TLegacyObjConfigList;
     full_id: TLegacyTemplateId;
     idx: LongInt;
+    byte_idx, bit_idx: integer;
+    str: String;
+
+    passable, active: Boolean;
+    mask_conf: TJSONArray;
+    anim: TDef;
+    width_tiles: Integer;
+    height_tiles: Integer;
 begin
   objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
@@ -640,20 +639,57 @@ begin
       def.FSubType := CellToInt;
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
-      def.Def := GraphicsManager.GetPreloadedGraphics(def.FFilename);
-      //FDefs.Add(def);
 
-      //
+      anim := GraphicsManager.GetPreloadedGraphics(def.FFilename);
 
-      full_id := TypToId(def.FTyp, def.FSubType);
+      //todo: use .msk
+
+      width_tiles := (anim.Width div TILE_SIZE);
+      height_tiles := (anim.Height div TILE_SIZE);
+
+      width_tiles := min(width_tiles, 8);
+      height_tiles:= min(height_tiles, 6);
 
       legacy_config := TJSONObject.Create;
 
       legacy_config.Strings['animation'] := def.Filename;
-      legacy_config.Integers['zIndex'] := (-def.IsOverlay) * 1000000;
+      legacy_config.Integers['zIndex'] := def.IsOverlay * Z_INDEX_OVERLAY;
 
-      //TODO: visitableFrom, allowedTerrains, mask, zindex
+      mask_conf := TJSONArray.Create;
 
+      for byte_idx := height_tiles-1 downto 0 do
+      begin
+        str := '';
+        for bit_idx := width_tiles-1 downto 0 do
+        begin
+          //assume visible
+          passable:=(def.FPassability[byte_idx] and (1 shl bit_idx))>0;
+
+          active:=(def.FActions[byte_idx] and (1 shl bit_idx))>0;
+
+          if active then
+          begin
+            str += 'A';
+          end
+          else begin
+            if passable then
+            begin
+              str += 'V';
+            end
+            else begin
+              str += 'B';
+            end;
+          end;
+        end;
+        UniqueString(str);
+        mask_conf.Add(str);
+      end;
+
+      legacy_config.Add('mask', mask_conf);
+
+      //TODO: visitableFrom, allowedTerrains, mask
+
+      full_id := TypToId(def.FTyp, def.FSubType);
       idx := AFullIdToDefMap.IndexOf(full_id);
 
       if idx = -1 then
@@ -667,7 +703,7 @@ begin
       end;
 
       list.Add(legacy_config);
-
+      def.Free;
     end;
 
   finally

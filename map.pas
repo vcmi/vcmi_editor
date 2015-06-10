@@ -799,7 +799,7 @@ begin
 
   FMask.Assign(AOther.Mask);
   FVisitableFrom.Assign(AOther.VisitableFrom);
-  //FZIndex := AOther.IsOverlay * Z_INDEX_OVERLAY;
+  FZIndex := AOther.ZIndex;
 end;
 
 function TMapObjectTemplate.GetMask: TStrings;
@@ -814,7 +814,7 @@ end;
 
 function TMapObjectTemplate.GetVisitableFrom: TStrings;
 begin
-
+  Result := FVisitableFrom;
 end;
 
 procedure TMapObjectTemplate.SetType(AValue: AnsiString);
