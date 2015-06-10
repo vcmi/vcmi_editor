@@ -641,7 +641,8 @@ begin
   owner := GetPlayer;
   Template.FDef.RenderO(Frame, Ax,Ay,GetPlayer);
 
-  if (owner <> TPlayer.none) and (TObj(Template.Id) in [TObj.HERO, TObj.RANDOM_HERO, TObj.HERO_PLACEHOLDER]) then
+  if (owner <> TPlayer.none) and
+    ((Template.&type = 'hero') or (Template.&type = 'randomHero') or (Template.&type = 'heroPlaceholder')) then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
   end;
