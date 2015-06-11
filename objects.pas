@@ -434,6 +434,9 @@ var
   destreamer: TVCMIJSONDestreamer;
 
   FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
+  i: Integer;
+  lst: TLegacyObjConfigList;
+  item: TJSONObject;
 begin
   FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
   LoadLegacy(AProgressCallback,FFullIdToDefMap);
@@ -446,13 +449,24 @@ begin
   try
     FConfig.Load(APaths,ResourceLoader, FCombinedConfig);
 
-    //todo: add factions, heroes etc
     AddFactions(FCombinedConfig);
     AddHeroClasses(FCombinedConfig);
     AddCreatures(FCombinedConfig);
     AddArtifacts(FCombinedConfig);
 
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
+
+    for i := 0 to FFullIdToDefMap.Count - 1 do
+    begin
+      lst := FFullIdToDefMap.Data[i];
+      DebugLn(['unused legacy data ', Hi(FFullIdToDefMap.Keys[i]), ' ' , Lo(FFullIdToDefMap.Keys[i])]);
+
+      for item in lst do
+      begin
+
+        DebugLn(item.AsJSON);
+      end;
+    end;
 
     HandleInteritance(FCombinedConfig);
 
@@ -463,8 +477,6 @@ begin
     FCombinedConfig.Free;
     FConfig.Free;
     destreamer.Free;
-
-    //todo: report unused objects
 
     FFullIdToDefMap.Free;
   end;
@@ -963,14 +975,7 @@ begin
 
     cr := TJSONObject.Create;
     cr.Add('index', cr_info.Index);
-
-    if cr_info.Graphics.Map <> '' then
-    begin
-
-      templates := cr.GetOrCreateObject('templates');
-
-      templates.Add('default', TJSONObject.Create(['animation', cr_info.Graphics.Map]));
-    end;
+    cr_info.Graphics.AddTemplates(cr);
 
     creatures.Add(cr_info.ID, cr);
   end;
@@ -988,16 +993,10 @@ begin
   for i := 0 to ListsManager.ArtifactInfos.Count - 1 do
   begin
     info := ListsManager.ArtifactInfos[i];
-
     ar := TJSONObject.Create;
     ar.Add('index', info.Index);
 
-    if info.Graphics.Map <> '' then
-    begin
-      templates := ar.GetOrCreateObject('templates');
-      templates.Add('default', TJSONObject.Create(['animation', info.Graphics.Map]));
-    end;
-
+    info.Graphics.AddTemplates(ar);
     artifacts.Add(info.ID, ar);
   end;
 

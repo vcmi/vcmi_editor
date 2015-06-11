@@ -160,6 +160,8 @@ type
   private
     FMap: AnsiString;
     procedure SetMap(AValue: AnsiString);
+  public
+    procedure AddTemplates(ASubtypeConfig: TJSONObject);
   published
     property Map: AnsiString read FMap write SetMap;
   end;
@@ -352,6 +354,17 @@ procedure TBaseGraphics.SetMap(AValue: AnsiString);
 begin
   if FMap=AValue then Exit;
   FMap:=AValue;
+end;
+
+procedure TBaseGraphics.AddTemplates(ASubtypeConfig: TJSONObject);
+var
+  templates: TJSONObject;
+begin
+  if Map <> '' then
+  begin
+    templates := ASubtypeConfig.GetOrCreateObject('templates');
+    templates.Add('default', TJSONObject.Create(['animation', Map]));
+  end;
 end;
 
 { TArtifactInfo }
