@@ -488,7 +488,6 @@ function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions; deprec
 var
   c: TObjectOptionsClass;
 begin
-  //TODO: CreateByID
   c := TObjectOptions;
   case TObj(ID) of
 
@@ -604,7 +603,6 @@ function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
 var
   c: TObjectOptionsClass;
 begin
-  //TODO: CreateByID
   c := TObjectOptions;
 
   case ID of

@@ -165,13 +165,19 @@ end;
 
 procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
 begin
+  if(ASrc.JSONType = jtNull) then
+  begin
+    ADest.Clear;
+    exit;
+  end;
+
   if not (ASrc.JSONType = ADest.JSONType) then
   begin
     raise EJSON.Create('Incompatible JSON values');
   end;
 
   case ASrc.JSONType of
-    jtNull: ;//todo: clear dest?
+    jtNull: assert(false);
     jtArray: MergeJsonStruct(ASrc as TJSONArray, ADest as TJSONArray) ;
     jtBoolean: ADest.AsBoolean := ASrc.AsBoolean ;
     jtNumber:begin
