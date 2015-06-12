@@ -63,6 +63,9 @@ type
        ACallback: TIdToString; Negate: Boolean = True);
 
      function ReadID1(ACallback: TIdToString; AIDRandom:TCustomID = ID_RANDOM): AnsiString;
+     procedure ReadArtifactSet(ADest: TStrings);
+
+     procedure ReadCreatureSet(ACreatureSet: TCreatureSet); //any size
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -82,6 +85,7 @@ type
      procedure ReadDefInfo();//+
 
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet; nomber: Integer);
+
      procedure ReadArtifactsOfHero(obj: TMapObject);//+
      procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
 
@@ -389,6 +393,21 @@ begin
   end;
 end;
 
+procedure TMapReaderH3m.ReadArtifactSet(ADest: TStrings);
+var
+  cnt: Byte;
+  i: Integer;
+  artid: Word;
+begin
+  ADest.Clear;
+  cnt := FSrc.ReadByte();
+  for i := 0 to cnt - 1 do
+  begin
+    artid := FSrc.ReadWord;
+    ADest.Add(FMapEnv.lm.ArtifactIndexToString(artid));
+  end;
+end;
+
 procedure TMapReaderH3m.ReadCreatureSet(ACreatureSet: TCreatureSet;
   nomber: Integer);
 var
@@ -405,9 +424,9 @@ begin
   ACreatureSet.Clear;
 
   with FSrc do begin
-    info := ACreatureSet.Add;
     for i := 0 to nomber - 1 do
     begin
+      info := ACreatureSet.Add;
       if version then
       begin
         creid := ReadWord;
@@ -419,12 +438,38 @@ begin
       if creid = maxID then
         Continue;// empty slot, leave with default values
 
-      info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
-      info.CreCount := crecnt;
-
-      //todo: random count
-
+      if creid > maxID - $f then
+      begin
+        //maxID - creID - 1
+        //todo: random count
+      end
+      else begin
+          info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
+          info.CreCount := crecnt;
+      end;
     end;
+  end;
+end;
+
+procedure TMapReaderH3m.ReadCreatureSet(ACreatureSet: TCreatureSet);
+var
+  cnt: Byte;
+  i: Integer;
+  creid: Word;
+  crecnt: Word;
+
+  info: TCreatureInstInfo;
+begin
+  ACreatureSet.Clear;
+
+  cnt := FSrc.ReadByte;
+  for i := 0 to cnt - 1 do
+  begin
+    creid := FSrc.ReadWord;
+    crecnt := FSrc.ReadWord;
+    info := ACreatureSet.Add;
+    info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
+    info.CreCount := crecnt;
   end;
 end;
 
@@ -1097,42 +1142,43 @@ var
 begin
   Result := FSrc.ReadByte;
 
+  obj.MissionType:=TQuestMission(Result);
+
   with FSrc do
   begin
-    case Result of
-      0: Exit;
-      2:begin
+    case obj.MissionType of
+      TQuestMission.None: Exit;
+      TQuestMission.PrimaryStat:begin
         SkipNotImpl(4);
       end;
-      1,3,4:begin
+      TQuestMission.Level, TQuestMission.KillHero, TQuestMission.KillCreature: begin
         SkipNotImpl(4);
       end;
-      5:begin
-        cnt := ReadByte;
-        for i := 0 to cnt - 1 do
-        begin
-          SkipNotImpl(2); //artifacts
-        end;
+      TQuestMission.Artifact: begin
+        ReadArtifactSet(obj.Artifacts);
       end;
-      6:begin
-        cnt := ReadByte;
-        for i := 0 to cnt - 1 do
-        begin
-          SkipNotImpl(2); //creature type
-          SkipNotImpl(2); //creature count
-        end;
+      TQuestMission.Army:begin
+        ReadCreatureSet(obj.Army);
       end;
-      7:begin
+      TQuestMission.Resources:begin
         SkipNotImpl(28);  //resources
       end;
-      8,9:begin
+      TQuestMission.Hero,TQuestMission.Player:begin
         SkipNotImpl(1);
       end;
 
     end;
 
-    //
+
     limit := ReadDWord;
+
+    if limit = $ffffffff then
+    begin
+      obj.TimeLimit:=-1;
+    end
+    else begin
+      obj.TimeLimit:=limit;
+    end;
 
     obj.FirstVisitText := ReadLocalizedString;
     obj.NextVisitText := ReadLocalizedString;

@@ -86,18 +86,38 @@ type
 {$m+}
   { TQuest }
 
+  TQuestMission = (None=0, Level=1, PrimaryStat=2, KillHero=3, KillCreature=4, Artifact=5, Army=6, Resources=7, Hero=8, Player=9, Keymaster=10);
+
   TQuest = class
   private
+    FArmy: TCreatureSet;
     FCompletedText: TLocalizedString;
     FFirstVisitText: TLocalizedString;
+    FMissionType: TQuestMission;
     FNextVisitText: TLocalizedString;
+    FTimeLimit: Integer;
+    FArtifacts:TStringList;
+    function GetArtifacts: TStrings;
+    function IsArmyStored: Boolean;
+    function IsArtifactsStored: Boolean;
     procedure SetCompletedText(AValue: TLocalizedString);
     procedure SetFirstVisitText(AValue: TLocalizedString);
+    procedure SetMissionType(AValue: TQuestMission);
     procedure SetNextVisitText(AValue: TLocalizedString);
+    procedure SetTimeLimit(AValue: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
   published
     property FirstVisitText: TLocalizedString read FFirstVisitText write SetFirstVisitText;
     property NextVisitText: TLocalizedString read FNextVisitText write SetNextVisitText;
     property CompletedText: TLocalizedString read FCompletedText write SetCompletedText;
+
+    property MissionType: TQuestMission read FMissionType write SetMissionType default TQuestMission.None;
+    property TimeLimit: Integer read FTimeLimit write SetTimeLimit default -1;
+
+    property Artifacts: TStrings read GetArtifacts stored IsArtifactsStored;
+    property Army: TCreatureSet read FArmy stored IsArmyStored;
   end;
 {$pop}
 
@@ -711,14 +731,55 @@ begin
   FCompletedText := AValue;
 end;
 
+function TQuest.GetArtifacts: TStrings;
+begin
+  Result := FArtifacts;
+end;
+
+function TQuest.IsArmyStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Army;
+end;
+
+function TQuest.IsArtifactsStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Artifact;
+end;
+
 procedure TQuest.SetFirstVisitText(AValue: TLocalizedString);
 begin
   FFirstVisitText := AValue;
 end;
 
+procedure TQuest.SetMissionType(AValue: TQuestMission);
+begin
+  if FMissionType=AValue then Exit;
+  FMissionType:=AValue;
+end;
+
 procedure TQuest.SetNextVisitText(AValue: TLocalizedString);
 begin
   FNextVisitText := AValue;
+end;
+
+procedure TQuest.SetTimeLimit(AValue: Integer);
+begin
+  if FTimeLimit=AValue then Exit;
+  FTimeLimit:=AValue;
+end;
+
+constructor TQuest.Create;
+begin
+  TimeLimit := -1;
+  FArtifacts := TStringList.Create;
+  FArmy := TCreatureSet.Create(0);
+end;
+
+destructor TQuest.Destroy;
+begin
+  FArmy.Free;
+  FArtifacts.Free;
+  inherited Destroy;
 end;
 
 { THeroPlaceholderOptions }
