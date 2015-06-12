@@ -173,6 +173,8 @@ const
   OBJECT_METACLASS = 'object';
 
   RESOURCE_NAMESPACE = 'resource';
+  RESOURCE_NAMES: array[TResType] of AnsiString =
+  ('wood',  'mercury', 'ore', 'sulfur', 'crystal', 'gems', 'gold', 'mithril');
 
   PRIMARY_SKILL_NAMESPACE = 'primSkill';
   PRIMARY_SKILL_NAMES: array[TPrimarySkill] of AnsiString =

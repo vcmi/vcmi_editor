@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, object_options, map, base_object_options_frame;
+  StdCtrls, object_options, map, base_object_options_frame, monster_frame;
 
 type
 
@@ -57,7 +57,7 @@ type
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
     procedure VisitHero(AOptions: THeroOptions);
-    procedure VisitMonster(AOptions: TMonsterOptions);
+    procedure VisitMonster(AOptions: TMonsterOptions);//+
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
     procedure VisitScholar(AOptions: TScholarOptions);
@@ -199,7 +199,7 @@ end;
 
 procedure TEditObjectOptions.VisitMonster(AOptions: TMonsterOptions);
 begin
-
+  CreateFrame(TMonsterFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitOwnedObject(AOptions: TOwnedObjectOptions);

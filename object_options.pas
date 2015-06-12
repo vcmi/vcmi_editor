@@ -236,21 +236,21 @@ type
   private
     FCharacter: Integer;
     FCount: Integer;
-    FHasReward: Boolean;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
+    FRandomCount: Boolean;
     FRewardArtifact: AnsiString;
     FRewardMessage: TLocalizedString;
     FRewardResources: TResourceSet;
-    function GetHasReward: Boolean;
+    function IsCountStored: Boolean;
     function IsRewardArtifactStored: Boolean;
     function IsRewardMessageStored: Boolean;
     function IsRewardResourcesStored: Boolean;
     procedure SetCharacter(AValue: Integer);
     procedure SetCount(AValue: Integer);
-    procedure SetHasReward(AValue: Boolean);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
+    procedure SetRandomCount(AValue: Boolean);
     procedure SetRewardArtifact(AValue: AnsiString);
     procedure SetRewardMessage(AValue: TLocalizedString);
   public
@@ -260,10 +260,9 @@ type
   published
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
-    property Count: Integer read FCount write SetCount nodefault;
+    property RandomCount: Boolean read FRandomCount write SetRandomCount default False;
+    property Count: Integer read FCount write SetCount stored IsCountStored nodefault;
     property Character: Integer read FCharacter write SetCharacter nodefault;
-
-    property HasReward: Boolean read GetHasReward write SetHasReward;
 
     property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
     property RewardResources: TResourceSet read FRewardResources stored IsRewardResourcesStored;
@@ -1323,24 +1322,24 @@ begin
   FCount:=AValue;
 end;
 
-function TMonsterOptions.GetHasReward: Boolean;
-begin
-  Result := FHasReward;
-end;
-
 function TMonsterOptions.IsRewardArtifactStored: Boolean;
 begin
-  Result := HasReward and (FRewardArtifact <> '');
+  Result := (FRewardArtifact <> '');
+end;
+
+function TMonsterOptions.IsCountStored: Boolean;
+begin
+  Result := not RandomCount;
 end;
 
 function TMonsterOptions.IsRewardMessageStored: Boolean;
 begin
-  Result := HasReward and (FRewardMessage <> '');
+  Result := (FRewardMessage <> '');
 end;
 
 function TMonsterOptions.IsRewardResourcesStored: Boolean;
 begin
-  Result := HasReward and (not FRewardResources.IsEmpty);
+  Result := (not FRewardResources.IsEmpty);
 end;
 
 procedure TMonsterOptions.SetCharacter(AValue: Integer);
@@ -1349,15 +1348,15 @@ begin
   FCharacter:=AValue;
 end;
 
-procedure TMonsterOptions.SetHasReward(AValue: Boolean);
-begin
-  if FHasReward=AValue then Exit;
-  FHasReward:=AValue;
-end;
-
 procedure TMonsterOptions.SetNoGrowing(AValue: boolean);
 begin
   FNoGrowing := AValue;
+end;
+
+procedure TMonsterOptions.SetRandomCount(AValue: Boolean);
+begin
+  if FRandomCount=AValue then Exit;
+  FRandomCount:=AValue;
 end;
 
 procedure TMonsterOptions.SetRewardArtifact(AValue: AnsiString);

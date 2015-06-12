@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="53">
+    <Units Count="54">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -384,6 +384,13 @@
         <Filename Value="base_info.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit52>
+      <Unit53>
+        <Filename Value="forms\monster_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="MonsterFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit53>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

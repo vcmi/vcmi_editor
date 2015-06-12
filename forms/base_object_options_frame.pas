@@ -24,8 +24,10 @@ unit base_object_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil, Forms, Controls, object_options,
-  lists_manager;
+  Classes, SysUtils, gvector, FileUtil, Forms, Controls, Spin,
+  editor_types,
+  object_options,
+  lists_manager, editor_consts;
 
 type
 
@@ -35,7 +37,9 @@ type
   private
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
-    { private declarations }
+  protected
+    procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
+    procedure SaveResourceSet(AParentControl: TWinControl; ADest: TResourceSet);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -110,6 +114,67 @@ procedure TBaseObjectOptionsFrame.SetListsManager(AValue: TListsManager);
 begin
   if FListsManager = AValue then Exit;
   FListsManager := AValue;
+end;
+
+procedure TBaseObjectOptionsFrame.ReadResourceSet(AParentControl: TWinControl;
+  ASrc: TResourceSet);
+var
+  res_type: TResType;
+  c: TControl;
+  res_name: String;
+  editor: TCustomSpinEdit;
+begin
+  for res_type in TResType do
+  begin
+    res_name := RESOURCE_NAMES[res_type];
+
+    c := AParentControl.FindChildControl('ed'+res_name);
+
+    if not Assigned(c) then
+    begin
+      Assert(false, 'no editor control for '+res_name);
+    end;
+
+    if not (c is TCustomSpinEdit) then
+    begin
+      Assert(false, 'wrong conrol class for '+res_name+ ' '+c.ClassName);
+    end;
+
+    editor := TCustomSpinEdit(c);
+
+    editor.Value := ASrc.Amount[res_type];
+  end;
+end;
+
+procedure TBaseObjectOptionsFrame.SaveResourceSet(AParentControl: TWinControl;
+  ADest: TResourceSet);
+var
+  res_type: TResType;
+  c: TControl;
+  res_name: String;
+  editor: TCustomSpinEdit;
+begin
+  for res_type in TResType do
+  begin
+    res_name := RESOURCE_NAMES[res_type];
+
+    c := AParentControl.FindChildControl('ed'+res_name);
+
+    if not Assigned(c) then
+    begin
+      Assert(false, 'no editor control for '+res_name);
+    end;
+
+    if not (c is TCustomSpinEdit) then
+    begin
+       Assert(false, 'wrong conrol class for '+res_name+ ' '+c.ClassName);
+    end;
+
+    editor := TCustomSpinEdit(c);
+
+    ADest.Amount[res_type] := editor.Value;
+  end;
+
 end;
 
 procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

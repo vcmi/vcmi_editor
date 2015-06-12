@@ -815,6 +815,8 @@ end;
 
 
 procedure TMapReaderH3m.VisitMonster(AOptions: TMonsterOptions);
+var
+  HasReward: Boolean;
 begin
   with FSrc do
   begin
@@ -823,9 +825,9 @@ begin
     AOptions.Count := ReadWord;
     AOptions.Character := ReadByte;
 
-    AOptions.HasReward:=ReadBoolean;
+    HasReward:=ReadBoolean;
 
-    if AOptions.HasReward then
+    if HasReward then
     begin
       AOptions.RewardMessage := ReadLocalizedString;
       ReadResources(AOptions.RewardResources);

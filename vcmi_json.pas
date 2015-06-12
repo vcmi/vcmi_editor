@@ -343,6 +343,7 @@ var
   PropType: PTypeInfo;
   Value: Int64;
   DefValue: Int64;
+  SValue: String;
 begin
   inherited DoBeforeStreamProperty(AObject, PropertyInfo, Skip);
 
@@ -362,6 +363,13 @@ begin
       if (Value = DefValue) and (DefValue<>longint($80000000)) then
       begin
         Skip := True;
+      end;
+    end;
+    tkString:begin
+      SValue := GetStrProp(AObject, PropertyInfo);
+      if SValue = '' then
+      begin
+         Skip := True;
       end;
     end;
   end;
