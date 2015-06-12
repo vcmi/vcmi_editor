@@ -39,6 +39,7 @@ type
 
   TDifficulty = (EASY = 0, NORMAL, HARD, EXPERT, IMPOSSIBLE);
 
+  TPrimarySkill = (attack=0, defence=1, spellpower=2, knowledge=3);
 {$pop}
 
   TPlayerColor = TPlayer.RED..TPlayer.PINK;

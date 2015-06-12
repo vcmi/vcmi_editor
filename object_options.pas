@@ -37,6 +37,7 @@ type
   TObjectOptionsClass = class of TObjectOptions;
   IObjectOptionsVisitor = interface;
 
+
   TObjectOptions = class
   private
     FOwner: TPlayer;
@@ -81,9 +82,32 @@ type
     property MaxSize: Integer read FMaxSize;
   end;
 
+  {$push}
+  {$m+}
 
-{$push}
-{$m+}
+  { TResourceSet }
+
+  TResourceSet = class
+  private
+    Fvalue: array[TResType] of Integer;
+
+    function GetAmount(AType: TResType): integer;
+    procedure SetAmount(AType: TResType; AValue: integer);
+  public
+    property Amount[AType: TResType]: integer read GetAmount write SetAmount;
+    function IsEmpty: Boolean;
+  published
+    property Wood: integer index TResType.wood read GetAmount write SetAmount default 0;
+    property Mercury: integer index TResType.mercury read GetAmount write SetAmount default 0;
+    property Ore: integer index TResType.ore read GetAmount write SetAmount default 0;
+    property Sulfur: integer index TResType.sulfur read GetAmount write SetAmount default 0;
+    property Crystal: integer index TResType.crystal read GetAmount write SetAmount default 0;
+    property Gems: integer index TResType.gems read GetAmount write SetAmount default 0;
+    property Gold: integer index TResType.gold read GetAmount write SetAmount default 0;
+    property Mithril: integer index TResType.mithril read GetAmount write SetAmount default 0;
+  end;
+
+
   { TQuest }
 
   TQuestMission = (None=0, Level=1, PrimaryStat=2, KillHero=3, KillCreature=4, Artifact=5, Army=6, Resources=7, Hero=8, Player=9, Keymaster=10);
@@ -95,11 +119,13 @@ type
     FFirstVisitText: TLocalizedString;
     FMissionType: TQuestMission;
     FNextVisitText: TLocalizedString;
+    FResources: TResourceSet;
     FTimeLimit: Integer;
     FArtifacts:TStringList;
     function GetArtifacts: TStrings;
     function IsArmyStored: Boolean;
     function IsArtifactsStored: Boolean;
+    function IsResourcesStored: Boolean;
     procedure SetCompletedText(AValue: TLocalizedString);
     procedure SetFirstVisitText(AValue: TLocalizedString);
     procedure SetMissionType(AValue: TQuestMission);
@@ -118,6 +144,7 @@ type
 
     property Artifacts: TStrings read GetArtifacts stored IsArtifactsStored;
     property Army: TCreatureSet read FArmy stored IsArmyStored;
+    property Resources: TResourceSet read FResources stored IsResourcesStored;
   end;
 {$pop}
 
@@ -207,15 +234,40 @@ type
 
   TMonsterOptions = class(TObjectOptions)
   private
+    FCharacter: Integer;
+    FCount: Integer;
+    FHasReward: Boolean;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
+    FRewardArtifact: AnsiString;
+    FRewardMessage: TLocalizedString;
+    FRewardResources: TResourceSet;
+    function GetHasReward: Boolean;
+    function IsRewardArtifactStored: Boolean;
+    function IsRewardMessageStored: Boolean;
+    function IsRewardResourcesStored: Boolean;
+    procedure SetCharacter(AValue: Integer);
+    procedure SetCount(AValue: Integer);
+    procedure SetHasReward(AValue: Boolean);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
+    procedure SetRewardArtifact(AValue: AnsiString);
+    procedure SetRewardMessage(AValue: TLocalizedString);
   public
+    constructor Create; override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
+    property Count: Integer read FCount write SetCount nodefault;
+    property Character: Integer read FCharacter write SetCharacter nodefault;
+
+    property HasReward: Boolean read GetHasReward write SetHasReward;
+
+    property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
+    property RewardResources: TResourceSet read FRewardResources stored IsRewardResourcesStored;
+    property RewardArtifact: AnsiString read FRewardArtifact write SetRewardArtifact stored IsRewardArtifactStored;
   end;
 
   { TSeerHutOptions }
@@ -246,11 +298,23 @@ type
     property AllowedSkills: TStrings read GetAllowedSkills;
   end;
 
+  TScholarBonus = (primSkill=0,skill=1,spell=2, random=$ff);
+
   { TScholarOptions }
 
   TScholarOptions = class(TObjectOptions)
+  private
+    FBonusType: TScholarBonus;
+    FBonusId: AnsiString;
+    function IsBonusIdStored: Boolean;
+    procedure SetBonusType(AValue: TScholarBonus);
+    procedure SetBonusId(AValue: AnsiString);
   public
+    constructor Create; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property BonusType: TScholarBonus read FBonusType write SetBonusType;
+    property BonusId: AnsiString read FBonusId write SetBonusId stored IsBonusIdStored;
   end;
 
   { TGarrisonOptions }
@@ -307,16 +371,13 @@ type
   private
     FGarrison: TCreatureSet;
     FName: TLocalizedString;
-    FQuestIdentifier: UInt32;
     procedure SetName(AValue: TLocalizedString);
-    procedure SetQuestIdentifier(AValue: UInt32);
   public
     constructor Create; override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property Garrison: TCreatureSet read FGarrison;
-    property QuestIdentifier: UInt32 read FQuestIdentifier write SetQuestIdentifier;
     property Name: TLocalizedString read FName write SetName;
   end;
 
@@ -717,6 +778,28 @@ begin
   Result := c.Create;
 end;
 
+{ TResourceSet }
+
+function TResourceSet.GetAmount(AType: TResType): integer;
+begin
+  Result :=  Fvalue[AType];
+end;
+
+procedure TResourceSet.SetAmount(AType: TResType; AValue: integer);
+begin
+  Fvalue[AType] := AValue;
+end;
+
+function TResourceSet.IsEmpty: Boolean;
+var
+  v: Integer;
+begin
+  for v in Fvalue do
+    if v>0 then
+      Exit(False);
+  Exit(true)
+end;
+
 { TAbandonedOptions }
 
 procedure TAbandonedOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -746,6 +829,11 @@ begin
   Result := MissionType = TQuestMission.Artifact;
 end;
 
+function TQuest.IsResourcesStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Resources;
+end;
+
 procedure TQuest.SetFirstVisitText(AValue: TLocalizedString);
 begin
   FFirstVisitText := AValue;
@@ -773,10 +861,12 @@ begin
   TimeLimit := -1;
   FArtifacts := TStringList.Create;
   FArmy := TCreatureSet.Create(0);
+  FResources := TResourceSet.Create;
 end;
 
 destructor TQuest.Destroy;
 begin
+  FResources.Free;
   FArmy.Free;
   FArtifacts.Free;
   inherited Destroy;
@@ -1068,11 +1158,6 @@ begin
   FName := AValue;
 end;
 
-procedure TTownOptions.SetQuestIdentifier(AValue: UInt32);
-begin
-  FQuestIdentifier := AValue;
-end;
-
 { TResourceOptions }
 
 procedure TResourceOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -1137,6 +1222,29 @@ end;
 
 { TScholarOptions }
 
+procedure TScholarOptions.SetBonusType(AValue: TScholarBonus);
+begin
+  if FBonusType=AValue then Exit;
+  FBonusType:=AValue;
+end;
+
+function TScholarOptions.IsBonusIdStored: Boolean;
+begin
+  Result := BonusType<>TScholarBonus.random;
+end;
+
+procedure TScholarOptions.SetBonusId(AValue: AnsiString);
+begin
+  if FBonusId=AValue then Exit;
+  FBonusId:=AValue;
+end;
+
+constructor TScholarOptions.Create;
+begin
+  inherited Create;
+  FBonusType:=TScholarBonus.random;
+end;
+
 procedure TScholarOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitScholar(Self);
@@ -1159,12 +1267,12 @@ begin
   FAllowedSkills.Duplicates := dupIgnore;
 
   //todo: make it configurable
-  for i := 0 to SKILL_QUANTITY - 1 do
+  for i := 0 to SECONDARY_SKILL_QUANTITY - 1 do
   begin
-    FAllowedSkills.Add(SKILL_NAMES[i]);
+    FAllowedSkills.Add(SECONDARY_SKILL_NAMES[i]);
   end;
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[6]));
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SKILL_NAMES[12]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SECONDARY_SKILL_NAMES[6]));
+  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SECONDARY_SKILL_NAMES[12]));
 end;
 
 destructor TWitchHutOptions.Destroy;
@@ -1209,9 +1317,71 @@ begin
   FNeverFlees := AValue;
 end;
 
+procedure TMonsterOptions.SetCount(AValue: Integer);
+begin
+  if FCount=AValue then Exit;
+  FCount:=AValue;
+end;
+
+function TMonsterOptions.GetHasReward: Boolean;
+begin
+  Result := FHasReward;
+end;
+
+function TMonsterOptions.IsRewardArtifactStored: Boolean;
+begin
+  Result := HasReward and (FRewardArtifact <> '');
+end;
+
+function TMonsterOptions.IsRewardMessageStored: Boolean;
+begin
+  Result := HasReward and (FRewardMessage <> '');
+end;
+
+function TMonsterOptions.IsRewardResourcesStored: Boolean;
+begin
+  Result := HasReward and (not FRewardResources.IsEmpty);
+end;
+
+procedure TMonsterOptions.SetCharacter(AValue: Integer);
+begin
+  if FCharacter=AValue then Exit;
+  FCharacter:=AValue;
+end;
+
+procedure TMonsterOptions.SetHasReward(AValue: Boolean);
+begin
+  if FHasReward=AValue then Exit;
+  FHasReward:=AValue;
+end;
+
 procedure TMonsterOptions.SetNoGrowing(AValue: boolean);
 begin
   FNoGrowing := AValue;
+end;
+
+procedure TMonsterOptions.SetRewardArtifact(AValue: AnsiString);
+begin
+  if FRewardArtifact=AValue then Exit;
+  FRewardArtifact:=AValue;
+end;
+
+procedure TMonsterOptions.SetRewardMessage(AValue: TLocalizedString);
+begin
+  if FRewardMessage=AValue then Exit;
+  FRewardMessage:=AValue;
+end;
+
+constructor TMonsterOptions.Create;
+begin
+  inherited Create;
+  FRewardResources := TResourceSet.Create;
+end;
+
+destructor TMonsterOptions.Destroy;
+begin
+  FRewardResources.Free;
+  inherited Destroy;
 end;
 
 { THeroOptions }

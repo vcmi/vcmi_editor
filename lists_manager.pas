@@ -954,9 +954,9 @@ var
   info: TSkillInfo;
   i: Integer;
 begin
-  for i := 0 to SKILL_QUANTITY - 1 do
+  for i := 0 to SECONDARY_SKILL_QUANTITY - 1 do
   begin
-    FNameMap.Insert('skill.' + SKILL_NAMES[i], i);
+    FNameMap.Insert('skill.' + SECONDARY_SKILL_NAMES[i], i);
   end;
 
   FSkillInfos.Clear;
@@ -967,7 +967,7 @@ begin
     for i := 2 to sstraits.RowCount - 1 do
     begin
       info := TSkillInfo.Create;
-      info.ID := SKILL_NAMES[i-2];
+      info.ID := SECONDARY_SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
       FSkillInfos.Add(info);
       FSkillMap.AddObject(info.ID,info);
@@ -1108,7 +1108,7 @@ end;
 
 function TListsManager.SkillNidToString(ASkill: TCustomID): AnsiString;
 begin
-  Result := {'skill.' + }editor_consts.SKILL_NAMES[ASkill];
+  Result := editor_consts.SECONDARY_SKILL_NAMES[ASkill];
 end;
 
 function TListsManager.SpellIndexToString(ASpell: TCustomID): AnsiString;

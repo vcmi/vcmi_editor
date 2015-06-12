@@ -322,7 +322,6 @@ type
     function CoversTile(ALevel, AX, AY: Integer): boolean;
 
     function HasOptions: boolean;
-
   published
     property Index;
     property X:integer read FX write SetX;

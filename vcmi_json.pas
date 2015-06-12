@@ -355,7 +355,7 @@ begin
   end;
 
   case PropType^.Kind of
-    tkInteger, tkChar, tkEnumeration, tkWChar,tkSet: begin
+    tkInteger, tkChar, tkEnumeration, tkWChar,tkSet, tkBool: begin
       Value := GetOrdProp(AObject, PropertyInfo);
       DefValue := PropertyInfo^.Default;
 

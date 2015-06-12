@@ -5,7 +5,7 @@ unit editor_consts;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, editor_types;
 
 type //h3 object types
   TObj = (
@@ -174,10 +174,14 @@ const
 
   RESOURCE_NAMESPACE = 'resource';
 
-  SKILL_QUANTITY = 28;
-  SKILL_NAMESPACE = 'skill';
+  PRIMARY_SKILL_NAMESPACE = 'primSkill';
+  PRIMARY_SKILL_NAMES: array[TPrimarySkill] of AnsiString =
+  ('attack', 'defence', 'spellpower', 'knowledge');
 
-  SKILL_NAMES: array[0..SKILL_QUANTITY - 1] of string =
+  SECONDARY_SKILL_QUANTITY = 28;
+  SECONDARY_SKILL_NAMESPACE = 'skill';
+
+  SECONDARY_SKILL_NAMES: array[0..SECONDARY_SKILL_QUANTITY - 1] of string =
   (
     'pathfinding',  'archery',      'logistics',    'scouting',     'diplomacy',    //  5
     'navigation',   'leadership',   'wisdom',       'mysticism',    'luck',         // 10
