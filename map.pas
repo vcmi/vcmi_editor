@@ -92,7 +92,7 @@ type
     FMainTownX: Integer;
     FMainTownY: Integer;
     FRandomHero: Boolean;
-    FMainHeroClass: THeroClassID;
+    FMainHeroClass: AnsiString;
     FTeamId: Integer;
     function GetAllowedFactions: TStrings;
     procedure SetAITactics(AValue: TAITactics);
@@ -109,7 +109,7 @@ type
     procedure SetMainTownX(AValue: Integer);
     procedure SetMainTownY(AValue: Integer);
     procedure SetRandomHero(AValue: Boolean);
-    procedure SetMainHeroClass(AValue: THeroClassID);
+    procedure SetMainHeroClass(AValue: AnsiString);
     procedure SetTeamId(AValue: Integer);
 
     function IsAllowedFactionsStored: boolean;
@@ -136,7 +136,7 @@ type
     property MainTownL: Integer read FMainTownL write SetMainTownL;
 
 
-    property MainHeroClass: THeroClassID read FMainHeroClass write SetMainHeroClass;
+    property MainHeroClass: AnsiString read FMainHeroClass write SetMainHeroClass;
     property MainHeroPortrait:TCustomID read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
@@ -1004,7 +1004,7 @@ begin
   Result := AllowedFactionsSet;
 end;
 
-procedure TPlayerAttr.SetMainHeroClass(AValue: THeroClassID);
+procedure TPlayerAttr.SetMainHeroClass(AValue: AnsiString);
 begin
   if FMainHeroClass = AValue then Exit;
   FMainHeroClass := AValue;

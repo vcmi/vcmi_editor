@@ -67,7 +67,7 @@ type
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
-    procedure VisitShrine(AOptions: TShrineOptions);
+    procedure VisitShrine(AOptions: TShrineOptions);//+
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+?

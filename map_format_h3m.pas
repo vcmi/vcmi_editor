@@ -34,12 +34,9 @@ const
   MAP_VERSION_WOG = $33;
   MAP_VERSION_HOTA = 30;
 
-
-
   TOTAL_FACTIONS = 9;
   TOTAL_FACTIONS_ROE = 8;
 
-  HEROES_QUANTITY=156;
 
 type
    TOwnerSize = (size1,size4);
@@ -94,8 +91,6 @@ type
 
      procedure ReadObjMask(obj: TMapObjectTemplate);//+
      procedure ReadDefInfo();//+
-
-
 
      procedure ReadArtifactsOfHero(obj: TMapObject);//+
      procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
@@ -1032,6 +1027,7 @@ var
   heroes_count: DWord;
   hero: TPlasedHero;
   h: Integer;
+  Main_Hero_Class: TCustomID;
 
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
@@ -1107,15 +1103,19 @@ begin
   with Attr,FSrc do
   begin
     RandomHero := ReadBoolean; //TODO: check
-    MainHeroClass := ReadIDByte;
+    Main_Hero_Class := ReadIDByte;
 
-    if MainHeroClass <> ID_RANDOM then
+    if Main_Hero_Class <> ID_RANDOM then
     begin
+
+      MainHeroClass:=FMapEnv.lm.HeroClassIndexToString(Main_Hero_Class);
+
       MainHeroPortrait := ReadIDByte;
       MainHeroName := ReadLocalizedString;
     end;
   end;
 
+  //todo: ignore plased heroes and fill aumatically
   if FMapVersion <> MAP_VERSION_ROE then
   begin
     FSrc.Skip(1); //unknown byte
@@ -1143,7 +1143,7 @@ end;
 
 procedure TMapReaderH3m.ReadPredefinedHeroes;
 var
-  enabled: Boolean;
+  custom: Boolean;
   experience: DWord;
   bio: String;
   cnt: Word;
@@ -1154,10 +1154,10 @@ begin
 
   if FMapVersion < MAP_VERSION_SOD then Exit;
 
-  for i := 0 to HEROES_QUANTITY - 1 do
+  for i := 0 to HERO_QUANTITY - 1 do
   begin
-    enabled := FSrc.ReadBoolean;
-    if not enabled then Continue;
+    custom := FSrc.ReadBoolean;
+    if not custom then Continue;
 
     if FSrc.ReadBoolean then
     begin

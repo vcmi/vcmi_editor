@@ -295,6 +295,7 @@ type
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
     property HeroClassMap: TStringList read FHeroClassMap;
+    function HeroClassIndexToString (AIndex: TCustomID):AnsiString;
 
     //Creatures
     function CreatureIndexToString (AIndex: TCustomID): AnsiString;
@@ -689,6 +690,27 @@ begin
   end;
 
   raise Exception.CreateFmt('Faction not found: %d',[AIndex]);
+end;
+
+function TListsManager.HeroClassIndexToString(AIndex: TCustomID): AnsiString;
+var
+  info: THeroClassInfo;
+  i: Integer;
+begin
+  //todo:  optimize
+  Result := '';
+
+  for i := 0 to FHeroClassInfos.Count - 1 do
+  begin
+    info := FHeroClassInfos[i];
+    if info.Index = AIndex then
+    begin
+      Exit(info.ID);
+    end;
+  end;
+
+  raise Exception.CreateFmt('Hero class index not found: %d',[AIndex]);
+
 end;
 
 function TListsManager.CreatureIndexToString(AIndex: TCustomID): AnsiString;
