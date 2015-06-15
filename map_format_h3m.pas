@@ -108,7 +108,7 @@ type
    public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
-     procedure VisitHero(AOptions: THeroOptions);
+     procedure VisitHero(AOptions: THeroOptions);//+
      procedure VisitMonster(AOptions: TMonsterOptions);//+
      procedure VisitSeerHut(AOptions: TSeerHutOptions);
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
@@ -666,17 +666,12 @@ end;
 procedure TMapReaderH3m.VisitHero(AOptions: THeroOptions);
 var
   subid: Byte;
-  hname: String;
   cnt: DWord;
   i: Integer;
-  portr: Byte;
-  exper: DWord;
-  secSkill: Byte;
-  secSkillLevel: Byte;
-  formation: Byte;
+  exper: Int64;
   patrol: Byte;
-  bio: String;
-  sex: Byte;
+
+  secSkill: THeroSecondarySkill;
 begin
   with FSrc do
   begin
@@ -684,13 +679,14 @@ begin
 
     ReadOwner(AOptions, TOwnerSize.size1);
 
-    subid := ReadByte;
+    AOptions.Id:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
 
     if ReadBoolean then
     begin
-      hname := ReadLocalizedString;
+      AOptions.Name := ReadLocalizedString;
     end;
 
+    exper := -1;
     if FMapVersion > MAP_VERSION_AB then
     begin
       if ReadBoolean then
@@ -700,12 +696,19 @@ begin
     end
     else
     begin
+      //0=not set
       exper := ReadDWord;
+      if exper = 0 then
+      begin
+        exper := -1;
+      end;
     end;
+
+    AOptions.Experience:=exper;
 
     if ReadBoolean then
     begin
-      portr := ReadByte;
+      AOptions.Portrait:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
     end;
 
     if ReadBoolean then
@@ -713,8 +716,9 @@ begin
       cnt := ReadDWord;
       for i := 0 to cnt - 1 do
       begin
-        secSkill :=ReadByte;
-        secSkillLevel := ReadByte;
+        secSkill := AOptions.Skills.Add;
+        secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+        secSkill.Level:=ReadByte;
       end;
     end;
 
@@ -723,37 +727,47 @@ begin
       ReadCreatureSet(AOptions.Army,7);
     end;
 
-    formation := ReadByte;
+    AOptions.TightFormation  := ReadBoolean;
     ReadArtifactsOfHero(AOptions.Artifacts);
+
     patrol := ReadByte;
+    if patrol = $FF then
+    begin
+      AOptions.PatrolRadius := -1;
+    end
+    else begin
+      AOptions.PatrolRadius := patrol;
+    end;
+
+    AOptions.Sex := THeroSex.default;
 
     if IsNotROE then
     begin
       if ReadBoolean then
       begin
-        bio := ReadLocalizedString;
+        AOptions.Biography := ReadLocalizedString;
       end;
-      sex := ReadByte;
-    end
-    else begin
-
+      AOptions.Sex  := THeroSex(ReadByte);
     end;
 
     if FMapVersion > MAP_VERSION_AB then
     begin
-      if ReadBoolean then //spells
+      if ReadBoolean then
       begin
-        SkipNotImpl(9);
+        ReadBitmask(AOptions.SpellBook, 9, SPELL_QUANTITY_ACTUAL,@FMapEnv.lm.SpellIndexToString,False);
       end;
     end
     else if FMapVersion = MAP_VERSION_AB then
     begin
-      SkipNotImpl(1);
+      AOptions.SpellBook.Add(ReadID(@FMapEnv.lm.SpellIndexToString,1));
     end;
 
-    if (FMapVersion > MAP_VERSION_AB) and ReadBoolean then //todo:customPrimSkills
+    if (FMapVersion > MAP_VERSION_AB) and ReadBoolean then
     begin
-      SkipNotImpl(4);
+      AOptions.Attack:=ReadByte;
+      AOptions.Defence:=ReadByte;
+      AOptions.Spellpower:=ReadByte;
+      AOptions.Knowledge:=ReadByte;
     end;
 
     skip(16); //junk

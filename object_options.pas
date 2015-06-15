@@ -187,6 +187,25 @@ type
     property Backpack: TStrings read GetBackpack;
   end;
 
+  { THeroSecondarySkill }
+
+  THeroSecondarySkill = class(TNamedCollectionItem)
+  private
+    FLevel: Integer;
+    procedure SetLevel(AValue: Integer);
+  published
+    property Level: Integer read FLevel write SetLevel;
+  end;
+
+
+  { THeroSecondarySkills }
+
+  THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
+
+  end;
+
+  THeroSex = (male=0, female=1, default = $FF);
+
 {$pop}
 
   { TGuardedObjectOptions }
@@ -258,21 +277,62 @@ type
     property AvailableFor: TPlayers read FAvailableFor write SetAvailableFor default ALL_PLAYERS;
   end;
 
-
-
   { THeroOptions }
 
   THeroOptions = class(TOwnedObjectOptions)
   private
     FArmy: TCreatureSet;
     FArtifacts: THeroArtifacts;
+    FAttack: Integer;
+    FBiography: TLocalizedString;
+    FDefence: Integer;
+    FExperience: Int64;
+    FId: AnsiString;
+    FKnowledge: Integer;
+    FName: TLocalizedString;
+    FPatrolRadius: Integer;
+    FPortrait: AnsiString;
+    FSex: THeroSex;
+    FSkills: THeroSecondarySkills;
+    FSpellBook: TStrings;
+    FSpellpower: Integer;
+    FTightFormation: Boolean;
+    procedure SetAttack(AValue: Integer);
+    procedure SetBiography(AValue: TLocalizedString);
+    procedure SetDefence(AValue: Integer);
+    procedure SetExperience(AValue: Int64);
+    procedure SetId(AValue: AnsiString);
+    procedure SetKnowledge(AValue: Integer);
+    procedure SetName(AValue: TLocalizedString);
+    procedure SetPatrolRadius(AValue: Integer);
+    procedure SetPortrait(AValue: AnsiString);
+    procedure SetSex(AValue: THeroSex);
+    procedure SetSpellpower(AValue: Integer);
+    procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create; override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
+    property Id: AnsiString read FId write SetId;
+    property Portrait: AnsiString read FPortrait write SetPortrait;
     property Army: TCreatureSet read FArmy;
     property Artifacts: THeroArtifacts read FArtifacts;
+    property Experience: Int64 read FExperience write SetExperience default -1;
+    property Name: TLocalizedString read FName write SetName;
+    property Biography: TLocalizedString read FBiography write SetBiography;
+    property Skills: THeroSecondarySkills read FSkills;
+    property TightFormation: Boolean read FTightFormation write SetTightFormation;
+
+    property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
+    property Sex: THeroSex read FSex write SetSex default THeroSex.default;
+
+    property SpellBook: TStrings read FSpellBook;
+
+    property Attack: Integer read FAttack write SetAttack default -1;
+    property Defence: Integer read FDefence write SetDefence default -1;
+    property Spellpower: Integer read FSpellpower write SetSpellpower default -1;
+    property Knowledge: Integer read FKnowledge write SetKnowledge default -1;
   end;
 
   { TMonsterOptions }
@@ -822,6 +882,16 @@ begin
   Result := c.Create;
 end;
 
+{ THeroSecondarySkill }
+
+procedure THeroSecondarySkill.SetLevel(AValue: Integer);
+begin
+  if FLevel=AValue then Exit;
+  if AValue <=0 then
+    raise Exception.CreateFmt('Skill level invalid %d',[AValue]);
+  FLevel:=AValue;
+end;
+
 { THeroArtifacts }
 
 function THeroArtifacts.GetBackpack: TStrings;
@@ -861,7 +931,7 @@ begin
     Exit;
   end;
 
-  idx:=ASlotID-High(FSlots); //convert to backback index
+  idx:=ASlotID-Length(FSlots); //convert to backback index
 
   if idx<FBackpack.Count then
   begin
@@ -1502,15 +1572,99 @@ begin
   AVisitor.VisitHero(Self);
 end;
 
+procedure THeroOptions.SetExperience(AValue: Int64);
+begin
+  if FExperience=AValue then Exit;
+  FExperience:=AValue;
+end;
+
+procedure THeroOptions.SetBiography(AValue: TLocalizedString);
+begin
+  if FBiography=AValue then Exit;
+  FBiography:=AValue;
+end;
+
+procedure THeroOptions.SetAttack(AValue: Integer);
+begin
+  if FAttack=AValue then Exit;
+  FAttack:=AValue;
+end;
+
+procedure THeroOptions.SetDefence(AValue: Integer);
+begin
+  if FDefence=AValue then Exit;
+  FDefence:=AValue;
+end;
+
+procedure THeroOptions.SetId(AValue: AnsiString);
+begin
+  if FId=AValue then Exit;
+  FId:=AValue;
+end;
+
+procedure THeroOptions.SetKnowledge(AValue: Integer);
+begin
+  if FKnowledge=AValue then Exit;
+  FKnowledge:=AValue;
+end;
+
+procedure THeroOptions.SetName(AValue: TLocalizedString);
+begin
+  if FName=AValue then Exit;
+  FName:=AValue;
+end;
+
+procedure THeroOptions.SetPatrolRadius(AValue: Integer);
+begin
+  if FPatrolRadius=AValue then Exit;
+  FPatrolRadius:=AValue;
+end;
+
+procedure THeroOptions.SetPortrait(AValue: AnsiString);
+begin
+  if FPortrait=AValue then Exit;
+  FPortrait:=AValue;
+end;
+
+procedure THeroOptions.SetSex(AValue: THeroSex);
+begin
+  if FSex=AValue then Exit;
+  FSex:=AValue;
+end;
+
+procedure THeroOptions.SetSpellpower(AValue: Integer);
+begin
+  if FSpellpower=AValue then Exit;
+  FSpellpower:=AValue;
+end;
+
+procedure THeroOptions.SetTightFormation(AValue: Boolean);
+begin
+  if FTightFormation=AValue then Exit;
+  FTightFormation:=AValue;
+end;
+
 constructor THeroOptions.Create;
 begin
   inherited Create;
   FArmy := TCreatureSet.Create(7);
   FArtifacts := THeroArtifacts.Create;
+  FExperience:=-1;
+  FSkills := THeroSecondarySkills.Create;
+  FPatrolRadius := -1;
+  FSex:=THeroSex.default;
+  FSpellBook := CrStrList;
+
+  Attack:=-1;
+  Defence:=-1;
+  Spellpower:=-1;
+  Knowledge:=-1;
 end;
 
 destructor THeroOptions.Destroy;
 begin
+  FSpellBook.Free;
+  FSkills.Free;
   FArtifacts.Free;
   FArmy.Free;
   inherited Destroy;
