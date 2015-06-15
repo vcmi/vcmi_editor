@@ -128,6 +128,36 @@ type
     procedure Load(APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
   end;
 
+  { TVCMIJsonString }
+
+  TVCMIJsonString = class (TJSONString)
+  private
+    FMeta: AnsiString;
+    procedure SetMeta(AValue: AnsiString);
+  public
+    property Meta: AnsiString read FMeta write SetMeta;
+  end;
+
+  { TVCMIJsonObject }
+
+  TVCMIJsonObject = class(TJSONObject)
+  private
+    FMeta: AnsiString;
+  public
+    procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
+    property Meta: AnsiString read FMeta;
+  end;
+
+  { TVCMIJsonArray }
+
+  TVCMIJsonArray = class(TJSONArray)
+  private
+    FMeta: AnsiString;
+  public
+    procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
+    property Meta: AnsiString read FMeta;
+  end;
+
   { TJSONObjectHelper }
 
   TJSONObjectHelper = class helper for TJSONObject
@@ -136,6 +166,8 @@ type
     procedure InheritFrom(ABase:TJSONObject);
     procedure Assign(AValue: TJSONObject);
   end;
+
+
 
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
   procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
@@ -151,8 +183,17 @@ uses
   LazLoggerBase, editor_consts, types;
 
 var
-
   rexp_oid: TRegExpr;
+
+
+procedure DoSetMeta(ATarget: TJSONData; AValue: AnsiString);
+begin
+  case ATarget.JSONType of
+    jtString: TVCMIJsonString(ATarget).SetMeta(AValue);
+    jtObject: TVCMIJsonObject(ATarget).SetMeta(AValue,True);
+    jtArray: TVCMIJsonArray(ATarget).SetMeta(AValue,True);
+  end;
+end;
 
 procedure MakeCamelCase(var s:string);
 var
@@ -228,7 +269,6 @@ begin
     else begin
       ADest.Add(name,ASrc.Items[src_idx].Clone());
     end;
-
   end;
 end;
 
@@ -248,6 +288,43 @@ begin
   AModId:=rexp_oid.Match[2];
   AObjectId:=rexp_oid.Match[3];
   Assert(Length(AObjectId)>0,'ObjectId is empty');
+end;
+
+{ TVCMIJsonArray }
+
+procedure TVCMIJsonArray.SetMeta(AValue: AnsiString; Recursive: Boolean);
+var
+  iter: TJSONEnum;
+begin
+  FMeta:=AValue;
+  if Recursive then
+    for iter in self do
+    begin
+      DoSetMeta(iter.Value, AValue);
+    end;
+end;
+
+{ TVCMIJsonObject }
+
+procedure TVCMIJsonObject.SetMeta(AValue: AnsiString; Recursive: Boolean);
+var
+  iter: TJSONEnum;
+begin
+  FMeta:=AValue;
+
+  if Recursive then
+    for iter in self do
+    begin
+      DoSetMeta(iter.Value, AValue);
+    end;
+end;
+
+{ TVCMIJsonString }
+
+procedure TVCMIJsonString.SetMeta(AValue: AnsiString);
+begin
+  if FMeta=AValue then Exit;
+  FMeta:=AValue;
 end;
 
 { TJSONObjectHelper }
@@ -913,6 +990,10 @@ initialization
   rexp_oid := TRegExpr.Create;
   rexp_oid.Expression := '^((.*):)?(.*)$';
   rexp_oid.Compile;
+
+  SetJSONInstanceType(TJSONInstanceType.jitObject, TVCMIJsonObject);
+  SetJSONInstanceType(TJSONInstanceType.jitString, TVCMIJsonString);
+  SetJSONInstanceType(TJSONInstanceType.jitArray,  TVCMIJsonArray);
 
 finalization
 
