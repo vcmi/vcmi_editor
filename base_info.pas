@@ -38,19 +38,22 @@ type
     FName: TLocalizedString;
     FIndex: TCustomID;
 
+
     procedure SetID(AValue: AnsiString);
-    procedure SetName(AValue: TLocalizedString);
+
     procedure SetIndex(AValue: TCustomID);
   protected
     function GetFullID: AnsiString; virtual;
 
+    function GetName: TLocalizedString; virtual;
+    procedure SetName(AValue: TLocalizedString); virtual;
   public
     constructor Create;
     property ID: AnsiString read FID write SetID;
 
     property FullID: AnsiString read GetFullID;
   published
-    property Name: TLocalizedString read FName write SetName;
+    property Name: TLocalizedString read GetName write SetName;
     property Index: TCustomID read FIndex write SetIndex default -1;
   end;
 
@@ -100,6 +103,11 @@ procedure TBaseInfo.SetID(AValue: AnsiString);
 begin
   if FID = AValue then Exit;
   FID := AValue;
+end;
+
+function TBaseInfo.GetName: TLocalizedString;
+begin
+  Result := FName;
 end;
 
 procedure TBaseInfo.SetName(AValue: TLocalizedString);

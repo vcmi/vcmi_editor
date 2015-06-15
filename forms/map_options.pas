@@ -15,6 +15,7 @@ type
   TMapOptionsForm = class(TForm)
     btOk: TButton;
     btCancel: TButton;
+    edAllowedHeroes: TCheckListBox;
     edSpells: TCheckListBox;
     edAbilities: TCheckListBox;
     edName: TEdit;
@@ -25,6 +26,7 @@ type
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
+    tsHeroes: TTabSheet;
     tsSpells: TTabSheet;
     tsAbilities: TTabSheet;
     tsMain: TTabSheet;
@@ -65,6 +67,8 @@ begin
   edAbilities.SaveToList(FMap.AllowedAbilities);
   edSpells.SaveToList(FMap.AllowedSpells);
 
+  edAllowedHeroes.SaveToList(FMap.AllowedHeroes);
+
   ModalResult := mrOK;
   Close;
 end;
@@ -88,8 +92,9 @@ begin
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;
 
-  edAbilities.FillFromList(FMap.ListsManager.SkillMap,FMap.AllowedAbilities);
-  edSpells.FillFromList(FMap.ListsManager.SpellMap,FMap.AllowedSpells);
+  edAbilities.FillFromList(FMap.ListsManager.SkillMap, FMap.AllowedAbilities);
+  edSpells.FillFromList(FMap.ListsManager.SpellMap, FMap.AllowedSpells);
+  edAllowedHeroes.FillFromList(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
 
   UpdateControls;
 end;

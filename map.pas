@@ -426,6 +426,7 @@ type
     FAllowedSpells: TStringList;
     FAllowedAbilities: TStringList;
     FAllowedArtifacts: TStringList;
+    FAllowedHeroes: TStringList;
 
     FRumors: TRumors;
 
@@ -434,6 +435,7 @@ type
     procedure Changed;
     function GetAllowedAbilities: TStrings;
     function GetAllowedArtifacts: TStrings;
+    function GetAllowedHeroes: TStrings;
     function GetAllowedSpells: TStrings;
     function GetCurrentLevelIndex: Integer; inline;
 
@@ -496,6 +498,7 @@ type
     property AllowedSpells: TStrings read GetAllowedSpells;
     property AllowedAbilities: TStrings read GetAllowedAbilities;
     property AllowedArtifacts: TStrings read GetAllowedArtifacts;
+    property AllowedHeroes: TStrings read GetAllowedHeroes;
 
     property Levels: TMapLevels read FLevels;
   public //manual streamimg
@@ -1221,6 +1224,7 @@ begin
   FListsManager.SpellInfos.FillWithAllIds(FAllowedSpells);
   FListsManager.SkillInfos.FillWithAllIds(FAllowedAbilities);
   FListsManager.ArtifactInfos.FillWithAllIds(FAllowedArtifacts);
+  FListsManager.HeroInfos.FillWithNotSpecial(FAllowedHeroes);
 end;
 
 constructor TVCMIMap.CreateDefault(env: TMapEnvironment);
@@ -1270,6 +1274,7 @@ begin
   FAllowedAbilities := CrStrList;
   FAllowedSpells := CrStrList;
   FAllowedArtifacts := CrStrList;
+  FAllowedHeroes := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
@@ -1295,6 +1300,7 @@ begin
   FAllowedAbilities := CrStrList;
   FAllowedSpells := CrStrList;
   FAllowedArtifacts := CrStrList;
+  FAllowedHeroes := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
   FTemplates := TMapObjectTemplates.Create(self);
@@ -1309,6 +1315,7 @@ begin
   FAllowedArtifacts.Free;
   FAllowedAbilities.Free;
   FAllowedSpells.Free;
+  FAllowedHeroes.Free;
 
   FRumors.Free;
   FObjects.Free;
@@ -1353,6 +1360,11 @@ end;
 function TVCMIMap.GetAllowedArtifacts: TStrings;
 begin
   Result := FAllowedArtifacts;
+end;
+
+function TVCMIMap.GetAllowedHeroes: TStrings;
+begin
+  Result := FAllowedHeroes;
 end;
 
 function TVCMIMap.GetAllowedSpells: TStrings;

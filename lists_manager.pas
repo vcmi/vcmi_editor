@@ -252,6 +252,9 @@ type
     procedure SetFemale(AValue: Boolean);
     procedure SetHeroClass(AValue: AnsiString);
     procedure SetSpecial(AValue: Boolean);
+  protected
+    function GetName: TLocalizedString; override;
+    procedure SetName(AValue: TLocalizedString); override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -268,6 +271,7 @@ type
 
   THeroInfos = class(THeroInfoList)
   public
+    procedure FillWithNotSpecial(AList: TStrings);
   end;
 
   { TListsManager }
@@ -398,6 +402,21 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ THeroInfos }
+
+procedure THeroInfos.FillWithNotSpecial(AList: TStrings);
+var
+  obj: THeroInfo;
+begin
+  for obj in Self do
+  begin
+    if not obj.Special then
+    begin
+      AList.Add(obj.ID);
+    end;
+  end;
+end;
+
 { THeroInfo }
 
 procedure THeroInfo.SetHeroClass(AValue: AnsiString);
@@ -410,6 +429,16 @@ procedure THeroInfo.SetSpecial(AValue: Boolean);
 begin
   if FSpecial=AValue then Exit;
   FSpecial:=AValue;
+end;
+
+function THeroInfo.GetName: TLocalizedString;
+begin
+  Result:=FTexts.Name;
+end;
+
+procedure THeroInfo.SetName(AValue: TLocalizedString);
+begin
+  FTexts.Name:=AValue;
 end;
 
 procedure THeroInfo.SetFemale(AValue: Boolean);

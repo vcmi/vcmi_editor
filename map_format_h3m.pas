@@ -79,7 +79,7 @@ type
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
      procedure ReadSVLC();
      procedure ReadTeams();//+
-     procedure ReadAllowedHeros();
+     procedure ReadAllowedHeros();//+
      procedure ReadDisposedHeros();
      procedure ReadAllowedArtifacts();//+
      procedure ReadAllowedSpells();//+
@@ -284,11 +284,10 @@ procedure TMapReaderH3m.ReadAllowedHeros;
 var
   cnt: Integer;
 begin
-  //TODO: ReadAllowedHeros
 
   cnt := ifthen(FMapVersion=MAP_VERSION_ROE,16,20);
 
-  FSrc.Skip(cnt);
+  ReadBitmask(FMap.AllowedHeroes, cnt, HERO_QUANTITY, @FMapEnv.lm.HeroIndexToString, False);
 
   //unknown plaseholder
   if FMapVersion<>MAP_VERSION_ROE then
@@ -296,8 +295,6 @@ begin
     cnt :=FSrc.ReadDWord;
     FSrc.Skip(cnt);
   end;
-
-
 end;
 
 procedure TMapReaderH3m.ReadAllowedSpells;
