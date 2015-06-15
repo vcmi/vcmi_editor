@@ -75,6 +75,7 @@ type
      function IsNotROE: boolean;
 
      procedure SkipNotImpl(count: Integer);
+     procedure PushResolveRequest(AIdent: UInt32; ALink: TObjectLink);
      procedure ResolveQuestIdentifiers;
    strict private
      type
@@ -141,8 +142,8 @@ type
      procedure VisitShrine(AOptions: TShrineOptions);//+
      procedure VisitPandorasBox(AOptions: TPandorasOptions);
      procedure VisitGrail(AOptions: TGrailOptions);//+
-     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);
-     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
+     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+
+     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
      procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
      procedure VisitQuestGuard(AOptions: TQuestGuardOptions);//+
      procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
@@ -1259,7 +1260,6 @@ var
   limit: DWord;
   cnt: Byte;
   i: Integer;
-  request: TResolveRequest;
 begin
   Result := TQuestMission(FSrc.ReadByte);
 
@@ -1276,12 +1276,7 @@ begin
         obj.HeroLevel:=ReadDWord;
       end;
       TQuestMission.KillHero,TQuestMission.KillCreature: begin
-
-        request := TResolveRequest.Create;
-        request.Link := obj.KillTarget;
-        request.Identifier:=ReadDWord;
-        FLinksToResolve.Add(request);
-
+        PushResolveRequest(ReadDWord, obj.KillTarget);
       end;
       TQuestMission.Artifact: begin
         ReadArtifactSet(obj.Artifacts);
@@ -1325,6 +1320,7 @@ end;
 procedure TMapReaderH3m.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
 var
   ident: DWord;
+  req: TResolveRequest;
 begin
   ReadOwner(AOptions);
 
@@ -1336,7 +1332,7 @@ begin
   end
   else
   begin
-    //todo: connect with town
+    PushResolveRequest(ident, AOptions.SameAsTown);
   end;
 
   AOptions.MinLevel := FSrc.ReadByte;
@@ -1357,13 +1353,12 @@ begin
 
   if not AOptions.Linked then
   begin
-     ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
+    ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
   end
   else
   begin
-        //todo: connect with town
+    PushResolveRequest(ident, AOptions.SameAsTown);
   end;
-
 end;
 
 procedure TMapReaderH3m.VisitRandomDwellingTown(
@@ -1678,6 +1673,16 @@ end;
 procedure TMapReaderH3m.SkipNotImpl(count: Integer);
 begin
   FSrc.Skip(count);
+end;
+
+procedure TMapReaderH3m.PushResolveRequest(AIdent: UInt32; ALink: TObjectLink);
+var
+  request: TResolveRequest;
+begin
+  request := TResolveRequest.Create;
+  request.Link := ALink;
+  request.Identifier:=AIdent;
+  FLinksToResolve.Add(request);
 end;
 
 procedure TMapReaderH3m.ResolveQuestIdentifiers;

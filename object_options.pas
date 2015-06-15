@@ -587,7 +587,9 @@ type
     FLinked: boolean;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
+    FSameAsTown: TObjectLink;
     function GetAllowedFactions: TStrings;
+    function IsSameAsTownStored: Boolean;
     procedure SetLinked(AValue: boolean);
     procedure SetMaxLevel(AValue: UInt8);
     procedure SetMinLevel(AValue: UInt8);
@@ -604,6 +606,7 @@ type
 
     property Linked: boolean read FLinked write SetLinked;
 
+    property SameAsTown: TObjectLink read FSameAsTown stored IsSameAsTownStored;
   end;
 
   { TRandomDwellingOptions }
@@ -616,6 +619,7 @@ type
     property MaxLevel;
     property AllowedFactions;
     property Linked;
+    property SameAsTown;
   end;
 
   { TRandomDwellingLVLOptions }
@@ -625,6 +629,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     property AllowedFactions;
     property Linked;
+    property SameAsTown;
   end;
 
   { TRandomDwellingTownOptions }
@@ -1221,6 +1226,11 @@ begin
   Result := FAllowedFactions;
 end;
 
+function TBaseRandomDwellingOptions.IsSameAsTownStored: Boolean;
+begin
+  Result := Linked;
+end;
+
 procedure TBaseRandomDwellingOptions.SetLinked(AValue: boolean);
 begin
   if FLinked=AValue then Exit;
@@ -1241,10 +1251,12 @@ begin
   FAllowedFactions.Duplicates := dupIgnore;
 
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
+  FSameAsTown := TObjectLink.Create;
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;
 begin
+  FSameAsTown.Free;
   FAllowedFactions.Free;
   inherited Destroy;
 end;
@@ -1258,7 +1270,6 @@ function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
 begin
   Result := not Linked;
 end;
-
 
 { TCreatureInstInfo }
 
