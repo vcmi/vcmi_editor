@@ -24,8 +24,9 @@ unit map_format_h3m;
 interface
 
 uses
-  Classes, SysUtils, math, fgl,FileUtil,  map,   map_format, terrain, stream_adapter,
-  editor_types, object_options, editor_classes, lists_manager, objects;
+  Classes, SysUtils, math, fgl, FileUtil, map, map_format, terrain,
+  stream_adapter, editor_types, object_options, editor_classes, lists_manager,
+  objects, object_link;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -43,6 +44,21 @@ type
 
    TQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
 
+   { TResolveRequest }
+
+   TResolveRequest = class
+   private
+     FIdentifier: UInt32;
+     FLink: TObjectLink;
+     procedure SetIdentifier(AValue: UInt32);
+     procedure SetLink(AValue: TObjectLink);
+   public
+     property Link: TObjectLink read FLink write SetLink; //not owned, must have valid metaclass
+     property Identifier: UInt32 read FIdentifier write SetIdentifier;
+   end;
+
+   TResolveRequests = specialize TFPGObjectList<TResolveRequest>;
+
    { TMapReaderH3m }
 
    TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader, IObjectOptionsVisitor)
@@ -53,6 +69,7 @@ type
 
      FCurrentObject: TMapObject;
      FQuestIdentifierMap: TQuestIdentifierMap;
+     FLinksToResolve: TResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
      function IsNotROE: boolean;
@@ -98,7 +115,7 @@ type
      procedure ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);//+
 
      //result = Mission type
-     function ReadQuest(obj: TQuest): TQuestMission;
+     function ReadQuest(obj: TQuest): TQuestMission;   //+
 
      procedure ReadObjects();
      procedure ReadEvents();
@@ -141,6 +158,20 @@ implementation
 
 uses LazLoggerBase, editor_consts;
 
+{ TResolveRequest }
+
+procedure TResolveRequest.SetLink(AValue: TObjectLink);
+begin
+  if FLink=AValue then Exit;
+  FLink:=AValue;
+end;
+
+procedure TResolveRequest.SetIdentifier(AValue: UInt32);
+begin
+  if FIdentifier=AValue then Exit;
+  FIdentifier:=AValue;
+end;
+
 { TMapReaderH3m }
 
 class procedure TMapReaderH3m.CheckMapVersion(const AVersion: DWord);
@@ -159,10 +190,12 @@ constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
   FQuestIdentifierMap := TQuestIdentifierMap.Create;
+  FLinksToResolve := TResolveRequests.Create(True);
 end;
 
 destructor TMapReaderH3m.Destroy;
 begin
+  FLinksToResolve.Free;
   FQuestIdentifierMap.Free;
   inherited Destroy;
 end;
@@ -1226,6 +1259,7 @@ var
   limit: DWord;
   cnt: Byte;
   i: Integer;
+  request: TResolveRequest;
 begin
   Result := TQuestMission(FSrc.ReadByte);
 
@@ -1241,11 +1275,13 @@ begin
       TQuestMission.Level:begin
         obj.HeroLevel:=ReadDWord;
       end;
-      TQuestMission.KillHero: begin
-        SkipNotImpl(4);
-      end;
-      TQuestMission.KillCreature: begin
-        SkipNotImpl(4);
+      TQuestMission.KillHero,TQuestMission.KillCreature: begin
+
+        request := TResolveRequest.Create;
+        request.Link := obj.KillTarget;
+        request.Identifier:=ReadDWord;
+        FLinksToResolve.Add(request);
+
       end;
       TQuestMission.Artifact: begin
         ReadArtifactSet(obj.Artifacts);
@@ -1645,8 +1681,25 @@ begin
 end;
 
 procedure TMapReaderH3m.ResolveQuestIdentifiers;
+var
+  req: TResolveRequest;
+  o: TMapObject;
 begin
   //todo:ResolveQuestIdentifiers
+
+  while FLinksToResolve.Count>0 do
+  begin
+    req := FLinksToResolve[0];
+
+    o := FQuestIdentifierMap.KeyData[req.Identifier];
+
+    req.Link.L:=o.L;
+    req.Link.X:=o.X;
+    req.Link.Y:=o.Y;
+
+
+    FLinksToResolve.Delete(0);
+  end;
 end;
 
 procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);

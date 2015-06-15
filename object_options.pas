@@ -1109,6 +1109,11 @@ procedure TQuest.SetMissionType(AValue: TQuestMission);
 begin
   if FMissionType=AValue then Exit;
   FMissionType:=AValue;
+
+  case FMissionType of
+    TQuestMission.KillCreature: FKillTarget.Metaclass:=TObjectLinkMetclass.creature;
+    TQuestMission.KillHero:FKillTarget.Metaclass:=TObjectLinkMetclass.creature;
+  end;
 end;
 
 procedure TQuest.SetNextVisitText(AValue: TLocalizedString);
@@ -1137,10 +1142,12 @@ begin
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
   FPlayerID:=TPlayer.NONE;
+  FKillTarget := TObjectLink.Create;
 end;
 
 destructor TQuest.Destroy;
 begin
+  FKillTarget.Free;
   FPrimarySkills.Free;
   FResources.Free;
   FArmy.Free;
