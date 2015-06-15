@@ -1027,7 +1027,7 @@ var
   heroes_count: DWord;
   hero: TPlasedHero;
   h: Integer;
-  Main_Hero_Class: TCustomID;
+  Main_Hero: TCustomID;
 
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
@@ -1103,12 +1103,12 @@ begin
   with Attr,FSrc do
   begin
     RandomHero := ReadBoolean; //TODO: check
-    Main_Hero_Class := ReadIDByte;
+    Main_Hero := ReadIDByte;
 
-    if Main_Hero_Class <> ID_RANDOM then
+    if Main_Hero <> ID_RANDOM then
     begin
 
-      MainHeroClass:=FMapEnv.lm.HeroClassIndexToString(Main_Hero_Class);
+      MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
 
       MainHeroPortrait := ReadIDByte;
       MainHeroName := ReadLocalizedString;

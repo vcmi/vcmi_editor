@@ -166,6 +166,16 @@ type
     property Map: AnsiString read FMap write SetMap;
   end;
 
+  { TBaseTexts }
+
+  TBaseTexts = class
+  private
+    FName: TLocalizedString;
+    procedure SetName(AValue: TLocalizedString);
+  published
+    property Name: TLocalizedString read FName write SetName;
+  end;
+
   {$pop}
 
   TCreatureGraphics = class(TBaseGraphics)
@@ -221,6 +231,45 @@ type
     procedure FillWithAllIds(AList: TStrings);
   end;
 
+  { THeroTexts }
+
+  THeroTexts = class(TBaseTexts)
+  private
+    FBiography: TLocalizedString;
+    procedure SetBiography(AValue: TLocalizedString);
+  published
+    property Biography: TLocalizedString read FBiography write SetBiography;
+  end;
+
+  { THeroInfo }
+
+  THeroInfo = class(TBaseInfo)
+  private
+    FFemale: Boolean;
+    FHeroClass: AnsiString;
+    FSpecial: Boolean;
+    FTexts: THeroTexts;
+    procedure SetFemale(AValue: Boolean);
+    procedure SetHeroClass(AValue: AnsiString);
+    procedure SetSpecial(AValue: Boolean);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Texts: THeroTexts read FTexts;
+    property Female: Boolean read FFemale write SetFemale nodefault;
+    property Special: Boolean read FSpecial write SetSpecial default False;
+    property HeroClass: AnsiString read FHeroClass write SetHeroClass;
+  end;
+
+  THeroInfoList = specialize TFPGObjectList<THeroInfo>;
+
+  { THeroInfos }
+
+  THeroInfos = class(THeroInfoList)
+  public
+  end;
+
   { TListsManager }
 
   TListsManager = class (TFSConsumer)
@@ -242,6 +291,9 @@ type
 
     FCreatureInfos: TCreatureInfos;
     FCreatureMap: TStringList;
+
+    FHeroInfos: THeroInfos;
+    FHeroMap: TStringList;
 
     procedure LoadSkills;
     procedure LoadTextDataConfig;
@@ -269,6 +321,7 @@ type
     procedure LoadCreatures(APaths: TModdedConfigPaths);
     procedure LoadArtifacts(APaths: TModdedConfigPaths);
     procedure LoadSpells(APaths: TStrings); //todo: mod support for spells
+    procedure LoadHeroes(APaths: TModdedConfigPaths);
   public
 
     property TextDataConfig: TTextDataConfig read FTextDataConfig;
@@ -277,6 +330,7 @@ type
 
     function SIDIdNID(AID: AnsiString): TCustomID;
 
+    //secondary skills
     function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
     property SkillMap:TStringList read FSkillMap;
@@ -307,6 +361,11 @@ type
     property ArtifactInfos: TArtifactInfos read FArtifactInfos;
     property ArtifactMap: TStringList read FArtifactMap;
 
+    //Heroes
+    function HeroIndexToString (AIndex: TCustomID): AnsiString;
+    property HeroInfos: THeroInfos read FHeroInfos;
+    property HeroMap: TStringList read FHeroMap;
+
   end;
 
 implementation
@@ -319,6 +378,9 @@ const
   HERO_CLASS_TRAITS = 'data\hctraits';
   CREATURE_TRAITS   = 'data\crtraits';
   ARTIFACT_TRAITS   = 'data\artraits';
+
+  HERO_TRAITS       = 'data\hotraits';
+  HERO_BIOS         = 'data\herobios';
 
   TEXT_DATA_CONFIG  = 'config\defaultMods';
   SPELL_INFO_NAME   = 'config\spell_info';
@@ -335,6 +397,54 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ THeroInfo }
+
+procedure THeroInfo.SetHeroClass(AValue: AnsiString);
+begin
+  if FHeroClass=AValue then Exit;
+  FHeroClass:=AValue;
+end;
+
+procedure THeroInfo.SetSpecial(AValue: Boolean);
+begin
+  if FSpecial=AValue then Exit;
+  FSpecial:=AValue;
+end;
+
+procedure THeroInfo.SetFemale(AValue: Boolean);
+begin
+  if FFemale=AValue then Exit;
+  FFemale:=AValue;
+end;
+
+constructor THeroInfo.Create;
+begin
+  inherited Create;
+  FTexts := THeroTexts.Create;
+end;
+
+destructor THeroInfo.Destroy;
+begin
+  FTexts.Free;
+  inherited Destroy;
+end;
+
+{ THeroTexts }
+
+procedure THeroTexts.SetBiography(AValue: TLocalizedString);
+begin
+  if FBiography=AValue then Exit;
+  FBiography:=AValue;
+end;
+
+{ TBaseTexts }
+
+procedure TBaseTexts.SetName(AValue: TLocalizedString);
+begin
+  if FName=AValue then Exit;
+  FName:=AValue;
+end;
 
 { TArtifactInfos }
 
@@ -568,10 +678,16 @@ begin
 
   FArtifactInfos := TArtifactInfos.Create(True);
   FArtifactMap := CrStrList;
+
+  FHeroInfos := THeroInfos.Create(True);
+  FHeroMap := CrStrList;
 end;
 
 destructor TListsManager.Destroy;
 begin
+  FHeroInfos.Free;
+  FHeroMap.Free;
+
   FArtifactInfos.Free;
   FArtifactMap.Free;
 
@@ -752,6 +868,26 @@ begin
   end;
 
   raise Exception.CreateFmt('Artifact index not found: %d',[AIndex]);
+end;
+
+function TListsManager.HeroIndexToString(AIndex: TCustomID): AnsiString;
+var
+  info: THeroInfo;
+  i: Integer;
+begin
+  //todo:  optimize
+  Result := '';
+
+  for i := 0 to FHeroInfos.Count - 1 do
+  begin
+    info := FHeroInfos[i];
+    if info.Index = AIndex then
+    begin
+      Exit(info.ID);
+    end;
+  end;
+
+  raise Exception.CreateFmt('Hero index not found: %d',[AIndex]);
 end;
 
 procedure TListsManager.PreLoad;
@@ -1067,6 +1203,64 @@ begin
     sptrairs.Free;
   end;
 
+end;
+
+procedure TListsManager.LoadHeroes(APaths: TModdedConfigPaths);
+var
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+  legacy_data: TJsonObjectList;
+  hotraits, herobios: TTextResource;
+  iter: TJSONEnum;
+
+  i: SizeInt;
+  o: TJSONObject;
+  info: THeroInfo;
+begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
+
+  legacy_data := TJsonObjectList.Create(true);
+  hotraits := TTextResource.Create(HERO_TRAITS);
+  herobios := TTextResource.Create(HERO_BIOS);
+  try
+
+    hotraits.Load(ResourceLoader);
+    herobios.Load(ResourceLoader);
+
+    for i in [0..TextDataConfig.Hero-1] do
+    begin
+      o := TJSONObject.Create();
+
+      o.GetOrCreateObject('texts').Strings['name'] := hotraits.Value[0,i+2];
+      o.GetOrCreateObject('texts').Strings['biography'] := herobios.Value[0,i];
+
+      legacy_data.Add(o);
+    end;
+
+    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_data, FCombinedConfig);
+
+    for iter in FCombinedConfig do
+    begin
+      info := THeroInfo.Create;
+
+      info.ID := iter.Key;
+
+      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+
+      FHeroInfos.Add(info);
+      FHeroMap.AddObject(info.ID, info);
+    end;
+
+  finally
+    FCombinedConfig.Free;
+    FConfig.Free;
+    hotraits.free;
+    herobios.Free;
+    legacy_data.Free;
+  end;
 end;
 
 procedure TListsManager.ProcessSpellConfig(const AName: TJSONStringType;

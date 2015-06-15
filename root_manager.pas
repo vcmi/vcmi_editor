@@ -144,6 +144,7 @@ begin
   DoLoadObjects(HEROCLASS_METACLASS, @FListsManager.LoadHeroClasses);
   DoLoadObjects(CREATURE_METACLASS, @FListsManager.LoadCreatures);
   DoLoadObjects(ARTIFACT_METACLASS, @FListsManager.LoadArtifacts);
+  DoLoadObjects(HERO_METACLASS, @FListsManager.LoadHeroes);
 
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
