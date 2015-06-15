@@ -1,7 +1,7 @@
 inherited DwellingFrame: TDwellingFrame
-  Height = 483
+  Height = 374
   Width = 487
-  ClientHeight = 483
+  ClientHeight = 374
   ClientWidth = 487
   Constraints.MinWidth = 330
   DesignLeft = 585
@@ -92,13 +92,13 @@ inherited DwellingFrame: TDwellingFrame
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 5
-    Height = 414
+    Height = 305
     Top = 64
     Width = 477
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'Faction'
-    ClientHeight = 394
+    ClientHeight = 285
     ClientWidth = 473
     TabOrder = 1
     object pnRandom: TPanel
@@ -107,13 +107,13 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideRight.Control = gbFaction
       AnchorSideRight.Side = asrBottom
       Left = 6
-      Height = 152
+      Height = 106
       Top = 6
       Width = 461
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       BevelOuter = bvNone
-      ClientHeight = 152
+      ClientHeight = 106
       ClientWidth = 461
       Constraints.MinHeight = 100
       TabOrder = 0
@@ -125,7 +125,7 @@ inherited DwellingFrame: TDwellingFrame
         AnchorSideBottom.Control = pnRandom
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 122
+        Height = 76
         Top = 25
         Width = 451
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -154,13 +154,13 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideBottom.Control = gbFaction
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 225
-      Top = 164
+      Height = 162
+      Top = 118
       Width = 463
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 225
+      ClientHeight = 162
       ClientWidth = 463
       Constraints.MinHeight = 100
       TabOrder = 1
@@ -175,7 +175,7 @@ inherited DwellingFrame: TDwellingFrame
       end
       object pnLink: TPanel
         Left = 6
-        Height = 179
+        Height = 116
         Top = 40
         Width = 451
         Anchors = [akTop, akLeft, akRight, akBottom]

@@ -70,9 +70,9 @@ type
     procedure VisitShrine(AOptions: TShrineOptions);//+
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
-    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//
-    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//
-    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//
+    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+
+    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
+    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 
