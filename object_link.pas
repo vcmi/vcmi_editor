@@ -11,7 +11,7 @@ type
 {$push}
 {$m+}
 
-  TObjectLinkMetclass = (hero, town, creature);
+  TObjectLinkMetclass = (invalid, hero, town, creature);
 
 
   { TObjectLink }

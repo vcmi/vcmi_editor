@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, gvector, FileUtil, Forms, Controls, Spin,
   editor_types,
-  object_options,
+  object_options, map,
   lists_manager, editor_consts;
 
 type
@@ -36,7 +36,9 @@ type
   TBaseObjectOptionsFrame = class(TFrame,IObjectOptionsVisitor)
   private
     FListsManager: TListsManager;
+    FMap: TVCMIMap;
     procedure SetListsManager(AValue: TListsManager);
+    procedure SetMap(AValue: TVCMIMap);
   protected
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
     procedure SaveResourceSet(AParentControl: TWinControl; ADest: TResourceSet);
@@ -70,6 +72,7 @@ type
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
   public
     property ListsManager: TListsManager read FListsManager write SetListsManager;
+    property Map: TVCMIMap read FMap write SetMap;
   end;
 
   TBaseObjectOptionsFrameClass = class of TBaseObjectOptionsFrame;
@@ -114,6 +117,12 @@ procedure TBaseObjectOptionsFrame.SetListsManager(AValue: TListsManager);
 begin
   if FListsManager = AValue then Exit;
   FListsManager := AValue;
+end;
+
+procedure TBaseObjectOptionsFrame.SetMap(AValue: TVCMIMap);
+begin
+  if FMap=AValue then Exit;
+  FMap:=AValue;
 end;
 
 procedure TBaseObjectOptionsFrame.ReadResourceSet(AParentControl: TWinControl;

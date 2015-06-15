@@ -38,12 +38,18 @@ type
   TObjectOptionsClass = class of TObjectOptions;
   IObjectOptionsVisitor = interface;
 
+  IMapObject = interface
+    function GetID: AnsiString;
+    function GetSubId: AnsiString;
+  end;
+
   TObjectOptions = class
   private
+    FObject: IMapObject;
     FOwner: TPlayer;
     procedure SetOwner(AValue: TPlayer);
   public
-    constructor Create; virtual;
+    constructor Create(AObject: IMapObject); virtual;
 
     class function MayBeOwned: Boolean; virtual;
 
@@ -254,7 +260,7 @@ type
     FGuards: TCreatureSet;
     procedure SetGuardMessage(AValue: TLocalizedString);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
   published
     property Guards: TCreatureSet read FGuards;
@@ -287,7 +293,7 @@ type
   private
     FCreatures: TCreatureSet;
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -345,7 +351,7 @@ type
     procedure SetSex(AValue: THeroSex);
     procedure SetTightFormation(AValue: Boolean);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -364,8 +370,6 @@ type
     property Sex: THeroSex read FSex write SetSex default THeroSex.default;
 
     property SpellBook: TStrings read FSpellBook;
-
-
   end;
 
   { TMonsterOptions }
@@ -392,7 +396,7 @@ type
     procedure SetRewardArtifact(AValue: AnsiString);
     procedure SetRewardMessage(AValue: TLocalizedString);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -413,7 +417,7 @@ type
   private
     FQuest: TQuest;
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -427,7 +431,7 @@ type
     FAllowedSkills: TStringList;
     function GetAllowedSkills: TStrings;
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
@@ -447,7 +451,7 @@ type
     procedure SetBonusType(AValue: TScholarBonus);
     procedure SetBonusId(AValue: AnsiString);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property BonusType: TScholarBonus read FBonusType write SetBonusType;
@@ -462,7 +466,7 @@ type
     FRemovableUnits: Boolean;
     procedure SetRemovableUnits(AValue: Boolean);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -484,7 +488,7 @@ type
     FSpellID: AnsiString;
     procedure SetSpellID(AValue: AnsiString);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property SpellID: AnsiString read FSpellID write SetSpellID;
@@ -508,14 +512,18 @@ type
   private
     FGarrison: TCreatureSet;
     FName: TLocalizedString;
+    FTightFormation: Boolean;
     procedure SetName(AValue: TLocalizedString);
+    procedure SetTightFormation(AValue: Boolean);
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property Garrison: TCreatureSet read FGarrison;
+    property TightFormation: Boolean read FTightFormation write SetTightFormation;
     property Name: TLocalizedString read FName write SetName;
+
   end;
 
   { TAbandonedOptions }
@@ -595,7 +603,7 @@ type
     procedure SetMinLevel(AValue: UInt8);
     function IsAllowedFactionsStored: boolean;
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     class function MayBeOwned: Boolean; override;
 
@@ -648,7 +656,7 @@ type
   private
     FQuest: TQuest;
   public
-    constructor Create; override;
+    constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
@@ -700,14 +708,14 @@ type
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
-function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
+function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
 
 implementation
 
 uses
   editor_consts;
 
-function CreateByID(ID: TObjectTypeID; SubID: TCustomID): TObjectOptions; deprecated;
+function CreateByID(ID: TObjectTypeID; SubID: TCustomID; AObject: IMapObject): TObjectOptions; deprecated;
 var
   c: TObjectOptionsClass;
 begin
@@ -818,11 +826,11 @@ begin
     SHIPYARD,LIGHTHOUSE:
       c := TOwnedObjectOptions;
   end;
-  Result := c.Create;
+  Result := c.Create(AObject);
 
 end;
 
-function CreateByID(ID: AnsiString; SubID: AnsiString): TObjectOptions;
+function CreateByID(ID: AnsiString; SubID: AnsiString;AObject: IMapObject): TObjectOptions;
 var
   c: TObjectOptionsClass;
 begin
@@ -917,7 +925,7 @@ begin
       c := TOwnedObjectOptions;
   end;
 
-  Result := c.Create;
+  Result := c.Create(AObject);
 end;
 
 { THeroPrimarySkills }
@@ -1201,9 +1209,9 @@ begin
   AVisitor.VisitQuestGuard(Self);
 end;
 
-constructor TQuestGuardOptions.Create;
+constructor TQuestGuardOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FQuest := TQuest.Create;
 end;
 
@@ -1243,15 +1251,16 @@ begin
   FMinLevel:=AValue;
 end;
 
-constructor TBaseRandomDwellingOptions.Create;
+constructor TBaseRandomDwellingOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FAllowedFactions := TStringList.Create;
   FAllowedFactions.Sorted := True;
   FAllowedFactions.Duplicates := dupIgnore;
 
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
   FSameAsTown := TObjectLink.Create;
+  FSameAsTown.Metaclass:=TObjectLinkMetclass.town;
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;
@@ -1303,9 +1312,9 @@ end;
 
 { TGuardedObjectOptions }
 
-constructor TGuardedObjectOptions.Create;
+constructor TGuardedObjectOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FGuards := TCreatureSet.Create(7);
 end;
 
@@ -1363,9 +1372,9 @@ end;
 
 { TPandorasOptions }
 
-constructor TPandorasOptions.Create;
+constructor TPandorasOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FCreatures := TCreatureSet.Create(0);
 end;
 
@@ -1435,9 +1444,9 @@ begin
   AVisitor.VisitTown(Self);
 end;
 
-constructor TTownOptions.Create;
+constructor TTownOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FGarrison := TCreatureSet.Create(7);
 end;
 
@@ -1450,6 +1459,12 @@ end;
 procedure TTownOptions.SetName(AValue: TLocalizedString);
 begin
   FName := AValue;
+end;
+
+procedure TTownOptions.SetTightFormation(AValue: Boolean);
+begin
+  if FTightFormation=AValue then Exit;
+  FTightFormation:=AValue;
 end;
 
 { TResourceOptions }
@@ -1471,9 +1486,9 @@ begin
   AVisitor.VisitSpellScroll(Self);
 end;
 
-constructor TSpellScrollOptions.Create;
+constructor TSpellScrollOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FSpellID := 'magicArrow';
 end;
 
@@ -1497,9 +1512,9 @@ begin
   AVisitor.VisitGarrison(Self);
 end;
 
-constructor TGarrisonOptions.Create;
+constructor TGarrisonOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FGarrison := TCreatureSet.Create(7);
 end;
 
@@ -1533,9 +1548,9 @@ begin
   FBonusId:=AValue;
 end;
 
-constructor TScholarOptions.Create;
+constructor TScholarOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FBonusType:=TScholarBonus.random;
 end;
 
@@ -1551,11 +1566,11 @@ begin
   AVisitor.VisitWitchHut(Self);
 end;
 
-constructor TWitchHutOptions.Create;
+constructor TWitchHutOptions.Create(AObject: IMapObject);
 var
   i: Integer;
 begin
-  inherited Create;
+  inherited Create(AObject);
   FAllowedSkills := TStringList.Create;
   FAllowedSkills.Sorted := True;
   FAllowedSkills.Duplicates := dupIgnore;
@@ -1587,9 +1602,9 @@ begin
   AVisitor.VisitSeerHut(self);
 end;
 
-constructor TSeerHutOptions.Create;
+constructor TSeerHutOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FQuest := TQuest.Create;
 end;
 
@@ -1666,9 +1681,9 @@ begin
   FRewardMessage:=AValue;
 end;
 
-constructor TMonsterOptions.Create;
+constructor TMonsterOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FRewardResources := TResourceSet.Create;
 end;
 
@@ -1733,9 +1748,9 @@ begin
   FTightFormation:=AValue;
 end;
 
-constructor THeroOptions.Create;
+constructor THeroOptions.Create(AObject: IMapObject);
 begin
-  inherited Create;
+  inherited Create(AObject);
   FArmy := TCreatureSet.Create(7);
   FArtifacts := THeroArtifacts.Create;
   FExperience:=-1;
@@ -1802,9 +1817,10 @@ end;
 
 { TObjectOptions }
 
-constructor TObjectOptions.Create;
+constructor TObjectOptions.Create(AObject: IMapObject);
 begin
   FOwner := TPlayer.none;
+  FObject := AObject;
 end;
 
 class function TObjectOptions.MayBeOwned: Boolean;

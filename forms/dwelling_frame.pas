@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, Math, FileUtil, Forms, Controls, StdCtrls, Spin, CheckLst,
-  ExtCtrls, object_options, base_object_options_frame;
+  ExtCtrls, object_options, base_object_options_frame, object_link_frame;
 
 type
 
@@ -35,11 +35,11 @@ type
     edFaction: TCheckListBox;
     gbLevel: TGroupBox;
     gbFaction: TGroupBox;
-    Label1: TLabel;
     lbMin: TLabel;
     lbMax: TLabel;
     edMin: TSpinEdit;
     edMax: TSpinEdit;
+    pnLink: TPanel;
     pnRandom: TPanel;
     pnLinked: TPanel;
     rbLinked: TRadioButton;
@@ -51,6 +51,9 @@ type
   private
      FOptions: TBaseRandomDwellingOptions;
      FFactionsLoaded, FLevelsLoaded: Boolean;
+
+     FLinkFrame: TObjectLinkFrame;
+
      procedure SetupControls;
      procedure UpdateControls;
      procedure LoadLevels;
@@ -59,8 +62,12 @@ type
      procedure LoadFactions;
      procedure SaveFactions;
 
+     procedure LoadLink;
+     procedure SaveLink;
+
      procedure NormalizeLevels;
   public
+     constructor Create(TheOwner: TComponent); override;
      procedure Commit; override;
      procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions); override;
      procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions); override;
@@ -99,8 +106,11 @@ end;
 
 procedure TDwellingFrame.SetupControls;
 begin
+  FLinkFrame.Map := Map;
+
   rbLinked.Checked := FOptions.Linked;
   rbLinkedChange(rbLinked);
+
   UpdateControls;
 end;
 
@@ -108,6 +118,7 @@ procedure TDwellingFrame.UpdateControls;
 begin
   edFaction.Enabled:=rbRandom.Checked;
 
+  FLinkFrame.Enabled := rbLinked.Checked;
 end;
 
 procedure TDwellingFrame.LoadLevels;
@@ -135,10 +146,29 @@ begin
   edFaction.SaveToList(FOptions.AllowedFactions);
 end;
 
+procedure TDwellingFrame.LoadLink;
+begin
+  FLinkFrame.Load(FOptions.SameAsTown);
+end;
+
+procedure TDwellingFrame.SaveLink;
+begin
+  FLinkFrame.Commit;
+end;
+
 procedure TDwellingFrame.NormalizeLevels;
 begin
   edMin.Value:=Min(edMin.Value,edMax.Value);
   edMax.Value:=Max(edMin.Value,edMax.Value);
+end;
+
+constructor TDwellingFrame.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+  FLinkFrame := TObjectLinkFrame.Create(Self);
+  FLinkFrame.Parent := pnLink;
+  FLinkFrame.Visible := true;
+  FLinkFrame.Align:=alClient;
 end;
 
 procedure TDwellingFrame.Commit;
@@ -147,6 +177,8 @@ begin
   FOptions.Linked:=rbLinked.Checked;
   if FLevelsLoaded then SaveLevels;
   if FFactionsLoaded then SaveFactions;
+
+  SaveLink;
 end;
 
 procedure TDwellingFrame.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
@@ -155,6 +187,7 @@ begin
   SetupControls();
   LoadLevels;
   LoadFactions;
+  LoadLink;
 end;
 
 procedure TDwellingFrame.VisitRandomDwellingLVL(
@@ -164,6 +197,7 @@ begin
   gbLevel.Enabled:=false;
   SetupControls();
   LoadFactions;
+  LoadLink;
 end;
 
 procedure TDwellingFrame.VisitRandomDwellingTown(
@@ -173,6 +207,7 @@ begin
   gbFaction.Enabled:=false;
   SetupControls();
   LoadLevels;
+  LoadLink;
 end;
 
 end.

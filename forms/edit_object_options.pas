@@ -41,7 +41,7 @@ type
     tsCommon: TTabSheet;
     procedure btOkClick(Sender: TObject);
   strict private
-    //FCurrentObject: TMapObject;
+    FMap: TVCMIMap;
 
     FActiveEditors: TObjectOptionsFrameList;
 
@@ -70,9 +70,9 @@ type
     procedure VisitShrine(AOptions: TShrineOptions);//+
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
-    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+?
-    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+?
-    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+?
+    procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//
+    procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//
+    procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
 
@@ -116,6 +116,7 @@ begin
   frame.Parent := AParent;
   frame.Align := alClient;
   frame.ListsManager := RootManager.ListsManager;
+  frame.Map := FMap;
   AOptions.ApplyVisitor(frame); //do AFTER assign properties
   FActiveEditors.PushBack(frame);
 end;
@@ -129,6 +130,7 @@ end;
 procedure TEditObjectOptions.EditObject(Obj: TMapObject);
 begin
   FActiveEditors.Clear;
+  FMap := Obj.GetMap;
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
   Caption:=Format('Object %s::%s at %d %d %d',[Obj.Template.&type, Obj.Template.subtype,Obj.X,Obj.Y,Obj.L]);

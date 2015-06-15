@@ -1591,7 +1591,7 @@ begin
       ReadCreatureSet(AOptions.Garrison,7);
     end;
 
-    SkipNotImpl(1); //formation
+    AOptions.TightFormation := ReadBoolean;
 
     if ReadBoolean then //custom buildings
     begin

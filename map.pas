@@ -24,7 +24,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, LCLIntf, gvector, gpriorityqueue, editor_types,
+  Classes, SysUtils, Math, fgl, LCLIntf, gvector, gpriorityqueue, editor_types,
   editor_consts, terrain, editor_classes, editor_graphics, objects,
   object_options, lists_manager;
 
@@ -285,7 +285,7 @@ type
 
   { TMapObject }
 
-  TMapObject = class (TCollectionItem)
+  TMapObject = class (TCollectionItem, IMapObject)
   strict private
     FLastFrame: Integer;
     FLastTick: DWord;
@@ -303,8 +303,6 @@ type
     procedure SetTemplateID(AValue: integer);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
-
-    function GetMap:TVCMIMap;
   protected
     procedure Changed;
     procedure BeforeChange; //move settemplate setowner
@@ -322,6 +320,11 @@ type
     function CoversTile(ALevel, AX, AY: Integer): boolean;
 
     function HasOptions: boolean;
+    function GetMap:TVCMIMap;
+
+  public //ImapObject
+    function GetID: AnsiString;
+    function GetSubId: AnsiString;
   published
     property Index;
     property X:integer read FX write SetX;
@@ -332,6 +335,9 @@ type
 
     property Options: TObjectOptions read FOptions stored HasOptions;
   end;
+
+
+  TMapObjectList = specialize TFPGObjectList<TMapObject>;
 
   { TObjPriorityCompare }
 
@@ -506,6 +512,10 @@ type
     property Objects: TMapObjects read FObjects;
   public
     function CurrentLevel: TMapLevel;
+
+    //property Towns: TMapObjectList;
+    //property Heroes: TMapObjectList;
+    //property Monsters: TMapObjectList;
   end;
 
   {$pop}
@@ -710,7 +720,7 @@ begin
 
   FreeAndNil(FOptions);
 
-  FOptions := object_options.CreateByID(FTemplate.&type, FTemplate.subtype);
+  FOptions := object_options.CreateByID(FTemplate.&type, FTemplate.subtype, Self);
   AfterChange;
   Changed;
 end;
@@ -749,6 +759,16 @@ end;
 function TMapObject.GetMap: TVCMIMap;
 begin
   Result := (Collection as TMapObjects).Map;
+end;
+
+function TMapObject.GetID: AnsiString;
+begin
+  Result := FTemplate.&type;
+end;
+
+function TMapObject.GetSubId: AnsiString;
+begin
+  Result := FTemplate.subtype;
 end;
 
 { TMapObjects }

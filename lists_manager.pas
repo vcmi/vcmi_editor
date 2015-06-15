@@ -349,6 +349,7 @@ type
     property FactionInfos:TFactionInfos read FFactionInfos;
     property FactionMap: TStringList read FFactionMap;
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
+    function GetFaction(const AID: AnsiString): TFactionInfo;
 
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
@@ -835,6 +836,20 @@ begin
   end;
 
   raise Exception.CreateFmt('Faction not found: %d',[AIndex]);
+end;
+
+function TListsManager.GetFaction(const AID: AnsiString): TFactionInfo;
+var
+  idx: Integer;
+begin
+  idx := FFactionMap.IndexOf(AID);
+
+  if idx < 0 then
+  begin
+    raise Exception.CreateFmt('Faction not found "%s"',[AID]);
+  end;
+
+  Result := TFactionInfo(FFactionMap.Objects[idx]);
 end;
 
 function TListsManager.HeroClassIndexToString(AIndex: TCustomID): AnsiString;

@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="55">
+    <Units Count="56">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -395,6 +395,12 @@
         <Filename Value="object_link.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit54>
+      <Unit55>
+        <Filename Value="forms\subframes\object_link_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ObjectLinkFrame"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit55>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -405,7 +411,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl"/>
+      <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl;forms\subframes"/>
       <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\debug"/>
     </SearchPaths>
     <Parsing>
