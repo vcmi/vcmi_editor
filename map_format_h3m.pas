@@ -92,8 +92,8 @@ type
      procedure ReadObjMask(obj: TMapObjectTemplate);//+
      procedure ReadDefInfo();//+
 
-     procedure ReadArtifactsOfHero(obj: TMapObject);//+
-     procedure ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
+     procedure ReadArtifactsOfHero(obj: THeroArtifacts);//+
+     procedure ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);//+
 
      //result = Mission type
      function ReadQuest(obj: TQuest): integer;
@@ -310,7 +310,7 @@ begin
   MayBeReadGuardsWithMessage(AOptions);
 end;
 
-procedure TMapReaderH3m.ReadArtifactsOfHero(obj: TMapObject);
+procedure TMapReaderH3m.ReadArtifactsOfHero(obj: THeroArtifacts);
 var
   i: Integer;
   cnt: Word;
@@ -342,10 +342,12 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadArtifactsToSlot(obj: TMapObject; slot: Integer);
+procedure TMapReaderH3m.ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);
 var
   artmask: integer;
   aid: Word;
+
+  artId: AnsiString;
 begin
   artmask := ifthen(IsNotROE,$FFFF, $FF);
 
@@ -360,6 +362,8 @@ begin
   if aid = artmask then
     exit;
 
+  artId:=FMapEnv.lm.ArtifactIndexToString(aid);
+  obj.BySlotNumber[slot] := artId;
 end;
 
 procedure TMapReaderH3m.ReadBitmask(ADest: TStrings; AMaskSize: SizeInt;
@@ -608,7 +612,7 @@ procedure TMapReaderH3m.ReadDisposedHeros;
 var
   id: Byte;
   portr: Byte;
-  name: String;
+  name: TLocalizedString;
   players: Byte;
   hero_count: Byte;
   i: Integer;
@@ -624,7 +628,7 @@ begin
     begin
       id := FSrc.ReadByte;
       portr :=FSrc.ReadByte;
-      name := FSrc.ReadString;
+      name := FSrc.ReadLocalizedString;
       players := FSrc.ReadByte;
     end;
   end;
@@ -634,7 +638,7 @@ end;
 
 procedure TMapReaderH3m.ReadEvents;
 begin
-
+  //TODO: read events
 end;
 
 procedure TMapReaderH3m.VisitGarrison(AOptions: TGarrisonOptions);
@@ -720,7 +724,7 @@ begin
     end;
 
     formation := ReadByte;
-    ReadArtifactsOfHero(nil);
+    ReadArtifactsOfHero(AOptions.Artifacts);
     patrol := ReadByte;
 
     if IsNotROE then
@@ -730,7 +734,6 @@ begin
         bio := ReadLocalizedString;
       end;
       sex := ReadByte;
-
     end
     else begin
 

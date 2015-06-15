@@ -26,7 +26,7 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, editor_types, editor_classes, root_manager;
+  Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils;
 
 type
 
@@ -146,6 +146,47 @@ type
     property Army: TCreatureSet read FArmy stored IsArmyStored;
     property Resources: TResourceSet read FResources stored IsResourcesStored;
   end;
+
+  { THeroArtifacts }
+
+  THeroArtifacts = class
+  private
+    FSlots: array[0..18] of AnsiString;
+    FBackpack: TStringList;
+    function GetBackpack: TStrings;
+    function GetBySlotNumber(ASlotID: Integer): AnsiString;
+    procedure SetBySlotNumber(ASlotID: Integer; AValue: AnsiString);
+
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property BySlotNumber[ASlotID: Integer]: AnsiString read GetBySlotNumber write SetBySlotNumber;
+
+  published
+    property Head: AnsiString       index 0 read GetBySlotNumber write SetBySlotNumber;
+    property Shoulders: AnsiString  index 1 read GetBySlotNumber write SetBySlotNumber;
+    property Neck: AnsiString       index 2 read GetBySlotNumber write SetBySlotNumber;
+    property RightHand: AnsiString  index 3 read GetBySlotNumber write SetBySlotNumber;
+    property LeftHand: AnsiString   index 4 read GetBySlotNumber write SetBySlotNumber;
+    property Torso: AnsiString      index 5 read GetBySlotNumber write SetBySlotNumber;
+    property RightRing: AnsiString  index 6 read GetBySlotNumber write SetBySlotNumber;
+    property LeftRing: AnsiString   index 7 read GetBySlotNumber write SetBySlotNumber;
+    property Feet: AnsiString       index 8 read GetBySlotNumber write SetBySlotNumber;
+    property Misc1: AnsiString      index 9 read GetBySlotNumber write SetBySlotNumber;
+    property Misc2: AnsiString      index 10 read GetBySlotNumber write SetBySlotNumber;
+    property Misc3: AnsiString      index 11 read GetBySlotNumber write SetBySlotNumber;
+    property Misc4: AnsiString      index 12 read GetBySlotNumber write SetBySlotNumber;
+		property Mach1: AnsiString      index 13 read GetBySlotNumber write SetBySlotNumber;
+    property Mach2: AnsiString      index 14 read GetBySlotNumber write SetBySlotNumber;
+    property Mach3: AnsiString      index 15 read GetBySlotNumber write SetBySlotNumber;
+    property Mach4: AnsiString      index 16 read GetBySlotNumber write SetBySlotNumber;
+		property Spellbook: AnsiString  index 17 read GetBySlotNumber write SetBySlotNumber;
+    property Misc5: AnsiString      index 18 read GetBySlotNumber write SetBySlotNumber;
+
+    property Backpack: TStrings read GetBackpack;
+  end;
+
 {$pop}
 
   { TGuardedObjectOptions }
@@ -217,17 +258,21 @@ type
     property AvailableFor: TPlayers read FAvailableFor write SetAvailableFor default ALL_PLAYERS;
   end;
 
+
+
   { THeroOptions }
 
   THeroOptions = class(TOwnedObjectOptions)
   private
     FArmy: TCreatureSet;
+    FArtifacts: THeroArtifacts;
   public
     constructor Create; override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property Army: TCreatureSet read FArmy;
+    property Artifacts: THeroArtifacts read FArtifacts;
   end;
 
   { TMonsterOptions }
@@ -775,6 +820,73 @@ begin
   end;
 
   Result := c.Create;
+end;
+
+{ THeroArtifacts }
+
+function THeroArtifacts.GetBackpack: TStrings;
+begin
+  Result := FBackpack;
+end;
+
+function THeroArtifacts.GetBySlotNumber(ASlotID: Integer): AnsiString;
+begin
+  if ASlotID < 0 then
+  begin
+    raise Exception.CreateFmt('Invalid artifact slot %d',[ASlotID]);
+  end;
+
+  if ASlotID <= High(FSlots) then
+  begin
+    Result := FSlots[ASlotID];
+    Exit;
+  end;
+
+  Result := FBackpack[ASlotID-High(FSlots)];
+
+end;
+
+procedure THeroArtifacts.SetBySlotNumber(ASlotID: Integer; AValue: AnsiString);
+var
+  idx: Integer;
+begin
+  if ASlotID < 0 then
+  begin
+    raise Exception.CreateFmt('Invalid artifact slot %d',[ASlotID]);
+  end;
+
+  if ASlotID <= High(FSlots) then
+  begin
+    FSlots[ASlotID] := AValue;
+    Exit;
+  end;
+
+  idx:=ASlotID-High(FSlots); //convert to backback index
+
+  if idx<FBackpack.Count then
+  begin
+    FBackpack[idx] := AValue;
+  end
+  else if idx > FBackpack.Count then
+  begin
+    raise Exception.CreateFmt('Invalid artifact slot %d',[ASlotID]);
+  end
+  else begin
+    FBackpack.Add(AValue);
+  end;
+end;
+
+constructor THeroArtifacts.Create;
+begin
+  FBackpack := TStringList.Create;
+  FBackpack.Sorted := false;
+  FBackpack.Duplicates:=dupAccept;
+end;
+
+destructor THeroArtifacts.Destroy;
+begin
+  FBackpack.Free;
+  inherited Destroy;
 end;
 
 { TResourceSet }
@@ -1394,10 +1506,12 @@ constructor THeroOptions.Create;
 begin
   inherited Create;
   FArmy := TCreatureSet.Create(7);
+  FArtifacts := THeroArtifacts.Create;
 end;
 
 destructor THeroOptions.Destroy;
 begin
+  FArtifacts.Free;
   FArmy.Free;
   inherited Destroy;
 end;
