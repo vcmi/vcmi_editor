@@ -26,7 +26,8 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils;
+  Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
+  object_link;
 
 type
 
@@ -36,7 +37,6 @@ type
   TObjectOptions      = class;
   TObjectOptionsClass = class of TObjectOptions;
   IObjectOptionsVisitor = interface;
-
 
   TObjectOptions = class
   private
@@ -108,6 +108,26 @@ type
   end;
 
 
+  { THeroPrimarySkills }
+
+  THeroPrimarySkills = class
+  private
+    FAttack: Integer;
+    FDefence: Integer;
+    FKnowledge: Integer;
+    FSpellpower: Integer;
+  public
+    constructor Create;
+    function IsDefault: Boolean;
+  published
+    property Attack: Integer read FAttack write FAttack default -1;
+    property Defence: Integer read FDefence write FDefence default -1;
+    property Spellpower: Integer read FSpellpower write FSpellpower default -1;
+    property Knowledge: Integer read FKnowledge write FKnowledge default -1;
+  end;
+
+
+
   { TQuest }
 
   TQuestMission = (None=0, Level=1, PrimaryStat=2, KillHero=3, KillCreature=4, Artifact=5, Army=6, Resources=7, Hero=8, Player=9, Keymaster=10);
@@ -117,19 +137,32 @@ type
     FArmy: TCreatureSet;
     FCompletedText: TLocalizedString;
     FFirstVisitText: TLocalizedString;
+    FHeroID: AnsiString;
+    FHeroLevel: Integer;
+    FKillTarget: TObjectLink;
     FMissionType: TQuestMission;
     FNextVisitText: TLocalizedString;
+    FPlayerID: TPlayer;
+    FPrimarySkills: THeroPrimarySkills;
     FResources: TResourceSet;
     FTimeLimit: Integer;
     FArtifacts:TStringList;
     function GetArtifacts: TStrings;
     function IsArmyStored: Boolean;
     function IsArtifactsStored: Boolean;
+    function IsHeroIDStored: Boolean;
+    function IsHeroLevelStored: Boolean;
+    function IsKillTargetStored: Boolean;
+    function IsPlayerIDStored: Boolean;
+    function IsPrimarySkillsStored: Boolean;
     function IsResourcesStored: Boolean;
     procedure SetCompletedText(AValue: TLocalizedString);
     procedure SetFirstVisitText(AValue: TLocalizedString);
+    procedure SetHeroID(AValue: AnsiString);
+    procedure SetHeroLevel(AValue: Integer);
     procedure SetMissionType(AValue: TQuestMission);
     procedure SetNextVisitText(AValue: TLocalizedString);
+    procedure SetPlayerID(AValue: TPlayer);
     procedure SetTimeLimit(AValue: Integer);
   public
     constructor Create;
@@ -145,6 +178,12 @@ type
     property Artifacts: TStrings read GetArtifacts stored IsArtifactsStored;
     property Army: TCreatureSet read FArmy stored IsArmyStored;
     property Resources: TResourceSet read FResources stored IsResourcesStored;
+    property PrimarySkills: THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+    property HeroLevel: Integer read FHeroLevel write SetHeroLevel  stored IsHeroLevelStored default -1;
+    property HeroID: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
+    property PlayerID: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
+
+    property KillTarget: TObjectLink read FKillTarget stored IsKillTargetStored;
   end;
 
   { THeroArtifacts }
@@ -196,7 +235,6 @@ type
   published
     property Level: Integer read FLevel write SetLevel;
   end;
-
 
   { THeroSecondarySkills }
 
@@ -292,22 +330,19 @@ type
     FName: TLocalizedString;
     FPatrolRadius: Integer;
     FPortrait: AnsiString;
+    FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
     FSpellBook: TStrings;
     FSpellpower: Integer;
     FTightFormation: Boolean;
-    procedure SetAttack(AValue: Integer);
     procedure SetBiography(AValue: TLocalizedString);
-    procedure SetDefence(AValue: Integer);
     procedure SetExperience(AValue: Int64);
     procedure SetId(AValue: AnsiString);
-    procedure SetKnowledge(AValue: Integer);
     procedure SetName(AValue: TLocalizedString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetPortrait(AValue: AnsiString);
     procedure SetSex(AValue: THeroSex);
-    procedure SetSpellpower(AValue: Integer);
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create; override;
@@ -321,6 +356,7 @@ type
     property Experience: Int64 read FExperience write SetExperience default -1;
     property Name: TLocalizedString read FName write SetName;
     property Biography: TLocalizedString read FBiography write SetBiography;
+    property PrimarySkills:THeroPrimarySkills read FPrimarySkills;
     property Skills: THeroSecondarySkills read FSkills;
     property TightFormation: Boolean read FTightFormation write SetTightFormation;
 
@@ -329,10 +365,7 @@ type
 
     property SpellBook: TStrings read FSpellBook;
 
-    property Attack: Integer read FAttack write SetAttack default -1;
-    property Defence: Integer read FDefence write SetDefence default -1;
-    property Spellpower: Integer read FSpellpower write SetSpellpower default -1;
-    property Knowledge: Integer read FKnowledge write SetKnowledge default -1;
+
   end;
 
   { TMonsterOptions }
@@ -882,6 +915,21 @@ begin
   Result := c.Create;
 end;
 
+{ THeroPrimarySkills }
+
+constructor THeroPrimarySkills.Create;
+begin
+  Attack :=-1;
+  Defence:=-1;
+  Spellpower:=-1;
+  Knowledge:=-1;
+end;
+
+function THeroPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
+end;
+
 { THeroSecondarySkill }
 
 procedure THeroSecondarySkill.SetLevel(AValue: Integer);
@@ -1010,6 +1058,31 @@ begin
   Result := MissionType = TQuestMission.Artifact;
 end;
 
+function TQuest.IsHeroIDStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Hero;
+end;
+
+function TQuest.IsHeroLevelStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Level;
+end;
+
+function TQuest.IsKillTargetStored: Boolean;
+begin
+  Result := MissionType in [TQuestMission.KillCreature, TQuestMission.KillHero];
+end;
+
+function TQuest.IsPlayerIDStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.Player;
+end;
+
+function TQuest.IsPrimarySkillsStored: Boolean;
+begin
+  Result := MissionType = TQuestMission.PrimaryStat;
+end;
+
 function TQuest.IsResourcesStored: Boolean;
 begin
   Result := MissionType = TQuestMission.Resources;
@@ -1018,6 +1091,18 @@ end;
 procedure TQuest.SetFirstVisitText(AValue: TLocalizedString);
 begin
   FFirstVisitText := AValue;
+end;
+
+procedure TQuest.SetHeroID(AValue: AnsiString);
+begin
+  if FHeroID=AValue then Exit;
+  FHeroID:=AValue;
+end;
+
+procedure TQuest.SetHeroLevel(AValue: Integer);
+begin
+  if FHeroLevel=AValue then Exit;
+  FHeroLevel:=AValue;
 end;
 
 procedure TQuest.SetMissionType(AValue: TQuestMission);
@@ -1029,6 +1114,12 @@ end;
 procedure TQuest.SetNextVisitText(AValue: TLocalizedString);
 begin
   FNextVisitText := AValue;
+end;
+
+procedure TQuest.SetPlayerID(AValue: TPlayer);
+begin
+  if FPlayerID=AValue then Exit;
+  FPlayerID:=AValue;
 end;
 
 procedure TQuest.SetTimeLimit(AValue: Integer);
@@ -1043,10 +1134,14 @@ begin
   FArtifacts := TStringList.Create;
   FArmy := TCreatureSet.Create(0);
   FResources := TResourceSet.Create;
+  FPrimarySkills := THeroPrimarySkills.Create;
+  FHeroLevel := -1;
+  FPlayerID:=TPlayer.NONE;
 end;
 
 destructor TQuest.Destroy;
 begin
+  FPrimarySkills.Free;
   FResources.Free;
   FArmy.Free;
   FArtifacts.Free;
@@ -1584,28 +1679,10 @@ begin
   FBiography:=AValue;
 end;
 
-procedure THeroOptions.SetAttack(AValue: Integer);
-begin
-  if FAttack=AValue then Exit;
-  FAttack:=AValue;
-end;
-
-procedure THeroOptions.SetDefence(AValue: Integer);
-begin
-  if FDefence=AValue then Exit;
-  FDefence:=AValue;
-end;
-
 procedure THeroOptions.SetId(AValue: AnsiString);
 begin
   if FId=AValue then Exit;
   FId:=AValue;
-end;
-
-procedure THeroOptions.SetKnowledge(AValue: Integer);
-begin
-  if FKnowledge=AValue then Exit;
-  FKnowledge:=AValue;
 end;
 
 procedure THeroOptions.SetName(AValue: TLocalizedString);
@@ -1632,12 +1709,6 @@ begin
   FSex:=AValue;
 end;
 
-procedure THeroOptions.SetSpellpower(AValue: Integer);
-begin
-  if FSpellpower=AValue then Exit;
-  FSpellpower:=AValue;
-end;
-
 procedure THeroOptions.SetTightFormation(AValue: Boolean);
 begin
   if FTightFormation=AValue then Exit;
@@ -1655,14 +1726,12 @@ begin
   FSex:=THeroSex.default;
   FSpellBook := CrStrList;
 
-  Attack:=-1;
-  Defence:=-1;
-  Spellpower:=-1;
-  Knowledge:=-1;
+  FPrimarySkills := THeroPrimarySkills.Create;
 end;
 
 destructor THeroOptions.Destroy;
 begin
+  FPrimarySkills.Free;
   FSpellBook.Free;
   FSkills.Free;
   FArtifacts.Free;

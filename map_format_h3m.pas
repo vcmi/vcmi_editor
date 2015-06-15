@@ -58,6 +58,7 @@ type
      function IsNotROE: boolean;
 
      procedure SkipNotImpl(count: Integer);
+     procedure ResolveQuestIdentifiers;
    strict private
      type
        TIdToString = function(AId: TCustomID): AnsiString of object;
@@ -74,6 +75,7 @@ type
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet); //any size
      procedure ReadQuestIdentifier;
      procedure ReadResources(AresourceSet: TResourceSet);
+     procedure ReadPrimarySkills(ASkills: THeroPrimarySkills);
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -96,7 +98,7 @@ type
      procedure ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);//+
 
      //result = Mission type
-     function ReadQuest(obj: TQuest): integer;
+     function ReadQuest(obj: TQuest): TQuestMission;
 
      procedure ReadObjects();
      procedure ReadEvents();
@@ -252,6 +254,7 @@ begin
     ReadObjects();
     ReadEvents();
 
+    ResolveQuestIdentifiers();
   except
     FreeAndNil(Fmap);
     raise;
@@ -546,6 +549,14 @@ begin
   end;
 end;
 
+procedure TMapReaderH3m.ReadPrimarySkills(ASkills: THeroPrimarySkills);
+begin
+  ASkills.Attack:=FSrc.ReadByte;
+  ASkills.Defence:=FSrc.ReadByte;
+  ASkills.Spellpower:=FSrc.ReadByte;
+  ASkills.Knowledge:=FSrc.ReadByte;
+end;
+
 procedure TMapReaderH3m.ReadDefInfo;
 
 function read_terrains(): TTerrainTypes;
@@ -764,10 +775,7 @@ begin
 
     if (FMapVersion > MAP_VERSION_AB) and ReadBoolean then
     begin
-      AOptions.Attack:=ReadByte;
-      AOptions.Defence:=ReadByte;
-      AOptions.Spellpower:=ReadByte;
-      AOptions.Knowledge:=ReadByte;
+      ReadPrimarySkills(AOptions.PrimarySkills);
     end;
 
     skip(16); //junk
@@ -1213,24 +1221,30 @@ begin
   end;
 end;
 
-function TMapReaderH3m.ReadQuest(obj: TQuest): integer;
+function TMapReaderH3m.ReadQuest(obj: TQuest): TQuestMission;
 var
   limit: DWord;
   cnt: Byte;
   i: Integer;
 begin
-  Result := FSrc.ReadByte;
+  Result := TQuestMission(FSrc.ReadByte);
 
-  obj.MissionType:=TQuestMission(Result);
+  obj.MissionType:=Result;
 
   with FSrc do
   begin
     case obj.MissionType of
       TQuestMission.None: Exit;
       TQuestMission.PrimaryStat:begin
+        ReadPrimarySkills(obj.PrimarySkills);
+      end;
+      TQuestMission.Level:begin
+        obj.HeroLevel:=ReadDWord;
+      end;
+      TQuestMission.KillHero: begin
         SkipNotImpl(4);
       end;
-      TQuestMission.Level, TQuestMission.KillHero, TQuestMission.KillCreature: begin
+      TQuestMission.KillCreature: begin
         SkipNotImpl(4);
       end;
       TQuestMission.Artifact: begin
@@ -1242,8 +1256,11 @@ begin
       TQuestMission.Resources: begin
         ReadResources(obj.Resources);
       end;
-      TQuestMission.Hero,TQuestMission.Player: begin
-        SkipNotImpl(1);
+      TQuestMission.Hero: begin
+        obj.HeroID:=ReadID(@FMapEnv.lm.HeroIndexToString, 1);
+      end;
+      TQuestMission.Player: begin
+        obj.PlayerID:=TPlayer(ReadByte);
       end;
     end;
 
@@ -1361,7 +1378,7 @@ end;
 
 procedure TMapReaderH3m.VisitSeerHut(AOptions: TSeerHutOptions);
 var
-  mis_type: Integer;
+  mis_type: TQuestMission;
   reward_type: Byte;
   aid: Byte;
 begin
@@ -1374,13 +1391,13 @@ begin
       aid := FSrc.ReadByte;
       if aid <>255 then
       begin
-        mis_type := 5;
+        mis_type := TQuestMission.Artifact;
       end else begin
-        mis_type := 0;
+        mis_type := TQuestMission.None;
       end;
     end;
 
-    if mis_type>0 then
+    if mis_type<> TQuestMission.None then
     begin
       reward_type := ReadByte;
       case reward_type of
@@ -1394,7 +1411,6 @@ begin
         8: SkipNotImpl(ifthen(IsNotROE,2,1));
         9:SkipNotImpl(1);
         10:SkipNotImpl(ifthen(IsNotROE,4,3));
-
       end;
       skip(2);//junk
     end
@@ -1626,6 +1642,11 @@ end;
 procedure TMapReaderH3m.SkipNotImpl(count: Integer);
 begin
   FSrc.Skip(count);
+end;
+
+procedure TMapReaderH3m.ResolveQuestIdentifiers;
+begin
+  //todo:ResolveQuestIdentifiers
 end;
 
 procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);
