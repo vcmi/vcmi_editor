@@ -134,7 +134,7 @@ type
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
      procedure VisitHero(AOptions: THeroOptions);//+
      procedure VisitMonster(AOptions: TMonsterOptions);//+
-     procedure VisitSeerHut(AOptions: TSeerHutOptions);
+     procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
      procedure VisitScholar(AOptions: TScholarOptions);//+
      procedure VisitGarrison(AOptions: TGarrisonOptions);//+
@@ -809,7 +809,7 @@ begin
       AOptions.Portrait:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
     end;
 
-    MaybeReadSecondarySkills(AOptions.Skills);
+    MaybeReadSecondarySkills(AOptions.SecondarySkills);
 
     if ReadBoolean then
     begin
@@ -1428,13 +1428,13 @@ end;
 procedure TMapReaderH3m.VisitSeerHut(AOptions: TSeerHutOptions);
 var
   mis_type: TQuestMission;
-  reward_type: Byte;
   aid: Byte;
+  tmp: DWord;
 begin
-  with FSrc do begin
+  with FSrc, AOptions do begin
     if IsNotROE then
     begin
-      mis_type := ReadQuest(AOptions.Quest);
+      mis_type := ReadQuest(Quest);
     end
     else begin
       aid := FSrc.ReadByte;
@@ -1448,23 +1448,68 @@ begin
 
     if mis_type<> TQuestMission.None then
     begin
-      reward_type := ReadByte;
-      case reward_type of
-        1: SkipNotImpl(4);
-        2: SkipNotImpl(4);
-        3: SkipNotImpl(1);
-        4: SkipNotImpl(1);
-        5: SkipNotImpl(5);
-        6:SkipNotImpl(2);
-        7:SkipNotImpl(2);
-        8: SkipNotImpl(ifthen(IsNotROE,2,1));
-        9:SkipNotImpl(1);
-        10:SkipNotImpl(ifthen(IsNotROE,4,3));
+      RewardType := TSeerHutReward(ReadByte);
+      case RewardType of
+        TSeerHutReward.EXPERIENCE, TSeerHutReward.MANA_POINTS:
+        begin
+          AOptions.RewardValue:=ReadInt32;
+        end;
+        TSeerHutReward.MORALE_BONUS, TSeerHutReward.LUCK_BONUS:
+        begin
+          AOptions.RewardValue:=ReadByte;
+        end;
+
+        TSeerHutReward.RESOURCES:
+        begin
+          RewardID := RESOURCE_NAMES[TResType(ReadByte)];
+
+          tmp := ReadDWord;
+          tmp := tmp and $00FFFFFF;
+          AOptions.RewardValue := tmp
+        end;
+        TSeerHutReward.PRIMARY_SKILL:
+        begin
+          RewardID := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
+          RewardValue:=ReadByte;
+
+        end;
+        TSeerHutReward.SECONDARY_SKILL:
+        begin
+          RewardID := SECONDARY_SKILL_NAMES[ReadByte];
+          RewardValue:=ReadByte;
+        end;
+        TSeerHutReward.ARTIFACT:
+        begin
+          if IsNotROE then
+          begin
+            tmp := ReadWord;
+          end
+          else begin
+            tmp := ReadByte;
+          end;
+          RewardID:=FMapEnv.lm.ArtifactIndexToString(tmp);
+        end;
+        TSeerHutReward.SPELL:
+        begin
+          RewardID:=FMapEnv.lm.SpellIndexToString(ReadByte);
+        end;
+        TSeerHutReward.CREATURE:
+        begin
+          if IsNotROE then
+          begin
+            tmp := ReadWord;
+          end
+          else begin
+            tmp := ReadByte;
+          end;
+          RewardID:=FMapEnv.lm.CreatureIndexToString(tmp);
+          RewardValue:=ReadWord;
+        end;
       end;
       skip(2);//junk
     end
     else
-      skip(3); // missionType==255 + junk
+      skip(3); //junk
   end;
 
 end;

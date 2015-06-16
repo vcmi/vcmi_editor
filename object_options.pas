@@ -367,10 +367,13 @@ type
     FPortrait: AnsiString;
     FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
-    FSkills: THeroSecondarySkills;
+    FSecondarySkills: THeroSecondarySkills;
     FSpellBook: TStrings;
     FSpellpower: Integer;
     FTightFormation: Boolean;
+    function IsPrimarySkillsStored: Boolean;
+    function IsSecondarySkillsStored: Boolean;
+    function IsSpellBookStored: Boolean;
     procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
     procedure SetId(AValue: AnsiString);
@@ -391,14 +394,14 @@ type
     property Experience: UInt64 read FExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
     property Biography: TLocalizedString read FBiography write SetBiography;
-    property PrimarySkills:THeroPrimarySkills read FPrimarySkills;
-    property Skills: THeroSecondarySkills read FSkills;
+    property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+    property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
     property TightFormation: Boolean read FTightFormation write SetTightFormation;
 
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
     property Sex: THeroSex read FSex write SetSex default THeroSex.default;
 
-    property SpellBook: TStrings read FSpellBook;
+    property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
   end;
 
   { TMonsterOptions }
@@ -442,15 +445,27 @@ type
 
   { TSeerHutOptions }
 
+  TSeerHutReward = (NOTHING, EXPERIENCE, MANA_POINTS, MORALE_BONUS, LUCK_BONUS, RESOURCES, PRIMARY_SKILL, SECONDARY_SKILL, ARTIFACT, SPELL, CREATURE);
+
   TSeerHutOptions = class(TObjectOptions)
   private
     FQuest: TQuest;
+    FRewardID: AnsiString;
+    FRewardType: TSeerHutReward;
+    FRewardValue: Integer;
+    procedure SetRewardID(AValue: AnsiString);
+    procedure SetRewardType(AValue: TSeerHutReward);
+    procedure SetRewardValue(AValue: Integer);
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property Quest: TQuest read FQuest;
+
+    property RewardType: TSeerHutReward read FRewardType write SetRewardType default TSeerHutReward.NOTHING;
+    property RewardID: AnsiString read FRewardID write SetRewardID;
+    property RewardValue: Integer read FRewardValue write SetRewardValue default 0;
   end;
 
   { TWitchHutOptions }
@@ -1690,6 +1705,24 @@ begin
   AVisitor.VisitSeerHut(self);
 end;
 
+procedure TSeerHutOptions.SetRewardType(AValue: TSeerHutReward);
+begin
+  if FRewardType=AValue then Exit;
+  FRewardType:=AValue;
+end;
+
+procedure TSeerHutOptions.SetRewardValue(AValue: Integer);
+begin
+  if FRewardValue=AValue then Exit;
+  FRewardValue:=AValue;
+end;
+
+procedure TSeerHutOptions.SetRewardID(AValue: AnsiString);
+begin
+  if FRewardID=AValue then Exit;
+  FRewardID:=AValue;
+end;
+
 constructor TSeerHutOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
@@ -1800,6 +1833,21 @@ begin
   FBiography:=AValue;
 end;
 
+function THeroOptions.IsPrimarySkillsStored: Boolean;
+begin
+  Result := not FPrimarySkills.IsDefault;
+end;
+
+function THeroOptions.IsSecondarySkillsStored: Boolean;
+begin
+  Result := FSecondarySkills.Count > 0;
+end;
+
+function THeroOptions.IsSpellBookStored: Boolean;
+begin
+  Result := FSpellBook.Count >0;
+end;
+
 procedure THeroOptions.SetId(AValue: AnsiString);
 begin
   if FId=AValue then Exit;
@@ -1842,7 +1890,7 @@ begin
   FArmy := TCreatureSet.Create(7);
   FArtifacts := THeroArtifacts.Create;
   FExperience:=0;
-  FSkills := THeroSecondarySkills.Create;
+  FSecondarySkills := THeroSecondarySkills.Create;
   FPatrolRadius := -1;
   FSex:=THeroSex.default;
   FSpellBook := CrStrList;
@@ -1854,7 +1902,7 @@ destructor THeroOptions.Destroy;
 begin
   FPrimarySkills.Free;
   FSpellBook.Free;
-  FSkills.Free;
+  FSecondarySkills.Free;
   FArtifacts.Free;
   FArmy.Free;
   inherited Destroy;
