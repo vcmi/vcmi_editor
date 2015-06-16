@@ -29,6 +29,39 @@ uses
 
 type
 
+  { TVCMIJsonString }
+
+  TVCMIJsonString = class (TJSONString)
+  private
+    FMeta: AnsiString;
+    procedure SetMeta(AValue: AnsiString);
+  public
+    function Clone: TJSONData; override;
+    property Meta: AnsiString read FMeta write SetMeta;
+  end;
+
+  { TVCMIJsonObject }
+
+  TVCMIJsonObject = class(TJSONObject)
+  private
+    FMeta: AnsiString;
+  public
+     function Clone: TJSONData; override;
+     procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
+     property Meta: AnsiString read FMeta;
+  end;
+
+  { TVCMIJsonArray }
+
+  TVCMIJsonArray = class(TJSONArray)
+  private
+    FMeta: AnsiString;
+  public
+    function Clone: TJSONData; override;
+    procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
+    property Meta: AnsiString read FMeta;
+  end;
+
   { TVCMIJSONDestreamer }
 
   TOnBeforeReadObject = procedure (const JSON: TJSONObject; AObject: TObject) of object;
@@ -95,16 +128,16 @@ type
 
   TModdedConfig = class
   private
-    FConfig: TJSONObject;
+    FConfig: TVCMIJSONObject;
     FModId: TModId;
-    FPatches: TJSONObject;
+    FPatches: TVCMIJSONObject;
     procedure SetModId(AValue: TModId);
   public
     constructor Create;
     destructor Destroy; override;
     property ModId: TModId read FModId write SetModId;
-    property Config: TJSONObject read FConfig;
-    property Patches: TJSONObject read FPatches;
+    property Config: TVCMIJSONObject read FConfig;
+    property Patches: TVCMIJSONObject read FPatches;
   end;
 
   { TModdedConfigs }
@@ -128,35 +161,7 @@ type
     procedure Load(APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
   end;
 
-  { TVCMIJsonString }
 
-  TVCMIJsonString = class (TJSONString)
-  private
-    FMeta: AnsiString;
-    procedure SetMeta(AValue: AnsiString);
-  public
-    property Meta: AnsiString read FMeta write SetMeta;
-  end;
-
-  { TVCMIJsonObject }
-
-  TVCMIJsonObject = class(TJSONObject)
-  private
-    FMeta: AnsiString;
-  public
-    procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
-    property Meta: AnsiString read FMeta;
-  end;
-
-  { TVCMIJsonArray }
-
-  TVCMIJsonArray = class(TJSONArray)
-  private
-    FMeta: AnsiString;
-  public
-    procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
-    property Meta: AnsiString read FMeta;
-  end;
 
   { TJSONObjectHelper }
 
@@ -292,6 +297,13 @@ end;
 
 { TVCMIJsonArray }
 
+function TVCMIJsonArray.Clone: TJSONData;
+begin
+  Result:=inherited Clone;
+
+  TVCMIJsonArray(Result).SetMeta(Meta, False);
+end;
+
 procedure TVCMIJsonArray.SetMeta(AValue: AnsiString; Recursive: Boolean);
 var
   iter: TJSONEnum;
@@ -305,6 +317,12 @@ begin
 end;
 
 { TVCMIJsonObject }
+
+function TVCMIJsonObject.Clone: TJSONData;
+begin
+  Result:=inherited Clone;
+  TVCMIJsonObject(Result).SetMeta(Meta, False);
+end;
 
 procedure TVCMIJsonObject.SetMeta(AValue: AnsiString; Recursive: Boolean);
 var
@@ -325,6 +343,12 @@ procedure TVCMIJsonString.SetMeta(AValue: AnsiString);
 begin
   if FMeta=AValue then Exit;
   FMeta:=AValue;
+end;
+
+function TVCMIJsonString.Clone: TJSONData;
+begin
+  Result:=inherited Clone;
+  TVCMIJsonString(Result).Meta:=Meta;
 end;
 
 { TJSONObjectHelper }
@@ -402,6 +426,8 @@ begin
   try
     FreeAndNil(FRoot);
     FRoot := destreamer.JSONStreamToJSONObject(AStream,'');
+
+    Assert(FRoot is TVCMIJsonObject);
   finally
     destreamer.Free;
   end;
@@ -773,8 +799,6 @@ begin
     stm.Free;
     prepase_buffer.Free;
   end;
-
-
 end;
 
 procedure TVCMIJSONDestreamer.SetOnBeforeReadObject(AValue: TOnBeforeReadObject
@@ -795,8 +819,8 @@ end;
 
 constructor TModdedConfig.Create;
 begin
-  FConfig := TJSONObject.Create;
-  FPatches := TJSONObject.Create;
+  FConfig := TVCMIJSONObject.Create;
+  FPatches := TVCMIJSONObject.Create;
 end;
 
 destructor TModdedConfig.Destroy;
@@ -855,6 +879,7 @@ begin
         current.Free;
       end;
     end;
+    item.Config.SetMeta(AModdedPath.ModID,true);
   end;
 end;
 
@@ -886,7 +911,7 @@ var
   mod_data, other_mod_data : TModdedConfig;
   object_data: TJSONEnum;
   id: TJSONStringType;
-  config: TJSONObject;
+  config: TVCMIJSONObject;
 
   all_fields: TStringDynArray;
   key: String;
@@ -903,7 +928,6 @@ begin
     begin
       all_fields[object_data.KeyNum] := object_data.Key;
     end;
-
 
     for key in all_fields do
     begin
@@ -924,7 +948,7 @@ begin
       begin
         //this is a patch
 
-        config := mod_data.Config.Extract(key) as TJSONObject;
+        config := mod_data.Config.Extract(key) as TVCMIJSONObject;
 
         if not FMap.Find(other_mod_id, other_mod_index) then
         begin

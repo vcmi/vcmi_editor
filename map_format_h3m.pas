@@ -827,11 +827,11 @@ begin
     if htid = $ff then
     begin
       AOptions.Power := ReadByte;
-      AOptions.TypeID := ID_RANDOM;
+      AOptions.TypeID := '';
     end
     else
     begin
-      AOptions.TypeID := htid;
+      AOptions.TypeID := '';
     end;
   end;
 end;
@@ -1180,7 +1180,8 @@ begin
     for h := 0 to heroes_count - 1 do
     begin
       hero := TPlasedHero(Attr.PlasedHeroes.Add);
-      hero.id := FSrc.ReadIDByte;
+
+      hero.Portrait := ReadID(@FMapEnv.lm.HeroIndexToString,1);
       hero.Name := FSrc.ReadLocalizedString;
     end;
   end;
@@ -1476,7 +1477,7 @@ end;
 
 procedure TMapReaderH3m.VisitSpellScroll(AOptions: TSpellScrollOptions);
 var
-  nid : TSpellID;
+  nid : TCustomID;
   sid: AnsiString;
 begin
   VisitArtifact(AOptions);
@@ -1487,20 +1488,116 @@ begin
 end;
 
 procedure TMapReaderH3m.ReadSVLC;
+type
+   TVictoryCondition = ( ARTIFACT, GATHERTROOP, GATHERRESOURCE, BUILDCITY, BUILDGRAIL, BEATHERO,
+		CAPTURECITY, BEATMONSTER, TAKEDWELLINGS, TAKEMINES, TRANSPORTITEM, WINSTANDARD = 255);
+   TLossCondition = (LOSSCASTLE, LOSSHERO, TIMEEXPIRES, LOSSSTANDARD = 255);
 var
-  cond: Byte;
+  VictoryCondition: TVictoryCondition;
+  LossCondition: TLossCondition;
+  obj_id: TCustomID;
+  value: DWord;
+  allow_normal_victory: Boolean;
+  applies_to_ai: Boolean;
 begin
-  cond := FSrc.ReadByte;
-  //TODO:ReadSVC
-  if not cond = 255 then raise Exception.Create('SVLC not implenmeted');
+  //TODO:ReadSVLC
 
+  VictoryCondition := TVictoryCondition(FSrc.ReadByte);
 
+  if VictoryCondition = TVictoryCondition.WINSTANDARD then
+  begin
 
-  cond := FSrc.ReadByte;
-  //TODO:ReadSLC
-  if not cond = 255 then raise Exception.Create('SVLC not implenmeted');
+  end
+  else
+  begin
+    allow_normal_victory := FSrc.ReadBoolean;
+    applies_to_ai := Fsrc.ReadBoolean;
 
+    case VictoryCondition of
+      TVictoryCondition.ARTIFACT:
+      begin
+        obj_id := FSrc.ReadByte;
 
+        if IsNotROE then
+          FSrc.Skip(1);
+
+      end;
+      TVictoryCondition.GATHERTROOP:
+      begin
+        obj_id := FSrc.ReadByte;
+
+        if IsNotROE then
+          FSrc.Skip(1);
+
+        value := FSrc.ReadDWord;
+      end;
+      TVictoryCondition.GATHERRESOURCE:
+      begin
+        obj_id := FSrc.ReadByte;
+        value := FSrc.ReadDWord;
+      end;
+      TVictoryCondition.BUILDCITY:
+      begin
+        SkipNotImpl(3); //posistion
+        SkipNotImpl(2);
+      end;
+      TVictoryCondition.BUILDGRAIL:
+      begin
+        SkipNotImpl(3); //posistion
+      end;
+      TVictoryCondition.BEATHERO:
+      begin
+        SkipNotImpl(3); //posistion
+      end;
+      TVictoryCondition.CAPTURECITY:
+      begin
+        SkipNotImpl(3); //posistion
+      end;
+      TVictoryCondition.BEATMONSTER:
+      begin
+       SkipNotImpl(3); //posistion
+      end;
+      TVictoryCondition.TAKEDWELLINGS:
+      begin
+        //
+      end;
+      TVictoryCondition.TAKEMINES:
+      begin
+        //
+      end;
+      TVictoryCondition.TRANSPORTITEM:
+      begin
+        SkipNotImpl(4);
+      end;
+      else
+        raise Exception.CreateFmt('Invalid victory condition %d',[Integer(VictoryCondition)]);
+    end;
+  end;
+
+  LossCondition := TLossCondition(FSrc.ReadByte);
+
+  if (LossCondition = TLossCondition.LOSSSTANDARD) then
+  begin
+
+  end
+  else
+  begin
+    case LossCondition of
+      TLossCondition.LOSSCASTLE:
+      begin
+        SkipNotImpl(3); //posistion
+      end;
+      TLossCondition.LOSSHERO:
+      begin
+        SkipNotImpl(3); //posistion
+      end;
+      TLossCondition.TIMEEXPIRES:
+      begin
+        SkipNotImpl(2); //days
+      end;
+    end;
+
+  end;
 end;
 
 procedure TMapReaderH3m.ReadTeams;

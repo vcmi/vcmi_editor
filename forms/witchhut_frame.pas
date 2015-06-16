@@ -106,7 +106,6 @@ end;
 
 procedure TWitchHutFrame.VisitWitchHut(AOptions: TWitchHutOptions);
 var
-  skill_id: TSkillID;
   i: Integer;
 begin
   inherited VisitWitchHut(AOptions);

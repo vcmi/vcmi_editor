@@ -55,13 +55,13 @@ type
 
   TPlasedHero = class (TCollectionItem)
   private
-    FName: string;
-    FPortrait: THeroID;
-    procedure SetName(AValue: string);
-    procedure SetPortrait(AValue: THeroID);
+    FName: TLocalizedString;
+    FPortrait: AnsiString;
+    procedure SetName(AValue: TLocalizedString);
+    procedure SetPortrait(AValue: AnsiString);
   published
-    property id:THeroID read FPortrait write SetPortrait nodefault;
-    property Name: string read FName write SetName;
+    property Portrait:AnsiString read FPortrait write SetPortrait;
+    property Name: TLocalizedString read FName write SetName;
   end;
 
   { TPlasedHeroes }
@@ -195,7 +195,6 @@ type
   private
     FType: AnsiString;
     FAllowedTerrains: TTerrainTypes;
-    FID: TObjectTypeID;
     FMask: TStringList;
     FAnimation: string;
     FMenuTerrains: TTerrainTypes;
@@ -208,7 +207,6 @@ type
     procedure SetType(AValue: AnsiString);
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: string);
-    procedure SetID(AValue: TObjectTypeID);
     procedure SetMenuTerrains(AValue: TTerrainTypes);
     procedure Setsubtype(AValue: AnsiString);
     procedure SetZIndex(AValue: Integer);
@@ -868,12 +866,6 @@ begin
   //todo: load and check
 end;
 
-procedure TMapObjectTemplate.SetID(AValue: TObjectTypeID);
-begin
-  if FID = AValue then Exit;
-  FID := AValue;
-end;
-
 procedure TMapObjectTemplate.SetMenuTerrains(AValue: TTerrainTypes);
 begin
   if FMenuTerrains = AValue then Exit;
@@ -906,13 +898,13 @@ end;
 
 { TPlasedHero }
 
-procedure TPlasedHero.SetName(AValue: string);
+procedure TPlasedHero.SetName(AValue: TLocalizedString);
 begin
-  if FName = AValue then Exit;
-  FName := AValue;
+  if FName=AValue then Exit;
+  FName:=AValue;
 end;
 
-procedure TPlasedHero.SetPortrait(AValue: THeroID);
+procedure TPlasedHero.SetPortrait(AValue: AnsiString);
 begin
   if FPortrait = AValue then Exit;
   FPortrait := AValue;

@@ -50,16 +50,16 @@ type
   //TFactionID = type integer;
   //TFactionIDCompare = specialize gutil.TLess<TFactionID> ;
   //TFactions  = specialize gset.TSet<TFactionID,TFactionIDCompare>;
-  THeroClassID = type integer;
-  THeroID = type integer;
-
-  TObjectTypeID = type Integer;
+  //THeroClassID = type integer;
+  //THeroID = type integer;
+  //
+  //TObjectTypeID = type Integer;
   TCustomID = type integer;
-
-  TArtifactID = type Integer;
-  TCreatureID = type Integer;
-  TSkillID = type Integer;
-  TSpellID = type Integer;
+  //
+  //TArtifactID = type Integer;
+  //TCreatureID = type Integer;
+  //TSkillID = type Integer;
+  //TSpellID = type Integer;
 
   TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
 
