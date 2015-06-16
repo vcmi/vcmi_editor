@@ -1474,11 +1474,11 @@ begin
     begin
       RewardType := TSeerHutReward(ReadByte);
       case RewardType of
-        TSeerHutReward.EXPERIENCE, TSeerHutReward.MANA_POINTS:
+        TSeerHutReward.experience, TSeerHutReward.manaPoints:
         begin
           AOptions.RewardValue:=ReadInt32;
         end;
-        TSeerHutReward.MORALE_BONUS, TSeerHutReward.LUCK_BONUS:
+        TSeerHutReward.moraleBonus, TSeerHutReward.luckBonus:
         begin
           AOptions.RewardValue:=ReadByte;
         end;
@@ -1491,18 +1491,18 @@ begin
           tmp := tmp and $00FFFFFF;
           AOptions.RewardValue := tmp
         end;
-        TSeerHutReward.PRIMARY_SKILL:
+        TSeerHutReward.primarySkill:
         begin
           RewardID := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
           RewardValue:=ReadByte;
 
         end;
-        TSeerHutReward.SECONDARY_SKILL:
+        TSeerHutReward.secondarySkill:
         begin
           RewardID := SECONDARY_SKILL_NAMES[ReadByte];
           RewardValue:=ReadByte;
         end;
-        TSeerHutReward.ARTIFACT:
+        TSeerHutReward.artifact:
         begin
           if IsNotROE then
           begin
@@ -1513,11 +1513,11 @@ begin
           end;
           RewardID:=FMapEnv.lm.ArtifactIndexToString(tmp);
         end;
-        TSeerHutReward.SPELL:
+        TSeerHutReward.spell:
         begin
           RewardID:=FMapEnv.lm.SpellIndexToString(ReadByte);
         end;
-        TSeerHutReward.CREATURE:
+        TSeerHutReward.creature:
         begin
           if IsNotROE then
           begin

@@ -33,7 +33,7 @@ type
   TTerrainTypes = set of TTerrainType;
   TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
-  TPlayer = (RED=0, BLUE, TAN, GREEN, ORANGE, PURPLE, TEAL, PINK, NONE = 255);
+  TPlayer = (red=0, blue, tan, green, orange, purple, teal, pink, none = 255);
 
   TAITactics = (NONE=-1,RANDOM = 0,WARRIOR,BUILDER,EXPLORER);
 
@@ -47,26 +47,15 @@ type
 
   TDefFrame = UInt8;
 
-  //TFactionID = type integer;
-  //TFactionIDCompare = specialize gutil.TLess<TFactionID> ;
-  //TFactions  = specialize gset.TSet<TFactionID,TFactionIDCompare>;
-  //THeroClassID = type integer;
-  //THeroID = type integer;
-  //
-  //TObjectTypeID = type Integer;
   TCustomID = type integer;
-  //
-  //TArtifactID = type Integer;
-  //TCreatureID = type Integer;
-  //TSkillID = type Integer;
-  //TSpellID = type Integer;
+
 
   TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
 
   TSex = (Male, Female);
 
 const
-  ALL_PLAYERS = [TPlayer.RED, TPlayer.BLUE, TPlayer.TAN, TPlayer.GREEN, TPlayer.ORANGE, TPlayer.PURPLE, TPlayer.TEAL, TPlayer.PINK];
+  ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 
 const
   ID_RANDOM = -1;

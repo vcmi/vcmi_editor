@@ -35,7 +35,7 @@ type
 {$m+}
   THeroSex = (male=0, female=1, default = $FF);
 
-  TSeerHutReward = (NOTHING, EXPERIENCE, MANA_POINTS, MORALE_BONUS, LUCK_BONUS, RESOURCES, PRIMARY_SKILL, SECONDARY_SKILL, ARTIFACT, SPELL, CREATURE);
+  TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
 
   TScholarBonus = (primSkill, skill, spell, random);
 
