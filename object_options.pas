@@ -55,6 +55,7 @@ type
 
     procedure ApplyVisitor({%H-}AVisitor: IObjectOptionsVisitor); virtual;
 
+    property MapObject: IMapObject read FObject;
   published
     property Owner: TPlayer read FOwner write SetOwner stored MayBeOwned default TPlayer.none;
   end;
@@ -573,8 +574,16 @@ type
   { TAbandonedOptions }
 
   TAbandonedOptions = class(TObjectOptions)
+  private
+    FPossibleResources: TStrings;
   public
+    constructor Create(AObject: IMapObject); override;
+    destructor Destroy; override;
+
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+
+  published
+    property PossibleResources: TStrings read FPossibleResources;
   end;
 
   { TShrineOptions }
@@ -1087,6 +1096,18 @@ begin
 end;
 
 { TAbandonedOptions }
+
+constructor TAbandonedOptions.Create(AObject: IMapObject);
+begin
+  inherited Create(AObject);
+  FPossibleResources := CrStrList;
+end;
+
+destructor TAbandonedOptions.Destroy;
+begin
+  FPossibleResources.Free;
+  inherited Destroy;
+end;
 
 procedure TAbandonedOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin

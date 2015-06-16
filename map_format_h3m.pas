@@ -142,7 +142,7 @@ type
      procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
      procedure VisitResource(AOptions: TResourceOptions);//+
      procedure VisitTown(AOptions: TTownOptions);
-     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
+     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
      procedure VisitShrine(AOptions: TShrineOptions);//+
      procedure VisitPandorasBox(AOptions: TPandorasOptions);//+
      procedure VisitGrail(AOptions: TGrailOptions);//+
@@ -1392,6 +1392,12 @@ procedure TMapReaderH3m.VisitResource(AOptions: TResourceOptions);
 begin
   MayBeReadGuardsWithMessage(AOptions);
   AOptions.Amount := FSrc.ReadDWord;
+
+  if AOptions.MapObject.GetSubId = 'gold' then
+  begin
+    AOptions.Amount := AOptions.Amount * 100;
+  end;
+
   FSrc.Skip(4);//junk
 end;
 
@@ -1867,8 +1873,21 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);
+var
+  res_mask: Byte;
+  bit_idx: Integer;
 begin
-  SkipNotImpl(1);
+
+  res_mask := FSrc.ReadByte;
+
+  for bit_idx in [0..7] do
+  begin
+    if ((1 shl bit_idx) and res_mask) > 0 then
+    begin
+      AOptions.PossibleResources.Add(RESOURCE_NAMES[TResType(bit_idx)]);
+    end;
+  end;
+
   FSrc.Skip(3);
 end;
 
