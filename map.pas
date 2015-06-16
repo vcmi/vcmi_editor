@@ -1400,6 +1400,7 @@ begin
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
   FLevelLimit:=MAX_HERO_LEVEL;
+  FPredefinedHeroes := THeroDefinitions.Create(Self);
   AttachTo(FObjects);
 end;
 
@@ -1426,11 +1427,14 @@ begin
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
   FLevelLimit:=MAX_HERO_LEVEL;
+  FPredefinedHeroes := THeroDefinitions.Create(Self);
   AttachTo(FObjects);
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FPredefinedHeroes.Free;
+
   FAllowedArtifacts.Free;
   FAllowedAbilities.Free;
   FAllowedSpells.Free;

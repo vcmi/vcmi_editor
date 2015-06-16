@@ -458,7 +458,7 @@ begin
     tkBool :
       SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
     tkQWord :
-      SetOrdProp(AObject,PI,Trunc(PropData.AsFloat));
+      SetOrdProp(AObject,PI,PropData.AsInt64);
     tkObject,
     tkArray,
     tkRecord,
@@ -1059,7 +1059,7 @@ begin
     tkInt64 :
       Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
     tkQWord :
-      Result:=TJSONFloatNumber.Create(GetOrdProp(AObject,PropertyInfo));
+      Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
     tkObject,
     tkArray,
     tkRecord,
