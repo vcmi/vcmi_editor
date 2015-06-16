@@ -1431,6 +1431,8 @@ begin
     TScholarBonus.primSkill:  AOptions.BonusId := PRIMARY_SKILL_NAMES[TPrimarySkill(FSrc.ReadByte)];
     TScholarBonus.skill: AOptions.BonusId := ReadID(@FMapEnv.lm.SkillNidToString,1);
     TScholarBonus.spell: AOptions.BonusId := ReadID(@FMapEnv.lm.SpellIndexToString,1);
+  else
+    raise Exception.Create('Invalid Scholar bonus type');
   end;
 
   FSrc.Skip(6); //junk

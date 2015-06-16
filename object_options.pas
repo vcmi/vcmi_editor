@@ -33,6 +33,12 @@ type
 
 {$push}
 {$m+}
+  THeroSex = (male=0, female=1, default = $FF);
+
+  TSeerHutReward = (NOTHING, EXPERIENCE, MANA_POINTS, MORALE_BONUS, LUCK_BONUS, RESOURCES, PRIMARY_SKILL, SECONDARY_SKILL, ARTIFACT, SPELL, CREATURE);
+
+  TScholarBonus = (primSkill=0,skill=1,spell=2, random=$ff);
+
   { TObjectOptions }
   TObjectOptions      = class;
   TObjectOptionsClass = class of TObjectOptions;
@@ -248,8 +254,6 @@ type
   THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
   end;
 
-  THeroSex = (male=0, female=1, default = $FF);
-
 {$pop}
 
   { TGuardedObjectOptions }
@@ -446,8 +450,6 @@ type
 
   { TSeerHutOptions }
 
-  TSeerHutReward = (NOTHING, EXPERIENCE, MANA_POINTS, MORALE_BONUS, LUCK_BONUS, RESOURCES, PRIMARY_SKILL, SECONDARY_SKILL, ARTIFACT, SPELL, CREATURE);
-
   TSeerHutOptions = class(TObjectOptions)
   private
     FQuest: TQuest;
@@ -483,8 +485,6 @@ type
   published
     property AllowedSkills: TStrings read GetAllowedSkills;
   end;
-
-  TScholarBonus = (primSkill=0,skill=1,spell=2, random=$ff);
 
   { TScholarOptions }
 
