@@ -960,8 +960,7 @@ begin
       FCurrentObject.L :=l;
       FCurrentObject.TemplateID := tid;
 
-
-      //DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', o.Template.&type, ' subid ',  o.Template.subtype, ' @',IntToHex(spos, 8)]);
+      DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId, ' @',IntToHex(spos, 8)]);
 
       FSrc.Skip(5); //junk
 

@@ -139,8 +139,7 @@ begin
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.PreLoad;
 
-  FListsManager.LoadFactions(FResourceManager.GameConfig.Factions);
-
+  DoLoadObjects(FACTION_METACLASS, @FListsManager.LoadFactions);
   DoLoadObjects(HEROCLASS_METACLASS, @FListsManager.LoadHeroClasses);
   DoLoadObjects(CREATURE_METACLASS, @FListsManager.LoadCreatures);
   DoLoadObjects(ARTIFACT_METACLASS, @FListsManager.LoadArtifacts);

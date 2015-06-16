@@ -320,7 +320,7 @@ type
 
     procedure PreLoad;
 
-    procedure LoadFactions(APaths: TStrings); //todo: mod support for factions
+    procedure LoadFactions(APaths: TModdedConfigPaths); //todo: mod support for factions
     procedure LoadHeroClasses(APaths: TModdedConfigPaths);
     procedure LoadCreatures(APaths: TModdedConfigPaths);
     procedure LoadArtifacts(APaths: TModdedConfigPaths);
@@ -940,54 +940,60 @@ begin
   LoadSkills;
 end;
 
-procedure TListsManager.LoadFactions(APaths: TStrings);
+procedure TListsManager.LoadFactions(APaths: TModdedConfigPaths);
 var
-  faction_config: TJSONObject;
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+
   faction_names: TTextResource;
   legacy_data: TJsonObjectList;
   f,i: Integer;
   o: TJSONObject;
   info: TFactionInfo;
+  iter: TJSONEnum;
 begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := TJSONObject.Create;
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
 
-  faction_names.Load(ResourceLoader);
-
-  for f in [0..9] do
-  begin
-    o := TJSONObject.Create();
-
-    o.Strings['name'] := faction_names.Value[0,f];
-
-    legacy_data.Add(o);
-  end;
-  faction_config := AssembleConfig(APaths,legacy_data);
-
-  //loading
   try
     DebugLn('Loading factions');
-    for i := 0 to faction_config.Count - 1 do
+    faction_names.Load(ResourceLoader);
+
+    for f in [0..9] do
+    begin
+      o := TJSONObject.Create();
+
+      o.Strings['name'] := faction_names.Value[0,f];
+
+      legacy_data.Add(o);
+    end;
+
+    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_data, FCombinedConfig);
+
+    for iter in FCombinedConfig  do
     begin
       info := TFactionInfo.Create;
-      info.ID:=faction_config.Names[i];
+      info.ID := iter.Key;
 
-      o := faction_config.Items[i] as TJSONObject;
-      info.Index:= o.Integers['index'];
-      info.Name := o.Strings['name'];
+      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
 
       info.HasTown:=o.IndexOfName('town')>=0;
 
       FFactionInfos.Add(info);
       FFactionMap.AddObject(info.ID, info);
 
-      DebugLn([i, ' ', info.ID, ' ', info.Name]);
+      DebugLn([info.ID, ' ', info.Name]);
     end;
   finally
-    faction_config.Free;
     faction_names.Free;
     legacy_data.Free;
+    FCombinedConfig.Free;
+    FConfig.Free;
   end;
 end;
 
