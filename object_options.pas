@@ -37,7 +37,7 @@ type
 
   TSeerHutReward = (NOTHING, EXPERIENCE, MANA_POINTS, MORALE_BONUS, LUCK_BONUS, RESOURCES, PRIMARY_SKILL, SECONDARY_SKILL, ARTIFACT, SPELL, CREATURE);
 
-  TScholarBonus = (primSkill=0,skill=1,spell=2, random=$ff);
+  TScholarBonus = (primSkill, skill, spell, random);
 
   { TObjectOptions }
   TObjectOptions      = class;
@@ -1658,6 +1658,12 @@ end;
 procedure TScholarOptions.SetBonusType(AValue: TScholarBonus);
 begin
   if FBonusType=AValue then Exit;
+
+  if not (AValue in [TScholarBonus.primSkill,TScholarBonus.skill,TScholarBonus.spell, TScholarBonus.random]) then
+  begin
+    raise Exception.CreateFmt('invalid Scholar bonus type %d',[Integer(AValue)]);
+  end;
+
   FBonusType:=AValue;
 end;
 

@@ -327,7 +327,6 @@ type
     function GetID: AnsiString;
     function GetSubId: AnsiString;
   published
-    property Index;
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
     property L:integer read FL write SetL;
@@ -376,13 +375,18 @@ type
   TMapLevel = class(TNamedCollectionItem)
   strict private
     FHeight: Integer;
+    FObjects: TFilename;
+    FTerrain: TFilename;
 
-    FTerrain: array of array of TMapTile; //X, Y
-    FObjects: TMapObjects; //todo: use it
+    FTiles: array of array of TMapTile; //X, Y
+    //FMapObjects: TMapObjects; //todo: use it
     FWidth: Integer;
     function GetMap: TVCMIMap;
     function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
+    procedure SetObjects(AValue: TFilename);
+    procedure SetTerrain(AValue: TFilename);
+
     procedure SetWidth(AValue: Integer);
 
     procedure Resize;
@@ -396,10 +400,16 @@ type
 
     procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
     procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
+
+    procedure BeforeSerialize;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
     property Index;
+
+    property Terrain: TFilename read FTerrain write SetTerrain;
+    property Objects: TFilename read FObjects write SetObjects;
+
   end;
 
   { TMapLevels }
@@ -409,6 +419,7 @@ type
     FOwner: TVCMIMap;
   public
     constructor Create(AOwner: TVCMIMap);
+    procedure BeforeSerialize;
   end;
 
   { THeroDefinition }
@@ -532,6 +543,8 @@ type
     property ListsManager: TListsManager read FListsManager;
 
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
+
+    procedure BeforeSerialize;
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -630,6 +643,16 @@ constructor TMapLevels.Create(AOwner: TVCMIMap);
 begin
   inherited Create;
   FOwner := AOwner;
+end;
+
+procedure TMapLevels.BeforeSerialize;
+var
+  i: integer;
+begin
+  for i := 0 to Count - 1 do
+  begin
+    items[i].BeforeSerialize;
+  end;
 end;
 
 { TRumor }
@@ -1267,9 +1290,17 @@ begin
   end;
 end;
 
+procedure TMapLevel.BeforeSerialize;
+begin
+  if FTerrain = '' then
+  begin
+    Terrain := 'level_'+IntToStr(Index)+'_terrain.json';
+  end;
+end;
+
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
 begin
-  Result :=@FTerrain[x,y];
+  Result :=@FTiles[x,y];
 end;
 
 function TMapLevel.GetMap: TVCMIMap;
@@ -1290,15 +1321,15 @@ begin
 
   tt := Map.FTerrainManager.GetDefaultTerrain(Index);
 
-  SetLength(FTerrain,FWidth);
+  SetLength(FTiles,FWidth);
   for X := 0 to FWidth - 1 do
   begin
-    SetLength(FTerrain[X],FHeight);
+    SetLength(FTiles[X],FHeight);
     for Y := 0 to FHeight - 1 do
     begin
-      FTerrain[X][Y].Create();
-      FTerrain[X][Y].TerType :=  tt;
-      FTerrain[X][Y].TerSubtype := Map.FTerrainManager.GetRandomNormalSubtype(tt);
+      FTiles[X][Y].Create();
+      FTiles[X][Y].TerType :=  tt;
+      FTiles[X][Y].TerSubtype := Map.FTerrainManager.GetRandomNormalSubtype(tt);
     end;
   end;
 
@@ -1315,6 +1346,18 @@ begin
   if FHeight = AValue then Exit;
   FHeight := AValue;
   Resize();
+end;
+
+procedure TMapLevel.SetObjects(AValue: TFilename);
+begin
+  if FObjects=AValue then Exit;
+  FObjects:=AValue;
+end;
+
+procedure TMapLevel.SetTerrain(AValue: TFilename);
+begin
+  if FTerrain=AValue then Exit;
+  FTerrain:=AValue;
 end;
 
 procedure TMapLevel.SetWidth(AValue: Integer);
@@ -1603,6 +1646,11 @@ begin
       dest.Push(o);
     end;
   end;
+end;
+
+procedure TVCMIMap.BeforeSerialize;
+begin
+   FLevels.BeforeSerialize;
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

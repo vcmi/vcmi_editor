@@ -243,7 +243,6 @@ begin
       d := ARow.Items[col];
 
       case d.JSONType of
-
         jtString:begin
            DeStreamTile(d.AsString,tile);
         end;
