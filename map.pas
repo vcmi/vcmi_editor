@@ -86,7 +86,7 @@ type
     FHasMainTown: boolean;
     FRandomFaction: boolean;
     FMainHeroName: TLocalizedString;
-    FMainHeroPortrait: TCustomID;
+    FMainHeroPortrait: AnsiString;
     FMainTownL: Integer;
     FMainTownType: AnsiString;
     FMainTownX: Integer;
@@ -95,6 +95,7 @@ type
     FMainHero: AnsiString;
     FTeamId: Integer;
     function GetAllowedFactions: TStrings;
+    function GetHasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
     procedure SetAllowerFactionsSet(AValue: Boolean);
     procedure SetCanComputerPlay(AValue: boolean);
@@ -103,7 +104,7 @@ type
     procedure SetHasMainTown(AValue: boolean);
     procedure SetRandomFaction(AValue: boolean);
     procedure SetMainHeroName(AValue: TLocalizedString);
-    procedure SetMainHeroPortrait(AValue: TCustomID);
+    procedure SetMainHeroPortrait(AValue: AnsiString);
     procedure SetMainTownL(AValue: Integer);
     procedure SetMainTownType(AValue: AnsiString);
     procedure SetMainTownX(AValue: Integer);
@@ -127,17 +128,19 @@ type
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
 
     property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
-    property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown;
-    property HasMainTown: boolean read FHasMainTown write SetHasMainTown;
 
-    property MainTownType: AnsiString read FMainTownType write SetMainTownType;
-    property MainTownX: Integer read FMainTownX write SetMainTownX;
-    property MainTownY: Integer read FMainTownY write SetMainTownY;
-    property MainTownL: Integer read FMainTownL write SetMainTownL;
+
+    property HasMainTown: boolean read GetHasMainTown write SetHasMainTown;
+
+    property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored GetHasMainTown;
+    property MainTownType: AnsiString read FMainTownType write SetMainTownType stored GetHasMainTown;
+    property MainTownX: Integer read FMainTownX write SetMainTownX stored GetHasMainTown;
+    property MainTownY: Integer read FMainTownY write SetMainTownY stored GetHasMainTown;
+    property MainTownL: Integer read FMainTownL write SetMainTownL stored GetHasMainTown;
 
 
     property MainHero: AnsiString read FMainHero write SetMainHero;
-    property MainHeroPortrait:TCustomID read FMainHeroPortrait write SetMainHeroPortrait;
+    property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero;
@@ -408,6 +411,46 @@ type
     constructor Create(AOwner: TVCMIMap);
   end;
 
+  { THeroDefinition }
+
+  THeroDefinition = class (TNamedCollectionItem)
+  private
+    FArtifacts: THeroArtifacts;
+    FBiography: TLocalizedString;
+    FExperience: UInt64;
+    FPrimarySkills: THeroPrimarySkills;
+    FSex: THeroSex;
+    FSkills: THeroSecondarySkills;
+    FSpellBook: TStrings;
+    function IsPrimarySkillsStored: Boolean;
+    function IsSpellBookStored: Boolean;
+    procedure SetBiography(AValue: TLocalizedString);
+    procedure SetExperience(AValue: UInt64);
+    procedure SetSex(AValue: THeroSex);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
+    property Experience: UInt64 read FExperience write SetExperience default 0;
+    property Skills: THeroSecondarySkills read FSkills;
+    property Artifacts: THeroArtifacts read FArtifacts;
+
+    property Biography: TLocalizedString read FBiography write SetBiography;
+    property Sex:THeroSex read FSex write SetSex default THeroSex.default;
+    property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
+    property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+  end;
+
+  { THeroDefinitions }
+
+  THeroDefinitions = class (specialize TGNamedCollection<THeroDefinition>)
+  private
+    FOwner: TVCMIMap;
+  public
+    constructor Create(AOwner: TVCMIMap);
+  end;
+
+
   { TVCMIMap }
 
   TVCMIMap = class (TPersistent, IFPObserver)
@@ -421,6 +464,7 @@ type
     FName: TLocalizedString;
     FObjects: TMapObjects;
     FPlayers: TPlayerAttrs;
+    FPredefinedHeroes: THeroDefinitions;
     FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
@@ -492,8 +536,8 @@ type
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
 
-    property Difficulty: TDifficulty read FDifficulty write SetDifficulty; //?
-    property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 0;//+
+    property Difficulty: TDifficulty read FDifficulty write SetDifficulty nodefault; //?
+    property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
 
     property Players: TPlayerAttrs read FPlayers;
 
@@ -505,6 +549,8 @@ type
     property AllowedHeroes: TStrings read GetAllowedHeroes;
 
     property Levels: TMapLevels read FLevels;
+
+    property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
   public //manual streamimg
     property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
@@ -521,6 +567,62 @@ type
 implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
+
+{ THeroDefinition }
+
+procedure THeroDefinition.SetExperience(AValue: UInt64);
+begin
+  if FExperience=AValue then Exit;
+  FExperience:=AValue;
+end;
+
+procedure THeroDefinition.SetSex(AValue: THeroSex);
+begin
+  if FSex=AValue then Exit;
+  FSex:=AValue;
+end;
+
+procedure THeroDefinition.SetBiography(AValue: TLocalizedString);
+begin
+  if FBiography=AValue then Exit;
+  FBiography:=AValue;
+end;
+
+function THeroDefinition.IsPrimarySkillsStored: Boolean;
+begin
+  Result := not FPrimarySkills.IsDefault;
+end;
+
+function THeroDefinition.IsSpellBookStored: Boolean;
+begin
+  Result := FSpellBook.Count>0;
+end;
+
+constructor THeroDefinition.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FSkills := THeroSecondarySkills.Create;
+  FArtifacts := THeroArtifacts.Create;
+  FSpellBook := TStringList.Create;
+  FPrimarySkills := THeroPrimarySkills.Create;
+end;
+
+destructor THeroDefinition.Destroy;
+begin
+  FPrimarySkills.Free;
+  FSpellBook.Free;
+  FArtifacts.Free;
+  FSkills.Free;
+  inherited Destroy;
+end;
+
+{ THeroDefinitions }
+
+constructor THeroDefinitions.Create(AOwner: TVCMIMap);
+begin
+  inherited Create;
+  Fowner := aowner;
+end;
 
 { TMapLevels }
 
@@ -937,6 +1039,11 @@ begin
   Result := FAllowedFactions;
 end;
 
+function TPlayerAttr.GetHasMainTown: boolean;
+begin
+  Result := FHasMainTown;
+end;
+
 procedure TPlayerAttr.SetAllowerFactionsSet(AValue: Boolean);
 begin
   if FAllowerFactionsSet = AValue then Exit;
@@ -1031,7 +1138,7 @@ begin
   FMainHeroName := AValue;
 end;
 
-procedure TPlayerAttr.SetMainHeroPortrait(AValue: TCustomID);
+procedure TPlayerAttr.SetMainHeroPortrait(AValue: AnsiString);
 begin
   if FMainHeroPortrait = AValue then Exit;
   FMainHeroPortrait := AValue;

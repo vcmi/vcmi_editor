@@ -330,7 +330,7 @@ type
     FAttack: Integer;
     FBiography: TLocalizedString;
     FDefence: Integer;
-    FExperience: Int64;
+    FExperience: UInt64;
     FId: AnsiString;
     FKnowledge: Integer;
     FName: TLocalizedString;
@@ -343,7 +343,7 @@ type
     FSpellpower: Integer;
     FTightFormation: Boolean;
     procedure SetBiography(AValue: TLocalizedString);
-    procedure SetExperience(AValue: Int64);
+    procedure SetExperience(AValue: UInt64);
     procedure SetId(AValue: AnsiString);
     procedure SetName(AValue: TLocalizedString);
     procedure SetPatrolRadius(AValue: Integer);
@@ -359,7 +359,7 @@ type
     property Portrait: AnsiString read FPortrait write SetPortrait;
     property Army: TCreatureSet read FArmy;
     property Artifacts: THeroArtifacts read FArtifacts;
-    property Experience: Int64 read FExperience write SetExperience default -1;
+    property Experience: UInt64 read FExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
     property Biography: TLocalizedString read FBiography write SetBiography;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills;
@@ -1700,7 +1700,7 @@ begin
   AVisitor.VisitHero(Self);
 end;
 
-procedure THeroOptions.SetExperience(AValue: Int64);
+procedure THeroOptions.SetExperience(AValue: UInt64);
 begin
   if FExperience=AValue then Exit;
   FExperience:=AValue;
@@ -1753,7 +1753,7 @@ begin
   inherited Create(AObject);
   FArmy := TCreatureSet.Create(7);
   FArtifacts := THeroArtifacts.Create;
-  FExperience:=-1;
+  FExperience:=0;
   FSkills := THeroSecondarySkills.Create;
   FPatrolRadius := -1;
   FSex:=THeroSex.default;

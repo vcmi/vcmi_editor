@@ -94,6 +94,7 @@ type
      procedure ReadQuestIdentifier;
      procedure ReadResources(AresourceSet: TResourceSet);
      procedure ReadPrimarySkills(ASkills: THeroPrimarySkills);
+     procedure MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -105,26 +106,27 @@ type
      procedure ReadAllowedSpells();//+
      procedure ReadAllowedAbilities();//+
      procedure ReadRumors();//+
-     procedure ReadPredefinedHeroes();
+     procedure ReadPredefinedHeroes();//+
 
      procedure ReadTerrain();//+
 
      procedure ReadObjMask(obj: TMapObjectTemplate);//+
      procedure ReadDefInfo();//+
 
+     procedure MaybeReadArtifactsOfHero(obj: THeroArtifacts);//+
      procedure ReadArtifactsOfHero(obj: THeroArtifacts);//+
      procedure ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);//+
 
      //result = Mission type
      function ReadQuest(obj: TQuest): TQuestMission;   //+
 
-     procedure ReadObjects();
+     procedure ReadObjects();//+
      procedure ReadEvents();
 
-     procedure MayBeReadGuards(AOptions: TGuardedObjectOptions);
-     procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);
+     procedure MayBeReadGuards(AOptions: TGuardedObjectOptions);//+
+     procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);//+
 
-     procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4);
+     procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4); //+
    public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
@@ -591,6 +593,27 @@ begin
   ASkills.Knowledge:=FSrc.ReadByte;
 end;
 
+procedure TMapReaderH3m.MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
+var
+  secSkill: THeroSecondarySkill;
+  cnt: DWord;
+  i: Integer;
+begin
+
+  with FSrc do
+
+    if ReadBoolean then
+    begin
+      cnt := ReadDWord;
+      for i := 0 to cnt - 1 do
+      begin
+        secSkill := ASkills.Add;
+        secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+        secSkill.Level:=ReadByte;
+      end;
+    end;
+end;
+
 procedure TMapReaderH3m.ReadDefInfo;
 
 function read_terrains(): TTerrainTypes;
@@ -650,6 +673,14 @@ begin
     b := FSrc.ReadByte;
     obj.ZIndex := b * Z_INDEX_OVERLAY;
     FSrc.Skip(16); //junk
+  end;
+end;
+
+procedure TMapReaderH3m.MaybeReadArtifactsOfHero(obj: THeroArtifacts);
+begin
+  if FSrc.ReadBoolean then
+  begin
+    ReadArtifactsOfHero(obj);
   end;
 end;
 
@@ -713,7 +744,7 @@ var
   subid: Byte;
   cnt: DWord;
   i: Integer;
-  exper: Int64;
+  exper: UInt64;
   patrol: Byte;
 
   secSkill: THeroSecondarySkill;
@@ -731,7 +762,7 @@ begin
       AOptions.Name := ReadLocalizedString;
     end;
 
-    exper := -1;
+    exper := 0;
     if FMapVersion > MAP_VERSION_AB then
     begin
       if ReadBoolean then
@@ -741,12 +772,7 @@ begin
     end
     else
     begin
-      //0=not set
       exper := ReadDWord;
-      if exper = 0 then
-      begin
-        exper := -1;
-      end;
     end;
 
     AOptions.Experience:=exper;
@@ -756,16 +782,7 @@ begin
       AOptions.Portrait:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
     end;
 
-    if ReadBoolean then
-    begin
-      cnt := ReadDWord;
-      for i := 0 to cnt - 1 do
-      begin
-        secSkill := AOptions.Skills.Add;
-        secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
-        secSkill.Level:=ReadByte;
-      end;
-    end;
+    MaybeReadSecondarySkills(AOptions.Skills);
 
     if ReadBoolean then
     begin
@@ -1132,6 +1149,8 @@ begin
 
   ReadBitmask(Attr.AllowedFactions,faction_mask_size,faction_count,@FMap.ListsManager.FactionIndexToString, False);
 
+  //todo: fill allowed faction if they are not set
+
   Attr.RandomFaction := FSrc.ReadBoolean;
 
   Attr.HasMainTown := FSrc.ReadBoolean;
@@ -1163,10 +1182,9 @@ begin
 
     if Main_Hero <> ID_RANDOM then
     begin
-
       MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
 
-      MainHeroPortrait := ReadIDByte;
+      MainHeroPortrait := ReadID(@FMapEnv.lm.HeroIndexToString,1);
       MainHeroName := ReadLocalizedString;
     end;
   end;
@@ -1202,11 +1220,11 @@ procedure TMapReaderH3m.ReadPredefinedHeroes;
 var
   custom: Boolean;
   experience: DWord;
-  bio: String;
   cnt: Word;
   i: Integer;
-begin
 
+  definition:  THeroDefinition;
+begin
   //TODO:  ReadPredefinedHeroes
 
   if FMapVersion < MAP_VERSION_SOD then Exit;
@@ -1216,43 +1234,34 @@ begin
     custom := FSrc.ReadBoolean;
     if not custom then Continue;
 
-    if FSrc.ReadBoolean then
-    begin
-      experience := FSrc.ReadDWord;
-    end;
+    definition := FMap.PredefinedHeroes.Add;
+    definition.DisplayName := FMapEnv.lm.HeroIndexToString(i);
 
     if FSrc.ReadBoolean then
     begin
-      cnt := FSrc.ReadDWord;
-      fsrc.Skip(cnt*2);
+      definition.experience := FSrc.ReadDWord;
     end;
 
-    if FSrc.ReadBoolean then  //arts
+    MaybeReadSecondarySkills(definition.Skills);
+
+    MaybeReadArtifactsOfHero(definition.Artifacts);
+
+    if FSrc.ReadBoolean then
     begin
-      FSrc.Skip(19*2);
-
-      cnt := FSrc.ReadWord;
-
-       FSrc.Skip(cnt*2);
+      definition.Biography :=  FSrc.ReadLocalizedString;
     end;
 
-    if FSrc.ReadBoolean then  //bio
-    begin
-      bio :=  FSrc.ReadString;
-    end;
+    definition.Sex := THeroSex(FSrc.ReadByte);
 
-    FSrc.Skip(1); //sex
-
-    if FSrc.ReadBoolean then  //spells
+    if FSrc.ReadBoolean then
     begin
-      FSrc.Skip(9);
+      ReadBitmask(definition.SpellBook, 9, SPELL_QUANTITY_ACTUAL, @FMapEnv.lm.SpellIndexToString, false);
     end;
 
     if FSrc.ReadBoolean then
     begin
-      FSrc.Skip(4); //prim skills
+      ReadPrimarySkills(definition.PrimarySkills);
     end;
-
   end;
 end;
 
