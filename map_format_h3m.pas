@@ -317,7 +317,7 @@ begin
   begin
     cnt := ifthen(FMapVersion=MAP_VERSION_AB,17,18);
 
-    ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString);
+    ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString, false);
   end;
 end;
 
@@ -705,7 +705,7 @@ begin
     obj.ZIndex := b * Z_INDEX_OVERLAY;
     FSrc.Skip(16); //junk
 
-    DebugLn(['Read  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
+    //DebugLn(['Read  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
   end;
 end;
 
@@ -966,7 +966,7 @@ begin
       FCurrentObject.L :=l;
       FCurrentObject.TemplateID := tid;
 
-      DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId, ' @',IntToHex(spos, 8)]);
+   //   DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId, ' @',IntToHex(spos, 8)]);
 
       FSrc.Skip(5); //junk
 

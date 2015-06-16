@@ -280,7 +280,6 @@ var
 
   buffer: TJSONArray;
 begin
-
   for i := 0 to AMap.Levels.Count - 1 do
   begin
     buffer := CreateJSONArray([]);
@@ -289,7 +288,6 @@ begin
 
     AddArchiveEntry(buffer, AMap.Levels[i].Terrain);
   end;
-
 end;
 
 procedure TMapWriterZIP.AddArchiveEntry(AData: TJSONData; AFilename: AnsiString

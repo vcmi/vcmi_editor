@@ -115,7 +115,6 @@ var
   col: Integer;
 
   o: TJSONObject;
-  //s: string;
   tile: TMapTile;
 
   ARowArray: TJSONArray;
