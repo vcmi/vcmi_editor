@@ -694,12 +694,18 @@ begin
     begin
       obj.&type := obj_type.ObjType.DisplayName;
       obj.subtype:=obj_type.DisplayName;
+    end
+    else
+    begin
+      DebugLn(['Unknown object:  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
     end;
 
     b := FSrc.ReadByte;  //todo: read type
     b := FSrc.ReadByte;
     obj.ZIndex := b * Z_INDEX_OVERLAY;
     FSrc.Skip(16); //junk
+
+    DebugLn(['Read  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
   end;
 end;
 

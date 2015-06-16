@@ -29,7 +29,7 @@ uses
   gmap, fgl,
   fpjson,
   filesystem_base, editor_consts, editor_types, editor_utils,
-  vcmi_json,h3_txt, base_info;
+  vcmi_json,h3_txt, base_info, editor_classes;
 
 type
 
@@ -102,26 +102,80 @@ type
     procedure FillWithAllIds(AList: TStrings);
   end;
 
+  {$push}
+  {$m+}
+
+  { TGuildSpell }
+
+  TGuildSpell = class(TNamedCollectionItem, IEmbeddedValue)
+  private
+    FChance: Integer;
+    procedure SetChance(AValue: Integer);
+  published
+    property Chance: Integer read FChance write SetChance;
+  end;
+
+  { TGuildSpells }
+
+  TGuildSpells = class(specialize TGNamedCollection<TGuildSpell>)
+  end;
+
+  { TTownBuilding }
+
+  TTownBuilding = class(TNamedCollectionItem)
+
+  end;
+
+  { TTownBuildings }
+
+  TTownBuildings = class(specialize TGNamedCollection<TTownBuilding>)
+  end;
+
+  { TTownInfo }
+
+  TTownInfo = class
+  private
+    FBuildings: TTownBuildings;
+    FGuildSpells: TGuildSpells;
+    FMageGuild: Integer;
+    FMapObject: TJSONObject;
+    procedure SetMageGuild(AValue: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+  published
+    property MapObject: TJSONObject read FMapObject;
+
+    property GuildSpells:TGuildSpells read FGuildSpells;
+    property Buildings:TTownBuildings read FBuildings;
+    property MageGuild:Integer read FMageGuild write SetMageGuild;
+  end;
+
+  {$pop}
+
   { TFactionInfo }
 
   TFactionInfo = class(TBaseInfo)
   private
     FCapitolDefName: AnsiString;
     FCastleDefName: AnsiString;
-    FGuildLevel: Integer;
     FHasTown: Boolean;
+    FTown: TTownInfo;
     FVillageDefName: AnsiString;
     procedure SetCapitolDefName(AValue: AnsiString);
     procedure SetCastleDefName(AValue: AnsiString);
-    procedure SetGuildLevel(AValue: Integer);
     procedure SetHasTown(AValue: Boolean);
     procedure SetVillageDefName(AValue: AnsiString);
   public
+    constructor Create;
+    destructor Destroy; override;
     property VillageDefName: AnsiString read FVillageDefName write SetVillageDefName;
     property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
     property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
-    property GuildLevel: Integer read FGuildLevel write SetGuildLevel;
     property HasTown: Boolean read FHasTown write SetHasTown;
+
+    property Town: TTownInfo read FTown;
   end;
 
   { TFactionInfos }
@@ -403,6 +457,37 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TGuildSpell }
+
+procedure TGuildSpell.SetChance(AValue: Integer);
+begin
+  if FChance=AValue then Exit;
+  FChance:=AValue;
+end;
+
+{ TTownInfo }
+
+procedure TTownInfo.SetMageGuild(AValue: Integer);
+begin
+  if FMageGuild=AValue then Exit;
+  FMageGuild:=AValue;
+end;
+
+constructor TTownInfo.Create;
+begin
+  FMapObject := CreateJSONObject([]);
+  FGuildSpells := TGuildSpells.Create;
+  FBuildings := TTownBuildings.Create;
+end;
+
+destructor TTownInfo.Destroy;
+begin
+  FBuildings.Free;
+  FGuildSpells.Free;
+  FMapObject.Free;
+  inherited Destroy;
+end;
+
 { THeroInfos }
 
 procedure THeroInfos.FillWithNotSpecial(AList: TStrings);
@@ -586,12 +671,6 @@ begin
   FCastleDefName := AValue;
 end;
 
-procedure TFactionInfo.SetGuildLevel(AValue: Integer);
-begin
-  if FGuildLevel = AValue then Exit;
-  FGuildLevel := AValue;
-end;
-
 procedure TFactionInfo.SetHasTown(AValue: Boolean);
 begin
   if FHasTown=AValue then Exit;
@@ -602,6 +681,18 @@ procedure TFactionInfo.SetVillageDefName(AValue: AnsiString);
 begin
   if FVillageDefName = AValue then Exit;
   FVillageDefName := AValue;
+end;
+
+constructor TFactionInfo.Create;
+begin
+  inherited Create;
+  FTown := TTownInfo.Create;
+end;
+
+destructor TFactionInfo.Destroy;
+begin
+  FTown.Free;
+  inherited Destroy;
 end;
 
 { TFactionInfos }
@@ -980,7 +1071,9 @@ begin
       info := TFactionInfo.Create;
       info.ID := iter.Key;
 
-      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+      o := iter.Value as TJSONObject;
+
+      FDestreamer.JSONToObject(o, info);
 
       info.HasTown:=o.IndexOfName('town')>=0;
 

@@ -56,18 +56,26 @@ type
     property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
   end;
 
+  {
+    May contain only one published property serialized directly (w/o object node)
+  }
+
+  IEmbeddedValue = interface ['IEmbbeddedValue']
+
+  end;
+
   { INamedCollection
     Stored as object in JSON
     uses DisplayName as a name of field }
 
-  INamedCollection = interface ['{3C14D8A9-3BAB-46D1-9A77-6216869F58D9}']
+  INamedCollection = interface ['INamedCollection']
 
   end;
 
   { IArrayCollection
     Stored as array in JSON  }
 
-  IArrayCollection = interface ['{8CD3BB79-5DD4-44D2-BE35-F179848262A0}']
+  IArrayCollection = interface ['IArrayCollection']
 
   end;
 
