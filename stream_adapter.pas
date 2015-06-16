@@ -52,6 +52,7 @@ type
     function ReadString: AnsiString;
 
     function ReadDWord: DWord;inline;
+    function ReadInt32: int32;inline;
     function ReadWord: Word;inline;
 
     function ReadByte: Byte; inline;
@@ -107,6 +108,11 @@ end;
 function TStreamReadAdapter.ReadDWord: DWord;
 begin
   Result := LEtoN(FStm.ReadDWord);
+end;
+
+function TStreamReadAdapter.ReadInt32: int32;
+begin
+  Result := Int32(ReadDWord);
 end;
 
 function TStreamReadAdapter.ReadIDByte: TCustomID;

@@ -95,6 +95,8 @@ type
      procedure ReadResources(AresourceSet: TResourceSet);
      procedure ReadPrimarySkills(ASkills: THeroPrimarySkills);
      procedure MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
+     procedure ReadSecondarySkills4(ASkills: THeroSecondarySkills);
+     procedure ReadSecondarySkills1(ASkills: THeroSecondarySkills);
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -142,7 +144,7 @@ type
      procedure VisitTown(AOptions: TTownOptions);
      procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
      procedure VisitShrine(AOptions: TShrineOptions);//+
-     procedure VisitPandorasBox(AOptions: TPandorasOptions);
+     procedure VisitPandorasBox(AOptions: TPandorasOptions);//+
      procedure VisitGrail(AOptions: TGrailOptions);//+
      procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+
      procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
@@ -581,7 +583,7 @@ var
 begin
   for i := 0 to 7 - 1 do
   begin
-    AresourceSet.Amount[TResType(i)] := FSrc.ReadDWord;
+    AresourceSet.Amount[TResType(i)] := FSrc.ReadInt32;
   end;
 end;
 
@@ -594,24 +596,49 @@ begin
 end;
 
 procedure TMapReaderH3m.MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
+begin
+  with FSrc do
+    if ReadBoolean then
+    begin
+      ReadSecondarySkills4(ASkills);
+    end;
+end;
+
+procedure TMapReaderH3m.ReadSecondarySkills4(ASkills: THeroSecondarySkills);
 var
   secSkill: THeroSecondarySkill;
   cnt: DWord;
   i: Integer;
 begin
-
   with FSrc do
-
-    if ReadBoolean then
+  begin
+    cnt := ReadDWord;
+    for i := 0 to cnt - 1 do
     begin
-      cnt := ReadDWord;
-      for i := 0 to cnt - 1 do
-      begin
-        secSkill := ASkills.Add;
-        secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
-        secSkill.Level:=ReadByte;
-      end;
+      secSkill := ASkills.Add;
+      secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+      secSkill.Level:=ReadByte;
     end;
+  end;
+end;
+
+procedure TMapReaderH3m.ReadSecondarySkills1(ASkills: THeroSecondarySkills);
+var
+  secSkill: THeroSecondarySkill;
+  cnt: Integer;
+  i: Integer;
+begin
+  with FSrc do
+  begin
+    cnt := ReadByte;
+    for i := 0 to cnt - 1 do
+    begin
+      secSkill := ASkills.Add;
+      secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+      secSkill.Level:=ReadByte;
+    end;
+  end;
+
 end;
 
 procedure TMapReaderH3m.ReadDefInfo;
@@ -1024,48 +1051,26 @@ end;
 procedure TMapReaderH3m.VisitPandorasBox(AOptions: TPandorasOptions);
 var
   i: Integer;
-  exper: DWord;
-  mana: DWord;
-  morale: ShortInt;
-  luck: ShortInt;
-  res: DWord;
-  prskill: Byte;
   cnt: Integer;
-  sskill: Byte;
-  sskilllevel: Byte;
   artid: Word;
-  mess: String;
-  spell: Byte;
+  spell: TCustomID;
 begin
   with FSrc do
   begin
     MayBeReadGuardsWithMessage(AOptions);
 
-    exper := ReadDWord;
-    mana:=ReadDWord;
-    morale := Shortint(ReadByte);
-    luck := Shortint(ReadByte);
+    AOptions.Experience := ReadDWord;
+    AOptions.Mana:=ReadInt32;
+    AOptions.Morale := Shortint(ReadByte);
+    AOptions.Luck := Shortint(ReadByte);
 
-    for i := 1 to 7 do
-    begin
-      res := ReadDWord;
-    end;
+    ReadResources(AOptions.Resources);
 
-    for i := 1 to 4 do
-    begin
-      prskill := ReadByte;
-    end;
+    ReadPrimarySkills(AOptions.PrimarySkills);
+
+    ReadSecondarySkills1(AOptions.SecondarySkills);
 
     cnt := ReadByte;
-
-    for i := 0 to cnt - 1 do
-    begin
-      sskill := ReadByte;
-      sskilllevel :=ReadByte;
-    end;
-
-    cnt := ReadByte;
-
     for i := 0 to cnt - 1 do
     begin
       if IsNotROE then
@@ -1075,6 +1080,8 @@ begin
       else begin
         artid := ReadByte;
       end;
+
+      AOptions.Artifacts.Add(FMapEnv.lm.ArtifactIndexToString(artid));
     end;
 
     cnt := ReadByte;
@@ -1082,6 +1089,7 @@ begin
     for i := 0 to cnt - 1 do
     begin
       spell := ReadByte;
+      AOptions.Spells.Add(FMapEnv.lm.SpellIndexToString(spell));
     end;
 
     cnt := ReadByte;
