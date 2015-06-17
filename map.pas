@@ -255,6 +255,7 @@ type
     destructor Destroy; override;
 
     procedure Assign(AOther: TObjTemplate);
+    procedure BeforeSerialize;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -320,6 +321,7 @@ type
     property Options: TObjectOptions read FOptions;
 
     function HasOptions: boolean;
+    procedure BeforeSerialize; //todo: use BeforeSerialize
   end;
 
 
@@ -378,6 +380,7 @@ type
     procedure Resize;
     procedure SetIndex(Value: Integer); override;
   public
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
     property Tile[X, Y: Integer]: PMapTile read GetTile;
@@ -499,8 +502,6 @@ type
     constructor CreateDefault(env: TMapEnvironment);
     //create with specified params and set default options
     constructor Create(env: TMapEnvironment; Params: TMapCreateParams);
-    //create for deserialize
-    constructor CreateExisting(env: TMapEnvironment; Params: TMapCreateParams); deprecated;
 
     constructor CreateEmpty(env: TMapEnvironment);
 
@@ -638,6 +639,11 @@ begin
 
 
   FZIndex := AOther.ZIndex;
+end;
+
+procedure TMapObjectTemplate.BeforeSerialize;
+begin
+  //todo: compact mask
 end;
 
 { THeroDefinition }
@@ -815,6 +821,11 @@ end;
 function TMapObject.HasOptions: boolean;
 begin
   Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
+end;
+
+procedure TMapObject.BeforeSerialize;
+begin
+  Template.BeforeSerialize;
 end;
 
 procedure TMapObject.Render(Frame: integer; Ax, Ay: integer);
@@ -1247,6 +1258,11 @@ begin
   begin
     Terrain := 'level_'+IntToStr(Index)+'_terrain.json';
   end;
+
+  if FObjects = '' then
+  begin
+    Objects := 'level_'+IntToStr(Index)+'_objects.json';
+  end;
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
@@ -1292,6 +1308,11 @@ begin
   Resize;
 end;
 
+constructor TMapLevel.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+end;
+
 procedure TMapLevel.SetHeight(AValue: Integer);
 begin
   if FHeight = AValue then Exit;
@@ -1331,8 +1352,25 @@ begin
 end;
 
 constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
+var
+  lvl: TMapLevel;
 begin
-  CreateExisting(env,Params);
+  CreateEmpty(env);
+
+  lvl := Levels.Add;
+  lvl.Width:=Params.Width;
+  lvl.Height:=Params.Height;
+  lvl.DisplayName := 'surface';
+
+  if Params.Levels>1 then
+  begin
+    lvl := Levels.Add;
+    lvl.Width:=Params.Width;
+    lvl.Height:=Params.Height;
+    lvl.DisplayName := 'underground';
+  end;
+
+  CurrentLevelIndex := 0;
 
   FListsManager.SpellInfos.FillWithAllIds(FAllowedSpells);
   FListsManager.SkillInfos.FillWithAllIds(FAllowedAbilities);
@@ -1352,50 +1390,6 @@ begin
 
 end;
 
-constructor TVCMIMap.CreateExisting(env: TMapEnvironment;
-  Params: TMapCreateParams);
-var
-  ALevel: TMapLevel;
-begin
-
-  FTerrainManager := env.tm;
-  FListsManager := env.lm;
-
-  FLevels := TMapLevels.Create(Self);
-
-  ALevel := FLevels.Add;
-  ALevel.Width := Params.Width;
-  ALevel.Height:=Params.Height;
-  ALevel.DisplayName := 'surface';
-
-  if Params.Levels>1 then
-  begin
-
-    ALevel := FLevels.Add;
-    ALevel.Width := Params.Width;
-    ALevel.Height:=Params.Height;
-    ALevel.DisplayName := 'underground';
-
-  end;
-
-  CurrentLevelIndex := 0;
-
-  Name := rsDefaultMapName;
-
-  FIsDirty := False;
-
-  FAllowedAbilities := CrStrList;
-  FAllowedSpells := CrStrList;
-  FAllowedArtifacts := CrStrList;
-  FAllowedHeroes := CrStrList;
-
-  FPlayers := TPlayerAttrs.Create;
-  FObjects := TMapObjects.Create(Self);
-  FRumors := TRumors.Create;
-  FLevelLimit:=MAX_HERO_LEVEL;
-  FPredefinedHeroes := THeroDefinitions.Create(Self);
-  AttachTo(FObjects);
-end;
 
 constructor TVCMIMap.CreateEmpty(env: TMapEnvironment);
 begin
@@ -1542,12 +1536,11 @@ var
 
   FQueue : TMapObjectQueue;
 begin
-
   FQueue := TMapObjectQueue.Create;
 
   for i := 0 to FObjects.Count - 1 do
   begin
-    o := TMapObject(FObjects.Items[i]);
+    o := FObjects.Items[i];
     if o.L <> CurrentLevelIndex then
       Continue;
 

@@ -52,15 +52,13 @@ type
   private
     FType: AnsiString;
     FAllowedTerrains: TTerrainTypes;
-    FMask: TStringList;
+    FMask: TStrings;
     FAnimation: string;
     FMenuTerrains: TTerrainTypes;
     Fsubtype: AnsiString;
     FZIndex: Integer;
-    FVisitableFrom: TStringList;
-    function GetMask: TStrings;
+    FVisitableFrom: TStrings;
     function GetTID: integer;
-    function GetVisitableFrom: TStrings;
     procedure SetType(AValue: AnsiString);
     procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: string);
@@ -77,8 +75,8 @@ type
     property TID: integer read GetTID;
 
     property Animation:string read FAnimation write SetAnimation;
-    property Mask:TStrings read GetMask;
-    //property VisitableFrom: TStrings read GetVisitableFrom;
+    property Mask:TStrings read FMask;
+    property VisitableFrom: TStrings read FVisitableFrom;
 
     property &type: AnsiString read FType write SetType;
     property subtype: AnsiString read Fsubtype write Setsubtype;
@@ -242,19 +240,9 @@ begin
   inherited Destroy;
 end;
 
-function TLegacyMapObjectTemplate.GetMask: TStrings;
-begin
-  Result := FMask;
-end;
-
 function TLegacyMapObjectTemplate.GetTID: integer;
 begin
   Result := inherited ID;
-end;
-
-function TLegacyMapObjectTemplate.GetVisitableFrom: TStrings;
-begin
-  Result := FVisitableFrom;
 end;
 
 procedure TLegacyMapObjectTemplate.SetType(AValue: AnsiString);
@@ -377,6 +365,7 @@ function TMapReaderH3m.Read(AStream: TStream): TVCMIMap;
 var
   cr_params: TMapCreateParams;
   AreAnyPalyers: boolean;
+  lvl: TMapLevel;
 begin
   FQuestIdentifierMap.Clear;
   FTemplates.Clear;
@@ -394,7 +383,22 @@ begin
     cr_params.Levels := ReadByte + 1; //one level = 0
   end;
 
-  FMap := TVCMIMap.CreateExisting(FMapEnv,cr_params);
+  FMap := TVCMIMap.CreateEmpty(FMapEnv);
+
+  lvl := FMap.Levels.Add;
+  lvl.Width:=cr_params.Width;
+  lvl.Height:=cr_params.Height;
+  lvl.DisplayName := 'surface';
+  if cr_params.Levels>1 then
+  begin
+    lvl := FMap.Levels.Add;
+    lvl.Width:=cr_params.Width;
+    lvl.Height:=cr_params.Height;
+    lvl.DisplayName := 'underground';
+  end;
+
+  FMap.CurrentLevelIndex := 0;
+
   Result := FMap;
   try
     //rest of header
@@ -814,13 +818,12 @@ begin
 
   for i := 0 to cnt - 1 do
   begin
-    obj :=  TLegacyMapObjectTemplate(FTemplates.Add);
+    obj :=  FTemplates.Add;
 
     obj.Animation := FSrc.ReadString;
     ReadObjMask(obj);
 
     obj.AllowedTerrains := read_terrains();
-
     obj.MenuTerrains := read_terrains();
 
     ID := FSrc.ReadDWord;
@@ -1116,8 +1119,7 @@ begin
 
       FCurrentObject.Template.Mask.Assign(template.Mask);
 
-      //todo: fill Visitable from field
-      //FCurrentObject.Template.VisitableFrom;
+      FCurrentObject.Template.VisitableFrom.Assign(template.VisitableFrom);
       FCurrentObject.Template.ZIndex:=template.ZIndex;
 
    //   DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId, ' @',IntToHex(spos, 8)]);
