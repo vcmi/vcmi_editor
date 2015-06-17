@@ -48,14 +48,14 @@ type
     procedure SetRiverType(AValue: TRiverType);
     procedure SetRoadType(AValue: TRoadType);
   protected
-    procedure AddTile(AX, AY: integer); override;
+    procedure AddTile(AMap: TVCMIMap; AX, AY: integer); override;
 
   public
-    constructor Create(AOwner: TComponent; AMap: TVCMIMap); override;
+    constructor Create(AOwner: TComponent); override;
     procedure Clear; override;
-    procedure Execute(AManager: TAbstractUndoManager);override;
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);override;
 
-    procedure RenderCursor(X,Y: integer); override;
+    procedure RenderCursor(AMap: TVCMIMap;X,Y: integer); override;
 
     property RoadType: TRoadType read FRoadType write SetRoadType;
     property RiverType: TRiverType read FRiverType write SetRiverType;
@@ -166,12 +166,12 @@ begin
   Kind := TRoadRiverBrushKind.road;
 end;
 
-procedure TRoadRiverBrush.AddTile(AX, AY: integer);
+procedure TRoadRiverBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 
   procedure CheckAddTile(point: TMapCoord);
   begin
     //do not draw on water and rock
-    if not (FMap.CurrentLevel.Tile[point.x,point.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+    if not (AMap.CurrentLevel.Tile[point.x,point.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
        Selection.Insert(point);
   end;
 
@@ -180,7 +180,7 @@ var
   d, c: TMapCoord;
   SX, SY, E: integer;
 begin
-  if not (FMap.IsOnMap(FMap.CurrentLevelIndex,AX,AY)) then
+  if not (AMap.IsOnMap(AMap.CurrentLevelIndex,AX,AY)) then
     exit;
 
   NewPoint.Reset(AX,AY);
@@ -259,9 +259,9 @@ begin
   FLastPoint := NewPoint;
 end;
 
-constructor TRoadRiverBrush.Create(AOwner: TComponent; AMap: TVCMIMap);
+constructor TRoadRiverBrush.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner, AMap);
+  inherited Create(AOwner);
   Clear;
 end;
 
@@ -285,18 +285,19 @@ begin
   Clear;
 end;
 
-procedure TRoadRiverBrush.Execute(AManager: TAbstractUndoManager);
+procedure TRoadRiverBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap
+  );
 var
   action_item : TEditRoadRiver;
 begin
   case Kind of
     TRoadRiverBrushKind.road:
     begin
-      action_item := TEditRoad.Create(FMap, RoadType);
+      action_item := TEditRoad.Create(AMap, RoadType);
     end;
     TRoadRiverBrushKind.river:
     begin
-      action_item := TEditRiver.Create(FMap,RiverType);
+      action_item := TEditRiver.Create(AMap,RiverType);
     end;
   end;
   FillActionObjectTiles(action_item);
@@ -305,10 +306,10 @@ begin
   Clear;
 end;
 
-procedure TRoadRiverBrush.RenderCursor(X, Y: integer);
+procedure TRoadRiverBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
 begin
-  if (FMap.IsOnMap(FMap.CurrentLevelIndex,X,Y))
-    and not (FMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water])
+  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
+    and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water])
   then
     inherited RenderCursor(X, Y,1);
 

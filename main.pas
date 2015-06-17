@@ -75,17 +75,29 @@ type
   { TfMain }
 
   TfMain = class(TForm)
-    actHeroes: TAction;
-    actArtifacts: TAction;
     actDelete: TAction;
     actProperties: TAction;
-    actRoads: TAction;
-    actMonsters: TAction;
     actUnderground: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
-    actTerrain: TAction;
-    actObjects: TAction;
+    btnBrush1: TSpeedButton;
+    btnBrush2: TSpeedButton;
+    btnBrush4: TSpeedButton;
+    btnBrushArea: TSpeedButton;
+    btnBrushFill: TSpeedButton;
+    btnDirt: TSpeedButton;
+    btnGrass: TSpeedButton;
+    btnLava: TSpeedButton;
+    btnRock: TSpeedButton;
+    btnRough: TSpeedButton;
+    btnSand: TSpeedButton;
+    btnSelect: TSpeedButton;
+    btnSnow: TSpeedButton;
+    btnSub: TSpeedButton;
+    btnSwamp: TSpeedButton;
+    btnWater: TSpeedButton;
+    gbBrush: TGroupBox;
+    gbTerrain: TGroupBox;
     imlMainActionsSmall: TImageList;
     MainActions: TActionList;
     actCreateMap: TAction;
@@ -94,30 +106,18 @@ type
     actSaveMap: TAction;
     actOpenMap: TAction;
     ApplicationProperties1: TApplicationProperties;
-    btnBrush1: TSpeedButton;
-    btnRock: TSpeedButton;
-    btnWater: TSpeedButton;
-    btnSnow: TSpeedButton;
-    btnRough: TSpeedButton;
-    btnSand: TSpeedButton;
-    btnGrass: TSpeedButton;
-    btnSub:  TSpeedButton;
-    btnSwamp: TSpeedButton;
-    btnLava: TSpeedButton;
-    GroupBox1: TGroupBox;
     imlMainActions: TImageList;
-    lbBrush: TLabel;
     itmFreateMap: TMenuItem;
     MenuEdit: TMenuItem;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    menuPlayer: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
-    MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     mm:      TMainMenu;
@@ -125,14 +125,10 @@ type
     MapView: TOpenGLControl;
     ObjectsView: TOpenGLControl;
     OpenMapDialog: TOpenDialog;
+    pnTools: TPanel;
+    pnLeft: TPanel;
     pcToolBox: TPageControl;
     HorisontalAxis: TPaintBox;
-    btnDirt: TSpeedButton;
-    btnBrush2: TSpeedButton;
-    btnBrush4: TSpeedButton;
-    btnBrushFill: TSpeedButton;
-    btnBrushArea: TSpeedButton;
-    menuPlayer: TPopupMenu;
     RiverType: TRadioGroup;
     RoadType: TRadioGroup;
     SaveMapAsDialog: TSaveDialog;
@@ -140,23 +136,12 @@ type
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
     ActionsToolBar: TToolBar;
-    tsRoads: TTabSheet;
-    tbSelectPlayer: TToolButton;
-    ToolButton10: TToolButton;
-    ToolButton11: TToolButton;
     ToolButton12: TToolButton;
-    ToolButton13: TToolButton;
-    ToolButton14: TToolButton;
-    ToolButton15: TToolButton;
-    ToolButton16: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
-    ToolButton8: TToolButton;
-    ToolButton9: TToolButton;
-    tsObjects: TTabSheet;
     MainToolBar: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
@@ -166,33 +151,23 @@ type
     Minimap: TPaintBox;
     pnVAxis: TPanel;
     pnHAxis: TPanel;
-    Panel3:  TPanel;
+    pnRight:  TPanel;
     pnMinimap: TPanel;
     pnMap:   TPanel;
     hScrollBar: TScrollBar;
-    SpeedButton11: TSpeedButton;
-    tsTerrain: TTabSheet;
     vScrollBar: TScrollBar;
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
-    procedure actHeroesExecute(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
-    procedure actMonstersExecute(Sender: TObject);
-    procedure actObjectsExecute(Sender: TObject);
-    procedure actObjectsUpdate(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
     procedure actPropertiesExecute(Sender: TObject);
     procedure actPropertiesUpdate(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
     procedure actRedoUpdate(Sender: TObject);
-    procedure actRoadsExecute(Sender: TObject);
-    procedure actRoadsUpdate(Sender: TObject);
     procedure actSaveMapAsExecute(Sender: TObject);
     procedure actSaveMapExecute(Sender: TObject);
     procedure actSaveMapUpdate(Sender: TObject);
-    procedure actTerrainExecute(Sender: TObject);
-    procedure actTerrainUpdate(Sender: TObject);
     procedure actUndergroundExecute(Sender: TObject);
     procedure actUndergroundUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
@@ -209,6 +184,7 @@ type
     procedure btnRockClick(Sender: TObject);
     procedure btnRoughClick(Sender: TObject);
     procedure btnSandClick(Sender: TObject);
+    procedure btnSelectClick(Sender: TObject);
     procedure btnSnowClick(Sender: TObject);
     procedure btnSubClick(Sender: TObject);
     procedure btnSwampClick(Sender: TObject);
@@ -257,6 +233,8 @@ type
     procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
+    procedure tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure VerticalAxisPaint(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -275,8 +253,6 @@ type
     FZbuffer: TZBuffer;
 
     FResourceManager: IResourceLoader;
-
-    glInited: Boolean;
 
     FMapHPos, FMapVPos: Integer; //topleft visible tile
     FViewTilesH, FViewTilesV: Integer; //amount of tiles visible on mapview
@@ -341,7 +317,6 @@ type
     procedure InvalidateObjects;
     procedure InvalidateObjPos;
 
-    procedure Init;
     procedure MapChanded;
 
     procedure PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
@@ -355,7 +330,7 @@ type
 
     procedure SetActiveBrush(ABrush: TMapBrush);
 
-    procedure UncheckObjectActions();
+    procedure UpdateWidgets();
   protected
     procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -498,13 +473,6 @@ begin
   (Sender as TAction).Enabled := Assigned(FSelectedObject);
 end;
 
-procedure TfMain.actHeroesExecute(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush);
-  UncheckObjectActions;
-  actHeroes.Checked:=true;
-end;
-
 procedure TfMain.actMapOptionsExecute(Sender: TObject);
 var
   f: TMapOptionsForm;
@@ -515,31 +483,6 @@ begin
   f.ShowModal;
 end;
 
-procedure TfMain.actMonstersExecute(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush);
-end;
-
-procedure TfMain.actObjectsExecute(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush);
-
-  pcToolBox.ActivePage := tsObjects;
-
-  UncheckObjectActions;
-  actObjects.Checked := True;
-
-  FreeAndNil(FTemplatesSelection);
-
-  FTemplatesSelection := FObjManager.SelectAll;
-
-  InvalidateObjects;
-end;
-
-procedure TfMain.actObjectsUpdate(Sender: TObject);
-begin
-  (Sender as TAction).Checked := (pcToolBox.ActivePage = tsObjects);
-end;
 
 procedure TfMain.actOpenMapExecute(Sender: TObject);
 begin
@@ -591,19 +534,6 @@ begin
   end;
 end;
 
-procedure TfMain.actRoadsExecute(Sender: TObject);
-begin
-  pcToolBox.ActivePage := tsRoads;
-  FActiveBrush := FRoadRiverBrush;
-  RoadType.ItemIndex := 0;
-  RiverType.ItemIndex := -1;
-  FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[0]));
-end;
-
-procedure TfMain.actRoadsUpdate(Sender: TObject);
-begin
-  (Sender as TAction).Checked := (pcToolBox.ActivePage = tsRoads);
-end;
 
 procedure TfMain.actSaveMapAsExecute(Sender: TObject);
 begin
@@ -630,17 +560,7 @@ begin
   (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty;
 end;
 
-procedure TfMain.actTerrainExecute(Sender: TObject);
-begin
-  SetActiveBrush(FFixedTerrainBrush);
 
-  pcToolBox.ActivePage := tsTerrain;
-end;
-
-procedure TfMain.actTerrainUpdate(Sender: TObject);
-begin
-  (Sender as TAction).Checked := (pcToolBox.ActivePage = tsTerrain);
-end;
 
 procedure TfMain.actUndergroundExecute(Sender: TObject);
 var
@@ -747,6 +667,11 @@ begin
   FActiveBrush.TT := TTerrainType.sand;
 end;
 
+procedure TfMain.btnSelectClick(Sender: TObject);
+begin
+  SetActiveBrush(FIdleBrush);
+end;
+
 procedure TfMain.btnSnowClick(Sender: TObject);
 begin
   FActiveBrush.TT := TTerrainType.snow;
@@ -795,10 +720,7 @@ begin
     begin
       Exit;
     end;
-    if not glInited then
-    begin
-      Init;
-    end;
+
   finally
     RootManager.InitComplete;
   end;
@@ -849,10 +771,10 @@ begin
 
   FMap := TVCMIMap.CreateDefault(FEnv);
 
-  FIdleBrush := TIdleMapBrush.Create(Self, FMap);
-  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self, FMap);
-  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self, FMap);
-  FRoadRiverBrush := TRoadRiverBrush.Create(Self, FMap);
+  FIdleBrush := TIdleMapBrush.Create(Self);
+  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
+  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
+  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
 
   RoadType.ItemIndex := 0; //this must be done after construction ob brushes
   RiverType.ItemIndex:=-1;
@@ -861,7 +783,6 @@ begin
 
   FActiveBrush.Size := 1;
   FActiveBrush.TT :=  TTerrainType.dirt;
-  pcToolBox.ActivePage := tsTerrain;
 
   FCurrentPlayer := TPlayer.none;
 
@@ -893,8 +814,7 @@ begin
   MapChanded;
   InvalidateObjects;
 
-  if MapView.MakeCurrent() then
-    Init;
+
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -972,15 +892,6 @@ begin
 
   FMapHPos := ScrollPos;
   InvalidateMapAxis;
-end;
-
-procedure TfMain.Init;
-begin
-  RootManager.ProgressForm.NextStage('Initializing GL context.');
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_DITHER);
-
-  glInited := True;
 end;
 
 procedure TfMain.InvalidateMapAxis;
@@ -1144,10 +1055,6 @@ begin
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
-  FIdleBrush.Map := FMap;
-  FFixedTerrainBrush.Map := FMap;
-  FAreaTerrainBrush.Map := FMap;
-  FRoadRiverBrush.Map := FMap;
 end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
@@ -1286,7 +1193,7 @@ begin
   begin
     if (Button = TMouseButton.mbLeft) then
     begin
-      FActiveBrush.TileMouseDown(FMouseTileX,FMouseTileY);
+      FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
     end;
   end;
 end;
@@ -1314,7 +1221,7 @@ begin
   begin
     InvalidateMapAxis;
   end;
-  FActiveBrush.TileMouseMove(FMouseTileX, FMouseTileY);
+  FActiveBrush.TileMouseMove(fmap, FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
@@ -1322,9 +1229,8 @@ procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
 begin
   if Button = TMouseButton.mbLeft then
   begin
-
-    FActiveBrush.TileMouseUp(FMouseTileX, FMouseTileY);
-    FActiveBrush.Execute(FUndoManager);
+    FActiveBrush.TileMouseUp(fmap, FMouseTileX, FMouseTileY);
+    FActiveBrush.Execute(FUndoManager, FMap);
     InvalidateMapContent;
   end;
 end;
@@ -1379,10 +1285,9 @@ begin
   begin
     Exit;
   end;
-  if not glInited then
-  begin
-    Init;
-  end;
+
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DITHER);
 
   if not Assigned(FMapViewState) then
   begin
@@ -1505,9 +1410,9 @@ var
 begin
   m := Sender as TMenuItem;
 
-  for i := 0 to menuPlayer.Items.Count - 1 do
+  for i := 0 to menuPlayer.Count - 1 do
   begin
-    mc := menuPlayer.Items[i];
+    mc := menuPlayer[i];
 
     if mc=m then
     begin
@@ -1568,10 +1473,8 @@ begin
   begin
     Exit;
   end;
-  if not glInited then
-  begin
-    Init;
-  end;
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DITHER);
 
   if not Assigned(FObjectsViewState) then
   begin
@@ -1763,7 +1666,7 @@ end;
 
 procedure TfMain.RenderCursor;
 begin
-  FActiveBrush.RenderCursor(FMouseTileX, FMouseTileY);
+  FActiveBrush.RenderCursor(fmap, FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.SaveMap(AFileName: string);
@@ -1814,6 +1717,12 @@ begin
   InvalidateObjPos;
 end;
 
+procedure TfMain.tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+
+end;
+
 procedure TfMain.SetCurrentPlayer(APlayer: TPlayer);
 begin
   FCurrentPlayer := APlayer;
@@ -1828,12 +1737,36 @@ begin
   FActiveBrush.Clear;
 end;
 
-procedure TfMain.UncheckObjectActions;
+procedure TfMain.UpdateWidgets;
 begin
-  actObjects.Checked:=False;
-  actHeroes.Checked:=False;
-  actMonsters.Checked:=False;
-  actArtifacts.Checked:=False;
+  btnBrush1.Down:=false;
+  btnBrush2.Down:=false;
+  btnBrush4.Down:=false;
+  btnBrushArea.Down:=false;
+
+  btnSelect.Down:=false;
+
+  if FActiveBrush = FIdleBrush then
+  begin
+    btnSelect.Down := true;
+    gbTerrain.Enabled := false;
+  end
+  else if FActiveBrush = FFixedTerrainBrush then
+  begin
+    btnBrush1.Down := FActiveBrush.Size = 1;
+    btnBrush2.Down := FActiveBrush.Size = 2;
+    btnBrush4.Down := FActiveBrush.Size = 4;
+
+    gbTerrain.Enabled := true;
+  end
+  else if FActiveBrush = FAreaTerrainBrush then
+  begin
+    btnBrushArea.Down := true;
+    gbTerrain.Enabled := true;
+  end
+  else begin
+
+  end;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);
@@ -1878,14 +1811,14 @@ var
   m: TMenuItem;
   p: TPlayer;
 begin
-  menuPlayer.Items.Clear;
+  menuPlayer.Clear;
 
   m := TMenuItem.Create(menuPlayer);
 
   m.Tag := Integer(TPlayer.none);
   m.OnClick := @PlayerMenuClick;
   m.Checked := True;
-  menuPlayer.Items.Add(m);
+  menuPlayer.Add(m);
   m.Caption := FEnv.lm.PlayerName[TPlayer.none];
 
   for p in [TPlayer.RED..TPlayer.PINK] do
@@ -1895,7 +1828,7 @@ begin
     m.Tag := Integer(p);
     m.OnClick := @PlayerMenuClick;
     m.Caption := FEnv.lm.PlayerName[p];
-    menuPlayer.Items.Add(m);
+    menuPlayer.Add(m);
   end;
 
 
@@ -1916,6 +1849,8 @@ begin
   end
   else
     Caption := 'VCMI editor';
+
+  UpdateWidgets;
 end;
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);

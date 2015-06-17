@@ -121,7 +121,7 @@ begin
 
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
-  ProgressForm.StageCount := ifthen(Paramcount > 0, 5, 4);
+  ProgressForm.StageCount := ifthen(Paramcount > 0, 4, 3);
 
   Application.ProcessMessages;
 

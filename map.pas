@@ -1402,6 +1402,8 @@ begin
 
   Name := rsDefaultMapName;
 
+  FDifficulty := TDifficulty.NORMAL;
+
   FIsDirty := False;
 
   FAllowedAbilities := CrStrList;

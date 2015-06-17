@@ -60,8 +60,8 @@ type
     function GetMode: TTerrainBrushMode; virtual; abstract;
   public
     property Mode: TTerrainBrushMode read GetMode;
-    procedure Execute(AManager: TAbstractUndoManager); override;
-    procedure RenderCursor(X,Y: integer); override;
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
+    procedure RenderCursor(AMap: TVCMIMap;X,Y: integer); override;
   end;
 
 
@@ -69,7 +69,7 @@ type
 
   TFixedTerrainBrush = class(TTerrainBrush)
   protected
-    procedure AddTile(X,Y: integer); override;
+    procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
     function GetMode: TTerrainBrushMode; override;
   public
   end;
@@ -81,12 +81,12 @@ type
     FStartCoord: TMapCoord;
     FEndCooord: TMapCoord;
   protected
-    procedure AddTile(X,Y: integer);override;
+    procedure AddTile(AMap: TVCMIMap;X,Y: integer);override;
     function GetMode: TTerrainBrushMode; override;
   public
     procedure RenderSelection(); override;
-    procedure TileMouseDown(X,Y: integer);override;
-    procedure TileMouseUp(X,Y: integer);override;
+    procedure TileMouseDown(AMap: TVCMIMap;X,Y: integer);override;
+    procedure TileMouseUp(AMap: TVCMIMap;X,Y: integer);override;
   end;
 
 
@@ -163,13 +163,13 @@ end;
 
 { TTerrainBrush }
 
-procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager);
+procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
   action: TEditTerrain;
   it: TCoordSet.TIterator;
 begin
-  action := TEditTerrain.Create(FMap);
-  action.Level := FMap.CurrentLevelIndex;
+  action := TEditTerrain.Create(AMap);
+  action.Level := AMap.CurrentLevelIndex;
   action.TerrainType := tt;
 
   FillActionObjectTiles(action);
@@ -180,7 +180,7 @@ begin
   Clear;
 end;
 
-procedure TTerrainBrush.RenderCursor(X, Y: integer);
+procedure TTerrainBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
 begin
 
   if Mode = TTerrainBrushMode.fixed then
@@ -189,7 +189,7 @@ end;
 
 { TAreaTerrainBrush }
 
-procedure TAreaTerrainBrush.AddTile(X, Y: integer);
+procedure TAreaTerrainBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
 begin
   FEndCooord.Reset(x,y);
 end;
@@ -217,13 +217,13 @@ begin
   end;
 end;
 
-procedure TAreaTerrainBrush.TileMouseDown(X, Y: integer);
+procedure TAreaTerrainBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
 begin
-  inherited TileMouseDown(X, Y);
+  inherited TileMouseDown(amap, X, Y);
   FStartCoord.Reset(X,Y);
 end;
 
-procedure TAreaTerrainBrush.TileMouseUp(X, Y: integer);
+procedure TAreaTerrainBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
   procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
   begin
     Selection.Insert(Coord);
@@ -231,14 +231,14 @@ procedure TAreaTerrainBrush.TileMouseUp(X, Y: integer);
 var
   r:TMapRect;
 begin
-  inherited TileMouseUp(X, Y);
+  inherited TileMouseUp(amap, X, Y);
   r.SetFromCorners(FStartCoord,FEndCooord);
   r.Iterate(@ProcessTile);
 end;
 
 { TFixedTerrainBrush }
 
-procedure TFixedTerrainBrush.AddTile(X, Y: integer);
+procedure TFixedTerrainBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
   procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
   begin
     Selection.Insert(Coord);

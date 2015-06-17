@@ -97,45 +97,42 @@ type
     FTT: TTerrainType;
     FDragging: Boolean;
     FSelection: TCoordSet;
-    procedure SetMap(AValue: TVCMIMap);
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
   protected
-    FMap: TVCMIMap;
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
-    procedure AddTile(AX,AY: integer); virtual; abstract;
+    procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
 
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
     procedure RenderCursor(X,Y, Size: integer);
   public
-    constructor Create(AOwner: TComponent; AMap: TVCMIMap); reintroduce; virtual;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Clear; virtual;
 
-    procedure Execute(AManager: TAbstractUndoManager); virtual; abstract;
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); virtual; abstract;
 
-    procedure TileClicked(X,Y: integer);virtual;
-    procedure TileMouseDown(X,Y: integer);virtual;
-    procedure TileMouseUp(X,Y: integer);virtual;
-    procedure TileMouseMove(X,Y: integer);virtual;
+    procedure TileClicked(AMap: TVCMIMap; X,Y: integer);virtual;
+    procedure TileMouseDown(AMap: TVCMIMap; X,Y: integer);virtual;
+    procedure TileMouseUp(AMap: TVCMIMap; X,Y: integer);virtual;
+    procedure TileMouseMove(AMap: TVCMIMap; X,Y: integer);virtual;
 
-    procedure RenderCursor(X,Y: integer); virtual;
+    procedure RenderCursor(AMap: TVCMIMap; X,Y: integer); virtual;
     procedure RenderSelection(); virtual;
 
     property TT: TTerrainType read FTT write Settt;
     property Size: Integer read FSize write SetSize;
 
-    property Map:TVCMIMap read FMap write SetMap;
   end;
 
   { TIdleMapBrush }
 
   TIdleMapBrush = class(TMapBrush)
   protected
-    procedure AddTile(X,Y: integer); override;
-    procedure Execute(AManager: TAbstractUndoManager); override;
+    procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
   end;
 
 
@@ -170,12 +167,12 @@ end;
 
 { TIdleMapBrush }
 
-procedure TIdleMapBrush.AddTile(X, Y: integer);
+procedure TIdleMapBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
 begin
   //to nothing here
 end;
 
-procedure TIdleMapBrush.Execute(AManager: TAbstractUndoManager);
+procedure TIdleMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 begin
   //do nothing
 end;
@@ -317,12 +314,6 @@ begin
   Clear;
 end;
 
-procedure TMapBrush.SetMap(AValue: TVCMIMap);
-begin
-  if FMap=AValue then Exit;
-  FMap:=AValue;
-end;
-
 procedure TMapBrush.Settt(AValue: TTerrainType);
 begin
   if FTT=AValue then Exit;
@@ -360,11 +351,10 @@ begin
 
 end;
 
-constructor TMapBrush.Create(AOwner: TComponent; AMap: TVCMIMap);
+constructor TMapBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FSelection := TCoordSet.Create;
-  FMap := AMap;
 end;
 
 destructor TMapBrush.Destroy;
@@ -380,31 +370,31 @@ begin
   FSelection := TCoordSet.Create;
 end;
 
-procedure TMapBrush.TileClicked(X, Y: integer);
+procedure TMapBrush.TileClicked(AMap: TVCMIMap; X, Y: integer);
 begin
 
 end;
 
-procedure TMapBrush.TileMouseDown(X, Y: integer);
+procedure TMapBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
 begin
   FDragging:=True;
-  AddTile(X,Y);
+  AddTile(AMap,X,Y);
 end;
 
-procedure TMapBrush.TileMouseUp(X, Y: integer);
+procedure TMapBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
 begin
   FDragging := False;
 end;
 
-procedure TMapBrush.TileMouseMove(X, Y: integer);
+procedure TMapBrush.TileMouseMove(AMap: TVCMIMap; X, Y: integer);
 begin
   if Dragging then
   begin
-    AddTile(X,Y);
+    AddTile(AMap, X,Y);
   end;
 end;
 
-procedure TMapBrush.RenderCursor(X, Y: integer);
+procedure TMapBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
 begin
 
 end;
