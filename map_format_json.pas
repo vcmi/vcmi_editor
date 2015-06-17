@@ -50,7 +50,8 @@ type
     FRiverTypeMap: TRiverTypeMap;
 
     FTileExpression : TRegExpr;
-    procedure BeforeReadObject(const JSON: TJSONObject; AObject: TObject);
+    procedure BeforeReadObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
+    procedure AfterReadObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   protected
     FDestreamer: TVCMIJSONDestreamer;
 
@@ -66,6 +67,9 @@ type
   { TMapWriterJson }
 
   TMapWriterJson = class abstract(TBaseMapFormatHandler)
+  private
+    procedure BeforeWriteObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
+    procedure AfterWriteObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   protected
     FStreamer: TVCMIJSONStreamer;
     procedure StreamTile(AJson: TJSONArray; tile: PMapTile);
@@ -79,6 +83,26 @@ type
 implementation
 
 { TMapWriterJson }
+
+procedure TMapWriterJson.BeforeWriteObject(Sender: TObject; AObject: TObject;
+  JSON: TJSONObject);
+begin
+
+end;
+
+procedure TMapWriterJson.AfterWriteObject(Sender: TObject; AObject: TObject;
+  JSON: TJSONObject);
+begin
+  if (AObject is TMapObject) then
+  begin
+    //manual streaming of Options
+
+    if (AObject as TMapObject).HasOptions then
+    begin
+      JSON.Add('options', (Sender as TVCMIJSONStreamer).ObjectToJSON((AObject as TMapObject).Options));
+    end;
+  end;
+end;
 
 procedure TMapWriterJson.StreamTile(AJson: TJSONArray; tile: PMapTile);
 var
@@ -152,6 +176,8 @@ begin
   inherited Create(AMapEnv);
   FStreamer := TVCMIJSONStreamer.Create(nil);
   FStreamer.Options := [jsoTStringsAsArray];
+  FStreamer.BeforeStreamObject := @BeforeWriteObject;
+  FStreamer.AfterStreamObject := @AfterWriteObject;
 end;
 
 destructor TMapWriterJson.Destroy;
@@ -162,14 +188,21 @@ end;
 
 { TMapReaderJson }
 
-procedure TMapReaderJson.BeforeReadObject(const JSON: TJSONObject;
-  AObject: TObject);
+procedure TMapReaderJson.BeforeReadObject(Sender: TObject; AObject: TObject;
+  JSON: TJSONObject);
 begin
-  if AObject is TMapObject then
-  begin
-    //hack to read TemplateID before other properties
 
-    TMapObject(AObject).TemplateID := JSON.Integers['templateID'];
+end;
+
+procedure TMapReaderJson.AfterReadObject(Sender: TObject; AObject: TObject;
+  JSON: TJSONObject);
+begin
+  if (AObject is TMapObject) and (JSON.IndexOfName('options') >= 0) then
+  begin
+    //manual destreaming of Options
+
+    (Sender as TVCMIJSONDestreamer).JSONToObject(JSON.Objects['options'], (AObject as TMapObject).Options);
+
   end;
 end;
 
@@ -273,7 +306,8 @@ begin
   inherited Create(AMapEnv);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
-  FDestreamer.OnBeforeReadObject := @BeforeReadObject;
+  FDestreamer.BeforeReadObject := @BeforeReadObject;
+  FDestreamer.AfterReadObject := @AfterReadObject;
 
    FTerrainTypeMap := TTerrainTypeMap.Create;
   FRoadTypeMap := TRoadTypeMap.Create;

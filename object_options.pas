@@ -33,12 +33,6 @@ type
 
 {$push}
 {$m+}
-  THeroSex = (male=0, female=1, default = $FF);
-
-  TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
-
-  TScholarBonus = (primSkill, skill, spell, random);
-
   { TObjectOptions }
   TObjectOptions      = class;
   TObjectOptionsClass = class of TObjectOptions;

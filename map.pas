@@ -190,61 +190,6 @@ type
     constructor Create;
   end;
 
-  { TMapObjectTemplate }
-
-  TMapObjectTemplate = class (TCollectionItem)
-  private
-    FDef: TDef;
-  private
-    FType: AnsiString;
-    FAllowedTerrains: TTerrainTypes;
-    FMask: TStringList;
-    FAnimation: string;
-    FMenuTerrains: TTerrainTypes;
-    Fsubtype: AnsiString;
-    FZIndex: Integer;
-    FVisitableFrom: TStringList;
-    function GetMask: TStrings;
-    function GetTID: integer;
-    function GetVisitableFrom: TStrings;
-    procedure SetType(AValue: AnsiString);
-    procedure SetAllowedTerrains(AValue: TTerrainTypes);
-    procedure SetAnimation(AValue: string);
-    procedure SetMenuTerrains(AValue: TTerrainTypes);
-    procedure Setsubtype(AValue: AnsiString);
-    procedure SetZIndex(AValue: Integer);
-  public
-    constructor Create(ACollection: TCollection); override;
-    destructor Destroy; override;
-
-    procedure FillFrom(AOther: TObjTemplate);
-
-    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
-    property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains default ALL_TERRAINS;
-
-  published
-
-    property TID: integer read GetTID;
-
-    property Animation:string read FAnimation write SetAnimation;
-    property Mask:TStrings read GetMask;
-    property VisitableFrom: TStrings read GetVisitableFrom;
-
-    property &type: AnsiString read FType write SetType;
-    property subtype: AnsiString read Fsubtype write Setsubtype;
-
-    property ZIndex: Integer read FZIndex write SetZIndex default 0;
-  end;
-
-  { TMapObjectTemplates }
-
-  TMapObjectTemplates = class (specialize TGArrayCollection<TMapObjectTemplate>)
-  private
-    FMap: TVCMIMap;
-  public
-    constructor Create(AMap: TVCMIMap);
-  end;
-
   { TMapTile }
 
   PMapTile = ^TMapTile;
@@ -284,6 +229,42 @@ type
     property Flags:UInt8 read FFlags write SetFlags;
   end;
 
+  {$push}
+  {$m+}
+  { TMapObjectTemplate }
+
+  TMapObjectTemplate = class
+  private
+    FDef: TDef;
+
+    FAllowedTerrains: TTerrainTypes;
+    FAnimation: AnsiString;
+    FEditorAnimation: AnsiString;
+    FMask: TStrings;
+    FVisitableFrom: TStrings;
+    FzIndex: Integer;
+    procedure SetAllowedTerrains(AValue: TTerrainTypes);
+    procedure SetAnimation(AValue: AnsiString);
+    procedure SetEditorAnimation(AValue: AnsiString);
+    procedure SetzIndex(AValue: Integer);
+    procedure SetDef(AValue:TDef);
+
+    procedure AnimationChanged;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Assign(AOther: TObjTemplate);
+  published
+    property Animation: AnsiString read FAnimation write SetAnimation;
+    property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
+    property VisitableFrom: TStrings read FVisitableFrom;
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
+    property Mask: TStrings read FMask;
+    property ZIndex: Integer read FzIndex write SetzIndex default 0;
+  end;
+  {$pop}
+
   { TMapObject }
 
   TMapObject = class (TCollectionItem, IMapObject)
@@ -292,26 +273,25 @@ type
     FLastTick: DWord;
     FOptions: TObjectOptions;
 
-    FTemplate: TMapObjectTemplate;
     FL: integer;
-    FTemplateID: integer;
+    FSubtype: AnsiString;
+    FTemplate: TMapObjectTemplate;
+    FType: AnsiString;
     FX: integer;
     FY: integer;
     function GetIdx: integer;
     function GetPlayer: TPlayer; inline;
     procedure Render(Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
-    procedure SetTemplateID(AValue: integer);
+    procedure SetSubtype(AValue: AnsiString);
+    procedure SetType(AValue: AnsiString);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
   protected
-    procedure Changed;
-    procedure BeforeChange; //move settemplate setowner
-    procedure AfterChange;
+    procedure TypeChanged;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property Template: TMapObjectTemplate read FTemplate;
     procedure RenderStatic(); inline;
     procedure RenderStatic(X,Y: integer); inline;
     procedure RenderAnim(); inline;
@@ -320,8 +300,9 @@ type
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
 
-    function HasOptions: boolean;
     function GetMap:TVCMIMap;
+
+    procedure AssignTemplate(ATemplate: TObjTemplate);
 
   public //ImapObject
     function GetID: AnsiString;
@@ -329,11 +310,16 @@ type
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
-    property L:integer read FL write SetL;
+    property L:integer read FL write SetL; deprecated;
 
-    property TemplateID: integer read FTemplateID write SetTemplateID;
+    property &Type: AnsiString read FType write SetType;
+    property Subtype: AnsiString read FSubtype write SetSubtype;
 
-    property Options: TObjectOptions read FOptions stored HasOptions;
+    property Template: TMapObjectTemplate read FTemplate;
+  public
+    property Options: TObjectOptions read FOptions;
+
+    function HasOptions: boolean;
   end;
 
 
@@ -476,7 +462,6 @@ type
     FObjects: TMapObjects;
     FPlayers: TPlayerAttrs;
     FPredefinedHeroes: THeroDefinitions;
-    FTemplates: TMapObjectTemplates;
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
 
@@ -565,7 +550,6 @@ type
 
     property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
   public //manual streamimg
-    property Templates: TMapObjectTemplates read FTemplates;
     property Objects: TMapObjects read FObjects;
   public
     function CurrentLevel: TMapLevel;
@@ -580,6 +564,81 @@ type
 implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
+
+{ TMapObjectTemplate }
+
+procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
+begin
+  if FAllowedTerrains=AValue then Exit;
+  FAllowedTerrains:=AValue;
+end;
+
+procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
+begin
+  if FAnimation=AValue then Exit;
+  FAnimation:=AValue;
+  AnimationChanged;
+end;
+
+procedure TMapObjectTemplate.SetEditorAnimation(AValue: AnsiString);
+begin
+  if FEditorAnimation=AValue then Exit;
+  FEditorAnimation:=AValue;
+  AnimationChanged;
+end;
+
+procedure TMapObjectTemplate.SetzIndex(AValue: Integer);
+begin
+  if FzIndex=AValue then Exit;
+  FzIndex:=AValue;
+end;
+
+procedure TMapObjectTemplate.SetDef(AValue: TDef);
+begin
+  FDef := AValue;
+  RootManager.GraphicsManager.LoadGraphics(FDef);
+end;
+
+procedure TMapObjectTemplate.AnimationChanged;
+begin
+  if FEditorAnimation='' then
+  begin
+    SetDef(RootManager.GraphicsManager.GetGraphics(FAnimation));
+  end
+  else
+  begin
+    SetDef(RootManager.GraphicsManager.GetGraphics(FEditorAnimation));
+  end;
+end;
+
+constructor TMapObjectTemplate.Create;
+begin
+  FMask := TStringList.Create;
+  FVisitableFrom := TStringList.Create;
+  SetDef(RootManager.GraphicsManager.GetGraphics('default'));
+end;
+
+destructor TMapObjectTemplate.Destroy;
+begin
+  FMask.Free;
+  FVisitableFrom.Free;
+  inherited Destroy;
+end;
+
+procedure TMapObjectTemplate.Assign(AOther: TObjTemplate);
+begin
+  FAnimation := AOther.Animation;
+  FEditorAnimation := AOther.EditorAnimation;
+  FVisitableFrom.Assign(AOther.VisitableFrom);
+  FMask.Assign(AOther.Mask);
+
+  FAllowedTerrains := AOther.AllowedTerrains;
+
+  SetDef(AOther.Def);
+
+
+  FZIndex := AOther.ZIndex;
+end;
 
 { THeroDefinition }
 
@@ -708,22 +767,6 @@ end;
 
 { TMapObject }
 
-procedure TMapObject.Changed;
-begin
-  Collection.BeginUpdate;
-  Collection.EndUpdate;
-end;
-
-procedure TMapObject.BeforeChange;
-begin
-
-end;
-
-procedure TMapObject.AfterChange;
-begin
-
-end;
-
 function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
 var
   w: UInt32;
@@ -741,11 +784,13 @@ constructor TMapObject.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FLastFrame := 0;
-  FTemplateID := -1;
+  FTemplate := TMapObjectTemplate.Create;
+  FOptions := TObjectOptions.Create(Self);
 end;
 
 destructor TMapObject.Destroy;
 begin
+  FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
   inherited Destroy;
 end;
@@ -780,7 +825,7 @@ begin
   Template.FDef.RenderO(Frame, Ax,Ay,GetPlayer);
 
   if (owner <> TPlayer.none) and
-    ((Template.&type = 'hero') or (Template.&type = 'randomHero') or (Template.&type = 'heroPlaceholder')) then
+    ((&type = 'hero') or (&type = 'randomHero') or (&type = 'heroPlaceholder')) then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
   end;
@@ -807,7 +852,7 @@ end;
 
 procedure TMapObject.RenderSelectionRect;
 begin
-  FTemplate.FDef.RenderBorder(FX,FY);
+  Template.FDef.RenderBorder(FX,FY);
 end;
 
 procedure TMapObject.RenderStatic;
@@ -826,26 +871,21 @@ begin
 
   if FL = AValue then Exit;
 
-  BeforeChange;
   FL := AValue;
-  AfterChange;
-  Changed;
 end;
 
-procedure TMapObject.SetTemplateID(AValue: integer);
+procedure TMapObject.SetSubtype(AValue: AnsiString);
 begin
-  if FTemplateID = AValue then Exit; //(!)important check
+  if FSubtype=AValue then Exit;
+  FSubtype:=AValue;
+  TypeChanged;
+end;
 
-  BeforeChange;
-  FTemplate := GetMap().FTemplates.Items[AValue];
-
-  FTemplateID := AValue;
-
-  FreeAndNil(FOptions);
-
-  FOptions := object_options.CreateByID(FTemplate.&type, FTemplate.subtype, Self);
-  AfterChange;
-  Changed;
+procedure TMapObject.SetType(AValue: AnsiString);
+begin
+  if FType=AValue then Exit;
+  FType:=AValue;
+  TypeChanged;
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -858,10 +898,7 @@ begin
   //  exit;
   //end;
   if FX = AValue then Exit;
-  BeforeChange;
   FX := AValue;
-  AfterChange;
-  Changed;
 end;
 
 procedure TMapObject.SetY(AValue: integer);
@@ -873,10 +910,17 @@ begin
   //end;
 
   if FY = AValue then Exit;
-  BeforeChange;
   FY := AValue;
-  AfterChange;
-  Changed;
+end;
+
+procedure TMapObject.TypeChanged;
+begin
+  FreeAndNil(FOptions);
+
+  if (FType <>'') and (FSubtype<>'') then
+  begin
+    FOptions := CreateByID(FType, FSubtype,Self);
+  end;
 end;
 
 function TMapObject.GetMap: TVCMIMap;
@@ -884,14 +928,21 @@ begin
   Result := (Collection as TMapObjects).Map;
 end;
 
+procedure TMapObject.AssignTemplate(ATemplate: TObjTemplate);
+begin
+  Template.Assign(ATemplate);
+  &Type:=ATemplate.ObjType.DisplayName;
+  Subtype := ATemplate.ObjSubType.DisplayName;
+end;
+
 function TMapObject.GetID: AnsiString;
 begin
-  Result := FTemplate.&type;
+  Result := &type;
 end;
 
 function TMapObject.GetSubId: AnsiString;
 begin
-  Result := FTemplate.subtype;
+  Result := subtype;
 end;
 
 { TMapObjects }
@@ -907,107 +958,7 @@ begin
   Result := FMap;
 end;
 
-{ TMapObjectTemplates }
 
-constructor TMapObjectTemplates.Create(AMap: TVCMIMap);
-begin
-  inherited Create;
-  FMap := AMap;
-end;
-
-{ TMapObjectTemplate }
-
-constructor TMapObjectTemplate.Create(ACollection: TCollection);
-begin
-  inherited Create(ACollection);
-  FMask := TStringList.Create;
-  FAllowedTerrains := ALL_TERRAINS;
-  FVisitableFrom := TStringList.Create;
-end;
-
-destructor TMapObjectTemplate.Destroy;
-begin
-  FVisitableFrom.Free;
-  FMask.Free;
-  inherited Destroy;
-end;
-
-procedure TMapObjectTemplate.FillFrom(AOther: TObjTemplate);
-var
-  gm: TGraphicsManager;
-begin
-  FAnimation := AOther.Animation;
-  FDef := AOther.Def;
-
-  gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
-  gm.LoadGraphics(FDef);
-
-
-  FType := AOther.ObjType.DisplayName;
-  Fsubtype := AOther.ObjSubType.DisplayName;
-
-  FMask.Assign(AOther.Mask);
-  FVisitableFrom.Assign(AOther.VisitableFrom);
-  FZIndex := AOther.ZIndex;
-end;
-
-function TMapObjectTemplate.GetMask: TStrings;
-begin
-  Result := FMask;
-end;
-
-function TMapObjectTemplate.GetTID: integer;
-begin
-  Result := inherited ID;
-end;
-
-function TMapObjectTemplate.GetVisitableFrom: TStrings;
-begin
-  Result := FVisitableFrom;
-end;
-
-procedure TMapObjectTemplate.SetType(AValue: AnsiString);
-begin
-  if FType=AValue then Exit;
-  FType:=AValue;
-end;
-
-procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
-begin
-  if FAllowedTerrains = AValue then Exit;
-  FAllowedTerrains := AValue;
-end;
-
-procedure TMapObjectTemplate.SetAnimation(AValue: string);
-var
-  gm: TGraphicsManager;
-begin
-  AValue := NormalizeResourceName(AValue);
-  if FAnimation = AValue then Exit;
-  FAnimation := AValue;
-
-  gm := (Collection as TMapObjectTemplates).FMap.FTerrainManager.GraphicsManager; //TODO: refactor
-  FDef := gm.GetGraphics(FAnimation);
-  //todo: load and check
-end;
-
-procedure TMapObjectTemplate.SetMenuTerrains(AValue: TTerrainTypes);
-begin
-  if FMenuTerrains = AValue then Exit;
-  FMenuTerrains := AValue;
-end;
-
-procedure TMapObjectTemplate.Setsubtype(AValue: AnsiString);
-begin
-  if Fsubtype=AValue then Exit;
-  Fsubtype:=AValue;
-end;
-
-procedure TMapObjectTemplate.SetZIndex(AValue: Integer);
-begin
-  if FZIndex = AValue then Exit;
-  FZIndex := AValue;
-end;
 
 { TPlasedHeroes }
 
@@ -1439,7 +1390,6 @@ begin
   FAllowedHeroes := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
-  FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
   FLevelLimit:=MAX_HERO_LEVEL;
@@ -1466,7 +1416,6 @@ begin
   FAllowedHeroes := CrStrList;
 
   FPlayers := TPlayerAttrs.Create;
-  FTemplates := TMapObjectTemplates.Create(self);
   FObjects := TMapObjects.Create(Self);
   FRumors := TRumors.Create;
   FLevelLimit:=MAX_HERO_LEVEL;
@@ -1485,7 +1434,6 @@ begin
 
   FRumors.Free;
   FObjects.Free;
-  FTemplates.Free;
   FPlayers.Free;
   FLevels.Free;
   inherited Destroy;

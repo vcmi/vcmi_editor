@@ -96,10 +96,6 @@ begin
   try
     //todo: use stored modifier
 
-    d := FStreamer.StreamCollection(AMap.Templates);
-
-    map_o.Add(TEMPLATES_FIELD, d);
-
     d := FStreamer.StreamCollection(AMap.Objects);
     map_o.Add(OBJECTS_FIELD,d);
 
@@ -145,7 +141,6 @@ begin
       FDestreamer.JSONToObject(map_o, Result);
 
       DeStreamTiles(map_o,Result);
-      FDestreamer.JSONToCollection(map_o.Elements[TEMPLATES_FIELD],Result.Templates);
       FDestreamer.JSONToCollection(map_o.Elements[OBJECTS_FIELD],Result.Objects);
 
     finally

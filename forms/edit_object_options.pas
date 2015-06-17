@@ -133,7 +133,7 @@ begin
   FMap := Obj.GetMap;
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
-  Caption:=Format('Object %s::%s at %d %d %d',[Obj.Template.&type, Obj.Template.subtype,Obj.X,Obj.Y,Obj.L]);
+  Caption:=Format('Object %s::%s at %d %d %d',[Obj.&type, Obj.subtype,Obj.X,Obj.Y,Obj.L]);
   ShowModal;
 end;
 

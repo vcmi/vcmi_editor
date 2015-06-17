@@ -40,6 +40,15 @@ type
   TDifficulty = (EASY = 0, NORMAL, HARD, EXPERT, IMPOSSIBLE);
 
   TPrimarySkill = (attack=0, defence=1, spellpower=2, knowledge=3);
+
+
+  TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
+
+  THeroSex = (male=0, female=1, default = $FF);
+
+  TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
+
+  TScholarBonus = (primSkill, skill, spell, random);
 {$pop}
 
   TPlayerColor = TPlayer.RED..TPlayer.PINK;
@@ -50,9 +59,6 @@ type
   TCustomID = type integer;
 
 
-  TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
-
-  TSex = (Male, Female);
 
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
@@ -72,15 +78,15 @@ const
 
   Z_INDEX_OVERLAY = -1000000;
 const
-  ALL_TERRAINS = [TTerrainType.dirt,
+  ALL_TERRAINS =
+ [TTerrainType.dirt,
   TTerrainType.sand,
   TTerrainType.grass,
   TTerrainType.snow,
   TTerrainType.swamp,
   TTerrainType.rough,
   TTerrainType.subterra,
-  TTerrainType.lava,
-  TTerrainType.water];
+  TTerrainType.lava];
 
 type
   TLocalizedString = type AnsiString; //LCL use ansisring encode to UTF8

@@ -160,18 +160,13 @@ begin
 end;
 
 procedure TAddObject.Execute;
-var
-  ot: TMapObjectTemplate;
 begin
-  ot :=  FMap.Templates.Add;
-
-  ot.FillFrom(Template);
-
   TargetObject := FMap.Objects.Add;
 
-  TargetObject.TemplateID := ot.TID;
+  TargetObject.&Type:=Template.ObjType.DisplayName;
+  TargetObject.Subtype:=Template.ObjSubType.DisplayName;
 
-  Assert(Assigned(TargetObject.Template), 'Template not assigned by ID');
+  TargetObject.Template.Assign(Template);
 
   TargetObject.L := l;
   TargetObject.X := X;

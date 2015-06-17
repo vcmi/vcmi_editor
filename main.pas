@@ -1185,7 +1185,7 @@ end;
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 var
   o: TMapObject;
-  ot: TMapObjectTemplate;
+  ot: TLegacyMapObjectTemplate;
 begin
   SetMapViewMouse(x,y);
 

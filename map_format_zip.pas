@@ -68,7 +68,6 @@ type
     FZipper: TZipper;
     FFreeList: TFPObjectList;
     procedure WriteHeader(AMap: TVCMIMap);
-    procedure WriteTemplates(AMap: TVCMIMap);
     procedure WriteObjects(AMap: TVCMIMap);
     procedure WriteTerrain(AMap: TVCMIMap);
 
@@ -229,7 +228,6 @@ begin
 
   FDestreamer.JSONToObject(map_o, Result);
 
-  FDestreamer.JSONToCollection(FTemplatesJson,Result.Templates);
   FDestreamer.JSONToCollection(FObjectsJson,Result.Objects);
 
   //DeStreamTiles(FTerrainJson as TJSONArray, Result);
@@ -262,11 +260,6 @@ end;
 procedure TMapWriterZIP.WriteHeader(AMap: TVCMIMap);
 begin
   AddArchiveEntry( FStreamer.ObjectToJSON(AMap), HEADER_FILENAME);
-end;
-
-procedure TMapWriterZIP.WriteTemplates(AMap: TVCMIMap);
-begin
-  AddArchiveEntry(FStreamer.StreamCollection(AMap.Templates),TEMPLATES_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteObjects(AMap: TVCMIMap);
@@ -325,7 +318,6 @@ procedure TMapWriterZIP.Write(AStream: TStream; AMap: TVCMIMap);
 begin
   AMap.BeforeSerialize;
   WriteHeader(AMap);
-  WriteTemplates(AMap);
   WriteObjects(AMap);
   WriteTerrain(AMap);
   FZipper.SaveToStream(AStream);

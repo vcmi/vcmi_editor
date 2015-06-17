@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, math, fgl, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
-  objects, object_link;
+  objects, object_link, editor_graphics;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -42,7 +42,58 @@ const
 type
    TOwnerSize = (size1,size4);
 
-   TQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
+  TQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
+
+  { TLegacyMapObjectTemplate }
+
+  TLegacyMapObjectTemplate = class (TCollectionItem)
+  private
+    FDef: TDef;
+  private
+    FType: AnsiString;
+    FAllowedTerrains: TTerrainTypes;
+    FMask: TStringList;
+    FAnimation: string;
+    FMenuTerrains: TTerrainTypes;
+    Fsubtype: AnsiString;
+    FZIndex: Integer;
+    FVisitableFrom: TStringList;
+    function GetMask: TStrings;
+    function GetTID: integer;
+    function GetVisitableFrom: TStrings;
+    procedure SetType(AValue: AnsiString);
+    procedure SetAllowedTerrains(AValue: TTerrainTypes);
+    procedure SetAnimation(AValue: string);
+    procedure SetMenuTerrains(AValue: TTerrainTypes);
+    procedure Setsubtype(AValue: AnsiString);
+    procedure SetZIndex(AValue: Integer);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains;
+    property MenuTerrains: TTerrainTypes read FMenuTerrains write SetMenuTerrains;
+
+    property TID: integer read GetTID;
+
+    property Animation:string read FAnimation write SetAnimation;
+    property Mask:TStrings read GetMask;
+    //property VisitableFrom: TStrings read GetVisitableFrom;
+
+    property &type: AnsiString read FType write SetType;
+    property subtype: AnsiString read Fsubtype write Setsubtype;
+
+    property ZIndex: Integer read FZIndex write SetZIndex;
+  end;
+
+  { TLegacyMapObjectTemplates }
+
+  TLegacyMapObjectTemplates = class (specialize TGArrayCollection<TLegacyMapObjectTemplate>)
+  private
+    FGraphicsManager: TGraphicsManager;
+  public
+    constructor Create(AGraphicsManager: TGraphicsManager);
+  end;
 
    { TResolveRequest }
 
@@ -66,6 +117,8 @@ type
      FSrc: TStreamReadAdapter;
      FMapVersion: DWord;
      FMap: TVCMIMap;
+
+     FTemplates: TLegacyMapObjectTemplates;
 
      FCurrentObject: TMapObject;
      FQuestIdentifierMap: TQuestIdentifierMap;
@@ -112,7 +165,7 @@ type
 
      procedure ReadTerrain();//+
 
-     procedure ReadObjMask(obj: TMapObjectTemplate);//+
+     procedure ReadObjMask(obj: TLegacyMapObjectTemplate);//+
      procedure ReadDefInfo();//+
 
      procedure MaybeReadArtifactsOfHero(obj: THeroArtifacts);//+
@@ -161,7 +214,88 @@ type
 
 implementation
 
-uses LazLoggerBase, editor_consts;
+uses LazLoggerBase, editor_consts, editor_utils;
+
+{ TLegacyMapObjectTemplates }
+
+constructor TLegacyMapObjectTemplates.Create(AGraphicsManager: TGraphicsManager
+  );
+begin
+  inherited Create;
+  FGraphicsManager := AGraphicsManager;
+end;
+
+{ TLegacyMapObjectTemplate }
+
+constructor TLegacyMapObjectTemplate.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FMask := TStringList.Create;
+  FAllowedTerrains := ALL_TERRAINS;
+  FVisitableFrom := TStringList.Create;
+end;
+
+destructor TLegacyMapObjectTemplate.Destroy;
+begin
+  FVisitableFrom.Free;
+  FMask.Free;
+  inherited Destroy;
+end;
+
+function TLegacyMapObjectTemplate.GetMask: TStrings;
+begin
+  Result := FMask;
+end;
+
+function TLegacyMapObjectTemplate.GetTID: integer;
+begin
+  Result := inherited ID;
+end;
+
+function TLegacyMapObjectTemplate.GetVisitableFrom: TStrings;
+begin
+  Result := FVisitableFrom;
+end;
+
+procedure TLegacyMapObjectTemplate.SetType(AValue: AnsiString);
+begin
+  if FType=AValue then Exit;
+  FType:=AValue;
+end;
+
+procedure TLegacyMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
+begin
+  if FAllowedTerrains = AValue then Exit;
+  FAllowedTerrains := AValue;
+end;
+
+procedure TLegacyMapObjectTemplate.SetAnimation(AValue: string);
+begin
+  AValue := NormalizeResourceName(AValue);
+  if FAnimation = AValue then Exit;
+  FAnimation := AValue;
+
+  FDef := (Collection as TLegacyMapObjectTemplates).FGraphicsManager.GetGraphics(FAnimation);
+  //todo: load and check
+end;
+
+procedure TLegacyMapObjectTemplate.SetMenuTerrains(AValue: TTerrainTypes);
+begin
+  if FMenuTerrains = AValue then Exit;
+  FMenuTerrains := AValue;
+end;
+
+procedure TLegacyMapObjectTemplate.Setsubtype(AValue: AnsiString);
+begin
+  if Fsubtype=AValue then Exit;
+  Fsubtype:=AValue;
+end;
+
+procedure TLegacyMapObjectTemplate.SetZIndex(AValue: Integer);
+begin
+  if FZIndex = AValue then Exit;
+  FZIndex := AValue;
+end;
 
 { TResolveRequest }
 
@@ -196,10 +330,12 @@ begin
   inherited Create(AMapEnv);
   FQuestIdentifierMap := TQuestIdentifierMap.Create;
   FLinksToResolve := TResolveRequests.Create(True);
+  FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
 
 destructor TMapReaderH3m.Destroy;
 begin
+  FTemplates.Free;
   FLinksToResolve.Free;
   FQuestIdentifierMap.Free;
   inherited Destroy;
@@ -243,6 +379,7 @@ var
   AreAnyPalyers: boolean;
 begin
   FQuestIdentifierMap.Clear;
+  FTemplates.Clear;
 
   AStream.Seek(0,soBeginning);
   FSrc.Create(AStream);
@@ -663,7 +800,7 @@ begin
 end;
 
 var
-  obj: TMapObjectTemplate;
+  obj: TLegacyMapObjectTemplate;
   cnt: DWord;
   i: Integer;
   w: Word;
@@ -677,7 +814,7 @@ begin
 
   for i := 0 to cnt - 1 do
   begin
-    obj :=  TMapObjectTemplate(FMap.Templates.Add);
+    obj :=  TLegacyMapObjectTemplate(FTemplates.Add);
 
     obj.Animation := FSrc.ReadString;
     ReadObjMask(obj);
@@ -949,6 +1086,8 @@ var
   x,y,l: Byte;
   tid: DWord;
   spos: Int32;
+
+  template: TLegacyMapObjectTemplate;
 begin
   cnt := FSrc.ReadDWord;
 
@@ -964,7 +1103,22 @@ begin
       FCurrentObject.X :=x;
       FCurrentObject.Y :=y;
       FCurrentObject.L :=l;
-      FCurrentObject.TemplateID := tid;
+
+      template := FTemplates[tid];
+
+      FCurrentObject.&Type:=template.&type;
+      FCurrentObject.Subtype:=template.subtype;
+
+      FCurrentObject.Template.AllowedTerrains:=template.AllowedTerrains;
+      FCurrentObject.Template.Animation:=template.Animation;
+      //todo: separate legacy editor animations OBJECTS vs EOBJCTS
+      //FCurrentObject.Template.EditorAnimation;
+
+      FCurrentObject.Template.Mask.Assign(template.Mask);
+
+      //todo: fill Visitable from field
+      //FCurrentObject.Template.VisitableFrom;
+      FCurrentObject.Template.ZIndex:=template.ZIndex;
 
    //   DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId, ' @',IntToHex(spos, 8)]);
 
@@ -980,7 +1134,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadObjMask(obj: TMapObjectTemplate);
+procedure TMapReaderH3m.ReadObjMask(obj: TLegacyMapObjectTemplate);
 type
    TFlag = (None=0,Block, Active);
 const
