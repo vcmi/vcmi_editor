@@ -776,18 +776,12 @@ begin
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
 
-  RoadType.ItemIndex := 0; //this must be done after construction ob brushes
-  RiverType.ItemIndex:=-1;
-
-  SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex changes active brush
-
-  FActiveBrush.Size := 1;
-  FActiveBrush.TT :=  TTerrainType.dirt;
+  RoadType.ItemIndex := -1; //this must be done after construction of brushes
+  RiverType.ItemIndex:= -1;
 
   FCurrentPlayer := TPlayer.none;
 
   SetupPlayerSelection;
-
 
   //load map if specified
 
@@ -808,7 +802,14 @@ begin
         Application.ShowException(e);
       end;
     end;
+    SetActiveBrush(FIdleBrush);
+  end
+  else
+  begin
+    SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex changes active brush
 
+    FActiveBrush.Size := 1;
+    FActiveBrush.TT :=  TTerrainType.dirt;
   end;
 
   MapChanded;
@@ -1735,6 +1736,12 @@ procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
 begin
   FActiveBrush := ABrush;
   FActiveBrush.Clear;
+
+  if FActiveBrush <> FRoadRiverBrush then
+  begin
+    RoadType.ItemIndex:=-1;
+    RiverType.ItemIndex:=-1;
+  end;
 end;
 
 procedure TfMain.UpdateWidgets;

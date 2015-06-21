@@ -1324,9 +1324,9 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 28
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          Down = True
           Glyph.Data = {
             36090000424D3609000000000000360000002800000018000000180000000100
             2000000000000009000064000000640000000000000000000000000000000000
@@ -1403,7 +1403,7 @@ object fMain: TfMain
             0000000000000000000000000000000000000000000000000000000000000000
             0000000000000000000000000000000000000000000000000000
           }
-          GroupIndex = 1
+          GroupIndex = 6
           OnClick = btnSelectClick
         end
         object btnBrush1: TSpeedButton
@@ -1411,6 +1411,7 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 24
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '1'
@@ -1422,10 +1423,11 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 24
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '2'
-          GroupIndex = 1
+          GroupIndex = 2
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
@@ -1433,10 +1435,11 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 24
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '4'
-          GroupIndex = 1
+          GroupIndex = 3
           OnClick = btnBrush4Click
         end
         object btnBrushArea: TSpeedButton
@@ -1444,12 +1447,13 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 24
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '□'
           Font.Height = -16
           Font.Style = [fsBold]
-          GroupIndex = 1
+          GroupIndex = 4
           OnClick = btnBrushAreaClick
           ParentFont = False
         end
@@ -1458,11 +1462,12 @@ object fMain: TfMain
           Height = 28
           Top = 0
           Width = 24
+          AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '∞'
           Enabled = False
-          GroupIndex = 1
+          GroupIndex = 5
           OnClick = btnBrushFillClick
         end
       end
