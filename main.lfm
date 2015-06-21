@@ -1021,20 +1021,20 @@ object fMain: TfMain
   LCLVersion = '1.4.1.0'
   object pnMap: TPanel
     Left = 202
-    Height = 737
-    Top = 58
+    Height = 761
+    Top = 34
     Width = 848
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 737
+    ClientHeight = 761
     ClientWidth = 848
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 18
-      Height = 703
+      Height = 727
       Top = 18
       Width = 814
       Align = alClient
@@ -1058,7 +1058,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 721
+      Top = 745
       Width = 812
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1070,7 +1070,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 832
-      Height = 703
+      Height = 727
       Top = 18
       Width = 16
       Align = alRight
@@ -1082,17 +1082,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 703
+      Height = 727
       Top = 18
       Width = 18
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 703
+      ClientHeight = 727
       ClientWidth = 18
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 703
+        Height = 727
         Top = 0
         Width = 18
         Align = alClient
@@ -1124,17 +1124,17 @@ object fMain: TfMain
   end
   object pnRight: TPanel
     Left = 1050
-    Height = 737
-    Top = 58
+    Height = 761
+    Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 737
+    ClientHeight = 761
     ClientWidth = 204
     TabOrder = 1
     object pcToolBox: TPageControl
       Left = 0
-      Height = 737
+      Height = 761
       Top = 0
       Width = 188
       TabStop = False
@@ -1145,7 +1145,7 @@ object fMain: TfMain
     end
     object ObjectsView: TOpenGLControl
       Left = 0
-      Height = 737
+      Height = 761
       Top = 0
       Width = 188
       Align = alClient
@@ -1160,7 +1160,7 @@ object fMain: TfMain
     end
     object sbObjects: TScrollBar
       Left = 188
-      Height = 737
+      Height = 761
       Top = 0
       Width = 16
       Align = alRight
@@ -1233,22 +1233,6 @@ object fMain: TfMain
       Action = actDelete
     end
   end
-  object ActionsToolBar: TToolBar
-    Left = 0
-    Height = 24
-    Top = 34
-    Width = 1254
-    AutoSize = True
-    Caption = 'ActionsToolBar'
-    Images = imlMainActions
-    ShowCaptions = True
-    TabOrder = 3
-    object ToolButton12: TToolButton
-      Left = 1
-      Top = 2
-      Action = actUnderground
-    end
-  end
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
@@ -1259,13 +1243,13 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 737
-    Top = 58
+    Height = 761
+    Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 737
+    ClientHeight = 761
     ClientWidth = 202
-    TabOrder = 5
+    TabOrder = 4
     object pnMinimap: TPanel
       Left = 1
       Height = 204
@@ -1288,12 +1272,12 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 531
+      Height = 555
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 531
+      ClientHeight = 555
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
@@ -1959,6 +1943,9 @@ object fMain: TfMain
     object menuPlayer: TMenuItem
       Caption = 'Player'
     end
+    object menuLevel: TMenuItem
+      Caption = 'Level'
+    end
   end
   object MainActions: TActionList
     Images = imlMainActions
@@ -2002,12 +1989,6 @@ object fMain: TfMain
     object actMapOptions: TAction
       Caption = 'Map options'
       OnExecute = actMapOptionsExecute
-    end
-    object actUnderground: TAction
-      AutoCheck = True
-      Caption = 'Underground'
-      OnExecute = actUndergroundExecute
-      OnUpdate = actUndergroundUpdate
     end
     object actProperties: TAction
       Caption = 'Properties ...'

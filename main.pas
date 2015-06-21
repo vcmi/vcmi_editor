@@ -77,7 +77,6 @@ type
   TfMain = class(TForm)
     actDelete: TAction;
     actProperties: TAction;
-    actUnderground: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
     btnBrush1: TSpeedButton;
@@ -112,6 +111,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    menuLevel: TMenuItem;
     menuPlayer: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -135,8 +135,6 @@ type
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
-    ActionsToolBar: TToolBar;
-    ToolButton12: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton5: TToolButton;
@@ -168,8 +166,6 @@ type
     procedure actSaveMapAsExecute(Sender: TObject);
     procedure actSaveMapExecute(Sender: TObject);
     procedure actSaveMapUpdate(Sender: TObject);
-    procedure actUndergroundExecute(Sender: TObject);
-    procedure actUndergroundUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
     procedure actUndoUpdate(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
@@ -219,6 +215,7 @@ type
     procedure ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
+    procedure LevelMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
     procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -241,7 +238,7 @@ type
 
   private
     FEnv: TMapEnvironment;
-    procedure SetupPlayerSelection;
+
 
     function CheckUnsavedMap: boolean;
   private
@@ -327,8 +324,11 @@ type
     procedure SaveMap(AFileName: string);
 
     procedure SetCurrentPlayer(APlayer: TPlayer);
-
     procedure SetActiveBrush(ABrush: TMapBrush);
+
+    procedure SetupPlayerSelection;
+    procedure SetupLevelSelection;
+
 
     procedure UpdateWidgets();
   protected
@@ -558,25 +558,6 @@ end;
 procedure TfMain.actSaveMapUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty;
-end;
-
-
-
-procedure TfMain.actUndergroundExecute(Sender: TObject);
-var
-  under: Boolean;
-begin
-  under :=  (Sender as TAction).Checked;
-
-  FMap.CurrentLevelIndex := ifthen(under,1,0);
-  FSelectedObject := nil;
-  InvalidateMapDimensions;
-  InvalidateMapContent;
-end;
-
-procedure TfMain.actUndergroundUpdate(Sender: TObject);
-begin
-  (Sender as TAction).Enabled := Assigned(FMap) and (FMap.Levels.Count > 1);
 end;
 
 procedure TfMain.actUndoExecute(Sender: TObject);
@@ -1056,6 +1037,7 @@ begin
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   FUndoManager.Clear;
+  SetupLevelSelection;
 end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
@@ -1428,6 +1410,33 @@ begin
 
   InvalidateObjects;
 
+end;
+
+procedure TfMain.LevelMenuClick(Sender: TObject);
+var
+  m, mc : TMenuItem;
+  i: Integer;
+begin
+  m := Sender as TMenuItem;
+
+  for i := 0 to menuLevel.Count - 1 do
+  begin
+    mc := menuLevel[i];
+
+    if mc=m then
+    begin
+
+      FMap.CurrentLevelIndex := M.Tag;
+      FSelectedObject := nil;
+      InvalidateMapDimensions;
+      InvalidateMapContent;
+
+      mc.Checked := True;
+    end
+    else begin
+      mc.Checked := False;
+    end;
+  end;
 end;
 
 procedure TfMain.MinimapPaint(Sender: TObject);
@@ -1838,6 +1847,33 @@ begin
     menuPlayer.Add(m);
   end;
 
+
+end;
+
+procedure TfMain.SetupLevelSelection;
+var
+  m: TMenuItem;
+  l: TMapLevel;
+  iter: TCollectionItem;
+begin
+  menuLevel.Clear;
+
+  for iter in FMap.Levels do
+  begin
+    l := iter as TMapLevel;
+    m := TMenuItem.Create(menuLevel);
+
+    m.Tag := Integer(l.Index);
+    m.OnClick := @LevelMenuClick;
+    m.Caption := l.DisplayName;
+
+    if FMap.CurrentLevelIndex = l.Index then
+    begin
+      m.Checked:=true;
+    end;
+
+    menuLevel.Add(m);
+  end;
 
 end;
 
