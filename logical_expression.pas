@@ -27,18 +27,25 @@ uses
   Classes, SysUtils, editor_classes;
 
 type
+  TLogicalExpression = class;
 
   { TLogicalExpressionItem }
 
   TLogicalExpressionItem = class (TCollectionItem,  IEmbeddedValue)
   private
     FAsString: AnsiString;
-    function IsAsStringStored: Boolean;
+    FCollection: TLogicalExpression;
+
+    function IsCollection: Boolean;
+    function IsObject: Boolean;
+    function IsString: Boolean;
     procedure SetAsString(AValue: AnsiString);
+  protected
+    function GetAsObject: TObject; virtual; abstract;
   published
-
-    property AsString: AnsiString read FAsString write SetAsString stored IsAsStringStored;
-
+    property AsString: AnsiString read FAsString write SetAsString stored IsString;
+    property AsCollection:TLogicalExpression read FCollection stored IsCollection;
+    property AsObject: TObject read GetAsObject stored IsObject;
   end;
 
   TLogicalExpression = class (TCollection, IArrayCollection)
@@ -56,9 +63,19 @@ begin
   FAsString:=AValue;
 end;
 
-function TLogicalExpressionItem.IsAsStringStored: Boolean;
+function TLogicalExpressionItem.IsString: Boolean;
 begin
+  Result := AsString <> '';
+end;
 
+function TLogicalExpressionItem.IsCollection: Boolean;
+begin
+  Result := FCollection.Count > 0;
+end;
+
+function TLogicalExpressionItem.IsObject: Boolean;
+begin
+  Result := not IsString and not IsCollection;
 end;
 
 end.

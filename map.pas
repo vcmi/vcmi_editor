@@ -67,9 +67,6 @@ type
   { TPlasedHeroes }
 
   TPlasedHeroes = class (specialize TGArrayCollection<TPlasedHero>)
-  public
-    constructor Create;
-    destructor Destroy; override;
   end;
 
   { TPlayerAttr }
@@ -956,18 +953,6 @@ begin
 end;
 
 
-
-{ TPlasedHeroes }
-
-constructor TPlasedHeroes.Create;
-begin
-  inherited Create();
-end;
-
-destructor TPlasedHeroes.Destroy;
-begin
-  inherited Destroy;
-end;
 
 { TPlasedHero }
 
