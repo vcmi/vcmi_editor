@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="57">
+    <Units Count="59">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -405,6 +405,14 @@
         <Filename Value="logical_id_condition.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit56>
+      <Unit57>
+        <Filename Value="logical_event_condition.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="logical_expression.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit58>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

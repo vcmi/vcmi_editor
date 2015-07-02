@@ -68,6 +68,7 @@ type
 
   TVCMIJSONDestreamer = class (TJSONDeStreamer)
   private
+    procedure DestreamCollectionItem(ACollection: TCollection; ASrc: TJSONData; AItem: TCollectionItem);
 
     procedure CollectionObjCallback(Const AName : TJSONStringType; Item: TJSONData;
       Data: TObject; var Continue: Boolean);
@@ -102,6 +103,8 @@ type
     constructor Create(AOwner: TComponent); override;
 
     function ObjectToJSON(const AObject: TObject): TJSONObject; override;
+
+    function ObjectToJsonEx(const AObject: TObject): TJSONData;
 
     function StreamCollection(const ACollection: TCollection): TJSONData;
       override;
@@ -457,6 +460,11 @@ begin
   end;
 end;
 
+function TVCMIJSONStreamer.ObjectToJsonEx(const AObject: TObject): TJSONData;
+begin
+  Result := ObjectToJSON(AObject);  //todo:  ObjectToJsonEx
+end;
+
 procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
   PropertyInfo: PPropInfo; var Skip: boolean);
 var
@@ -507,7 +515,6 @@ var
   A: TJSONArray;
   elem: TCollectionItem;
 begin
-
   if ACollection is INamedCollection then
   begin
     o := TJSONObject.Create;
@@ -529,8 +536,6 @@ begin
   else begin
     Result := inherited StreamCollection(ACollection);
   end;
-
-
 end;
 
 { TVCMIJSONDestreamer }
@@ -546,21 +551,38 @@ begin
 
   new_item := ACollection.Add;
 
-  if Item.JSONType = jtObject then
-  begin
-    O := TJSONObject(Item);
-
-    JSONToObject(o,new_item);
-  end
-  else if Item.JSONType = jtArray then //todo:collection of collections
-  begin
-
-  end
-  else begin
-    Error('Not supported collection element type for item ');
-  end;
+  DestreamCollectionItem(ACollection, Item, new_item);
 
   Continue := True;
+end;
+
+procedure TVCMIJSONDestreamer.DestreamCollectionItem(ACollection: TCollection;
+  ASrc: TJSONData; AItem: TCollectionItem);
+var
+  O: TJSONObject;
+begin
+  if ASrc.JSONType in [jtObject]then
+  begin
+    O := TJSONObject(ASrc);
+
+    JSONToObject(o,AItem);
+  end
+  else if ASrc.JSONType in [jtArray] then
+  begin
+    if AItem is IEmbeddedCollection then
+    begin
+      JSONToCollection(ASrc,(AItem as IEmbeddedCollection).GetCollection);
+    end
+    else
+      Error('Not supported collection element type for item');
+  end
+  else if ASrc.JSONType in [jtString] then
+  begin
+    SetStrProp(AItem, 'Value', ASrc.AsString);
+  end
+  else begin
+    Error('Not supported collection element type for item');
+  end;
 end;
 
 procedure TVCMIJSONDestreamer.CollectionObjCallback(const AName: TJSONStringType;
@@ -575,33 +597,7 @@ begin
   new_item := ACollection.Add;
   new_item.DisplayName := AName;
 
-  if Item.JSONType in [jtObject] then
-  begin
-    O :=  TJSONObject(Item);
-
-    JSONToObject(o,new_item);
-  end
-  else if Item.JSONType in [jtArray] then
-  begin
-    if new_item is IEmbeddedCollection then
-    begin
-      JSONToCollection(Item,(new_item as IEmbeddedCollection).GetCollection);
-    end
-    else
-      Error('Not supported collection element type for item '+AName);
-  end
-  else if Item.JSONType in [jtString] then
-  begin
-    SetStrProp(new_item, 'Value', Item.AsString);
-  end
-  else if (new_item is IEmbeddedValue) then
-  begin
-    //Assert(false)
-
-  end
-  else begin
-    Error('Not supported collection element type for item '+AName);
-  end;
+  DestreamCollectionItem(ACollection, Item, new_item);
 
   Continue := True;
 end;

@@ -1953,21 +1953,24 @@ begin
 
     if ReadBoolean then //custom buildings
     begin
-      SkipNotImpl(6);
-      SkipNotImpl(6);
+      //6 48
+      SkipNotImpl(6); //built
+      SkipNotImpl(6); //banned
     end
     else
     begin
       SkipNotImpl(1) ;  //hasfort
+
+      //insert default
     end;
 
     if IsNotROE then
     begin
-      SkipNotImpl(9); //obligatorySpells
+      ReadBitmask(AOptions.Spells.AllOf, 9, SPELL_QUANTITY_ACTUAL, @FMapEnv.lm.SpellIndexToString, false);
     end;
-    SkipNotImpl(9);//possibleSpells
+    ReadBitmask(AOptions.Spells.NoneOf, 9, SPELL_QUANTITY_ACTUAL, @FMapEnv.lm.SpellIndexToString, false);
 
-    //castle evemts
+    //castle events
     cnt := ReadDWord;
     for i := 0 to cnt - 1 do
     begin

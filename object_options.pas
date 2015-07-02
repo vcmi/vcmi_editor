@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
-  object_link;
+  object_link, logical_id_condition;
 
 type
 
@@ -551,6 +551,7 @@ type
   private
     FGarrison: TCreatureSet;
     FName: TLocalizedString;
+    FSpells: TLogicalIDCondition;
     FTightFormation: Boolean;
     procedure SetName(AValue: TLocalizedString);
     procedure SetTightFormation(AValue: Boolean);
@@ -562,7 +563,7 @@ type
     property Garrison: TCreatureSet read FGarrison;
     property TightFormation: Boolean read FTightFormation write SetTightFormation;
     property Name: TLocalizedString read FName write SetName;
-
+    property Spells: TLogicalIDCondition read FSpells;
   end;
 
   { TAbandonedOptions }
@@ -1566,6 +1567,7 @@ constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FGarrison := TCreatureSet.Create(7);
+  FSpells := TLogicalIDCondition.Create;
 end;
 
 destructor TTownOptions.Destroy;
