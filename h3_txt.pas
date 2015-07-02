@@ -69,6 +69,7 @@ begin
   FDoc.IgnoreOuterWhitespace := False;
   FDoc.QuoteOuterWhitespace := False;
   FDoc.LineEnding := #13#10;
+  FDoc.QuoteChar := '"';
 end;
 
 destructor TTextResource.Destroy;

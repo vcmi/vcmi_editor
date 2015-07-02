@@ -1228,7 +1228,11 @@ begin
 
       info.ID := iter.Key;
 
-      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+      o := iter.Value as TJSONObject;
+
+      FDestreamer.JSONToObject(o, info);
+
+      info.Name:=o.Objects['text'].Strings['name'];
 
       ArtifactInfos.Add(info);
       ArtifactMap.AddObject(info.ID, info);
