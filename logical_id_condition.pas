@@ -28,13 +28,9 @@ uses
   Classes, SysUtils, editor_types, editor_utils, editor_classes;
 
 type
-
-  {$push}
-  {$M+}
-
   { TLogicalIDCondition }
 
-  TLogicalIDCondition = class(TObject, ISerializeNotify)
+  TLogicalIDCondition = class(TPersistent, ISerializeNotify, IFPObserver)
   private
     FAllOf: TStrings;
     FAnyOf: TStrings;
@@ -61,13 +57,15 @@ type
     procedure BeforeSerialize;
     procedure AfterDeSerialize;
     procedure BeforeDeSerialize;
+
+  public
+    procedure FPOObservedChanged(ASender: TObject;
+      Operation: TFPObservedOperation; Data: Pointer);
   published
     property AnyOf: TStrings read FAnyOf write SetAnyOf stored isAnyOfStored;
     property AllOf: TStrings read FAllOf write SetAllOf stored isAllOfStored;
     property NoneOf: TStrings read FNoneOf write SetNoneOf stored isNoneOfStored;
   end;
-
-  {$pop}
 
 
 implementation
@@ -110,8 +108,13 @@ end;
 constructor TLogicalIDCondition.Create;
 begin
   FAllOf := CrStrList;
+  FAllOf.FPOAttachObserver(Self);
+
   FAnyOf := CrStrList;
+  FAnyOf.FPOAttachObserver(Self);
+
   FNoneOf := CrStrList;
+  FNoneOf.FPOAttachObserver(Self);
 end;
 
 destructor TLogicalIDCondition.Destroy;
@@ -189,6 +192,12 @@ end;
 procedure TLogicalIDCondition.BeforeDeSerialize;
 begin
   Clear;
+end;
+
+procedure TLogicalIDCondition.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+  FPONotifyObservers(Self, Operation, Data);
 end;
 
 end.

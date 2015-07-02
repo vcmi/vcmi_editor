@@ -1393,9 +1393,16 @@ begin
   FIsDirty := False;
 
   FAllowedAbilities := TLogicalIDCondition.Create;
+  AttachTo(FAllowedAbilities);
+
   FAllowedSpells := TLogicalIDCondition.Create;
+  AttachTo(FAllowedSpells);
+
   FAllowedArtifacts := TLogicalIDCondition.Create;
+  AttachTo(FAllowedArtifacts);
+
   FAllowedHeroes := CrStrList;
+  AttachTo(FAllowedHeroes);
 
   FPlayers := TPlayerAttrs.Create;
   FObjects := TMapObjects.Create(Self);
@@ -1440,11 +1447,8 @@ end;
 procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
   Operation: TFPObservedOperation; Data: Pointer);
 begin
-  if (ASender = FObjects) then
-  begin
-    case Operation of
-      ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
-    end;
+  case Operation of
+    ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
   end;
 end;
 
