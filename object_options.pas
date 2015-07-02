@@ -235,7 +235,7 @@ type
 
   { THeroSecondarySkill }
 
-  THeroSecondarySkill = class(TNamedCollectionItem)
+  THeroSecondarySkill = class(TNamedCollectionItem, IEmbeddedValue)
   private
     FLevel: Integer;
     procedure SetLevel(AValue: Integer);

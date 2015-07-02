@@ -230,7 +230,7 @@ type
   {$m+}
   { TMapObjectTemplate }
 
-  TMapObjectTemplate = class
+  TMapObjectTemplate = class(TObject, ISerializeNotify)
   private
     FDef: TDef;
 
@@ -245,12 +245,17 @@ type
     procedure SetDef(AValue:TDef);
 
     procedure AnimationChanged;
+
+    procedure CompactMask;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure Assign(AOther: TObjTemplate);
     procedure BeforeSerialize;
+    procedure BeforeDeSerialize;
+    procedure AfterSerialize;
+    procedure AfterDeSerialize;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -315,7 +320,6 @@ type
     property Options: TObjectOptions read FOptions;
 
     function HasOptions: boolean;
-    procedure BeforeSerialize; //todo: use BeforeSerialize
   end;
 
 
@@ -555,7 +559,8 @@ type
 
 implementation
 
-uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
+uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
+  strutils;
 
 { TMapObjectTemplate }
 
@@ -597,6 +602,37 @@ begin
   end;
 end;
 
+procedure TMapObjectTemplate.CompactMask;
+var
+  i: Integer;
+  stop: Boolean;
+  s: AnsiString;
+begin
+
+  stop := False;
+
+  while not stop and (FMask.Count > 0) do
+  begin
+    s := FMask[0];
+
+    s := StringReplace(s, ' ', '0',[rfReplaceAll]);
+
+    if s=StringOfChar('0', Length(s)) then
+    begin
+      FMask.Delete(0);
+    end
+    else
+      stop:=true;
+  end;
+
+  //todo: trim left
+
+  //for i := 0 to FMask.Count - 1 do
+  //begin
+  //  s := FMask[i];
+  //end;
+end;
+
 constructor TMapObjectTemplate.Create;
 begin
   FMask := TStringList.Create;
@@ -626,7 +662,22 @@ end;
 
 procedure TMapObjectTemplate.BeforeSerialize;
 begin
-  //todo: compact mask
+  CompactMask;
+end;
+
+procedure TMapObjectTemplate.BeforeDeSerialize;
+begin
+
+end;
+
+procedure TMapObjectTemplate.AfterSerialize;
+begin
+
+end;
+
+procedure TMapObjectTemplate.AfterDeSerialize;
+begin
+  CompactMask;
 end;
 
 { THeroDefinition }
@@ -804,11 +855,6 @@ end;
 function TMapObject.HasOptions: boolean;
 begin
   Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
-end;
-
-procedure TMapObject.BeforeSerialize;
-begin
-  Template.BeforeSerialize;
 end;
 
 procedure TMapObject.Render(Frame: integer; Ax, Ay: integer);
