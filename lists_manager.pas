@@ -282,7 +282,7 @@ type
 
   TArtifactInfos = class(TArtifactInfoList)
   public
-    procedure FillWithAllIds(AList: TStrings);
+    procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
 
   { THeroTexts }
@@ -563,15 +563,11 @@ end;
 
 { TArtifactInfos }
 
-procedure TArtifactInfos.FillWithAllIds(AList: TStrings);
-var
-  obj: TArtifactInfo;
+procedure TArtifactInfos.FillWithAllIds(AList: TLogicalIDCondition);
 begin
+  AList.Clear;
+
   //todo: exclude overpowered
-  for obj in Self do
-  begin
-    AList.Add(obj.ID);
-  end;
 end;
 
 { TBaseGraphics }

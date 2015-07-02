@@ -1,11 +1,11 @@
 object MapOptionsForm: TMapOptionsForm
   Left = 343
-  Height = 380
+  Height = 421
   Top = 204
-  Width = 332
+  Width = 518
   Caption = 'MapOptionsForm'
-  ClientHeight = 380
-  ClientWidth = 332
+  ClientHeight = 421
+  ClientWidth = 518
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
@@ -14,9 +14,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 156
+    Left = 342
     Height = 26
-    Top = 344
+    Top = 385
     Width = 81
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -30,9 +30,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 247
+    Left = 433
     Height = 26
-    Top = 344
+    Top = 385
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -49,16 +49,16 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 329
+    Height = 370
     Top = 3
-    Width = 326
-    ActivePage = tsAbilities
+    Width = 512
+    ActivePage = tsArtifacts
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 1
+    TabIndex = 4
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -176,13 +176,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsAbilities: TTabSheet
       Caption = 'Abilities'
-      ClientHeight = 301
-      ClientWidth = 318
+      ClientHeight = 342
+      ClientWidth = 504
       object edAbilities: TCheckListBox
         Left = 0
-        Height = 251
+        Height = 292
         Top = 0
-        Width = 318
+        Width = 504
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -191,12 +191,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel2: TPanel
         Left = 0
         Height = 50
-        Top = 251
-        Width = 318
+        Top = 292
+        Width = 504
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 318
+        ClientWidth = 504
         TabOrder = 1
         object Label3: TLabel
           Left = 17
@@ -207,7 +207,7 @@ object MapOptionsForm: TMapOptionsForm
           ParentColor = False
         end
         object cbSkillsNegate: TComboBox
-          Left = 136
+          Left = 128
           Height = 23
           Top = 10
           Width = 120
@@ -223,13 +223,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsSpells: TTabSheet
       Caption = 'Spells'
-      ClientHeight = 301
-      ClientWidth = 318
+      ClientHeight = 342
+      ClientWidth = 504
       object edSpells: TCheckListBox
         Left = 0
-        Height = 251
+        Height = 292
         Top = 0
-        Width = 318
+        Width = 504
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -238,12 +238,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel1: TPanel
         Left = 0
         Height = 50
-        Top = 251
-        Width = 318
+        Top = 292
+        Width = 504
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 318
+        ClientWidth = 504
         TabOrder = 1
         object Label2: TLabel
           Left = 17
@@ -254,7 +254,7 @@ object MapOptionsForm: TMapOptionsForm
           ParentColor = False
         end
         object cbSpellsNegate: TComboBox
-          Left = 120
+          Left = 128
           Height = 23
           Top = 10
           Width = 120
@@ -270,18 +270,64 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsHeroes: TTabSheet
       Caption = 'Heroes'
-      ClientHeight = 301
-      ClientWidth = 318
+      ClientHeight = 342
+      ClientWidth = 504
       object edAllowedHeroes: TCheckListBox
         Left = 0
-        Height = 301
+        Height = 342
         Top = 0
-        Width = 318
+        Width = 504
         Align = alClient
         BorderStyle = bsNone
         Columns = 2
         ItemHeight = 0
         TabOrder = 0
+      end
+    end
+    object tsArtifacts: TTabSheet
+      Caption = 'Artifacts'
+      ClientHeight = 342
+      ClientWidth = 504
+      object edArtifacts: TCheckListBox
+        Left = 0
+        Height = 292
+        Top = 0
+        Width = 504
+        Align = alClient
+        Columns = 2
+        ItemHeight = 0
+        TabOrder = 0
+      end
+      object Panel3: TPanel
+        Left = 0
+        Height = 50
+        Top = 292
+        Width = 504
+        Align = alBottom
+        BevelOuter = bvNone
+        ClientHeight = 50
+        ClientWidth = 504
+        TabOrder = 1
+        object Label4: TLabel
+          Left = 17
+          Height = 15
+          Top = 18
+          Width = 112
+          Caption = 'All other artifacts are:'
+          ParentColor = False
+        end
+        object cbArtifactsNegate: TComboBox
+          Left = 128
+          Height = 23
+          Top = 10
+          Width = 120
+          ItemHeight = 15
+          Items.Strings = (
+            'Disabled'
+            'Allowed'
+          )
+          TabOrder = 0
+        end
       end
     end
   end
