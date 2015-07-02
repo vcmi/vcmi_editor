@@ -68,6 +68,7 @@ type
 
   TVCMIJSONDestreamer = class (TJSONDeStreamer)
   private
+    procedure DestreamEmbeddedValue(ASrc: TJSONData; AObject: TObject);
     procedure DestreamCollectionItem(ACollection: TCollection; ASrc: TJSONData; AItem: TCollectionItem);
 
     procedure CollectionObjCallback(Const AName : TJSONStringType; Item: TJSONData;
@@ -95,6 +96,10 @@ type
   { TVCMIJSONStreamer }
 
   TVCMIJSONStreamer = class (TJSONStreamer)
+  private
+
+    function EmbeddedValueToJson(Aobject: TObject): TJSONData;
+
   protected
     procedure DoBeforeStreamProperty(const AObject: TObject;
       PropertyInfo: PPropInfo; var Skip: boolean); override;
@@ -190,7 +195,7 @@ type
 implementation
 
 uses
-  LazLoggerBase, editor_consts, types;
+  LazLoggerBase, editor_consts, rttiutils, types;
 
 var
   rexp_oid: TRegExpr;
@@ -462,7 +467,53 @@ end;
 
 function TVCMIJSONStreamer.ObjectToJsonEx(const AObject: TObject): TJSONData;
 begin
-  Result := ObjectToJSON(AObject);  //todo:  ObjectToJsonEx
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).BeforeSerialize();
+  end;
+
+  if AObject is IEmbeddedValue then
+  begin
+    Result := EmbeddedValueToJson(AObject);
+  end
+  else begin
+    Result := inherited ObjectToJSON(AObject);
+  end;
+
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).AfterSerialize();
+  end;
+end;
+
+function TVCMIJSONStreamer.EmbeddedValueToJson(AObject: TObject): TJSONData;
+var
+  PIL: TPropInfoList;
+  saved: Boolean;
+  I: Integer;
+begin
+  PIL:=TPropInfoList.Create(AObject,tkProperties);
+
+  saved:=false;
+
+  try
+    For I:=0 to PIL.Count-1 do
+      begin
+        if NeedToStreamProperty(AObject, PIL.Items[i]) then
+        begin
+
+          if saved then
+          begin
+            Error('Invalid embedded value');
+          end;
+
+          Result:=StreamProperty(AObject,PIL.Items[i]);
+          saved:=true;
+        end;
+      end;
+  finally
+    FReeAndNil(Pil);
+  end;
 end;
 
 procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
@@ -520,7 +571,7 @@ begin
     o := TJSONObject.Create;
     for elem in ACollection do
     begin
-      o.Add(Elem.DisplayName, ObjectToJSON(elem));
+      o.Add(Elem.DisplayName, ObjectToJsonEx(elem));
     end;
     result := o;
   end
@@ -529,7 +580,7 @@ begin
     a:=TJSONArray.Create;
     for elem in ACollection do
     begin
-      a.Add(ObjectToJSON(elem));
+      a.Add(ObjectToJsonEx(elem));
     end;
     result := a;
   end
@@ -556,12 +607,40 @@ begin
   Continue := True;
 end;
 
+procedure TVCMIJSONDestreamer.DestreamEmbeddedValue(ASrc: TJSONData;
+  AObject: TObject);
+var
+  PIL: TPropInfoList;
+
+  info: PPropInfo;
+begin
+  PIL:=TPropInfoList.Create(AObject,tkProperties);
+
+  if PIL.Count <> 1 then
+  begin
+    Error('Invallid embedded value');
+  end;
+
+  try
+      info := PIL[0];
+
+      RestoreProperty(AObject, info, ASrc);
+  finally
+    FReeAndNil(Pil);
+  end;
+end;
+
 procedure TVCMIJSONDestreamer.DestreamCollectionItem(ACollection: TCollection;
   ASrc: TJSONData; AItem: TCollectionItem);
 var
   O: TJSONObject;
 begin
-  if ASrc.JSONType in [jtObject]then
+
+  if AItem is IEmbeddedValue then
+  begin
+    DestreamEmbeddedValue(ASrc, AItem);
+  end
+  else if ASrc.JSONType in [jtObject]then
   begin
     O := TJSONObject(ASrc);
 

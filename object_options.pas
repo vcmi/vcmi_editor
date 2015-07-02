@@ -240,7 +240,7 @@ type
     FLevel: Integer;
     procedure SetLevel(AValue: Integer);
   published
-    property Level: Integer read FLevel write SetLevel;
+    property Level: Integer read FLevel write SetLevel nodefault;
   end;
 
   { THeroSecondarySkills }

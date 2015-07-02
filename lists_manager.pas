@@ -112,7 +112,7 @@ type
     FChance: Integer;
     procedure SetChance(AValue: Integer);
   published
-    property Chance: Integer read FChance write SetChance;
+    property Chance: Integer read FChance write SetChance nodefault;
   end;
 
   { TGuildSpells }

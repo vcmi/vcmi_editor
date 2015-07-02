@@ -31,7 +31,7 @@ type
 
   { TLogicalExpressionItem }
 
-  TLogicalExpressionItem = class (TCollectionItem,  IEmbeddedValue)
+  TLogicalExpressionItem = class (TCollectionItem)
   private
     FAsString: AnsiString;
     FCollection: TLogicalExpression;
