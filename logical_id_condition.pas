@@ -39,6 +39,9 @@ type
     FAllOf: TStrings;
     FAnyOf: TStrings;
     FNoneOf: TStrings;
+    function isAllOfStored: Boolean;
+    function isAnyOfStored: Boolean;
+    function isNoneOfStored: Boolean;
     procedure SetAllOf(AValue: TStrings);
     procedure SetAnyOf(AValue: TStrings);
     procedure SetNoneOf(AValue: TStrings);
@@ -59,9 +62,9 @@ type
     procedure AfterDeSerialize;
     procedure BeforeDeSerialize;
   published
-    property AnyOf: TStrings read FAnyOf write SetAnyOf;
-    property AllOf: TStrings read FAllOf write SetAllOf;
-    property NoneOf: TStrings read FNoneOf write SetNoneOf;
+    property AnyOf: TStrings read FAnyOf write SetAnyOf stored isAnyOfStored;
+    property AllOf: TStrings read FAllOf write SetAllOf stored isAllOfStored;
+    property NoneOf: TStrings read FNoneOf write SetNoneOf stored isNoneOfStored;
   end;
 
   {$pop}
@@ -75,6 +78,21 @@ procedure TLogicalIDCondition.SetAllOf(AValue: TStrings);
 begin
   if FAllOf=AValue then Exit;
   FAllOf:=AValue;
+end;
+
+function TLogicalIDCondition.isAllOfStored: Boolean;
+begin
+  Result := FAllOf.Count >0;
+end;
+
+function TLogicalIDCondition.isAnyOfStored: Boolean;
+begin
+  Result := FAnyOf.Count >0;
+end;
+
+function TLogicalIDCondition.isNoneOfStored: Boolean;
+begin
+  Result := FNoneOf.Count >0;
 end;
 
 procedure TLogicalIDCondition.SetAnyOf(AValue: TStrings);
