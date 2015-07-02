@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 356
+  Left = 257
   Height = 838
-  Top = 117
+  Top = 81
   Width = 1254
   Caption = 'VCMI editor'
   ClientHeight = 818
@@ -1220,7 +1220,7 @@ object fMain: TfMain
       Top = 2
       Width = 10
       Caption = 'ToolButton7'
-      Style = tbsSeparator
+      Style = tbsDivider
     end
     object ToolButton18: TToolButton
       Left = 196
@@ -1282,7 +1282,7 @@ object fMain: TfMain
       TabOrder = 1
       object gbBrush: TGroupBox
         Left = 5
-        Height = 48
+        Height = 50
         Top = 5
         Width = 190
         Align = alTop
@@ -1298,7 +1298,7 @@ object fMain: TfMain
         ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 6
-        ClientHeight = 28
+        ClientHeight = 30
         ClientWidth = 186
         Constraints.MaxHeight = 50
         Constraints.MinHeight = 46
@@ -1458,7 +1458,7 @@ object fMain: TfMain
       object gbTerrain: TGroupBox
         Left = 5
         Height = 152
-        Top = 58
+        Top = 60
         Width = 190
         Align = alTop
         BorderSpacing.Around = 5
@@ -1567,7 +1567,7 @@ object fMain: TfMain
       object RoadType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 239
+        Top = 241
         Width = 190
         Align = alTop
         AutoFill = True
@@ -1588,7 +1588,7 @@ object fMain: TfMain
       object RiverType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 215
+        Top = 217
         Width = 190
         Align = alTop
         AutoFill = True

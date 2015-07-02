@@ -1112,7 +1112,6 @@ begin
       FCurrentObject.&Type:=template.&type;
       FCurrentObject.Subtype:=template.subtype;
 
-      FCurrentObject.Template.AllowedTerrains:=template.AllowedTerrains;
       FCurrentObject.Template.Animation:=template.Animation;
       //todo: separate legacy editor animations OBJECTS vs EOBJCTS
       //FCurrentObject.Template.EditorAnimation;

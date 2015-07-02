@@ -237,13 +237,11 @@ type
   private
     FDef: TDef;
 
-    FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
     FMask: TStrings;
     FVisitableFrom: TStrings;
     FzIndex: Integer;
-    procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
     procedure SetzIndex(AValue: Integer);
@@ -260,7 +258,6 @@ type
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
     property VisitableFrom: TStrings read FVisitableFrom;
-    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
     property Mask: TStrings read FMask;
     property ZIndex: Integer read FzIndex write SetzIndex default 0;
   end;
@@ -568,12 +565,6 @@ uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils;
 
 { TMapObjectTemplate }
 
-procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
-begin
-  if FAllowedTerrains=AValue then Exit;
-  FAllowedTerrains:=AValue;
-end;
-
 procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
 begin
   if FAnimation=AValue then Exit;
@@ -632,8 +623,6 @@ begin
   FEditorAnimation := AOther.EditorAnimation;
   FVisitableFrom.Assign(AOther.VisitableFrom);
   FMask.Assign(AOther.Mask);
-
-  FAllowedTerrains := AOther.AllowedTerrains;
 
   SetDef(AOther.Def);
 
