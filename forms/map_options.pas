@@ -16,16 +16,19 @@ type
     btOk: TButton;
     btCancel: TButton;
     cbSpellsNegate: TComboBox;
+    cbSkillsNegate: TComboBox;
     edAllowedHeroes: TCheckListBox;
     edSpells: TCheckListBox;
     edAbilities: TCheckListBox;
     edName: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     lMapName: TLabel;
     lMapDescription: TLabel;
     edDescription: TMemo;
     Panel1: TPanel;
+    Panel2: TPanel;
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
@@ -67,7 +70,7 @@ begin
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
 
-  edAbilities.SaveToList(FMap.AllowedAbilities);
+  edAbilities.SaveToCondition(FMap.ListsManager.SkillMap, Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
   edSpells.SaveToCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
 
   edAllowedHeroes.SaveToList(FMap.AllowedHeroes);
@@ -96,7 +99,9 @@ begin
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;
 
-  edAbilities.FillFromList(FMap.ListsManager.SkillMap, FMap.AllowedAbilities);
+  edAbilities.FillFromCondition(FMap.ListsManager.SkillMap, FMap.AllowedAbilities);
+  cbSkillsNegate.ItemIndex:=ifthen(FMap.AllowedAbilities.IsPermissive, 1, 0);
+
   edSpells.FillFromCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells);
 
   cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);

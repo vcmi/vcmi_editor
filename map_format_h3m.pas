@@ -583,7 +583,7 @@ procedure TMapReaderH3m.ReadBitmask(ADest: TLogicalIDCondition;
 var
   tmp: TStringList;
 begin
-
+  ADest.Clear;
   tmp := TStringList.Create;
   try
     //invert negation to fill NoneOF list, so modded ids are allowed by default

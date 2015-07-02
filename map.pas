@@ -452,6 +452,7 @@ type
 
   TVCMIMap = class (TPersistent, IFPObserver)
   private
+    FAllowedAbilities: TLogicalIDCondition;
     FAllowedSpells: TLogicalIDCondition;
     FCurrentLevel: Integer;
     FDescription: TLocalizedString;
@@ -468,7 +469,6 @@ type
 
     FLevels: TMapLevels;
 
-    FAllowedAbilities: TStringList;
     FAllowedArtifacts: TStringList;
     FAllowedHeroes: TStringList;
 
@@ -477,7 +477,6 @@ type
     FIsDirty: boolean;
 
     procedure Changed;
-    function GetAllowedAbilities: TStrings;
     function GetAllowedArtifacts: TStrings;
     function GetAllowedHeroes: TStrings;
     function GetCurrentLevelIndex: Integer; inline;
@@ -539,7 +538,7 @@ type
     property Rumors: TRumors read FRumors;
 
     property AllowedSpells: TLogicalIDCondition read FAllowedSpells;
-    property AllowedAbilities: TStrings read GetAllowedAbilities;
+    property AllowedAbilities: TLogicalIDCondition read FAllowedAbilities;
     property AllowedArtifacts: TStrings read GetAllowedArtifacts;
     property AllowedHeroes: TStrings read GetAllowedHeroes;
 
@@ -1394,7 +1393,7 @@ begin
 
   FIsDirty := False;
 
-  FAllowedAbilities := CrStrList;
+  FAllowedAbilities := TLogicalIDCondition.Create;
   FAllowedSpells := TLogicalIDCondition.Create;
   FAllowedArtifacts := CrStrList;
   FAllowedHeroes := CrStrList;
@@ -1448,11 +1447,6 @@ begin
       ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
     end;
   end;
-end;
-
-function TVCMIMap.GetAllowedAbilities: TStrings;
-begin
-  Result := FAllowedAbilities;
 end;
 
 function TVCMIMap.GetAllowedArtifacts: TStrings;

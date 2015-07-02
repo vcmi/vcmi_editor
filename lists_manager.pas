@@ -74,7 +74,7 @@ type
 
   TSkillInfos = class (specialize TFPGObjectList<TSkillInfo>)
   public
-    procedure FillWithAllIds(AList: TStrings);
+    procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
 
   TSpellType = (Adventure, Combat, Ability);
@@ -729,14 +729,10 @@ end;
 
 { TSkillInfos }
 
-procedure TSkillInfos.FillWithAllIds(AList: TStrings);
-var
-  skill: TSkillInfo;
+procedure TSkillInfos.FillWithAllIds(AList: TLogicalIDCondition);
 begin
-  for skill in Self do
-  begin
-    AList.Add(skill.ID);
-  end;
+  //all allowed, permissive
+  AList.Clear;
 end;
 
 { TSpellInfos }
