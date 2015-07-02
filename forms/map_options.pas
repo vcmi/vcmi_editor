@@ -5,7 +5,7 @@ unit map_options;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, Map;
 
 type
@@ -15,14 +15,17 @@ type
   TMapOptionsForm = class(TForm)
     btOk: TButton;
     btCancel: TButton;
+    cbSpellsNegate: TComboBox;
     edAllowedHeroes: TCheckListBox;
     edSpells: TCheckListBox;
     edAbilities: TCheckListBox;
     edName: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
     lMapName: TLabel;
     lMapDescription: TLabel;
     edDescription: TMemo;
+    Panel1: TPanel;
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
@@ -65,11 +68,12 @@ begin
   FMap.Description := edDescription.Text;
 
   edAbilities.SaveToList(FMap.AllowedAbilities);
-  edSpells.SaveToList(FMap.AllowedSpells);
+  edSpells.SaveToCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
 
   edAllowedHeroes.SaveToList(FMap.AllowedHeroes);
 
   ModalResult := mrOK;
+
   Close;
 end;
 
@@ -93,7 +97,10 @@ begin
   edDescription.Text := FMap.Description;
 
   edAbilities.FillFromList(FMap.ListsManager.SkillMap, FMap.AllowedAbilities);
-  edSpells.FillFromList(FMap.ListsManager.SpellMap, FMap.AllowedSpells);
+  edSpells.FillFromCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells);
+
+  cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);
+
   edAllowedHeroes.FillFromList(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
 
   UpdateControls;

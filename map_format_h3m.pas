@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, math, fgl, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
-  objects, object_link, editor_graphics;
+  objects, object_link, editor_graphics, logical_id_condition;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -132,6 +132,9 @@ type
      type
        TIdToString = function(AId: TCustomID): AnsiString of object;
      procedure ReadBitmask(ADest: TStrings;AMaskSize: SizeInt; ACount: SizeInt;
+       ACallback: TIdToString; Negate: Boolean = True);
+
+     procedure ReadBitmask(ADest: TLogicalIDCondition; AMaskSize: SizeInt; ACount: SizeInt;
        ACallback: TIdToString; Negate: Boolean = True);
 
      function ReadID1(ACallback: TIdToString; AIDRandom:TCustomID = ID_RANDOM): AnsiString;
@@ -573,6 +576,23 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TMapReaderH3m.ReadBitmask(ADest: TLogicalIDCondition;
+  AMaskSize: SizeInt; ACount: SizeInt; ACallback: TIdToString; Negate: Boolean);
+var
+  tmp: TStringList;
+begin
+
+  tmp := TStringList.Create;
+  try
+    //invert negation to fill NoneOF list, so modded ids are allowed by default
+    ReadBitmask(tmp, AMaskSize, ACount, ACallback, not Negate);
+    ADest.NoneOf.Assign(tmp);
+  finally
+    tmp.Free;
+  end;
+
 end;
 
 function TMapReaderH3m.ReadID1(ACallback: TIdToString; AIDRandom: TCustomID

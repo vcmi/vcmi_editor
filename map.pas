@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, Math, fgl, LCLIntf, gvector, gpriorityqueue, editor_types,
   editor_consts, terrain, editor_classes, editor_graphics, objects,
-  object_options, lists_manager;
+  object_options, lists_manager, logical_id_condition;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -452,6 +452,7 @@ type
 
   TVCMIMap = class (TPersistent, IFPObserver)
   private
+    FAllowedSpells: TLogicalIDCondition;
     FCurrentLevel: Integer;
     FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
@@ -467,7 +468,6 @@ type
 
     FLevels: TMapLevels;
 
-    FAllowedSpells: TStringList;
     FAllowedAbilities: TStringList;
     FAllowedArtifacts: TStringList;
     FAllowedHeroes: TStringList;
@@ -480,7 +480,6 @@ type
     function GetAllowedAbilities: TStrings;
     function GetAllowedArtifacts: TStrings;
     function GetAllowedHeroes: TStrings;
-    function GetAllowedSpells: TStrings;
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -539,7 +538,7 @@ type
 
     property Rumors: TRumors read FRumors;
 
-    property AllowedSpells: TStrings read GetAllowedSpells;
+    property AllowedSpells: TLogicalIDCondition read FAllowedSpells;
     property AllowedAbilities: TStrings read GetAllowedAbilities;
     property AllowedArtifacts: TStrings read GetAllowedArtifacts;
     property AllowedHeroes: TStrings read GetAllowedHeroes;
@@ -1396,7 +1395,7 @@ begin
   FIsDirty := False;
 
   FAllowedAbilities := CrStrList;
-  FAllowedSpells := CrStrList;
+  FAllowedSpells := TLogicalIDCondition.Create;
   FAllowedArtifacts := CrStrList;
   FAllowedHeroes := CrStrList;
 
@@ -1464,11 +1463,6 @@ end;
 function TVCMIMap.GetAllowedHeroes: TStrings;
 begin
   Result := FAllowedHeroes;
-end;
-
-function TVCMIMap.GetAllowedSpells: TStrings;
-begin
-  Result := FAllowedSpells;
 end;
 
 function TVCMIMap.GetCurrentLevelIndex: Integer;

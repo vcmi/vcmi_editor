@@ -100,8 +100,12 @@ type
     procedure DoPreparePropName(var PropName: AnsiString); override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    function ObjectToJSON(const AObject: TObject): TJSONObject; override;
+
     function StreamCollection(const ACollection: TCollection): TJSONData;
       override;
+
   end;
 
 
@@ -438,6 +442,21 @@ begin
   inherited Create(AOwner);
 end;
 
+function TVCMIJSONStreamer.ObjectToJSON(const AObject: TObject): TJSONObject;
+begin
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).BeforeSerialize();
+  end;
+
+  Result:=inherited ObjectToJSON(AObject);
+
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).AfterSerialize();
+  end;
+end;
+
 procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
   PropertyInfo: PPropInfo; var Skip: boolean);
 var
@@ -706,6 +725,11 @@ end;
 procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;
   AObject: TObject);
 begin
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).BeforeDeSerialize();
+  end;
+
   if AObject is IEmbeddedCollection then
   begin
     JSONToCollection(JSON,(AObject as IEmbeddedCollection).GetCollection);
@@ -716,6 +740,11 @@ begin
   end
   else begin
     inherited JSONToObject(JSON, AObject);
+  end;
+
+  if AObject is ISerializeNotify then
+  begin
+    (AObject as ISerializeNotify).AfterDeSerialize();
   end;
 end;
 

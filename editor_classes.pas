@@ -30,6 +30,16 @@ uses
 
 type
 
+  { ISerializeNotify }
+
+  ISerializeNotify = interface ['ISerializeNotify']
+     procedure BeforeSerialize();
+     procedure AfterSerialize();
+
+     procedure BeforeDeSerialize();
+     procedure AfterDeSerialize();
+  end;
+
   { TNamedCollectionItem }
 
   TNamedCollectionItem = class(TCollectionItem)

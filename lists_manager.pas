@@ -29,7 +29,7 @@ uses
   gmap, fgl,
   fpjson,
   filesystem_base, editor_consts, editor_types, editor_utils,
-  vcmi_json,h3_txt, base_info, editor_classes;
+  vcmi_json,h3_txt, base_info, editor_classes, logical_id_condition;
 
 type
 
@@ -99,7 +99,7 @@ type
   TSpellInfos = class (specialize TFPGObjectList<TSpellInfo>)
   public
     //all except abilities
-    procedure FillWithAllIds(AList: TStrings);
+    procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
 
   {$push}
@@ -741,14 +741,15 @@ end;
 
 { TSpellInfos }
 
-procedure TSpellInfos.FillWithAllIds(AList: TStrings);
+procedure TSpellInfos.FillWithAllIds(AList: TLogicalIDCondition);
 var
   spell: TSpellInfo;
 begin
+  AList.Clear;
   for spell in Self do
   begin
     if spell.SpellType <> TSpellType.Ability then
-      AList.Add(spell.ID);
+      AList.AnyOf.Add(spell.ID);
   end;
 end;
 

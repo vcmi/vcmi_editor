@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
-  editor_types, base_info;
+  editor_types, base_info, logical_id_condition;
 
 type
 
@@ -37,6 +37,10 @@ type
   public
     procedure FillFromList(AFullList: TStrings; ASrc: TStrings);
     procedure SaveToList(ADest: TStrings);
+
+    procedure SaveToCondition(AFullList: TStrings; ADest: TLogicalIDCondition; Permissive: Boolean);
+
+    procedure FillFromCondition(AFullList: TStrings; ASrc: TLogicalIDCondition);
   end;
 
   { TListBoxHelper }
@@ -78,6 +82,20 @@ begin
   end;
 end;
 
+procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ASrc: TLogicalIDCondition);
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  FillItems(ATarget.Items, AFullList);
+
+  for i := 0 to ATarget.Items.Count - 1 do
+  begin
+    info := ATarget.Items.Objects[i] as TBaseInfo;
+    ATarget.Checked[i] := ASrc.IsAllowed(info.ID);
+  end;
+end;
+
 procedure SaveCheckListBox(ATarget: TCustomCheckListBox; ADest: TStrings);
 var
   info: TBaseInfo;
@@ -94,6 +112,49 @@ begin
   end;
 end;
 
+procedure SaveCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ADest: TLogicalIDCondition; Permissive: Boolean);
+var
+  info: TBaseInfo;
+  i: Integer;
+
+  ban_list: TStringList;
+  Aid: String;
+begin
+  ADest.Clear;
+
+  ban_list := TStringList.Create;
+
+  try
+    for i := 0 to ATarget.Items.Count - 1 do
+    begin
+      info := ATarget.Items.Objects[i] as TBaseInfo;
+      if not ATarget.Checked[i] then
+      begin
+        ban_list.Add(info.ID);
+      end;
+    end;
+
+    if Permissive then
+    begin
+      ADest.NoneOf.Assign(ban_list);
+    end
+    else begin
+      for i := 0 to AFullList.Count - 1 do
+      begin
+        info := AFullList.Objects[i] as TBaseInfo;
+
+        if ban_list.IndexOf(info.ID) < 0 then
+        begin
+          ADest.AnyOf.Add(info.ID);
+        end;
+      end;
+    end;
+
+  finally
+    ban_list.Free;
+  end;
+end;
+
 { TCheckListBoxHelper }
 
 procedure TCheckListBoxHelper.FillFromList(AFullList: TStrings; ASrc: TStrings);
@@ -104,6 +165,18 @@ end;
 procedure TCheckListBoxHelper.SaveToList(ADest: TStrings);
 begin
   SaveCheckListBox(Self,ADest);
+end;
+
+procedure TCheckListBoxHelper.SaveToCondition(AFullList: TStrings;
+  ADest: TLogicalIDCondition; Permissive: Boolean);
+begin
+  SaveCheckListBox(Self,AFullList, ADest, Permissive);
+end;
+
+procedure TCheckListBoxHelper.FillFromCondition(AFullList: TStrings;
+  ASrc: TLogicalIDCondition);
+begin
+  FillCheckListBox(Self,AFullList,ASrc);
 end;
 
 

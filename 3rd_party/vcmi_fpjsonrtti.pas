@@ -103,7 +103,7 @@ Type
     // If AObject is of type TStrings or TCollection, special treatment occurs:
     // TStrings results in { Strings: [S,S,S] } or { Strings: { "S1" : O1, "S2" : O2 }} depending on Options.
     // Collection results in { Items: [I,I,I] }
-    Function ObjectToJSON(Const AObject : TObject) : TJSONObject;
+    Function ObjectToJSON(Const AObject : TObject) : TJSONObject; virtual;
     // Stream a collection - always returns an array
     function StreamCollection(Const ACollection: TCollection): TJSONData; virtual;
     // Stream a TStrings instance as an array
