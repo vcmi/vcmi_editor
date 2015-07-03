@@ -365,7 +365,6 @@ type
     FTerrain: TFilename;
 
     FTiles: array of array of TMapTile; //X, Y
-    //FMapObjects: TMapObjects; //todo: use it
     FWidth: Integer;
     function GetMap: TVCMIMap;
     function GetTile(X, Y: Integer): PMapTile; inline;
@@ -393,10 +392,6 @@ type
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
     property Index;
-
-    property Terrain: TFilename read FTerrain write SetTerrain;
-    property Objects: TFilename read FObjects write SetObjects;
-
   end;
 
   { TMapLevels }
@@ -1271,15 +1266,6 @@ end;
 
 procedure TMapLevel.BeforeSerialize;
 begin
-  if FTerrain = '' then
-  begin
-    Terrain := 'level_'+IntToStr(Index)+'_terrain.json';
-  end;
-
-  if FObjects = '' then
-  begin
-    Objects := 'level_'+IntToStr(Index)+'_objects.json';
-  end;
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;

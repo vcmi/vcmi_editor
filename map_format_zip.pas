@@ -218,7 +218,7 @@ begin
   FInStream := AStream;
   FUnZipper.Examine;
 
-  CheckArchive([HEADER_FILENAME]);
+  CheckArchive([HEADER_FILENAME, OBJECTS_FILENAME]);
 
   FUnZipper.UnZipAllFiles;
 
@@ -236,7 +236,7 @@ begin
   begin
     level := Result.Levels[i];
 
-    terrain_file_name := Trim(LowerCase(level.Terrain));
+    terrain_file_name := Trim(LowerCase(level.DisplayName+'_terrain.json'));
 
     if(terrain_file_name = '') then
       raise Exception.CreateFmt('Level %d: terrain filename empty',[i]);
@@ -279,7 +279,7 @@ begin
 
     StreamTilesLevel(buffer, AMap, i);
 
-    AddArchiveEntry(buffer, AMap.Levels[i].Terrain);
+    AddArchiveEntry(buffer, AMap.Levels[i].DisplayName + '_terrain.json');
   end;
 end;
 
