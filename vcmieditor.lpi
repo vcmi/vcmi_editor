@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="59">
+    <Units Count="60">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -413,6 +413,13 @@
         <Filename Value="logical_expression.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit58>
+      <Unit59>
+        <Filename Value="forms\abandoned_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AbandonedFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit59>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,0 +1,25 @@
+inherited AbandonedFrame: TAbandonedFrame
+  Height = 243
+  Width = 319
+  ClientHeight = 243
+  ClientWidth = 319
+  DesignLeft = 587
+  DesignTop = 267
+  object Label1: TLabel[0]
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 99
+    Caption = 'Possible resources:'
+    ParentColor = False
+  end
+  object edPossibleResources: TCheckListBox[1]
+    Left = 8
+    Height = 200
+    Top = 32
+    Width = 300
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ItemHeight = 0
+    TabOrder = 0
+  end
+end

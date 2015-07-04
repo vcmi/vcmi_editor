@@ -25,7 +25,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, object_options, map, base_object_options_frame, monster_frame;
+  StdCtrls, object_options, map, base_object_options_frame, monster_frame,
+  abandoned_frame;
 
 type
 
@@ -66,7 +67,7 @@ type
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
-    procedure VisitAbandonedMine(AOptions: TAbandonedOptions);
+    procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
     procedure VisitShrine(AOptions: TShrineOptions);//+
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions); //+
@@ -165,7 +166,7 @@ end;
 
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
-
+  CreateFrame(TAbandonedFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);

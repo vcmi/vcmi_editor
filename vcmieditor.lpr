@@ -39,7 +39,7 @@ uses
   map_format_json, map_terrain_actions, map_road_river_actions,
   map_object_actions, road_transitions, transitions, base_info, monster_frame,
   object_link, object_link_frame, logical_id_condition, logical_event_condition,
-  logical_expression;
+  logical_expression, abandoned_frame;
 
 {$R *.res}
 
