@@ -26,7 +26,8 @@ interface
 uses
   Classes, SysUtils, math, fgl, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
-  objects, object_link, editor_graphics, logical_id_condition;
+  objects, object_link, editor_graphics, logical_id_condition,
+  logical_event_condition, logical_expression;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -151,6 +152,8 @@ type
      procedure MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills4(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills1(ASkills: THeroSecondarySkills);
+
+     procedure ReadObjectLinkPosition(ALink: TObjectLink);
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -800,6 +803,13 @@ begin
     end;
   end;
 
+end;
+
+procedure TMapReaderH3m.ReadObjectLinkPosition(ALink: TObjectLink);
+begin
+  ALink.X:=FSrc.ReadByte;
+  ALink.Y:=FSrc.ReadByte;
+  ALink.L:=FSrc.ReadByte;
 end;
 
 procedure TMapReaderH3m.ReadDefInfo;
@@ -1753,19 +1763,36 @@ type
    TVictoryCondition = ( ARTIFACT, GATHERTROOP, GATHERRESOURCE, BUILDCITY, BUILDGRAIL, BEATHERO,
 		CAPTURECITY, BEATMONSTER, TAKEDWELLINGS, TAKEMINES, TRANSPORTITEM, WINSTANDARD = 255);
    TLossCondition = (LOSSCASTLE, LOSSHERO, TIMEEXPIRES, LOSSSTANDARD = 255);
+
 var
-  VictoryCondition: TVictoryCondition;
-  LossCondition: TLossCondition;
+  special_condition:TLogicalEventConditionItem;
+
+  procedure SetHaveCondition(ObjType, ObjSubtype: AnsiString; Amount: Int32);
+  begin
+    special_condition.ObjectLink.&type:=ObjType;
+    special_condition.ObjectLink.subType:=ObjSubtype;
+    special_condition.Value := Amount;
+    special_condition.ConditionType:=TWinLossCondition.have;
+  end;
+
+var
+  VictoryConditionType: TVictoryCondition;
+  LossConditionType: TLossCondition;
   obj_id: TCustomID;
   value: DWord;
   allow_normal_victory: Boolean;
   applies_to_ai: Boolean;
+
+  obj_subtype: AnsiString;
+
+  special_victory: TTriggeredEvent;
+
 begin
   //TODO:ReadSVLC
 
-  VictoryCondition := TVictoryCondition(FSrc.ReadByte);
+  VictoryConditionType := TVictoryCondition(FSrc.ReadByte);
 
-  if VictoryCondition = TVictoryCondition.WINSTANDARD then
+  if VictoryConditionType = TVictoryCondition.WINSTANDARD then
   begin
 
   end
@@ -1774,28 +1801,58 @@ begin
     allow_normal_victory := FSrc.ReadBoolean;
     applies_to_ai := Fsrc.ReadBoolean;
 
-    case VictoryCondition of
+    special_victory := FMap.TriggeredEvents.Add;
+    special_victory.Effect.&type:='victory';
+    special_victory.DisplayName := 'specialVictory';
+
+    special_condition := special_victory.Condition.Add as TLogicalEventConditionItem;
+
+    if not applies_to_ai then
+    begin
+      with special_condition.SubExpressions.Add as TLogicalEventConditionItem do
+      begin
+        ConditionType:=TWinLossCondition.isHuman;
+        Value := 1;
+      end;
+
+      special_condition.LogicalOperator:=TLogicalOperator.allOf;
+
+      special_condition := special_condition.SubExpressions.Add as TLogicalEventConditionItem;
+    end;
+
+    case VictoryConditionType of
       TVictoryCondition.ARTIFACT:
       begin
         obj_id := FSrc.ReadByte;
 
+        obj_subtype := FMapEnv.lm.ArtifactIndexToString(obj_id);
+
+        SetHaveCondition(TYPE_ARTIFACT, obj_subtype, 0);
+
         if IsNotROE then
           FSrc.Skip(1);
-
       end;
       TVictoryCondition.GATHERTROOP:
       begin
         obj_id := FSrc.ReadByte;
 
+        obj_subtype := FMapEnv.lm.CreatureIndexToString(obj_id);
+        value := FSrc.ReadDWord;
+
+        SetHaveCondition(TYPE_MONSTER, obj_subtype, value);
+
         if IsNotROE then
           FSrc.Skip(1);
-
-        value := FSrc.ReadDWord;
       end;
       TVictoryCondition.GATHERRESOURCE:
       begin
         obj_id := FSrc.ReadByte;
+
+        obj_subtype := RESOURCE_NAMES[TResType(obj_id)];
+
         value := FSrc.ReadDWord;
+
+        SetHaveCondition(TYPE_RESOURCE, obj_subtype, value);
       end;
       TVictoryCondition.BUILDCITY:
       begin
@@ -1808,15 +1865,23 @@ begin
       end;
       TVictoryCondition.BEATHERO:
       begin
-        SkipNotImpl(3); //posistion
+        special_condition.ConditionType:=TWinLossCondition.destroy;
+        special_condition.ObjectLink.&type:=TYPE_HERO;
+
+        ReadObjectLinkPosition(special_condition.ObjectLink);
       end;
       TVictoryCondition.CAPTURECITY:
       begin
-        SkipNotImpl(3); //posistion
+        special_condition.ConditionType:=TWinLossCondition.have;
+        special_condition.ObjectLink.&type:=TYPE_TOWN;
+        ReadObjectLinkPosition(special_condition.ObjectLink);
       end;
       TVictoryCondition.BEATMONSTER:
       begin
-       SkipNotImpl(3); //posistion
+        special_condition.ConditionType:=TWinLossCondition.destroy;
+        special_condition.ObjectLink.&type:=TYPE_MONSTER;
+
+        ReadObjectLinkPosition(special_condition.ObjectLink);
       end;
       TVictoryCondition.TAKEDWELLINGS:
       begin
@@ -1831,19 +1896,19 @@ begin
         SkipNotImpl(4);
       end;
       else
-        raise Exception.CreateFmt('Invalid victory condition %d',[Integer(VictoryCondition)]);
+        raise Exception.CreateFmt('Invalid victory condition %d',[Integer(VictoryConditionType)]);
     end;
   end;
 
-  LossCondition := TLossCondition(FSrc.ReadByte);
+  LossConditionType := TLossCondition(FSrc.ReadByte);
 
-  if (LossCondition = TLossCondition.LOSSSTANDARD) then
+  if (LossConditionType = TLossCondition.LOSSSTANDARD) then
   begin
 
   end
   else
   begin
-    case LossCondition of
+    case LossConditionType of
       TLossCondition.LOSSCASTLE:
       begin
         SkipNotImpl(3); //posistion

@@ -27,6 +27,8 @@ type
 
 implementation
 
+uses editor_consts;
+
 {$R *.lfm}
 
 { TObjectLinkFrame }
@@ -73,15 +75,15 @@ begin
   begin
     map_object := item as TMapObject;
 
-    if (map_object.Options is TMonsterOptions) and (FLink.Metaclass = TObjectLinkMetclass.creature) then
+    if (map_object.Options is TMonsterOptions) and (FLink.&type = TYPE_MONSTER) then
     begin
 
     end
-    else if (map_object.Options is THeroOptions) and (FLink.Metaclass = TObjectLinkMetclass.hero) then
+    else if (map_object.Options is THeroOptions) and (FLink.&type = TYPE_HERO) then
     begin
 
     end
-    else if (map_object.Options is TTownOptions) and (FLink.Metaclass = TObjectLinkMetclass.town) then
+    else if (map_object.Options is TTownOptions) and (FLink.&type = TYPE_TOWN) then
     begin
       town := TTownOptions(map_object.Options);
       ObjectList.AddItem(Format('%s at %d %d %d',[GetTownName, map_object.L, map_object.X, map_object.Y]),map_object);

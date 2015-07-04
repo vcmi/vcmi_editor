@@ -27,6 +27,11 @@ uses
   Classes, SysUtils, editor_classes;
 
 type
+
+  TLogicalOperator = (nop, anyOf, allOf, noneOf);
+
+type
+
   TLogicalExpression = class;
 
   { TLogicalExpressionItem }
@@ -34,18 +39,13 @@ type
   TLogicalExpressionItem = class (TCollectionItem)
   private
     FAsString: AnsiString;
-    FCollection: TLogicalExpression;
+    FSubExpressions: TLogicalExpression;
+    FLogicalOperator: TLogicalOperator;
 
-    function IsCollection: Boolean;
-    function IsObject: Boolean;
-    function IsString: Boolean;
-    procedure SetAsString(AValue: AnsiString);
-  protected
-    function GetAsObject: TObject; virtual; abstract;
-  published
-    property AsString: AnsiString read FAsString write SetAsString stored IsString;
-    property AsCollection:TLogicalExpression read FCollection stored IsCollection;
-    property AsObject: TObject read GetAsObject stored IsObject;
+    procedure SetLogicalOperator(AValue: TLogicalOperator);
+  public
+    property LogicalOperator: TLogicalOperator read FLogicalOperator write SetLogicalOperator;
+    property SubExpressions:TLogicalExpression read FSubExpressions;
   end;
 
   TLogicalExpression = class (TCollection, IArrayCollection)
@@ -57,25 +57,9 @@ implementation
 
 { TLogicalExpressionItem }
 
-procedure TLogicalExpressionItem.SetAsString(AValue: AnsiString);
+procedure TLogicalExpressionItem.SetLogicalOperator(AValue: TLogicalOperator);
 begin
-  if FAsString=AValue then Exit;
-  FAsString:=AValue;
-end;
-
-function TLogicalExpressionItem.IsString: Boolean;
-begin
-  Result := AsString <> '';
-end;
-
-function TLogicalExpressionItem.IsCollection: Boolean;
-begin
-  Result := FCollection.Count > 0;
-end;
-
-function TLogicalExpressionItem.IsObject: Boolean;
-begin
-  Result := not IsString and not IsCollection;
+  FLogicalOperator:=AValue;
 end;
 
 end.

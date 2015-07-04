@@ -1184,8 +1184,8 @@ begin
   FMissionType:=AValue;
 
   case FMissionType of
-    TQuestMission.KillCreature: FKillTarget.Metaclass:=TObjectLinkMetclass.creature;
-    TQuestMission.KillHero:FKillTarget.Metaclass:=TObjectLinkMetclass.creature;
+    TQuestMission.KillCreature: FKillTarget.&type:=TYPE_MONSTER;
+    TQuestMission.KillHero:FKillTarget.&type:=TYPE_HERO;
   end;
 end;
 
@@ -1320,7 +1320,7 @@ begin
 
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
   FSameAsTown := TObjectLink.Create;
-  FSameAsTown.Metaclass:=TObjectLinkMetclass.town;
+  FSameAsTown.&type := TYPE_TOWN;
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;

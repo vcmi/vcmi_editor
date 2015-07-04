@@ -26,7 +26,8 @@ interface
 uses
   Classes, SysUtils, Math, fgl, LCLIntf, gvector, gpriorityqueue, editor_types,
   editor_consts, terrain, editor_classes, editor_graphics, objects,
-  object_options, lists_manager, logical_id_condition;
+  object_options, lists_manager, logical_id_condition, logical_event_condition,
+  logical_expression;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -454,6 +455,7 @@ type
     FCurrentLevel: Integer;
     FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
+    FTriggeredEvents: TTriggeredEvents;
 
 
     FLevelLimit: Integer;
@@ -540,6 +542,8 @@ type
     property Levels: TMapLevels read FLevels;
 
     property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
+
+    property TriggeredEvents: TTriggeredEvents read FTriggeredEvents;
   public //manual streamimg
     property Objects: TMapObjects read FObjects;
   public
@@ -1423,14 +1427,23 @@ begin
 
   FPlayers := TPlayerAttrs.Create;
   FObjects := TMapObjects.Create(Self);
+  AttachTo(FObjects);
+
   FRumors := TRumors.Create;
+  AttachTo(FRumors);
+
   FLevelLimit:=MAX_HERO_LEVEL;
   FPredefinedHeroes := THeroDefinitions.Create(Self);
-  AttachTo(FObjects);
+  AttachTo(FPredefinedHeroes);
+
+  FTriggeredEvents := TTriggeredEvents.Create;
+  AttachTo(FTriggeredEvents);
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FTriggeredEvents.Free;
+
   FPredefinedHeroes.Free;
 
   FAllowedArtifacts.Free;

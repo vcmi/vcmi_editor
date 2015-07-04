@@ -200,6 +200,14 @@ const
 
   TILE_SIZE = 32; //in pixels
 
+//object type
+const
+  TYPE_MONSTER = 'monster';
+  TYPE_HERO = 'hero';
+  TYPE_TOWN = 'town';
+  TYPE_ARTIFACT = 'artifact';
+  TYPE_RESOURCE = 'resource';
+
 implementation
 
 end.

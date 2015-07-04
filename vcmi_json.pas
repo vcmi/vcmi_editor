@@ -20,6 +20,7 @@
 unit vcmi_json;
 
 {$I compilersetup.inc}
+{$INTERFACES CORBA}
 
 interface
 
@@ -116,6 +117,10 @@ type
 
   end;
 
+  ISerializeSpecial = interface ['ISerializeSpecial']
+     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+  end;
 
   { TJsonResource }
 
@@ -472,7 +477,11 @@ begin
     (AObject as ISerializeNotify).BeforeSerialize();
   end;
 
-  if AObject is IEmbeddedValue then
+  if AObject is ISerializeSpecial then
+  begin
+    Result := (AObject as ISerializeSpecial).Serialize(Self);
+  end
+  else if AObject is IEmbeddedValue then
   begin
     Result := EmbeddedValueToJson(AObject);
   end
@@ -635,10 +644,13 @@ procedure TVCMIJSONDestreamer.DestreamCollectionItem(ACollection: TCollection;
 var
   O: TJSONObject;
 begin
-
   if AItem is IEmbeddedValue then
   begin
     DestreamEmbeddedValue(ASrc, AItem);
+  end
+  else if AItem is ISerializeSpecial then
+  begin
+    (AItem as ISerializeSpecial).Deserialize(Self, ASrc);
   end
   else if ASrc.JSONType in [jtObject]then
   begin

@@ -58,7 +58,7 @@ type
 
   TCustomID = type integer;
 
-
+  TWinLossCondition = (have, haveBuilding,  destroy,  daysPassed,  isHuman,  standardWin,  daysWithoutTown,  constValue);
 
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
@@ -100,6 +100,9 @@ type
 
   TModdedConfigPaths = specialize TVector<TModdedConfigPath>;
 
+  TMapCoord = (x,y,l);
+
+  TMapCoords = array [TMapCoord] of Int32;
 type
   //raised if there are errors in VCMI configuration
   EConfigurationError = class (Exception)

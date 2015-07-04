@@ -25,33 +25,36 @@ unit logical_event_condition;
 interface
 
 uses
-  Classes, SysUtils, editor_classes, logical_expression, editor_types;
+  Classes, SysUtils, fpjson, editor_classes, logical_expression, editor_types,
+  vcmi_json, object_link;
 
 type
 
-  { TLogicalEventData }
-
-  TLogicalEventData  = class(TPersistent)
-  private
-    Ftype: AnsiString;
-    FValue: Int32;
-    procedure Settype(AValue: AnsiString);
-    procedure SetValue(AValue: Int32);
-  published
-    property &type: AnsiString read Ftype write Settype;
-    property Value:Int32 read FValue write SetValue;
-  end;
-
   { TLogicalEventConditionItem }
 
-  TLogicalEventConditionItem = class(TLogicalExpressionItem)
+  TLogicalEventConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
   private
-    FData:TLogicalEventData;
-  protected
-    function GetAsObject: TObject; override;
+    FEventType: TWinLossCondition;
+    FObjectLink: TObjectLink;
+    FPosition: TMapCoords;
+    Ftype: AnsiString;
+    FValue: Int32;
+    procedure SetEventType(AValue: TWinLossCondition);
+    procedure Settype(AValue: AnsiString);
+    procedure SetValue(AValue: Int32);
+  public
+    //ISerializeSpecial
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    property ConditionType: TWinLossCondition read FEventType write SetEventType;
+
+    property Value:Int32 read FValue write SetValue;
+
+    property ObjectLink: TObjectLink read FObjectLink;
   end;
 
   { TLogicalEventCondition }
@@ -97,9 +100,26 @@ type
   { TTriggeredEvents }
 
   TTriggeredEvents = class(specialize TGNamedCollection<TTriggeredEvent>)
+  public
+    procedure AddStandardVictory();
+    procedure AddStandardDefeat();
   end;
 
 implementation
+
+uses typinfo;
+
+{ TTriggeredEvents }
+
+procedure TTriggeredEvents.AddStandardVictory;
+begin
+  //todo:
+end;
+
+procedure TTriggeredEvents.AddStandardDefeat;
+begin
+  //todo:
+end;
 
 { TLogicalEventCondition }
 
@@ -110,35 +130,95 @@ end;
 
 { TLogicalEventConditionItem }
 
-function TLogicalEventConditionItem.GetAsObject: TObject;
+procedure TLogicalEventConditionItem.SetEventType(AValue: TWinLossCondition);
 begin
-  Result := FData;
+  if FEventType=AValue then Exit;
+  FEventType:=AValue;
 end;
 
-constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
-begin
-  inherited Create(ACollection);
-  FData := TLogicalEventData.Create;
-end;
-
-destructor TLogicalEventConditionItem.Destroy;
-begin
-  FData.Free;
-  inherited Destroy;
-end;
-
-{ TLogicalEventData }
-
-procedure TLogicalEventData.Settype(AValue: AnsiString);
+procedure TLogicalEventConditionItem.Settype(AValue: AnsiString);
 begin
   if Ftype=AValue then Exit;
   Ftype:=AValue;
 end;
 
-procedure TLogicalEventData.SetValue(AValue: Int32);
+procedure TLogicalEventConditionItem.SetValue(AValue: Int32);
 begin
   if FValue=AValue then Exit;
   FValue:=AValue;
+end;
+
+function TLogicalEventConditionItem.Serialize(AHandler: TVCMIJSONStreamer
+  ): TJSONData;
+var
+  tmp: string;
+  item: TCollectionItem;
+
+  o: TJSONObject;
+begin
+  Result := CreateJSONArray([]);
+
+  if SubExpressions.Count > 0 then
+  begin
+     TJSONArray(Result).Add(GetEnumName( TypeInfo(TLogicalOperator), Integer(LogicalOperator)));
+
+     for item in SubExpressions do
+     begin
+       TJSONArray(Result).Add((item as TLogicalEventConditionItem).Serialize(AHandler));
+     end;
+  end
+  else
+  begin
+    TJSONArray(Result).Add(GetEnumName(TypeInfo(TWinLossCondition), Integer(ConditionType)));
+
+    o := CreateJSONObject([]);
+
+    if Value <> 0 then
+    begin
+      o.Add('value', Value);
+    end;
+
+    if ObjectLink.&type <> '' then
+    begin
+      o.Add('type', ObjectLink.&type);
+
+      if ObjectLink.subType <> '' then
+      begin
+        o.Add('subType', ObjectLink.subType);
+      end;
+
+    end;
+
+    o.Add('position', CreateJSONArray([ObjectLink.X,ObjectLink.Y,ObjectLink.L]));
+
+  end;
+end;
+
+procedure TLogicalEventConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer;
+  ASrc: TJSONData);
+var
+  AsrcArray: TJSONArray;
+begin
+  if ASrc.JSONType <> jtArray then
+  begin
+    raise Exception.Create('invalid format for event condition, array required');
+  end;
+
+  AsrcArray := TJSONArray(ASrc);
+
+  //todo: TLogicalEventConditionItem.Deserialize
+end;
+
+constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FObjectLink := TObjectLink.Create;
+end;
+
+destructor TLogicalEventConditionItem.Destroy;
+begin
+  FObjectLink.Free;
+  inherited Destroy;
 end;
 
 { TTriggeredEventEffect }

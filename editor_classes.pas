@@ -26,7 +26,7 @@ unit editor_classes;
 interface
 
 uses
-  Classes, SysUtils, fgl;
+  Classes, SysUtils, fgl, fpjson;
 
 type
 

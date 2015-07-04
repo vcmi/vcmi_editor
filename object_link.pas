@@ -5,29 +5,29 @@ unit object_link;
 interface
 
 uses
-  Classes, SysUtils, editor_types;
+  Classes, SysUtils, editor_types, editor_classes;
 
 type
 {$push}
 {$m+}
-
-  TObjectLinkMetclass = (invalid, hero, town, creature);
-
 
   { TObjectLink }
 
   TObjectLink = class
   private
     FL: integer;
-    FMetaclass: TObjectLinkMetclass;
+    FsubType: AnsiString;
+    FType: AnsiString;
     FX: integer;
     FY: integer;
     procedure SetL(AValue: integer);
-    procedure SetMetaclass(AValue: TObjectLinkMetclass);
+    procedure SetsubType(AValue: AnsiString);
+    procedure SetType(AValue: AnsiString);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
   published
-    property Metaclass:TObjectLinkMetclass read FMetaclass write SetMetaclass nodefault;
+    property &type: AnsiString read FType write SetType;
+    property subType: AnsiString read FsubType write SetsubType;
 
     property X:integer read FX write SetX nodefault;
     property Y:integer read FY write SetY nodefault;
@@ -39,16 +39,22 @@ implementation
 
 { TObjectLink }
 
-procedure TObjectLink.SetMetaclass(AValue: TObjectLinkMetclass);
+procedure TObjectLink.SetType(AValue: AnsiString);
 begin
-  if FMetaclass=AValue then Exit;
-  FMetaclass:=AValue;
+  if FType=AValue then Exit;
+  FType:=AValue;
 end;
 
 procedure TObjectLink.SetL(AValue: integer);
 begin
   if FL=AValue then Exit;
   FL:=AValue;
+end;
+
+procedure TObjectLink.SetsubType(AValue: AnsiString);
+begin
+  if FsubType=AValue then Exit;
+  FsubType:=AValue;
 end;
 
 procedure TObjectLink.SetX(AValue: integer);
