@@ -51,7 +51,13 @@ type
     function SelectedInfo: TBaseInfo;
   end;
 
+  { TComboBoxHelper }
 
+  TComboBoxHelper = class helper for TCustomComboBox
+  public
+    procedure FillFromList(AFullList: TStrings; ASelected: AnsiString);
+
+  end;
 
 implementation
 
@@ -152,6 +158,28 @@ begin
 
   finally
     ban_list.Free;
+  end;
+end;
+
+{ TComboBoxHelper }
+
+procedure TComboBoxHelper.FillFromList(AFullList: TStrings;
+  ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  FillItems(Items, AFullList);
+
+  if ASelected = '' then
+  begin
+    ItemIndex:= -1;
+    text := '';
+  end
+  else
+  begin
+    idx := AFullList.IndexOf(ASelected);
+    text := (AFullList.Objects[idx] as TBaseInfo).Name;
+    ItemIndex := idx;
   end;
 end;
 

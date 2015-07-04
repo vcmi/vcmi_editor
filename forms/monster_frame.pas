@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, ExtCtrls, object_options, base_object_options_frame;
+  Spin, ExtCtrls, object_options, base_object_options_frame, gui_helpers;
 
 type
 
@@ -29,6 +29,7 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
+    Label9: TLabel;
     rgCharacter: TRadioGroup;
     edWood: TSpinEdit;
     edCrystal: TSpinEdit;
@@ -76,6 +77,14 @@ begin
   FOptions.NeverFlees := edNeverFlees.Checked;
   FOptions.RewardMessage := edRewardMessage.Text;
 
+  if edRewardArtifact.ItemIndex = -1 then
+  begin
+    FOptions.RewardArtifact := '';
+  end
+  else begin
+    FOptions.RewardArtifact := ListsManager.ArtifactMap[edRewardArtifact.ItemIndex];
+  end;
+
   SaveResourceSet(gbReward, FOptions.RewardResources);
 end;
 
@@ -94,6 +103,8 @@ begin
   edRewardMessage.Text:=FOptions.RewardMessage;
 
   ReadResourceSet(gbReward, FOptions.RewardResources);
+
+  edRewardArtifact.FillFromList(ListsManager.ArtifactMap, AOptions.RewardArtifact);
 
   UpdateControls;
 end;

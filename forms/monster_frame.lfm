@@ -75,7 +75,7 @@ inherited MonsterFrame: TMonsterFrame
       Top = 58
       Width = 205
       Caption = 'Never flees'
-      TabOrder = 6
+      TabOrder = 5
     end
   end
   object gbReward: TGroupBox[2]
@@ -90,22 +90,21 @@ inherited MonsterFrame: TMonsterFrame
     TabOrder = 2
     object edRewardMessage: TMemo
       Left = 8
-      Height = 88
-      Top = 136
+      Height = 80
+      Top = 152
       Width = 400
       Anchors = [akTop, akLeft, akRight, akBottom]
       ScrollBars = ssAutoBoth
       TabOrder = 0
     end
     object edRewardArtifact: TComboBox
-      Left = 136
+      Left = 112
       Height = 23
       Top = 8
-      Width = 268
+      Width = 292
       Anchors = [akTop, akLeft, akRight]
       ItemHeight = 15
       TabOrder = 1
-      Text = 'edRewardArtifact'
     end
     object Label1: TLabel
       Left = 8
@@ -196,7 +195,7 @@ inherited MonsterFrame: TMonsterFrame
       ParentColor = False
     end
     object Label5: TLabel
-      Left = 115
+      Left = 112
       Height = 15
       Top = 80
       Width = 33
@@ -234,6 +233,14 @@ inherited MonsterFrame: TMonsterFrame
       Width = 88
       TabOrder = 9
       Visible = False
+    end
+    object Label9: TLabel
+      Left = 9
+      Height = 15
+      Top = 131
+      Width = 91
+      Caption = 'Reward message:'
+      ParentColor = False
     end
   end
 end
