@@ -75,8 +75,7 @@ type
     constructor Create(ACollection: TCollection); override;
   published
     property CreID: AnsiString read FCreID write SetCreID;
-    property CreCount: Integer read FCreCount write SetCreCount default 0;
-    property RandomCount: boolean read FRandomCount write SetRandomCount default False;
+    property CreCount: Integer read FCreCount write SetCreCount nodefault;
   end;
 
   { TCreatureSet }
@@ -589,8 +588,6 @@ type
     FSpellID: AnsiString;
     FSpellLevel: Integer;
 
-    function IsSpellIDStored: Boolean;
-    procedure SetIsRandom(AValue: Boolean);
     procedure SetSpellID(AValue: AnsiString);
   strict protected
     class function GetSpellLevel: Integer; virtual; abstract;
@@ -598,8 +595,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     property SpellLevel: Integer read GetSpellLevel;
   published
-    property IsRandom: Boolean read FIsRandom write SetIsRandom default False;
-    property SpellID: AnsiString read FSpellID write SetSpellID stored IsSpellIDStored;
+    property SpellID: AnsiString read FSpellID write SetSpellID;
   end;
 
   { TShrine1Options }
@@ -683,6 +679,7 @@ type
   TRandomDwellingLVLOptions = class (TBaseRandomDwellingOptions)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
     property AllowedFactions;
     property Linked;
     property SameAsTown;
@@ -762,121 +759,6 @@ implementation
 
 uses
   editor_consts;
-//
-//function CreateByID(ID: TObjectTypeID; SubID: TCustomID; AObject: IMapObject): TObjectOptions; deprecated;
-//var
-//  c: TObjectOptionsClass;
-//begin
-//  c := TObjectOptions;
-//  case TObj(ID) of
-//
-//    TObj.EVENT:
-//    begin
-//      c := TLocalEventOptions;
-//    end;
-//    TObj.SIGN, TObj.OCEAN_BOTTLE:
-//    begin
-//      c := TSignBottleOptions;
-//    end;
-//    HERO, RANDOM_HERO, PRISON:
-//    begin
-//      c := THeroOptions;
-//    end;
-//    MONSTER,
-//    RANDOM_MONSTER,
-//    RANDOM_MONSTER_L1,
-//    RANDOM_MONSTER_L2,
-//    RANDOM_MONSTER_L3,
-//    RANDOM_MONSTER_L4,
-//    RANDOM_MONSTER_L5,
-//    RANDOM_MONSTER_L6,
-//    RANDOM_MONSTER_L7:
-//    begin
-//      c := TMonsterOptions;
-//    end;
-//    SEER_HUT:
-//    begin
-//      c := TSeerHutOptions;
-//    end;
-//    WITCH_HUT:
-//    begin
-//      c := TWitchHutOptions;
-//    end;
-//    SCHOLAR:
-//    begin
-//      c := TScholarOptions;
-//    end;
-//    GARRISON, GARRISON2:
-//    begin
-//      c := TGarrisonOptions;
-//    end;
-//    ARTIFACT, RANDOM_ART,
-//    RANDOM_TREASURE_ART,
-//    RANDOM_MINOR_ART,
-//    RANDOM_MAJOR_ART,
-//    RANDOM_RELIC_ART:
-//    begin
-//      c := TArtifactOptions;
-//    end;
-//    SPELL_SCROLL:
-//    begin
-//      c := TSpellScrollOptions;
-//    end;
-//    RESOURCE,
-//    RANDOM_RESOURCE:
-//    begin
-//      c := TResourceOptions;
-//    end;
-//    RANDOM_TOWN, TOWN:
-//      c := TTownOptions;
-//
-//    CREATURE_GENERATOR1,
-//    CREATURE_GENERATOR2,
-//    CREATURE_GENERATOR3,
-//    CREATURE_GENERATOR4:
-//      c := TOwnedObjectOptions;
-//    MINE:
-//    begin
-//      if SubID = 7 then
-//      begin
-//        c := TAbandonedOptions;
-//      end else
-//      begin
-//        c := TOwnedObjectOptions;
-//      end;
-//    end;
-//
-//    ABANDONED_MINE:
-//      c := TAbandonedOptions;
-//
-//    SHRINE_OF_MAGIC_GESTURE:
-//      c := TShrine1Options;
-//
-//    SHRINE_OF_MAGIC_INCANTATION:
-//      c := TShrine2Options;
-//
-//    SHRINE_OF_MAGIC_THOUGHT:
-//      c := TShrine3Options;
-//
-//    PANDORAS_BOX:
-//      c := TPandorasOptions;
-//    GRAIL:
-//      c := TGrailOptions;
-//
-//    RANDOM_DWELLING:
-//      c := TRandomDwellingOptions;
-//    RANDOM_DWELLING_LVL:
-//      c := TRandomDwellingLVLOptions;
-//    RANDOM_DWELLING_FACTION:
-//      c := TRandomDwellingTownOptions;
-//    QUEST_GUARD:
-//      c := TQuestGuardOptions;
-//    SHIPYARD,LIGHTHOUSE:
-//      c := TOwnedObjectOptions;
-//  end;
-//  Result := c.Create(AObject);
-//
-//end;
 
 function CreateByID(ID: AnsiString; SubID: AnsiString;AObject: IMapObject): TObjectOptions;
 var
@@ -945,24 +827,18 @@ begin
 
     'abandonedMine':
       c := TAbandonedOptions;
-
     'shrineOfMagicLevel1':
       c := TShrine1Options;
-
     'shrineOfMagicLevel2':
       c := TShrine2Options;
-
     'shrineOfMagicLevel3':
       c := TShrine3Options;
-
     'pandoraBox':
       c := TPandorasOptions;
     'grail':
       c := TGrailOptions;
-
     'randomDwelling':
       c := TRandomDwellingOptions;
-
     'randomDwellingLvl':
       c := TRandomDwellingLVLOptions;
     'randomDwellingFaction':
@@ -1513,17 +1389,6 @@ end;
 procedure TShrineOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitShrine(Self);
-end;
-
-function TShrineOptions.IsSpellIDStored: Boolean;
-begin
-  Result := not IsRandom;
-end;
-
-procedure TShrineOptions.SetIsRandom(AValue: Boolean);
-begin
-  if FIsRandom = AValue then Exit;
-  FIsRandom := AValue;
 end;
 
 procedure TShrineOptions.SetSpellID(AValue: AnsiString);

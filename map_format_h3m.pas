@@ -1731,7 +1731,7 @@ begin
 
   if raw_id = 255 then
   begin
-    AOptions.IsRandom := True;
+    AOptions.SpellID := '';
   end
   else begin
     AOptions.SpellID := FMapEnv.lm.SpellIndexToString(raw_id);

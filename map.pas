@@ -311,7 +311,7 @@ type
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
-    property L:integer read FL write SetL; deprecated;
+    property L:integer read FL write SetL;
 
     property &Type: AnsiString read FType write SetType;
     property Subtype: AnsiString read FSubtype write SetSubtype;

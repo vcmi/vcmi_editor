@@ -56,8 +56,11 @@ procedure TShrineFrame.Commit;
 begin
   inherited Commit;
 
-  FObject.IsRandom := rbRandom.Checked;
-  if not FObject.IsRandom then
+  if rbRandom.Checked then
+  begin
+    FObject.SpellID := '';
+  end
+  else
   begin
     FObject.SpellID := edSpell.SelectedInfo().Id;
   end;
@@ -85,7 +88,7 @@ begin
   inherited VisitShrine(AOptions);
   FObject := AOptions;
 
-  rbRandom.Checked := FObject.IsRandom;
+  rbRandom.Checked := FObject.SpellID = '';
   rbSpecified.Checked := not rbRandom.Checked;
   AviableSpells := TStringList.Create;
   try
@@ -99,7 +102,7 @@ begin
     end;
     sinfo := nil;
 
-    if not FObject.IsRandom then
+    if not (FObject.SpellID = '') then
     begin
       sinfo := ListsManager.GetSpell(AOptions.SpellID);
     end;
