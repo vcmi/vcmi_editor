@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="60">
+    <Units Count="61">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -420,6 +420,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit59>
+      <Unit60>
+        <Filename Value="forms\scholar_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ScholarFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit60>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

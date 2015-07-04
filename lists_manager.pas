@@ -63,6 +63,19 @@ type
 
   {$pop}
 
+  { TPrimSkillInfo }
+
+  TPrimSkillInfo = class(TBaseInfo)
+
+  end;
+
+  { TPrimSkillInfos }
+
+  TPrimSkillInfos = class (specialize TFPGObjectList<TPrimSkillInfo>)
+  public
+
+  end;
+
   { TSkillInfo }
 
   TSkillInfo = class (TBaseInfo)
@@ -335,6 +348,10 @@ type
     FDestreamer: TVCMIJSONDestreamer;
 
     FNameMap: TNameToIdMap;
+
+    FPrimSkillInfos: TPrimSkillInfos;
+    FPrimSkillMap: TStringList;
+
     FSkillInfos: TSkillInfos;
     FSkillMap: TStringList;
 
@@ -353,6 +370,7 @@ type
     FHeroInfos: THeroInfos;
     FHeroMap: TStringList;
 
+    procedure LoadPrimSkills;
     procedure LoadSkills;
     procedure LoadTextDataConfig;
 
@@ -387,6 +405,9 @@ type
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
     function SIDIdNID(AID: AnsiString): TCustomID;
+
+    //primary skills
+    property PrimSkillMap: TStringList read FPrimSkillMap;
 
     //secondary skills
     function SkillNidToString (ASkill: TCustomID): AnsiString;
@@ -775,6 +796,9 @@ begin
 
   FNameMap := TNameToIdMap.Create;
 
+  FPrimSkillInfos := TPrimSkillInfos.Create(True);
+  FPrimSkillMap := CrStrList;
+
   FSkillInfos := TSkillInfos.Create(True);
   FSkillMap := CrStrList;
 
@@ -819,6 +843,9 @@ begin
 
   FSkillMap.Free;
   FSkillInfos.Free;
+
+  FPrimSkillMap.Free;
+  FPrimSkillInfos.Free;
 
   FNameMap.Free;
 
@@ -1021,6 +1048,7 @@ end;
 procedure TListsManager.PreLoad;
 begin
   LoadTextDataConfig;
+  LoadPrimSkills;
   LoadSkills;
 end;
 
@@ -1243,6 +1271,22 @@ begin
     FConfig.Free;
     artraits.free;
     legacy_data.Free;
+  end;
+end;
+
+procedure TListsManager.LoadPrimSkills;
+var
+  prim_skill: TPrimarySkill;
+  info: TPrimSkillInfo;
+begin
+  for prim_skill in TPrimarySkill do
+  begin
+    info := TPrimSkillInfo.Create;
+    info.ID:=PRIMARY_SKILL_NAMES[prim_skill];
+    //todo: set name
+
+    FPrimSkillInfos.Add(info);
+    FPrimSkillMap.AddObject(info.ID, info);
   end;
 end;
 

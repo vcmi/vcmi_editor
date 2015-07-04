@@ -178,7 +178,13 @@ begin
   else
   begin
     idx := AFullList.IndexOf(ASelected);
-    text := (AFullList.Objects[idx] as TBaseInfo).Name;
+
+    if idx <> -1 then
+    begin
+      text := (AFullList.Objects[idx] as TBaseInfo).Name;
+    end
+      else Text := '';
+
     ItemIndex := idx;
   end;
 end;
