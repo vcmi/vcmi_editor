@@ -1610,22 +1610,23 @@ end;
 procedure TMapReaderH3m.VisitScholar(AOptions: TScholarOptions);
 var
   b: Byte;
+  typ:TScholarBonus;
 begin
 
   b := FSrc.ReadByte;
 
   if b=$FF then
   begin
-     AOptions.BonusType := TScholarBonus.random;
+     //leave as default
      FSrc.Skip(1);
   end
   else begin
-    AOptions.BonusType := TScholarBonus(b);
+    typ := TScholarBonus(b);
 
-    case AOptions.BonusType of
-      TScholarBonus.primSkill:  AOptions.BonusId := PRIMARY_SKILL_NAMES[TPrimarySkill(FSrc.ReadByte)];
-      TScholarBonus.skill: AOptions.BonusId := ReadID(@FMapEnv.lm.SkillNidToString,1);
-      TScholarBonus.spell: AOptions.BonusId := ReadID(@FMapEnv.lm.SpellIndexToString,1);
+    case typ of
+      TScholarBonus.primSkill:  AOptions.RewardPrimSkill := PRIMARY_SKILL_NAMES[TPrimarySkill(FSrc.ReadByte)];
+      TScholarBonus.skill: AOptions.RewardSkill := ReadID(@FMapEnv.lm.SkillNidToString,1);
+      TScholarBonus.spell: AOptions.RewardSpell := ReadID(@FMapEnv.lm.SpellIndexToString,1);
     else
       raise Exception.Create('Invalid Scholar bonus type');
     end;

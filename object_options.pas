@@ -480,17 +480,22 @@ type
 
   TScholarOptions = class(TObjectOptions)
   private
-    FBonusType: TScholarBonus;
-    FBonusId: AnsiString;
-    function IsBonusIdStored: Boolean;
-    procedure SetBonusType(AValue: TScholarBonus);
-    procedure SetBonusId(AValue: AnsiString);
+    FRewardPrimSkill: AnsiString;
+    FRewardSecSkill: AnsiString;
+    FRewardSpell: AnsiString;
+    procedure SetRewardPrimSkill(AValue: AnsiString);
+    procedure SetRewardSecSkill(AValue: AnsiString);
+    procedure SetRewardSpell(AValue: AnsiString);
   public
     constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+
+    procedure Clear;
   published
-    property BonusType: TScholarBonus read FBonusType write SetBonusType;
-    property BonusId: AnsiString read FBonusId write SetBonusId stored IsBonusIdStored;
+    property RewardPrimSkill: AnsiString read FRewardPrimSkill write SetRewardPrimSkill;
+    property RewardSkill: AnsiString read FRewardSecSkill write SetRewardSecSkill;
+    property RewardSpell: AnsiString read FRewardSpell write SetRewardSpell;
+
   end;
 
   { TGarrisonOptions }
@@ -1513,38 +1518,39 @@ end;
 
 { TScholarOptions }
 
-procedure TScholarOptions.SetBonusType(AValue: TScholarBonus);
+procedure TScholarOptions.SetRewardPrimSkill(AValue: AnsiString);
 begin
-  if FBonusType=AValue then Exit;
-
-  if not (AValue in [TScholarBonus.primSkill,TScholarBonus.skill,TScholarBonus.spell, TScholarBonus.random]) then
-  begin
-    raise Exception.CreateFmt('invalid Scholar bonus type %d',[Integer(AValue)]);
-  end;
-
-  FBonusType:=AValue;
+  if FRewardPrimSkill=AValue then Exit;
+  FRewardPrimSkill:=AValue;
 end;
 
-function TScholarOptions.IsBonusIdStored: Boolean;
+procedure TScholarOptions.SetRewardSecSkill(AValue: AnsiString);
 begin
-  Result := BonusType<>TScholarBonus.random;
+  if FRewardSecSkill=AValue then Exit;
+  FRewardSecSkill:=AValue;
 end;
 
-procedure TScholarOptions.SetBonusId(AValue: AnsiString);
+procedure TScholarOptions.SetRewardSpell(AValue: AnsiString);
 begin
-  if FBonusId=AValue then Exit;
-  FBonusId:=AValue;
+  if FRewardSpell=AValue then Exit;
+  FRewardSpell:=AValue;
 end;
 
 constructor TScholarOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FBonusType:=TScholarBonus.random;
 end;
 
 procedure TScholarOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitScholar(Self);
+end;
+
+procedure TScholarOptions.Clear;
+begin
+  FRewardPrimSkill := '';
+  FRewardSecSkill := '';
+  FRewardSpell := '';
 end;
 
 { TWitchHutOptions }

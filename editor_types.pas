@@ -48,8 +48,10 @@ type
 
   TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
 
-  TScholarBonus = (primSkill, skill, spell, random);
 {$pop}
+
+type
+  TScholarBonus = (primSkill, skill, spell, random);
 
   TPlayerColor = TPlayer.RED..TPlayer.PINK;
   TPlayers = set of TPlayerColor;

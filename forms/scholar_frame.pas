@@ -54,11 +54,19 @@ end;
 procedure TScholarFrame.UpdateControls;
 var
   prim_skill: TPrimarySkill;
+
+  tmp : AnsiString;
 begin
+
+  tmp := FBonusID;
+
   edBonusID.Enabled := edBonusType.ItemIndex <> Integer(TScholarBonus.random);
 
   edBonusID.Items.Clear;
   edBonusID.ItemIndex := -1;
+
+
+  FBonusID := tmp;
 
   case edBonusType.ItemIndex of
     Integer(TScholarBonus.random):
@@ -87,16 +95,38 @@ end;
 
 procedure TScholarFrame.Commit;
 begin
-  FOptions.BonusType:=TScholarBonus(edBonusType.ItemIndex);
-  FOptions.BonusId:=FBonusID;
+  FOptions.Clear;
+  case TScholarBonus(edBonusType.ItemIndex) of
+    TScholarBonus.primSkill: FOptions.RewardPrimSkill := FBonusID;
+    TScholarBonus.skill: FOptions.RewardSkill := FBonusID;
+    TScholarBonus.spell: FOptions.RewardSpell := FBonusID;
+  end;
 end;
 
 procedure TScholarFrame.VisitScholar(AOptions: TScholarOptions);
 begin
   FOptions := AOptions;
 
-  edBonusType.ItemIndex:=Integer(AOptions.BonusType);
-  FBonusID := AOptions.BonusId;
+  FBonusID := '';
+
+  if AOptions.RewardPrimSkill <> '' then
+  begin
+    edBonusType.ItemIndex:=Integer(TScholarBonus.primSkill);
+    FBonusID:=AOptions.RewardPrimSkill;
+  end
+  else if AOptions.RewardSkill <> '' then
+  begin
+    edBonusType.ItemIndex:=Integer(TScholarBonus.skill);
+    FBonusID:=AOptions.RewardSkill;
+  end
+  else if AOptions.RewardSpell <> '' then
+  begin
+    edBonusType.ItemIndex:=Integer(TScholarBonus.spell);
+    FBonusID:=AOptions.RewardSpell;
+  end
+  else
+     edBonusType.ItemIndex := Integer(TScholarBonus.random);
+
   UpdateControls;
 end;
 
