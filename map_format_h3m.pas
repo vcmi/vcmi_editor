@@ -701,8 +701,8 @@ begin
         //todo: random count
       end
       else begin
-          info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
-          info.CreCount := crecnt;
+          info.&type := FMapEnv.lm.CreatureIndexToString(creid);
+          info.Amount := crecnt;
       end;
     end;
   end;
@@ -725,8 +725,8 @@ begin
     creid := FSrc.ReadWord;
     crecnt := FSrc.ReadWord;
     info := ACreatureSet.Add;
-    info.CreID := FMapEnv.lm.CreatureIndexToString(creid);
-    info.CreCount := crecnt;
+    info.&type := FMapEnv.lm.CreatureIndexToString(creid);
+    info.Amount := crecnt;
   end;
 end;
 
@@ -924,7 +924,7 @@ procedure TMapReaderH3m.VisitGarrison(AOptions: TGarrisonOptions);
 begin
   ReadOwner(AOptions,TOwnerSize.size1);
   FSrc.Skip(3);
-  ReadCreatureSet(AOptions.Garrison,7);
+  ReadCreatureSet(AOptions.Army,7);
   if IsNotROE then
   begin
     AOptions.RemovableUnits := FSrc.ReadBoolean;
@@ -958,7 +958,7 @@ begin
 
     ReadOwner(AOptions, TOwnerSize.size1);
 
-    AOptions.Id:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
+    AOptions.&type:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
 
     if ReadBoolean then
     begin
@@ -1047,11 +1047,11 @@ begin
     if htid = $ff then
     begin
       AOptions.Power := ReadByte;
-      AOptions.TypeID := '';
+      AOptions.&Type := '';
     end
     else
     begin
-      AOptions.TypeID := '';
+      AOptions.&Type := '';
     end;
   end;
 end;
@@ -1496,10 +1496,10 @@ begin
         ReadResources(obj.Resources);
       end;
       TQuestMission.Hero: begin
-        obj.HeroID:=ReadID(@FMapEnv.lm.HeroIndexToString, 1);
+        obj.Hero:=ReadID(@FMapEnv.lm.HeroIndexToString, 1);
       end;
       TQuestMission.Player: begin
-        obj.PlayerID:=TPlayer(ReadByte);
+        obj.Player:=TPlayer(ReadByte);
       end;
     end;
 
@@ -1671,7 +1671,7 @@ begin
 
         TSeerHutReward.RESOURCES:
         begin
-          RewardID := RESOURCE_NAMES[TResType(ReadByte)];
+          Reward := RESOURCE_NAMES[TResType(ReadByte)];
 
           tmp := ReadDWord;
           tmp := tmp and $00FFFFFF;
@@ -1679,13 +1679,13 @@ begin
         end;
         TSeerHutReward.primarySkill:
         begin
-          RewardID := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
+          Reward := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
           RewardValue:=ReadByte;
 
         end;
         TSeerHutReward.secondarySkill:
         begin
-          RewardID := SECONDARY_SKILL_NAMES[ReadByte];
+          Reward := SECONDARY_SKILL_NAMES[ReadByte];
           RewardValue:=ReadByte;
         end;
         TSeerHutReward.artifact:
@@ -1697,11 +1697,11 @@ begin
           else begin
             tmp := ReadByte;
           end;
-          RewardID:=FMapEnv.lm.ArtifactIndexToString(tmp);
+          Reward:=FMapEnv.lm.ArtifactIndexToString(tmp);
         end;
         TSeerHutReward.spell:
         begin
-          RewardID:=FMapEnv.lm.SpellIndexToString(ReadByte);
+          Reward:=FMapEnv.lm.SpellIndexToString(ReadByte);
         end;
         TSeerHutReward.creature:
         begin
@@ -1712,7 +1712,7 @@ begin
           else begin
             tmp := ReadByte;
           end;
-          RewardID:=FMapEnv.lm.CreatureIndexToString(tmp);
+          Reward:=FMapEnv.lm.CreatureIndexToString(tmp);
           RewardValue:=ReadWord;
         end;
       end;
@@ -1732,10 +1732,10 @@ begin
 
   if raw_id = 255 then
   begin
-    AOptions.SpellID := '';
+    AOptions.Spell := '';
   end
   else begin
-    AOptions.SpellID := FMapEnv.lm.SpellIndexToString(raw_id);
+    AOptions.Spell := FMapEnv.lm.SpellIndexToString(raw_id);
   end;
 
   fsrc.skip(3); //junk
@@ -1756,7 +1756,7 @@ begin
 
   nid := FSrc.ReadDWord;
   sid := FMapEnv.lm.SpellIndexToString(nid);
-  AOptions.SpellID := sid;
+  AOptions.Spell := sid;
 end;
 
 procedure TMapReaderH3m.ReadSVLC;

@@ -52,13 +52,13 @@ object MapOptionsForm: TMapOptionsForm
     Height = 370
     Top = 3
     Width = 512
-    ActivePage = tsArtifacts
+    ActivePage = tsSpells
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 4
+    TabIndex = 2
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -278,7 +278,6 @@ object MapOptionsForm: TMapOptionsForm
         Top = 0
         Width = 504
         Align = alClient
-        BorderStyle = bsNone
         Columns = 2
         ItemHeight = 0
         TabOrder = 0

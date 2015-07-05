@@ -50,7 +50,7 @@ implementation
 procedure TSpellScrollFrame.Commit;
 begin
   inherited Commit;
-  FObject.SpellID := (edSpell.SelectedInfo as TSpellInfo).ID;
+  FObject.Spell := (edSpell.SelectedInfo as TSpellInfo).ID;
 end;
 
 procedure TSpellScrollFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
@@ -59,12 +59,12 @@ var
 begin
   inherited VisitSpellScroll(AOptions);
   FObject := AOptions;
-  if AOptions.SpellID = '' then
+  if AOptions.Spell = '' then
   begin
     sinfo := nil;
   end
   else begin
-    sinfo := ListsManager.GetSpell(AOptions.SpellID);
+    sinfo := ListsManager.GetSpell(AOptions.Spell);
   end;
 
   edSpell.FillFromList(ListsManager.SpellMap,sinfo);

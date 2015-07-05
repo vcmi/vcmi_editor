@@ -470,8 +470,6 @@ type
 
     FLevels: TMapLevels;
 
-
-
     FRumors: TRumors;
 
     FIsDirty: boolean;

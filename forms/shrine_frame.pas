@@ -58,11 +58,11 @@ begin
 
   if rbRandom.Checked then
   begin
-    FObject.SpellID := '';
+    FObject.Spell := '';
   end
   else
   begin
-    FObject.SpellID := edSpell.SelectedInfo().Id;
+    FObject.Spell := edSpell.SelectedInfo().Id;
   end;
 end;
 
@@ -88,7 +88,7 @@ begin
   inherited VisitShrine(AOptions);
   FObject := AOptions;
 
-  rbRandom.Checked := FObject.SpellID = '';
+  rbRandom.Checked := FObject.Spell = '';
   rbSpecified.Checked := not rbRandom.Checked;
   AviableSpells := TStringList.Create;
   try
@@ -102,9 +102,9 @@ begin
     end;
     sinfo := nil;
 
-    if not (FObject.SpellID = '') then
+    if not (FObject.Spell = '') then
     begin
-      sinfo := ListsManager.GetSpell(AOptions.SpellID);
+      sinfo := ListsManager.GetSpell(AOptions.Spell);
     end;
 
     edSpell.FillFromList(AviableSpells,sinfo);

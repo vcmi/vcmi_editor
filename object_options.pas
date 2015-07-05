@@ -65,27 +65,24 @@ type
 
   TCreatureInstInfo = class (TCollectionItem)
   private
-    FCreCount: Integer;
+    FAmount: Integer;
     FCreID: AnsiString;
     FRandomCount: boolean;
-    procedure SetCreCount(AValue: Integer);
+    procedure SetAmount(AValue: Integer);
     procedure SetCreID(AValue: AnsiString);
     procedure SetRandomCount(AValue: boolean);
   public
     constructor Create(ACollection: TCollection); override;
   published
-    property CreID: AnsiString read FCreID write SetCreID;
-    property CreCount: Integer read FCreCount write SetCreCount nodefault;
+    property &type: AnsiString read FCreID write SetCreID;
+    property Amount: Integer read FAmount write SetAmount nodefault;
   end;
 
   { TCreatureSet }
 
   TCreatureSet = class (specialize TGArrayCollection<TCreatureInstInfo>)
-  private
-    FMaxSize: Integer;
   public
-    constructor Create(AMaxSize: Integer);
-    property MaxSize: Integer read FMaxSize;
+    constructor Create();
   end;
 
   {$push}
@@ -186,8 +183,8 @@ type
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property HeroLevel: Integer read FHeroLevel write SetHeroLevel  stored IsHeroLevelStored default -1;
-    property HeroID: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
-    property PlayerID: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
+    property Hero: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
+    property Player: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
 
     property KillTarget: TObjectLink read FKillTarget stored IsKillTargetStored;
   end;
@@ -385,7 +382,7 @@ type
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property Id: AnsiString read FId write SetId;
+    property &type: AnsiString read FId write SetId;
     property Portrait: AnsiString read FPortrait write SetPortrait;
     property Army: TCreatureSet read FArmy;
     property Artifacts: THeroArtifacts read FArtifacts;
@@ -457,7 +454,7 @@ type
     property Quest: TQuest read FQuest;
 
     property RewardType: TSeerHutReward read FRewardType write SetRewardType default TSeerHutReward.NOTHING;
-    property RewardID: AnsiString read FRewardID write SetRewardID;
+    property Reward: AnsiString read FRewardID write SetRewardID;
     property RewardValue: Integer read FRewardValue write SetRewardValue default 0;
   end;
 
@@ -502,7 +499,7 @@ type
 
   TGarrisonOptions = class(TOwnedObjectOptions)
   private
-    FGarrison: TCreatureSet;
+    FArmy: TCreatureSet;
     FRemovableUnits: Boolean;
     procedure SetRemovableUnits(AValue: Boolean);
   public
@@ -510,7 +507,7 @@ type
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property Garrison: TCreatureSet read FGarrison;
+    property Army: TCreatureSet read FArmy;
     property RemovableUnits: Boolean read FRemovableUnits write SetRemovableUnits;
   end;
 
@@ -525,13 +522,13 @@ type
 
   TSpellScrollOptions = class(TArtifactOptions)
   private
-    FSpellID: AnsiString;
-    procedure SetSpellID(AValue: AnsiString);
+    FSpell: AnsiString;
+    procedure SetSpell(AValue: AnsiString);
   public
     constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property SpellID: AnsiString read FSpellID write SetSpellID;
+    property Spell: AnsiString read FSpell write SetSpell;
   end;
 
   { TResourceOptions }
@@ -587,17 +584,17 @@ type
   TShrineOptions = class abstract (TObjectOptions)
   private
     FIsRandom: Boolean;
-    FSpellID: AnsiString;
+    FSpell: AnsiString;
     FSpellLevel: Integer;
 
-    procedure SetSpellID(AValue: AnsiString);
+    procedure SetSpell(AValue: AnsiString);
   strict protected
     class function GetSpellLevel: Integer; virtual; abstract;
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     property SpellLevel: Integer read GetSpellLevel;
   published
-    property SpellID: AnsiString read FSpellID write SetSpellID;
+    property Spell: AnsiString read FSpell write SetSpell;
   end;
 
   { TShrine1Options }
@@ -722,7 +719,7 @@ type
     class function MayBeOwned: Boolean; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property TypeID: AnsiString read FTypeID write SetTypeID;
+    property &Type: AnsiString read FTypeID write SetTypeID;
     property Power: UInt8 read FPower write SetPower default 0;
   end;
 
@@ -1088,7 +1085,7 @@ constructor TQuest.Create;
 begin
   TimeLimit := -1;
   FArtifacts := TStringList.Create;
-  FArmy := TCreatureSet.Create(0);
+  FArmy := TCreatureSet.Create();
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
@@ -1225,9 +1222,9 @@ begin
   inherited Create(ACollection);
 end;
 
-procedure TCreatureInstInfo.SetCreCount(AValue: Integer);
+procedure TCreatureInstInfo.SetAmount(AValue: Integer);
 begin
-  FCreCount := AValue;
+  FAmount := AValue;
 end;
 
 procedure TCreatureInstInfo.SetCreID(AValue: AnsiString);
@@ -1244,7 +1241,7 @@ begin
 
   if AValue then
   begin
-    FCreCount := 0;
+    FAmount := 0;
   end;
 end;
 
@@ -1253,7 +1250,7 @@ end;
 constructor TGuardedObjectOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FGuards := TCreatureSet.Create(7);
+  FGuards := TCreatureSet.Create();
 end;
 
 destructor TGuardedObjectOptions.Destroy;
@@ -1269,10 +1266,9 @@ end;
 
 { TCreatureSet }
 
-constructor TCreatureSet.Create(AMaxSize: Integer);
+constructor TCreatureSet.Create();
 begin
   inherited Create;
-  FMaxSize := AMaxSize;
 end;
 
 { TRandomDwellingOptions }
@@ -1362,7 +1358,7 @@ end;
 constructor TPandorasOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FCreatures := TCreatureSet.Create(0);
+  FCreatures := TCreatureSet.Create();
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FSecondarySkills := THeroSecondarySkills.Create;
@@ -1393,10 +1389,10 @@ begin
   AVisitor.VisitShrine(Self);
 end;
 
-procedure TShrineOptions.SetSpellID(AValue: AnsiString);
+procedure TShrineOptions.SetSpell(AValue: AnsiString);
 begin
     //TODO: check spell level
-  FSpellID := AValue;
+  FSpell := AValue;
 end;
 
 
@@ -1433,7 +1429,7 @@ end;
 constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FGarrison := TCreatureSet.Create(7);
+  FGarrison := TCreatureSet.Create();
   FSpells := TLogicalIDCondition.Create;
 end;
 
@@ -1476,13 +1472,13 @@ end;
 constructor TSpellScrollOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FSpellID := 'magicArrow';
+  FSpell := 'magicArrow';
 end;
 
-procedure TSpellScrollOptions.SetSpellID(AValue: AnsiString);
+procedure TSpellScrollOptions.SetSpell(AValue: AnsiString);
 begin
-  if FSpellID = AValue then Exit;
-  FSpellID := AValue;
+  if FSpell = AValue then Exit;
+  FSpell := AValue;
 end;
 
 { TArtifactOptions }
@@ -1502,12 +1498,12 @@ end;
 constructor TGarrisonOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FGarrison := TCreatureSet.Create(7);
+  FArmy := TCreatureSet.Create();
 end;
 
 destructor TGarrisonOptions.Destroy;
 begin
-  FGarrison.Free;
+  FArmy.Free;
   inherited Destroy;
 end;
 
@@ -1767,7 +1763,7 @@ end;
 constructor THeroOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create(7);
+  FArmy := TCreatureSet.Create();
   FArtifacts := THeroArtifacts.Create;
   FExperience:=0;
   FSecondarySkills := THeroSecondarySkills.Create;
