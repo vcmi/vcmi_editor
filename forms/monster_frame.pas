@@ -69,9 +69,15 @@ procedure TMonsterFrame.Commit;
 begin
   inherited Commit;
 
-  FOptions.Count := edCount.Value;
+  if edRandomCount.Checked then
+  begin
+    FOptions.Count := 0;
+  end
+  else begin
+    FOptions.Count := edCount.Value;
+  end;
+
   FOptions.NoGrowing := edNoGrowing.Checked;
-  FOptions.RandomCount := edRandomCount.Checked;
 
   FOptions.Character := rgCharacter.ItemIndex;
   FOptions.NeverFlees := edNeverFlees.Checked;
@@ -95,7 +101,7 @@ begin
 
   edCount.Value := FOptions.Count;
   edNoGrowing.Checked := FOptions.NoGrowing;
-  edRandomCount.Checked := FOptions.RandomCount;
+  edRandomCount.Checked := FOptions.Count = 0;
 
   rgCharacter.ItemIndex := FOptions.Character;
   edNeverFlees.Checked := FOptions.NeverFlees;

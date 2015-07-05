@@ -414,7 +414,6 @@ type
     FRewardArtifact: AnsiString;
     FRewardMessage: TLocalizedString;
     FRewardResources: TResourceSet;
-    function IsCountStored: Boolean;
     function IsRewardArtifactStored: Boolean;
     function IsRewardMessageStored: Boolean;
     function IsRewardResourcesStored: Boolean;
@@ -422,7 +421,6 @@ type
     procedure SetCount(AValue: Integer);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
-    procedure SetRandomCount(AValue: Boolean);
     procedure SetRewardArtifact(AValue: AnsiString);
     procedure SetRewardMessage(AValue: TLocalizedString);
   public
@@ -432,8 +430,7 @@ type
   published
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
-    property RandomCount: Boolean read FRandomCount write SetRandomCount default False;
-    property Count: Integer read FCount write SetCount stored IsCountStored nodefault;
+    property Count: Integer read FCount write SetCount default 0; //0=random
     property Character: Integer read FCharacter write SetCharacter nodefault;
 
     property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
@@ -1646,11 +1643,6 @@ begin
   Result := (FRewardArtifact <> '');
 end;
 
-function TMonsterOptions.IsCountStored: Boolean;
-begin
-  Result := not RandomCount;
-end;
-
 function TMonsterOptions.IsRewardMessageStored: Boolean;
 begin
   Result := (FRewardMessage <> '');
@@ -1670,12 +1662,6 @@ end;
 procedure TMonsterOptions.SetNoGrowing(AValue: boolean);
 begin
   FNoGrowing := AValue;
-end;
-
-procedure TMonsterOptions.SetRandomCount(AValue: Boolean);
-begin
-  if FRandomCount=AValue then Exit;
-  FRandomCount:=AValue;
 end;
 
 procedure TMonsterOptions.SetRewardArtifact(AValue: AnsiString);

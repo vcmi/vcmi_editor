@@ -75,7 +75,7 @@ inherited MonsterFrame: TMonsterFrame
       Top = 58
       Width = 205
       Caption = 'Never flees'
-      TabOrder = 5
+      TabOrder = 4
     end
   end
   object gbReward: TGroupBox[2]
