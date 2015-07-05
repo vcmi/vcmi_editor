@@ -1435,6 +1435,7 @@ end;
 
 destructor TTownOptions.Destroy;
 begin
+  FSpells.Free;
   FGarrison.Free;
   inherited Destroy;
 end;
