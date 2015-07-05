@@ -75,11 +75,11 @@ begin
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
 
-  edAbilities.SaveToCondition(FMap.ListsManager.SkillMap, Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
-  edSpells.SaveToCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edArtifacts.SaveToCondition(FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
+  edAbilities.SaveToCondition    (FMap.ListsManager.SkillMap,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
+  edSpells.SaveToCondition       (FMap.ListsManager.SpellMap,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
-  edAllowedHeroes.SaveToList(FMap.AllowedHeroes);
+  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroMap,     FMap.AllowedHeroes, True);
 
   ModalResult := mrOK;
 
@@ -114,7 +114,7 @@ begin
   edArtifacts.FillFromCondition(FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts);
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
-  edAllowedHeroes.FillFromList(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
+  edAllowedHeroes.FillFromCondition(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
 
   UpdateControls;
 end;

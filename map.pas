@@ -452,6 +452,8 @@ type
     FAllowedAbilities: TLogicalIDCondition;
     FAllowedArtifacts: TLogicalIDCondition;
     FAllowedSpells: TLogicalIDCondition;
+    FAllowedHeroes: TLogicalIDCondition;
+
     FCurrentLevel: Integer;
     FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
@@ -468,14 +470,13 @@ type
 
     FLevels: TMapLevels;
 
-    FAllowedHeroes: TStringList;
+
 
     FRumors: TRumors;
 
     FIsDirty: boolean;
 
     procedure Changed;
-    function GetAllowedHeroes: TStrings;
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -537,7 +538,7 @@ type
     property AllowedSpells: TLogicalIDCondition read FAllowedSpells;
     property AllowedAbilities: TLogicalIDCondition read FAllowedAbilities;
     property AllowedArtifacts: TLogicalIDCondition read FAllowedArtifacts;
-    property AllowedHeroes: TStrings read GetAllowedHeroes;
+    property AllowedHeroes: TLogicalIDCondition read FAllowedHeroes;
 
     property Levels: TMapLevels read FLevels;
 
@@ -1422,7 +1423,7 @@ begin
   FAllowedArtifacts := TLogicalIDCondition.Create;
   AttachTo(FAllowedArtifacts);
 
-  FAllowedHeroes := CrStrList;
+  FAllowedHeroes := TLogicalIDCondition.Create;
   AttachTo(FAllowedHeroes);
 
   FPlayers := TPlayerAttrs.Create;
@@ -1480,11 +1481,6 @@ begin
   case Operation of
     ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
   end;
-end;
-
-function TVCMIMap.GetAllowedHeroes: TStrings;
-begin
-  Result := FAllowedHeroes;
 end;
 
 function TVCMIMap.GetCurrentLevelIndex: Integer;

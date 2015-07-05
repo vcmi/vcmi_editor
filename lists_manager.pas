@@ -338,7 +338,7 @@ type
 
   THeroInfos = class(THeroInfoList)
   public
-    procedure FillWithNotSpecial(AList: TStrings);
+    procedure FillWithNotSpecial(AList: TLogicalIDCondition);
   end;
 
   { TListsManager }
@@ -511,15 +511,15 @@ end;
 
 { THeroInfos }
 
-procedure THeroInfos.FillWithNotSpecial(AList: TStrings);
+procedure THeroInfos.FillWithNotSpecial(AList: TLogicalIDCondition);
 var
   obj: THeroInfo;
 begin
   for obj in Self do
   begin
-    if not obj.Special then
+    if obj.Special then
     begin
-      AList.Add(obj.ID);
+      AList.NoneOf.Add(obj.ID);
     end;
   end;
 end;
