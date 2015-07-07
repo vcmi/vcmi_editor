@@ -1174,6 +1174,7 @@ var
   o: TJSONObject;
   iter: TJSONEnum;
   info: TCreatureInfo;
+  shift: Integer;
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
@@ -1183,11 +1184,18 @@ begin
   try
     crtraits.Load(ResourceLoader);
 
+    shift := 2;
+
     for i in [0..TextDataConfig.Creature-1] do
     begin
       o := TJSONObject.Create();
 
-      o.Strings['name'] := crtraits.Value[0,i+1];
+      while trim(crtraits.Value[0,i+shift]) = '' do
+      begin
+        inc(shift);
+      end;
+
+      o.Strings['name'] := crtraits.Value[0,i+shift];
 
       legacy_data.Add(o);
     end;

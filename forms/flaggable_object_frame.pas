@@ -26,6 +26,7 @@ type
     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions); override;
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions); override;
     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions); override;
+    procedure VisitGarrison(AOptions: TGarrisonOptions); override;
   end;
 
 implementation
@@ -93,6 +94,11 @@ end;
 
 procedure TFlaggableFrame.VisitRandomDwellingTown(
   AOptions: TRandomDwellingTownOptions);
+begin
+  VisitOptions(AOptions);
+end;
+
+procedure TFlaggableFrame.VisitGarrison(AOptions: TGarrisonOptions);
 begin
   VisitOptions(AOptions);
 end;

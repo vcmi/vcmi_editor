@@ -25,8 +25,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, object_options, map, base_object_options_frame, monster_frame,
-  abandoned_frame, scholar_frame;
+  StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
+  monster_frame, abandoned_frame, scholar_frame, creature_set_frame;
 
 type
 
@@ -37,6 +37,7 @@ type
     btCancel: TButton;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
+    tsArmy: TTabSheet;
     tsObject: TTabSheet;
     tsWog: TTabSheet;
     tsCommon: TTabSheet;
@@ -54,6 +55,8 @@ type
     procedure SaveChanges;
 
     procedure VisitDwelling(AOptions: TObjectOptions);
+    procedure VisitGuardedObject(AOptions: TGuardedObjectOptions);
+    procedure VisitArmedObject(AOptions: TObjectOptions);
   strict private //IObjectOptionsVisitor
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
@@ -164,6 +167,21 @@ begin
   tsObject.TabVisible:=true;
 end;
 
+procedure TEditObjectOptions.VisitGuardedObject(AOptions: TGuardedObjectOptions
+  );
+begin
+  CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
+  tsArmy.TabVisible := true;
+  tsArmy.Caption := rsGuards;
+end;
+
+procedure TEditObjectOptions.VisitArmedObject(AOptions: TObjectOptions);
+begin
+  CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
+  tsArmy.TabVisible := true;
+  tsArmy.Caption := rsArmy;
+end;
+
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
   CreateFrame(TAbandonedFrame, AOptions, tsCommon);
@@ -171,12 +189,13 @@ end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);
 begin
-
+  VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitGarrison(AOptions: TGarrisonOptions);
 begin
-
+  VisitOwnedObject(AOptions);
+  VisitArmedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitGrail(AOptions: TGrailOptions);
@@ -186,13 +205,13 @@ end;
 
 procedure TEditObjectOptions.VisitHero(AOptions: THeroOptions);
 begin
-
+  VisitArmedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitHeroPlaseholder(
   AOptions: THeroPlaceholderOptions);
 begin
-
+  VisitArmedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
@@ -240,7 +259,7 @@ end;
 
 procedure TEditObjectOptions.VisitResource(AOptions: TResourceOptions);
 begin
-
+  VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitScholar(AOptions: TScholarOptions);
@@ -266,11 +285,12 @@ end;
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
   CreateFrame(TSpellScrollFrame,AOptions,tsCommon);
+  VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitTown(AOptions: TTownOptions);
 begin
-
+  VisitArmedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitWitchHut(AOptions: TWitchHutOptions);

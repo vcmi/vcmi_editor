@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
-  editor_types, base_info, logical_id_condition;
+  editor_types, base_info, logical_id_condition, editor_str_consts;
 
 type
 
@@ -57,6 +57,8 @@ type
   public
     procedure FillFromList(AFullList: TStrings; ASelected: AnsiString);
 
+    procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
+    function GetValueWithEmptyOption(AFullList: TStrings): AnsiString;
   end;
 
 implementation
@@ -186,6 +188,40 @@ begin
       else Text := '';
 
     ItemIndex := idx;
+  end;
+end;
+
+procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings;
+  ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  FillItems(Items, AFullList);
+
+  Items.Insert(0, rsEmpty);
+
+  if ASelected = '' then
+  begin
+    ItemIndex:= 0;
+  end
+  else
+  begin
+    idx := AFullList.IndexOf(ASelected);
+
+    ItemIndex := idx+1;
+  end;
+
+end;
+
+function TComboBoxHelper.GetValueWithEmptyOption(AFullList: TStrings
+  ): AnsiString;
+begin
+  if ItemIndex <= 0 then
+  begin
+    Exit('');
+  end
+  else begin
+    exit((Items.Objects[ItemIndex] as TBaseInfo).ID)
   end;
 end;
 

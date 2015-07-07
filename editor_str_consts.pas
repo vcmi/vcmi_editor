@@ -37,6 +37,10 @@ resourcestring
   rsEditRoadDescription = 'Edit roads';
   rsEditRiverDescription = 'Edit rivers';
 
+  rsEmpty = '(Empty)';
+
+  rsArmy = 'Army';
+  rsGuards = 'Guards';
 implementation
 
 end.

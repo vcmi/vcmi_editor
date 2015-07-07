@@ -14,10 +14,10 @@ object EditObjectOptions: TEditObjectOptions
     Height = 329
     Top = 0
     Width = 502
-    ActivePage = tsObject
+    ActivePage = tsArmy
     Align = alClient
     BorderSpacing.Bottom = 40
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     object tsCommon: TTabSheet
       Caption = 'Common options'
@@ -34,6 +34,8 @@ object EditObjectOptions: TEditObjectOptions
     end
     object tsObject: TTabSheet
       Caption = 'Specific options'
+    end
+    object tsArmy: TTabSheet
     end
     object tsWog: TTabSheet
       Caption = 'tsWog'

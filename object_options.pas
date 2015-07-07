@@ -66,15 +66,15 @@ type
   TCreatureInstInfo = class (TCollectionItem)
   private
     FAmount: Integer;
-    FCreID: AnsiString;
-    FRandomCount: boolean;
+    FType: AnsiString;
     procedure SetAmount(AValue: Integer);
-    procedure SetCreID(AValue: AnsiString);
-    procedure SetRandomCount(AValue: boolean);
+    procedure SetType(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
+
+    function IsEmptyType(): Boolean;
   published
-    property &type: AnsiString read FCreID write SetCreID;
+    property &type: AnsiString read FType write SetType;
     property Amount: Integer read FAmount write SetAmount nodefault;
   end;
 
@@ -1222,27 +1222,20 @@ begin
   inherited Create(ACollection);
 end;
 
+function TCreatureInstInfo.IsEmptyType: Boolean;
+begin
+  Result := FType = '';
+end;
+
 procedure TCreatureInstInfo.SetAmount(AValue: Integer);
 begin
   FAmount := AValue;
 end;
 
-procedure TCreatureInstInfo.SetCreID(AValue: AnsiString);
+procedure TCreatureInstInfo.SetType(AValue: AnsiString);
 begin
-  if FCreID=AValue then Exit;
-  FCreID:=AValue;
-end;
-
-
-procedure TCreatureInstInfo.SetRandomCount(AValue: boolean);
-begin
-  if FRandomCount = AValue then Exit;
-  FRandomCount := AValue;
-
-  if AValue then
-  begin
-    FAmount := 0;
-  end;
+  if FType=AValue then Exit;
+  FType:=AValue;
 end;
 
 { TGuardedObjectOptions }
