@@ -61,6 +61,7 @@ type
     procedure VisitGarrison(AOptions: TGarrisonOptions); override;
     procedure VisitArtifact(AOptions: TArtifactOptions); override;
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions); override;
+    procedure VisitResource(AOptions: TResourceOptions); override;
   end;
 
 implementation
@@ -197,14 +198,18 @@ end;
 procedure TCreatureSetFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
   inherited VisitArtifact(AOptions);
-
   Load(AOptions.Guards);
 end;
 
 procedure TCreatureSetFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
   inherited VisitSpellScroll(AOptions);
+  Load(AOptions.Guards);
+end;
 
+procedure TCreatureSetFrame.VisitResource(AOptions: TResourceOptions);
+begin
+  inherited VisitResource(AOptions);
   Load(AOptions.Guards);
 end;
 

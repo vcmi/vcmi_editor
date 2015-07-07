@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  artifact_frame;
+  artifact_frame, resource_frame;
 
 type
 
@@ -69,7 +69,7 @@ type
     procedure VisitGarrison(AOptions: TGarrisonOptions);//+
     procedure VisitArtifact(AOptions: TArtifactOptions);//+
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
-    procedure VisitResource(AOptions: TResourceOptions);
+    procedure VisitResource(AOptions: TResourceOptions);//+
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
     procedure VisitShrine(AOptions: TShrineOptions);//+
@@ -261,6 +261,7 @@ end;
 
 procedure TEditObjectOptions.VisitResource(AOptions: TResourceOptions);
 begin
+  CreateFrame(TResourceFrame, AOptions, tsCommon);
   VisitGuardedObject(AOptions);
 end;
 

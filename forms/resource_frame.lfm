@@ -1,0 +1,58 @@
+inherited ResourceFrame: TResourceFrame
+  Height = 316
+  Width = 415
+  ClientHeight = 316
+  ClientWidth = 415
+  DesignLeft = 486
+  DesignTop = 187
+  object GroupAmount: TGroupBox[0]
+    Left = 8
+    Height = 56
+    Top = 8
+    Width = 400
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Amount:'
+    ClientHeight = 36
+    ClientWidth = 396
+    TabOrder = 0
+    object cbRandom: TCheckBox
+      Left = 319
+      Height = 19
+      Top = 8
+      Width = 65
+      Anchors = [akTop, akRight]
+      Caption = 'Random'
+      OnChange = cbRandomChange
+      TabOrder = 0
+    end
+    object edAmount: TSpinEdit
+      Left = 8
+      Height = 23
+      Top = 8
+      Width = 289
+      Anchors = [akTop, akLeft, akRight]
+      MaxValue = 1000000000
+      TabOrder = 1
+    end
+  end
+  object GroupMessage: TGroupBox[1]
+    Left = 8
+    Height = 234
+    Top = 72
+    Width = 401
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Message:'
+    ClientHeight = 214
+    ClientWidth = 397
+    TabOrder = 1
+    object edMessage: TMemo
+      Left = 5
+      Height = 204
+      Top = 5
+      Width = 387
+      Align = alClient
+      BorderSpacing.Around = 5
+      TabOrder = 0
+    end
+  end
+end
