@@ -14,6 +14,7 @@ type
   { TCreatureSetFrame }
 
   TCreatureSetFrame = class(TBaseObjectOptionsFrame)
+    edRemovableUnits: TCheckBox;
     edTune: TCheckBox;
     edCell1: TComboBox;
     edCell2: TComboBox;
@@ -45,6 +46,8 @@ type
   private
     FOptions: TCreatureSet;
 
+    FGarrisonOptions: TGarrisonOptions;
+
     FCellTypes: array of TCustomComboBox;
     FCellAmounts: array of TCustomSpinEdit;
 
@@ -56,6 +59,8 @@ type
     procedure Commit; override;
 
     procedure VisitGarrison(AOptions: TGarrisonOptions); override;
+    procedure VisitArtifact(AOptions: TArtifactOptions); override;
+    procedure VisitSpellScroll(AOptions: TSpellScrollOptions); override;
   end;
 
 implementation
@@ -150,6 +155,11 @@ var
 begin
   inherited Commit;
 
+  if Assigned(FGarrisonOptions) then
+  begin
+    FGarrisonOptions.RemovableUnits:=edRemovableUnits.Checked;
+  end;
+
   FOptions.Clear;
 
   if not edTune.Checked then
@@ -178,6 +188,24 @@ begin
 
   Load(AOptions.Army);
 
+  FGarrisonOptions := AOptions;
+
+  edRemovableUnits.Checked:=AOptions.RemovableUnits;
+  edRemovableUnits.Visible := True;
+end;
+
+procedure TCreatureSetFrame.VisitArtifact(AOptions: TArtifactOptions);
+begin
+  inherited VisitArtifact(AOptions);
+
+  Load(AOptions.Guards);
+end;
+
+procedure TCreatureSetFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
+begin
+  inherited VisitSpellScroll(AOptions);
+
+  Load(AOptions.Guards);
 end;
 
 end.

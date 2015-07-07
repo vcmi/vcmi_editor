@@ -1,12 +1,45 @@
 inherited SpellScrollFrame: TSpellScrollFrame
+  Height = 285
+  Width = 404
+  ClientHeight = 285
+  ClientWidth = 404
   object edSpell: TListBox[0]
     Left = 0
-    Height = 240
-    Top = 0
-    Width = 320
+    Height = 181
+    Top = 104
+    Width = 404
     Align = alClient
     Columns = 2
     ItemHeight = 0
     TabOrder = 0
+  end
+  object pnMessage: TPanel[1]
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 104
+    Top = 0
+    Width = 404
+    Align = alTop
+    Anchors = [akLeft, akRight]
+    BevelOuter = bvNone
+    ClientHeight = 104
+    ClientWidth = 404
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 8
+      Height = 15
+      Top = 2
+      Width = 49
+      Caption = 'Message:'
+      ParentColor = False
+    end
+    object edMessage: TMemo
+      Left = 8
+      Height = 74
+      Top = 24
+      Width = 390
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 0
+    end
   end
 end

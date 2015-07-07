@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="62">
+    <Units Count="63">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -434,6 +434,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit61>
+      <Unit62>
+        <Filename Value="forms\artifact_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ArtifactFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit62>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

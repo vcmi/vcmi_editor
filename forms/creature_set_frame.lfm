@@ -9,8 +9,8 @@ inherited CreatureSetFrame: TCreatureSetFrame
   DesignTop = 151
   object pnCreatures: TPanel[0]
     Left = 0
-    Height = 416
-    Top = 42
+    Height = 432
+    Top = 26
     Width = 619
     Align = alClient
     BevelOuter = bvNone
@@ -22,13 +22,13 @@ inherited CreatureSetFrame: TCreatureSetFrame
     ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 416
+    ClientHeight = 432
     ClientWidth = 619
     TabOrder = 0
     object Panel1: TPanel
       Left = 0
       Height = 53
-      Top = 21
+      Top = 23
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -86,7 +86,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel2: TPanel
       Left = 0
       Height = 33
-      Top = 95
+      Top = 99
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -125,7 +125,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel3: TPanel
       Left = 0
       Height = 33
-      Top = 149
+      Top = 155
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -164,7 +164,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel4: TPanel
       Left = 0
       Height = 33
-      Top = 203
+      Top = 211
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -203,7 +203,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel5: TPanel
       Left = 0
       Height = 33
-      Top = 257
+      Top = 267
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -242,7 +242,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel6: TPanel
       Left = 0
       Height = 33
-      Top = 311
+      Top = 323
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -281,7 +281,7 @@ inherited CreatureSetFrame: TCreatureSetFrame
     object Panel7: TPanel
       Left = 0
       Height = 33
-      Top = 365
+      Top = 379
       Width = 619
       BevelOuter = bvNone
       ChildSizing.LeftRightSpacing = 5
@@ -321,12 +321,12 @@ inherited CreatureSetFrame: TCreatureSetFrame
   end
   object pnOptions: TPanel[1]
     Left = 0
-    Height = 42
+    Height = 26
     Top = 0
     Width = 619
     Align = alTop
     BevelOuter = bvNone
-    ClientHeight = 42
+    ClientHeight = 26
     ClientWidth = 619
     TabOrder = 1
     object edTune: TCheckBox
@@ -337,6 +337,15 @@ inherited CreatureSetFrame: TCreatureSetFrame
       Caption = 'Tuned'
       OnChange = edTuneChange
       TabOrder = 0
+    end
+    object edRemovableUnits: TCheckBox
+      Left = 93
+      Height = 19
+      Top = 8
+      Width = 108
+      Caption = 'Removable units'
+      TabOrder = 1
+      Visible = False
     end
   end
 end

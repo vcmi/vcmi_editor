@@ -26,7 +26,8 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
-  monster_frame, abandoned_frame, scholar_frame, creature_set_frame;
+  monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
+  artifact_frame;
 
 type
 
@@ -65,9 +66,9 @@ type
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
     procedure VisitScholar(AOptions: TScholarOptions);//+
-    procedure VisitGarrison(AOptions: TGarrisonOptions);
-    procedure VisitArtifact(AOptions: TArtifactOptions);
-    procedure VisitSpellScroll(AOptions: TSpellScrollOptions);
+    procedure VisitGarrison(AOptions: TGarrisonOptions);//+
+    procedure VisitArtifact(AOptions: TArtifactOptions);//+
+    procedure VisitSpellScroll(AOptions: TSpellScrollOptions);//+
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
@@ -189,6 +190,7 @@ end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);
 begin
+  CreateFrame(TArtifactFrame, AOptions, tsCommon);
   VisitGuardedObject(AOptions);
 end;
 

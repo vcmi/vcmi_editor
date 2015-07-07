@@ -25,8 +25,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  object_options, gui_helpers, lists_manager,
-    base_object_options_frame;
+  ExtCtrls, object_options, gui_helpers, lists_manager,
+  base_object_options_frame;
 
 type
 
@@ -34,6 +34,9 @@ type
 
   TSpellScrollFrame = class(TBaseObjectOptionsFrame)
     edSpell: TListBox;
+    Label1: TLabel;
+    edMessage: TMemo;
+    pnMessage: TPanel;
   private
     FObject: TSpellScrollOptions;
   public
@@ -50,7 +53,8 @@ implementation
 procedure TSpellScrollFrame.Commit;
 begin
   inherited Commit;
-  FObject.Spell := (edSpell.SelectedInfo as TSpellInfo).ID;
+  FObject.Spell := edSpell.SelectedInfo.ID;
+  FObject.GuardMessage:=edMessage.Text;
 end;
 
 procedure TSpellScrollFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
@@ -68,6 +72,8 @@ begin
   end;
 
   edSpell.FillFromList(ListsManager.SpellMap,sinfo);
+
+  edMessage.Text:=AOptions.GuardMessage;
 end;
 
 end.
