@@ -6,14 +6,16 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, Spin, Grids, LCLType, base_object_options_frame, gui_helpers,
-  object_options, base_info;
+  StdCtrls, Spin, Grids, LCLType, CheckLst, base_object_options_frame,
+  gui_helpers, object_options, base_info;
 
 type
 
   { TPandorasRewardFrame }
 
   TPandorasRewardFrame = class(TBaseObjectOptionsFrame)
+    edArtifacts: TCheckListBox;
+    edSpells: TCheckListBox;
     edMercury: TSpinEdit;
     edSulfur: TSpinEdit;
     edOre: TSpinEdit;
@@ -50,6 +52,8 @@ type
     edLuck: TSpinEdit;
     edMorale: TSpinEdit;
     edSecondarySkills: TStringGrid;
+    tsArtifacts: TTabSheet;
+    tsSpells: TTabSheet;
     tsResources: TTabSheet;
     tsSecondary: TTabSheet;
     tsMain: TTabSheet;
@@ -232,6 +236,10 @@ begin
   LoadMain(AOptions);
   LoadSecondarySkills(AOptions.SecondarySkills);
   LoadResources(AOptions.Resources);
+
+  edArtifacts.FillFromList(ListsManager.ArtifactMap, AOptions.Artifacts);
+  edSpells.FillFromList(ListsManager.SpellMap, AOptions.Spells);
+
 end;
 
 procedure TPandorasRewardFrame.SaveMain(AOptions: TPandorasOptions);
@@ -298,6 +306,9 @@ begin
   SaveMain(FOptions);
   SaveSecondarySkills(FOptions.SecondarySkills);
   SaveResources(FOptions.Resources);
+
+  edArtifacts.SaveToList(FOptions.Artifacts);
+  edSpells.SaveToList(FOptions.Spells);
 end;
 
 procedure TPandorasRewardFrame.VisitPandorasBox(AOptions: TPandorasOptions);

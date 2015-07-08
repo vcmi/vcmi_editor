@@ -12,9 +12,9 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
     Height = 315
     Top = 0
     Width = 544
-    ActivePage = tsResources
+    ActivePage = tsSpells
     Align = alClient
-    TabIndex = 2
+    TabIndex = 4
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -388,6 +388,36 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
         Constraints.MinWidth = 100
         MaxValue = 0
         TabOrder = 7
+      end
+    end
+    object tsArtifacts: TTabSheet
+      Caption = 'Artifacts'
+      ClientHeight = 287
+      ClientWidth = 536
+      object edArtifacts: TCheckListBox
+        Left = 0
+        Height = 287
+        Top = 0
+        Width = 536
+        Align = alClient
+        Columns = 2
+        ItemHeight = 0
+        TabOrder = 0
+      end
+    end
+    object tsSpells: TTabSheet
+      Caption = 'Spells'
+      ClientHeight = 287
+      ClientWidth = 536
+      object edSpells: TCheckListBox
+        Left = 0
+        Height = 287
+        Top = 0
+        Width = 536
+        Align = alClient
+        Columns = 2
+        ItemHeight = 0
+        TabOrder = 0
       end
     end
   end
