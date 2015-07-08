@@ -1,0 +1,394 @@
+inherited PandorasRewardFrame: TPandorasRewardFrame
+  Height = 315
+  Width = 544
+  ClientHeight = 315
+  ClientWidth = 544
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 530
+  DesignLeft = 480
+  DesignTop = 240
+  object pcMain: TPageControl[0]
+    Left = 0
+    Height = 315
+    Top = 0
+    Width = 544
+    ActivePage = tsResources
+    Align = alClient
+    TabIndex = 2
+    TabOrder = 0
+    object tsMain: TTabSheet
+      Caption = 'Main'
+      ChildSizing.LeftRightSpacing = 5
+      ChildSizing.TopBottomSpacing = 5
+      ChildSizing.HorizontalSpacing = 5
+      ChildSizing.VerticalSpacing = 5
+      ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+      ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+      ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+      ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 4
+      ClientHeight = 287
+      ClientWidth = 536
+      object lbExperience: TLabel
+        Left = 43
+        Height = 23
+        Top = 39
+        Width = 61
+        Caption = 'Experience:'
+        ParentColor = False
+      end
+      object edExperience: TSpinEdit
+        Left = 147
+        Height = 23
+        Top = 39
+        Width = 100
+        Constraints.MinWidth = 100
+        Increment = 1000
+        MaxValue = 0
+        TabOrder = 0
+      end
+      object lbMana: TLabel
+        Left = 290
+        Height = 23
+        Top = 39
+        Width = 62
+        Caption = 'Mana:'
+        ParentColor = False
+      end
+      object edMana: TSpinEdit
+        Left = 395
+        Height = 23
+        Top = 39
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 1
+      end
+      object lbMorale: TLabel
+        Left = 43
+        Height = 23
+        Top = 101
+        Width = 61
+        Caption = 'Morale:'
+        ParentColor = False
+      end
+      object edMorale: TSpinEdit
+        Left = 147
+        Height = 23
+        Top = 101
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 3
+        MinValue = -3
+        TabOrder = 3
+      end
+      object lbLuck: TLabel
+        Left = 290
+        Height = 23
+        Top = 101
+        Width = 62
+        Caption = 'Luck:'
+        ParentColor = False
+      end
+      object edLuck: TSpinEdit
+        Left = 395
+        Height = 23
+        Top = 101
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 3
+        MinValue = -3
+        TabOrder = 2
+      end
+      object Label5: TLabel
+        Left = 43
+        Height = 23
+        Top = 163
+        Width = 61
+        Caption = 'Attack:'
+        ParentColor = False
+      end
+      object edAttack: TSpinEdit
+        Left = 147
+        Height = 23
+        Top = 163
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 4
+      end
+      object Label6: TLabel
+        Left = 290
+        Height = 23
+        Top = 163
+        Width = 62
+        Caption = 'Defence:'
+        ParentColor = False
+      end
+      object edDefence: TSpinEdit
+        Left = 395
+        Height = 23
+        Top = 163
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 5
+      end
+      object Label7: TLabel
+        Left = 43
+        Height = 23
+        Top = 225
+        Width = 61
+        Caption = 'SpellPower:'
+        ParentColor = False
+      end
+      object edSpellPower: TSpinEdit
+        Left = 147
+        Height = 23
+        Top = 225
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 6
+      end
+      object Label8: TLabel
+        Left = 290
+        Height = 23
+        Top = 225
+        Width = 62
+        Caption = 'Knowledge:'
+        ParentColor = False
+      end
+      object edKnowledge: TSpinEdit
+        Left = 395
+        Height = 23
+        Top = 225
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 7
+      end
+    end
+    object tsSecondary: TTabSheet
+      Caption = 'Secondary skills'
+      ClientHeight = 287
+      ClientWidth = 536
+      object edSecondarySkills: TStringGrid
+        Left = 0
+        Height = 287
+        Top = 0
+        Width = 536
+        Align = alClient
+        AutoFillColumns = True
+        ColCount = 2
+        Columns = <        
+          item
+            ButtonStyle = cbsPickList
+            Title.Caption = 'Type'
+            Width = 267
+          end        
+          item
+            ButtonStyle = cbsPickList
+            PickList.Strings = (
+              ''
+            )
+            Title.Caption = 'Mastery'
+            Width = 268
+          end>
+        FixedCols = 0
+        Flat = True
+        MouseWheelOption = mwGrid
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goAutoAddRows, goSmoothScroll]
+        RowCount = 1
+        TabOrder = 0
+        OnKeyDown = edSecondarySkillsKeyDown
+        OnResize = edSecondarySkillsResize
+        OnSelectEditor = edSecondarySkillsSelectEditor
+        OnSelection = edSecondarySkillsSelection
+        ColWidths = (
+          267
+          268
+        )
+      end
+      object SecondarySkillSelector: TComboBox
+        Left = 24
+        Height = 23
+        Top = 72
+        Width = 224
+        ItemHeight = 15
+        OnEditingDone = SecondarySkillSelectorEditingDone
+        Style = csDropDownList
+        TabOrder = 1
+        Visible = False
+      end
+      object MasterySelector: TComboBox
+        Left = 272
+        Height = 23
+        Top = 72
+        Width = 200
+        ItemHeight = 15
+        Items.Strings = (
+          'Basic'
+          'Advanced'
+          'Expert'
+        )
+        OnEditingDone = MasterySelectorEditingDone
+        Style = csDropDownList
+        TabOrder = 2
+        Visible = False
+      end
+    end
+    object tsResources: TTabSheet
+      Caption = 'Resources'
+      ChildSizing.LeftRightSpacing = 5
+      ChildSizing.TopBottomSpacing = 5
+      ChildSizing.HorizontalSpacing = 5
+      ChildSizing.VerticalSpacing = 5
+      ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+      ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+      ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+      ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 4
+      ClientHeight = 287
+      ClientWidth = 536
+      object lbWood: TLabel
+        Left = 50
+        Height = 23
+        Top = 39
+        Width = 39
+        Caption = 'Wood:'
+        ParentColor = False
+      end
+      object edWood: TSpinEdit
+        Left = 139
+        Height = 23
+        Top = 39
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 3
+      end
+      object lbMercury: TLabel
+        Left = 289
+        Height = 23
+        Top = 39
+        Width = 47
+        Caption = 'Mercury:'
+        ParentColor = False
+      end
+      object edMercury: TSpinEdit
+        Left = 386
+        Height = 23
+        Top = 39
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 0
+      end
+      object lbOre: TLabel
+        Left = 50
+        Height = 23
+        Top = 101
+        Width = 39
+        Caption = 'Ore:'
+        ParentColor = False
+      end
+      object edOre: TSpinEdit
+        Left = 139
+        Height = 23
+        Top = 101
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 1
+      end
+      object lbSulfur: TLabel
+        Left = 289
+        Height = 23
+        Top = 101
+        Width = 47
+        Caption = 'Sulfur:'
+        ParentColor = False
+      end
+      object edSulfur: TSpinEdit
+        Left = 386
+        Height = 23
+        Top = 101
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 2
+      end
+      object lbCrystal: TLabel
+        Left = 50
+        Height = 23
+        Top = 163
+        Width = 39
+        Caption = 'Crystal:'
+        ParentColor = False
+      end
+      object edCrystal: TSpinEdit
+        Left = 139
+        Height = 23
+        Top = 163
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 4
+      end
+      object lbGems: TLabel
+        Left = 289
+        Height = 23
+        Top = 163
+        Width = 47
+        Caption = 'Gems:'
+        ParentColor = False
+      end
+      object edGems: TSpinEdit
+        Left = 386
+        Height = 23
+        Top = 163
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 5
+      end
+      object lbGold: TLabel
+        Left = 50
+        Height = 23
+        Top = 225
+        Width = 39
+        Caption = 'Gold:'
+        ParentColor = False
+      end
+      object edGold: TSpinEdit
+        Left = 139
+        Height = 23
+        Top = 225
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 6
+      end
+      object lbMithril: TLabel
+        Left = 289
+        Height = 23
+        Top = 225
+        Width = 47
+        Caption = 'Mithril:'
+        ParentColor = False
+      end
+      object edMithril: TSpinEdit
+        Left = 386
+        Height = 23
+        Top = 225
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 0
+        TabOrder = 7
+      end
+    end
+  end
+end

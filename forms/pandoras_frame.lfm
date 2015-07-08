@@ -1,0 +1,22 @@
+inherited PandorasFrame: TPandorasFrame
+  Height = 204
+  Width = 398
+  ClientHeight = 204
+  ClientWidth = 398
+  object Label1: TLabel[0]
+    Left = 8
+    Height = 15
+    Top = 2
+    Width = 49
+    Caption = 'Message:'
+    ParentColor = False
+  end
+  object edMessage: TMemo[1]
+    Left = 8
+    Height = 170
+    Top = 24
+    Width = 382
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabOrder = 0
+  end
+end

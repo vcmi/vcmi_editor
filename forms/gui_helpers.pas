@@ -56,6 +56,7 @@ type
   TComboBoxHelper = class helper for TCustomComboBox
   public
     procedure FillFromList(AFullList: TStrings; ASelected: AnsiString);
+    procedure FillFromList(AFullList: TStrings; ASelected: TBaseInfo);
 
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
     function GetValueWithEmptyOption(AFullList: TStrings): AnsiString;
@@ -189,6 +190,18 @@ begin
 
     ItemIndex := idx;
   end;
+end;
+
+procedure TComboBoxHelper.FillFromList(AFullList: TStrings; ASelected: TBaseInfo
+  );
+var
+  ID: AnsiString;
+begin
+  if Assigned(ASelected) then
+    ID := ASelected.ID
+  else
+    ID := '';
+  FillFromList(AFullList, ID)
 end;
 
 procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings;

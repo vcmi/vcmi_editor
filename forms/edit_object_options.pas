@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  artifact_frame, resource_frame;
+  artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame;
 
 type
 
@@ -51,7 +51,7 @@ type
     procedure HideAllTabs;
 
     procedure CreateFrame (AClass: TBaseObjectOptionsFrameClass;
-      AOptions: TObjectOptions; AParent:TWinControl);
+      AOptions: TObjectOptions; AParent:TTabSheet);
 
     procedure SaveChanges;
 
@@ -113,7 +113,7 @@ begin
 end;
 
 procedure TEditObjectOptions.CreateFrame(AClass: TBaseObjectOptionsFrameClass;
-  AOptions: TObjectOptions; AParent: TWinControl);
+  AOptions: TObjectOptions; AParent: TTabSheet);
 var
   frame: TBaseObjectOptionsFrame;
 begin
@@ -124,6 +124,7 @@ begin
   frame.Map := FMap;
   AOptions.ApplyVisitor(frame); //do AFTER assign properties
   FActiveEditors.PushBack(frame);
+  AParent.TabVisible := true;
 end;
 
 destructor TEditObjectOptions.Destroy;
@@ -172,14 +173,12 @@ procedure TEditObjectOptions.VisitGuardedObject(AOptions: TGuardedObjectOptions
   );
 begin
   CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
-  tsArmy.TabVisible := true;
   tsArmy.Caption := rsGuards;
 end;
 
 procedure TEditObjectOptions.VisitArmedObject(AOptions: TObjectOptions);
 begin
   CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
-  tsArmy.TabVisible := true;
   tsArmy.Caption := rsArmy;
 end;
 
@@ -218,6 +217,7 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
+  CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;
 
@@ -233,6 +233,8 @@ end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
+  CreateFrame(TPandorasFrame,AOptions,tsCommon);
+  CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;
 

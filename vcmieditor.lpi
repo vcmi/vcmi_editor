@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="64">
+    <Units Count="66">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -448,6 +448,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit63>
+      <Unit64>
+        <Filename Value="forms\pandoras_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PandorasFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="forms\pandoras_reward_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PandorasRewardFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit65>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

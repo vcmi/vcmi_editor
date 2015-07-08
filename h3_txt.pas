@@ -57,6 +57,8 @@ type
 
 implementation
 
+uses LazUTF8;
+
 
 { TTextResource }
 
@@ -84,7 +86,11 @@ end;
 
 function TTextResource.GetValue(Col, Row: Integer): TLocalizedString;
 begin
+  {$IFDEF MSWindows}
+  Result := WinCPToUTF8(FDoc.Cells[Col,Row]);
+  {$ELSE}
   Result := AnsiToUtf8(FDoc.Cells[Col,Row]);
+  {$ENDIF}
 end;
 
 function TTextResource.HasCell(Col, Row: Integer): boolean;
