@@ -218,7 +218,7 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-
+  VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitMonster(AOptions: TMonsterOptions);
@@ -233,7 +233,7 @@ end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-
+  VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitQuestGuard(AOptions: TQuestGuardOptions);

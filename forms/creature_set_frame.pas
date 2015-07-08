@@ -62,6 +62,10 @@ type
     procedure VisitArtifact(AOptions: TArtifactOptions); override;
     procedure VisitSpellScroll(AOptions: TSpellScrollOptions); override;
     procedure VisitResource(AOptions: TResourceOptions); override;
+    procedure VisitPandorasBox(AOptions: TPandorasOptions); override;
+    procedure VisitLocalEvent(AOptions: TLocalEventOptions); override;
+    procedure VisitHero(AOptions: THeroOptions); override;
+    procedure VisitTown(AOptions: TTownOptions); override;
   end;
 
 implementation
@@ -211,6 +215,30 @@ procedure TCreatureSetFrame.VisitResource(AOptions: TResourceOptions);
 begin
   inherited VisitResource(AOptions);
   Load(AOptions.Guards);
+end;
+
+procedure TCreatureSetFrame.VisitPandorasBox(AOptions: TPandorasOptions);
+begin
+  inherited VisitPandorasBox(AOptions);
+  Load(AOptions.Guards);
+end;
+
+procedure TCreatureSetFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
+begin
+  inherited VisitLocalEvent(AOptions);
+  Load(AOptions.Guards);
+end;
+
+procedure TCreatureSetFrame.VisitHero(AOptions: THeroOptions);
+begin
+  inherited VisitHero(AOptions);
+  Load(AOptions.Army);
+end;
+
+procedure TCreatureSetFrame.VisitTown(AOptions: TTownOptions);
+begin
+  inherited VisitTown(AOptions);
+  Load(AOptions.Garrison);
 end;
 
 end.
