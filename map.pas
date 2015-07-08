@@ -57,11 +57,11 @@ type
   TPlasedHero = class (TCollectionItem)
   private
     FName: TLocalizedString;
-    FPortrait: AnsiString;
+    FType: AnsiString;
     procedure SetName(AValue: TLocalizedString);
-    procedure SetPortrait(AValue: AnsiString);
+    procedure SetType(AValue: AnsiString);
   published
-    property Portrait:AnsiString read FPortrait write SetPortrait;
+    property &type:AnsiString read FType write SetType;
     property Name: TLocalizedString read FName write SetName;
   end;
 
@@ -75,8 +75,7 @@ type
   TPlayerAttr = class
   private
     FAITactics: TAITactics;
-    FAllowedFactions: TStringList;
-    FAllowerFactionsSet: Boolean;
+    FAllowedFactions: TLogicalIDCondition;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
     FPlasedHeroes: TPlasedHeroes;
@@ -92,10 +91,8 @@ type
     FRandomHero: Boolean;
     FMainHero: AnsiString;
     FTeamId: Integer;
-    function GetAllowedFactions: TStrings;
     function GetHasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
-    procedure SetAllowerFactionsSet(AValue: Boolean);
     procedure SetCanComputerPlay(AValue: boolean);
     procedure SetCanHumanPlay(AValue: boolean);
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
@@ -111,22 +108,17 @@ type
     procedure SetMainHero(AValue: AnsiString);
     procedure SetTeamId(AValue: Integer);
 
-    function IsAllowedFactionsStored: boolean;
-    function IsRandomFactionStored: boolean;
   public
     constructor Create;
     destructor Destroy; override;
   published
-    property AITactics: TAITactics read FAITactics write SetAITactics;
-    property AllowedFactionsSet: Boolean read FAllowerFactionsSet write SetAllowerFactionsSet; //???
-    property AllowedFactions: TStrings read GetAllowedFactions stored IsAllowedFactionsStored;
-    property RandomFaction: boolean read FRandomFaction write SetRandomFaction stored IsRandomFactionStored default false;
+    property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
+    property RandomFaction: boolean read FRandomFaction write SetRandomFaction default false;
 
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
 
     property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
-
 
     property HasMainTown: boolean read GetHasMainTown write SetHasMainTown;
 
@@ -143,6 +135,8 @@ type
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero;
     property TeamId: Integer read FTeamId write SetTeamId default 0;
+  public
+    property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   end;
 
   { TPlayerAttrs }
@@ -1006,16 +1000,15 @@ begin
   FName:=AValue;
 end;
 
-procedure TPlasedHero.SetPortrait(AValue: AnsiString);
+procedure TPlasedHero.SetType(AValue: AnsiString);
 begin
-  if FPortrait = AValue then Exit;
-  FPortrait := AValue;
+  if FType = AValue then Exit;
+  FType := AValue;
 end;
 
 constructor TPlayerAttr.Create;
 begin
-  FAllowedFactions := CrStrList;
-  RootManager.ListsManager.FactionInfos.FillWithTownIds(FAllowedFactions);
+  FAllowedFactions := TLogicalIDCondition.Create;
 
   FPlasedHeroes := TPlasedHeroes.Create;
 
@@ -1034,20 +1027,9 @@ begin
   FAITactics := AValue;
 end;
 
-function TPlayerAttr.GetAllowedFactions: TStrings;
-begin
-  Result := FAllowedFactions;
-end;
-
 function TPlayerAttr.GetHasMainTown: boolean;
 begin
   Result := FHasMainTown;
-end;
-
-procedure TPlayerAttr.SetAllowerFactionsSet(AValue: Boolean);
-begin
-  if FAllowerFactionsSet = AValue then Exit;
-  FAllowerFactionsSet := AValue;
 end;
 
 procedure TPlayerAttr.SetCanComputerPlay(AValue: boolean);
@@ -1114,16 +1096,6 @@ procedure TPlayerAttr.SetTeamId(AValue: Integer);
 begin
   if FTeamId = AValue then Exit;
   FTeamId := AValue;
-end;
-
-function TPlayerAttr.IsAllowedFactionsStored: boolean;
-begin
-  Result := AllowedFactionsSet and not RandomFaction;
-end;
-
-function TPlayerAttr.IsRandomFactionStored: boolean;
-begin
-  Result := AllowedFactionsSet;
 end;
 
 procedure TPlayerAttr.SetMainHero(AValue: AnsiString);

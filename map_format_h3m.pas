@@ -1299,6 +1299,7 @@ var
   hero: TPlasedHero;
   h: Integer;
   Main_Hero: TCustomID;
+  AllowedFactionsSet: Boolean;
 
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
@@ -1325,11 +1326,11 @@ begin
 
   if FMapVersion >=MAP_VERSION_SOD then
   begin
-    Attr.AllowedFactionsSet := FSrc.ReadBoolean;
+    AllowedFactionsSet := FSrc.ReadBoolean;
   end
   else
   begin
-    Attr.AllowedFactionsSet := True;
+    AllowedFactionsSet := True;
   end;
 
   case FMapVersion of
@@ -1347,7 +1348,10 @@ begin
 
   ReadBitmask(Attr.AllowedFactions,faction_mask_size,faction_count,@FMap.ListsManager.FactionIndexToString, False);
 
-  //todo: fill allowed faction if they are not set
+  if not AllowedFactionsSet then
+  begin
+    Attr.AllowedFactions.Clear;
+  end;
 
   Attr.RandomFaction := FSrc.ReadBoolean;
 
@@ -1387,7 +1391,7 @@ begin
     end;
   end;
 
-  //todo: ignore plased heroes and fill aumatically
+  //todo: ignore plased heroes and fill automatically
   if FMapVersion <> MAP_VERSION_ROE then
   begin
     FSrc.Skip(1); //unknown byte
@@ -1397,7 +1401,7 @@ begin
     begin
       hero := TPlasedHero(Attr.PlasedHeroes.Add);
 
-      hero.Portrait := ReadID(@FMapEnv.lm.HeroIndexToString,1);
+      hero.&type := ReadID(@FMapEnv.lm.HeroIndexToString,1);
       hero.Name := FSrc.ReadLocalizedString;
     end;
   end;
