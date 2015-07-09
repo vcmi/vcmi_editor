@@ -27,7 +27,8 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame;
+  artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame,
+  local_event_frame;
 
 type
 
@@ -59,7 +60,7 @@ type
     procedure VisitGuardedObject(AOptions: TGuardedObjectOptions);
     procedure VisitArmedObject(AOptions: TObjectOptions);
   strict private //IObjectOptionsVisitor
-    procedure VisitLocalEvent(AOptions: TLocalEventOptions);
+    procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
     procedure VisitHero(AOptions: THeroOptions);
     procedure VisitMonster(AOptions: TMonsterOptions);//+
@@ -73,7 +74,7 @@ type
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
     procedure VisitShrine(AOptions: TShrineOptions);//+
-    procedure VisitPandorasBox(AOptions: TPandorasOptions);
+    procedure VisitPandorasBox(AOptions: TPandorasOptions); //+
     procedure VisitGrail(AOptions: TGrailOptions); //+
     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
@@ -217,6 +218,7 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
+  CreateFrame(TLocalEventFrame, AOptions,tsCommon);
   CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;

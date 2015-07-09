@@ -1,0 +1,68 @@
+inherited LocalEventFrame: TLocalEventFrame
+  DesignLeft = 542
+  DesignTop = 192
+  object edActivableBy: TComboBox[0]
+    Left = 16
+    Height = 23
+    Top = 64
+    Width = 296
+    Anchors = [akTop, akLeft, akRight]
+    ItemHeight = 15
+    Items.Strings = (
+      'Only human'
+      'Only AI'
+      'Any player'
+    )
+    TabOrder = 0
+  end
+  object Label1: TLabel[1]
+    Left = 16
+    Height = 15
+    Top = 40
+    Width = 68
+    Caption = 'Activable by:'
+    ParentColor = False
+  end
+  object edPlayers: TCheckGroup[2]
+    Left = 16
+    Height = 121
+    Top = 104
+    Width = 297
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoFill = True
+    Caption = 'Activable by players:'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 101
+    ClientWidth = 293
+    Columns = 2
+    Items.Strings = (
+      'Red'
+      'Blue'
+      'Tan'
+      'Green'
+      'Orange'
+      'Purple'
+      'Teal'
+      'Pink'
+    )
+    TabOrder = 1
+    Data = {
+      080000000202020202020202
+    }
+  end
+  object edRemoveAfterVisit: TCheckBox[3]
+    Left = 16
+    Height = 19
+    Top = 8
+    Width = 114
+    Caption = 'Remove after visit'
+    TabOrder = 2
+  end
+end

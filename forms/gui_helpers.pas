@@ -20,7 +20,7 @@
 
 unit gui_helpers;
 
-{$mode objfpc}{$H+}
+{$I compilersetup.inc}
 
 interface
 

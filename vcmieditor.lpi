@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="66">
+    <Units Count="67">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -462,6 +462,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit65>
+      <Unit66>
+        <Filename Value="forms\local_event_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="LocalEventFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit66>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

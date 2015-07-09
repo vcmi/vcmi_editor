@@ -24,7 +24,7 @@ unit editor_types;
 interface
 
 uses
-  Classes, SysUtils, gset, gutil, gvector;
+  Classes, SysUtils, gvector;
 
 type
 {$push}
