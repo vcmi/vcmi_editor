@@ -166,7 +166,6 @@ end;
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
   action: TEditTerrain;
-  it: TCoordSet.TIterator;
 begin
   action := TEditTerrain.Create(AMap);
   action.Level := AMap.CurrentLevelIndex;
@@ -314,16 +313,10 @@ end;
 
 procedure TEditTerrain.Execute;
 var
-  old_info, new_info, info: TTileTerrainInfo;
-
-  dx,dy: Integer;
+  old_info, new_info: TTileTerrainInfo;
 
   i:SizeInt;
 
-  loop_guard: Integer;
-  x: LongInt;
-  y: LongInt;
-  info_n: TTileSet.PNode;
   it: TTileSet.TIterator;
 begin
   FInQueue := TTileSet.Create;
@@ -564,7 +557,7 @@ const
 
 var
   i: Integer;
-  tile, tmp:TTileTerrainInfo;
+  tmp:TTileTerrainInfo;
 
   it: TTileSet.TIterator;
   it2: TTileSet.PNode;
@@ -831,7 +824,6 @@ function TEditTerrain.ValidateTerrainViewInner(info: TTileTerrainInfo;
   end;
 
 var
-  terType: TTerrainType;
   centerTerGroup: TTerrainGroup;
 
   totalPoints: Integer;

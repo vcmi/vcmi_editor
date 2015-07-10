@@ -370,6 +370,7 @@ type
     procedure SetWidth(AValue: Integer);
 
     procedure Resize;
+  protected
     procedure SetIndex(Value: Integer); override;
   public
     constructor Create(ACollection: TCollection); override;
@@ -596,7 +597,6 @@ end;
 
 procedure TMapObjectTemplate.CompactMask;
 var
-  i: Integer;
   stop: Boolean;
   s: AnsiString;
 begin

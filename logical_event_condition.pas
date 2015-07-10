@@ -36,7 +36,6 @@ type
   private
     FEventType: TWinLossCondition;
     FObjectLink: TObjectLink;
-    FPosition: TMapCoords;
     Ftype: AnsiString;
     FValue: Int32;
     procedure SetEventType(AValue: TWinLossCondition);
@@ -151,7 +150,6 @@ end;
 function TLogicalEventConditionItem.Serialize(AHandler: TVCMIJSONStreamer
   ): TJSONData;
 var
-  tmp: string;
   item: TCollectionItem;
 
   o: TJSONObject;

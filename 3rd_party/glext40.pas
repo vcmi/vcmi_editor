@@ -7082,8 +7082,6 @@ end;
 function glext_ExtensionSupported(const extension: String; const searchIn: String): Boolean;
 var
   extensions: string;
-  start: PChar;
-  where, terminator: PChar;
   n: GLint;
   i: GLint;
 begin

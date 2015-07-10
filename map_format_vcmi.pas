@@ -130,7 +130,6 @@ end;
 function TMapReaderVCMI.Read(AStream: TStream): TVCMIMap;
 var
   map_o: TJSONObject;
-  cp:    TMapCreateParams;
 begin
   map_o := FDestreamer.JSONStreamToJson(AStream) as TJSONObject;
 

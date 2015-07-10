@@ -351,12 +351,9 @@ type
   private
     FArmy: TCreatureSet;
     FArtifacts: THeroArtifacts;
-    FAttack: Integer;
     FBiography: TLocalizedString;
-    FDefence: Integer;
     FExperience: UInt64;
     FId: AnsiString;
-    FKnowledge: Integer;
     FName: TLocalizedString;
     FPatrolRadius: Integer;
     FPortrait: AnsiString;
@@ -364,7 +361,6 @@ type
     FSex: THeroSex;
     FSecondarySkills: THeroSecondarySkills;
     FSpellBook: TStrings;
-    FSpellpower: Integer;
     FTightFormation: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
@@ -407,7 +403,6 @@ type
     FCount: Integer;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
-    FRandomCount: Boolean;
     FRewardArtifact: AnsiString;
     FRewardMessage: TLocalizedString;
     FRewardResources: TResourceSet;
@@ -583,10 +578,7 @@ type
 
   TShrineOptions = class abstract (TObjectOptions)
   private
-    FIsRandom: Boolean;
     FSpell: AnsiString;
-    FSpellLevel: Integer;
-
     procedure SetSpell(AValue: AnsiString);
   strict protected
     class function GetSpellLevel: Integer; virtual; abstract;

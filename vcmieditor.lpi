@@ -507,10 +507,12 @@
     </Linking>
     <Other>
       <Verbosity>
-        <ShowNotes Value="False"/>
         <ShowHints Value="False"/>
         <ShoLineNum Value="True"/>
       </Verbosity>
+      <ConfigFile>
+        <StopAfterErrCount Value="10"/>
+      </ConfigFile>
       <CustomOptions Value="-dDEBUG"/>
     </Other>
   </CompilerOptions>

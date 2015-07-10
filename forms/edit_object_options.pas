@@ -57,7 +57,7 @@ type
     procedure SaveChanges;
 
     procedure VisitDwelling(AOptions: TObjectOptions);
-    procedure VisitGuardedObject(AOptions: TGuardedObjectOptions);
+    procedure VisitGuardedObject(AOptions: TObjectOptions);
     procedure VisitArmedObject(AOptions: TObjectOptions);
   strict private //IObjectOptionsVisitor
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
@@ -170,8 +170,7 @@ begin
   tsObject.TabVisible:=true;
 end;
 
-procedure TEditObjectOptions.VisitGuardedObject(AOptions: TGuardedObjectOptions
-  );
+procedure TEditObjectOptions.VisitGuardedObject(AOptions: TObjectOptions);
 begin
   CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
   tsArmy.Caption := rsGuards;

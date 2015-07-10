@@ -38,7 +38,6 @@ type
 
   TLogicalExpressionItem = class (TCollectionItem)
   private
-    FAsString: AnsiString;
     FSubExpressions: TLogicalExpression;
     FLogicalOperator: TLogicalOperator;
 

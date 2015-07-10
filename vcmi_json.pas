@@ -605,7 +605,6 @@ procedure TVCMIJSONDestreamer.CollectionArrayCallback(Item: TJSONData;
 var
   ACollection: TCollection;
   new_item: TCollectionItem;
-  O : TJSONObject;
 begin
   ACollection:=TCollection(Data);
 
@@ -681,7 +680,6 @@ procedure TVCMIJSONDestreamer.CollectionObjCallback(const AName: TJSONStringType
 var
   ACollection: TCollection;
   new_item: TCollectionItem;
-  O : TJSONObject;
 begin
   ACollection:=TCollection(Data);
 
@@ -842,8 +840,8 @@ var
   prepase_buffer: TStringList;
   stm: TStringStream;
 
-  s, s1: AnsiString;
-  commentpos, quotepos: Integer;
+  s: AnsiString;
+  commentpos: Integer;
   i: Integer;
   char_nomber: Integer;
   in_string: Boolean;

@@ -851,8 +851,6 @@ end;
 procedure TFSManager.LoadResource(AResource: IResource;
   AResType: TResourceType; AName: string);
 var
-  stm: TFileStream;
-
   res_id: TResId;
   res_loc: TResLocation;
   it : TResIDToLcationMap.TIterator;

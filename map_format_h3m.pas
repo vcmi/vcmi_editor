@@ -370,7 +370,6 @@ end;
 function TMapReaderH3m.Read(AStream: TStream): TVCMIMap;
 var
   cr_params: TMapCreateParams;
-  AreAnyPalyers: boolean;
   lvl: TMapLevel;
 begin
   FQuestIdentifierMap.Clear;
@@ -383,7 +382,7 @@ begin
   begin
     FMapVersion := ReadDWord;
     CheckMapVersion(FMapVersion);
-    AreAnyPalyers := ReadBoolean;
+    ReadBoolean;//are any players
     cr_params.Height := ReadDWord;
     cr_params.Width := cr_params.Height;
     cr_params.Levels := ReadByte + 1; //one level = 0
@@ -837,7 +836,6 @@ var
   obj: TLegacyMapObjectTemplate;
   cnt: DWord;
   i: Integer;
-  w: Word;
   b: Byte;
   obj_type: TObjSubType;
   ID: DWord;
@@ -944,13 +942,8 @@ end;
 
 procedure TMapReaderH3m.VisitHero(AOptions: THeroOptions);
 var
-  subid: Byte;
-  cnt: DWord;
-  i: Integer;
   exper: UInt64;
   patrol: Byte;
-
-  secSkill: THeroSecondarySkill;
 begin
   with FSrc do
   begin
@@ -1294,7 +1287,6 @@ procedure TMapReaderH3m.ReadPlayerAttr(Attr: TPlayerAttr);
 var
   faction_mask_size: integer;
   faction_count: Integer;
-  faction_n: TCustomID;
   heroes_count: DWord;
   hero: TPlasedHero;
   h: Integer;
@@ -1421,8 +1413,6 @@ end;
 procedure TMapReaderH3m.ReadPredefinedHeroes;
 var
   custom: Boolean;
-  experience: DWord;
-  cnt: Word;
   i: Integer;
 
   definition:  THeroDefinition;
@@ -1470,8 +1460,6 @@ end;
 function TMapReaderH3m.ReadQuest(obj: TQuest): TQuestMission;
 var
   limit: DWord;
-  cnt: Byte;
-  i: Integer;
 begin
   Result := TQuestMission(FSrc.ReadByte);
 
@@ -1532,7 +1520,6 @@ end;
 procedure TMapReaderH3m.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
 var
   ident: DWord;
-  req: TResolveRequest;
 begin
   ReadOwner(AOptions);
 
@@ -2000,9 +1987,9 @@ end;
 
 procedure TMapReaderH3m.VisitTown(AOptions: TTownOptions);
 var
-  temp: String;
   cnt: DWord;
   i: Integer;
+  temp: String;
 begin
   with FSrc do
   begin

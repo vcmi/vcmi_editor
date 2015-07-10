@@ -1059,7 +1059,7 @@ var
 
   faction_names: TTextResource;
   legacy_data: TJsonObjectList;
-  f,i: Integer;
+  f: Integer;
   o: TJSONObject;
   info: TFactionInfo;
   iter: TJSONEnum;

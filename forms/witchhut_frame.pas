@@ -51,8 +51,6 @@ implementation
 { TWitchHutFrame }
 
 procedure TWitchHutFrame.Commit;
-var
-  i: Integer;
 begin
   inherited Commit;
 
@@ -105,8 +103,6 @@ begin
 end;
 
 procedure TWitchHutFrame.VisitWitchHut(AOptions: TWitchHutOptions);
-var
-  i: Integer;
 begin
   inherited VisitWitchHut(AOptions);
   FObject := AOptions;

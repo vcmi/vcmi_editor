@@ -325,7 +325,6 @@ var
   BestPattern: Integer;
   k: Integer;
   pattern: TSimplePattern;
-  mapping: TMapping;
 begin
   for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
@@ -526,7 +525,6 @@ procedure TEditRoadRiver.Execute;
   end;
 var
   it: TTileRoadInfoSet.TIterator;
-  map_level: TMapLevel;
   r: TMapRect;
 begin
   it := FInQueue.Min;

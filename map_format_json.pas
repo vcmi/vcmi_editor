@@ -138,9 +138,6 @@ var
   row: Integer;
   col: Integer;
 
-  o: TJSONObject;
-  tile: TMapTile;
-
   ARowArray: TJSONArray;
   map_level: TMapLevel;
 begin
@@ -254,9 +251,7 @@ procedure TMapReaderJson.DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;
 var
   row: Integer;
   col: Integer;
-  idx: Integer;
 
-  o: TJSONObject;
   d: TJSONData;
   tile: PMapTile;
 

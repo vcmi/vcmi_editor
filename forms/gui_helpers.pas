@@ -127,7 +127,6 @@ var
   i: Integer;
 
   ban_list: TStringList;
-  Aid: String;
 begin
   ADest.Clear;
 

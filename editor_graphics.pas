@@ -607,7 +607,7 @@ begin
 
     total_entries := 0;
 
-    for block_nomber := 0 to header.blockCount - 1 do
+    for block_nomber := 0 to blockCount - 1 do
     begin
        AStream.Read(current_block_head{%H-},SizeOf(current_block_head));
 

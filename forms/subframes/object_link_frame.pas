@@ -55,8 +55,6 @@ var
   map_object: TMapObject;
   item: TCollectionItem;
 
-  town: TTownOptions;
-
   function GetTownName(): AnsiString;
   begin
     if map_object.GetID = 'randomTown' then
@@ -85,7 +83,6 @@ begin
     end
     else if (map_object.Options is TTownOptions) and (FLink.&type = TYPE_TOWN) then
     begin
-      town := TTownOptions(map_object.Options);
       ObjectList.AddItem(Format('%s at %d %d %d',[GetTownName, map_object.L, map_object.X, map_object.Y]),map_object);
     end
     else

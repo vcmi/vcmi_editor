@@ -609,7 +609,6 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
 
     s_tmp: string;
     progess_delta: Integer;
-    i: SizeInt;
     legacy_config: TJSONObject;
     list: TLegacyObjConfigList;
     full_id: TLegacyTemplateId;
@@ -750,7 +749,6 @@ begin
   for i := 0 to ACombinedConfig.Count - 1 do
   begin
     obj := ACombinedConfig.Items[i] as TJSONObject;
-    obj_name := ACombinedConfig.Names[i];
     idx := obj.IndexOfName('index');
 
     obj_id := -1;
@@ -962,9 +960,9 @@ end;
 
 procedure TObjectsManager.AddCreatures(AConfig: TJSONObject);
 var
-  creatures, templates: TJSONObject;
+  creatures: TJSONObject;
   cr_info: TCreatureInfo;
-  cr, t: TJSONObject;
+  cr: TJSONObject;
   i: Integer;
 begin
   creatures := AConfig.Objects['monster'].GetOrCreateObject('types');
@@ -983,9 +981,9 @@ end;
 
 procedure TObjectsManager.AddArtifacts(AConfig: TJSONObject);
 var
-  artifacts, templates: TJSONObject;
+  artifacts: TJSONObject;
   info: TArtifactInfo;
-  ar, t: TJSONObject;
+  ar: TJSONObject;
   i: Integer;
 begin
   artifacts := AConfig.Objects['artifact'].GetOrCreateObject('types');

@@ -1073,9 +1073,6 @@ begin
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
-var
-  o: TMapObject;
-  ot: TLegacyMapObjectTemplate;
 begin
   SetMapViewMouse(x,y);
 
@@ -1258,9 +1255,6 @@ var
   scissor_w: Integer;
   scissor_h: Integer;
   scissor_y: Integer;
-  cx: Integer;
-  cy: Integer;
-
 begin
   c := TOpenGLControl(Sender);
 
@@ -1474,8 +1468,6 @@ var
   o_def: TObjTemplate;
   cx: Integer;
   cy: Integer;
-  dim: Integer;
-
 begin
   c := TOpenGLControl(Sender);
 

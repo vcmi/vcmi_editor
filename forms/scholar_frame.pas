@@ -53,8 +53,6 @@ end;
 
 procedure TScholarFrame.UpdateControls;
 var
-  prim_skill: TPrimarySkill;
-
   tmp : AnsiString;
 begin
 

@@ -206,7 +206,6 @@ end;
 
 function TMapReaderZIP.Read(AStream: TStream): TVCMIMap;
 var
-  cp:  TMapCreateParams;
   map_o: TJSONObject;
   i: Integer;
   level: TMapLevel;

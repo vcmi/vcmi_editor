@@ -132,6 +132,7 @@ type
   TIdleMapBrush = class(TMapBrush)
   protected
     procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
+  public
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
   end;
 
