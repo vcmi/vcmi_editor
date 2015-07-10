@@ -1021,7 +1021,7 @@ var
   config: TVCMIJSONObject;
 
   all_fields: TStringDynArray;
-  key: String;
+  key: TJSONStringType;
 begin
 
   for i := 0 to FMap.Count - 1 do
@@ -1038,9 +1038,9 @@ begin
 
     for key in all_fields do
     begin
-      id := Key;
+      //id := Key;
 
-      ParseObjectId(id, other_mod_id, id);
+      ParseObjectId(Key, other_mod_id, id);
 
       if other_mod_id = mod_id then
       begin
