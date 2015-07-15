@@ -81,10 +81,6 @@ type
     FCustomFemale: Boolean;
     FCustomBiography: TLocalizedString;
 
-    procedure VisitNormalHero();
-    procedure VisitRandomHero();
-    procedure VisitPrison();
-
     procedure Load();
 
     function GetHeroClass():AnsiString;
@@ -93,6 +89,10 @@ type
     procedure UpdateControls();
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
+  protected
+    procedure VisitNormalHero(AOptions: THeroOptions);override;
+    procedure VisitRandomHero(AOptions: THeroOptions);override;
+    procedure VisitPrison(AOptions: THeroOptions);override;
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
@@ -266,13 +266,13 @@ begin
   UpdateControls;
 end;
 
-procedure THeroFrame.VisitNormalHero;
+procedure THeroFrame.VisitNormalHero(AOptions: THeroOptions);
 begin
   edHeroClass.Enabled:=False;
   Load();
 end;
 
-procedure THeroFrame.VisitRandomHero;
+procedure THeroFrame.VisitRandomHero(AOptions: THeroOptions);
 begin
   lbHeroClass.Visible:=False;
   edHeroClass.Visible:=False;
@@ -285,7 +285,7 @@ begin
   Load();
 end;
 
-procedure THeroFrame.VisitPrison;
+procedure THeroFrame.VisitPrison(AOptions: THeroOptions);
 begin
   lbOwner.Visible:=False;
   edOwner.Visible := False;
@@ -312,7 +312,7 @@ begin
 
   if edOwner.Visible then
   begin
-    edOwner.ItemIndex := 1 + SmallInt(FOptions.Owner);
+    edOwner.ItemIndex := Integer(FOptions.Owner);
   end;
 
   //TODO: load portrait
@@ -347,11 +347,16 @@ function THeroFrame.GetHeroClass: AnsiString;
 begin
   if not Assigned(FOptions) then
   begin
-    exit('');
+    exit('');//just to safe
   end;
 
   if FOptions.&type = '' then
   begin
+
+    if FOptions.MapObject.GetID = TYPE_HERO then
+    begin
+      Exit(FOptions.MapObject.GetSubId());
+    end;
     exit('');
   end;
 
@@ -416,7 +421,6 @@ begin
   inherited Create(TheOwner);
 
   edOwner.Items.Clear;
-  edOwner.Items.Add(ListsManager.PlayerName[TPlayer.NONE]);
   for p in TPlayerColor do
   begin
     edOwner.Items.Add(ListsManager.PlayerName[p]);
@@ -432,6 +436,11 @@ begin
     FOptions.&type := edType.GetValueWithEmptyOption();
   end;
 
+  if edOwner.Visible then
+  begin
+    FOptions.Owner := TPlayer(edOwner.ItemIndex);
+  end;
+
   if cbExperience.Checked then
   begin
     FOptions.Experience := StrToQWordDef(edExperience.Text, 0);
@@ -439,19 +448,12 @@ begin
   else begin
     FOptions.Experience := 0;
   end;
-
 end;
 
 procedure THeroFrame.VisitHero(AOptions: THeroOptions);
 begin
   FOptions := AOptions;
-  inherited VisitHero(AOptions);
-
-  case AOptions.MapObject.GetID of
-    TYPE_HERO: VisitNormalHero();
-    TYPE_PRISON: VisitPrison();
-    TYPE_RANDOMHERO: VisitRandomHero();
-  end;
+  inherited VisitHero(AOptions); //continue dispatch
 end;
 
 end.

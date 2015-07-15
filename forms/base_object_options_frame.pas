@@ -42,6 +42,10 @@ type
   protected
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
     procedure SaveResourceSet(AParentControl: TWinControl; ADest: TResourceSet);
+
+    procedure VisitNormalHero({%H-}AOptions: THeroOptions);virtual;
+    procedure VisitRandomHero({%H-}AOptions: THeroOptions);virtual;
+    procedure VisitPrison({%H-}AOptions: THeroOptions);virtual;
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -186,6 +190,21 @@ begin
 
 end;
 
+procedure TBaseObjectOptionsFrame.VisitNormalHero(AOptions: THeroOptions);
+begin
+
+end;
+
+procedure TBaseObjectOptionsFrame.VisitRandomHero(AOptions: THeroOptions);
+begin
+
+end;
+
+procedure TBaseObjectOptionsFrame.VisitPrison(AOptions: THeroOptions);
+begin
+
+end;
+
 procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
   );
 begin
@@ -209,7 +228,11 @@ end;
 
 procedure TBaseObjectOptionsFrame.VisitHero(AOptions: THeroOptions);
 begin
-
+  case AOptions.MapObject.GetID of
+    TYPE_HERO: VisitNormalHero(AOptions);
+    TYPE_PRISON: VisitPrison(AOptions);
+    TYPE_RANDOMHERO: VisitRandomHero(AOptions);
+  end;
 end;
 
 procedure TBaseObjectOptionsFrame.VisitHeroPlaseholder(
