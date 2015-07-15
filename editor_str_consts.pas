@@ -41,6 +41,33 @@ resourcestring
 
   rsArmy = 'Army';
   rsGuards = 'Guards';
+
+  rsSlotHead = 'Head';
+  rsSlotShoulders = 'Shoulders';
+  rsSlotNeck = 'Neck';
+  rsSlotRightHand = 'RightHand';
+  rsSlotLeftHand = 'LeftHand';
+  rsSlotTorso = 'Torso';
+  rsSlotRightRing = 'RightRing';
+  rsSlotLeftRing = 'LeftRing';
+
+  rsSlotFeet = 'Feet';
+  rsSlotMisc1 = 'Misc1';
+  rsSlotMisc2 = 'Misc2';
+  rsSlotMisc3 = 'Misc3';
+  rsSlotMisc4 = 'Misc4';
+  rsSlotMisc5 = 'Misc5';
+  rsSlotMach1 = 'Mach1';
+  rsSlotMach2 = 'Mach2';
+
+  rsSlotMach3 = 'Mach3';
+  rsSlotMach4 = 'Mach4';
+  rsSlotSpellbook = 'Spellbook';
+
+  rsSlotBackpack = 'Backpack';
+
+
+
 implementation
 
 end.

@@ -1,0 +1,110 @@
+inherited HeroArtifactsFrame: THeroArtifactsFrame
+  Height = 525
+  Width = 514
+  ClientHeight = 525
+  ClientWidth = 514
+  DesignLeft = 453
+  DesignTop = 207
+  object Splitter1: TSplitter[0]
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 368
+    Width = 514
+    Align = alBottom
+    Beveled = True
+    ResizeAnchor = akBottom
+    ResizeStyle = rsPattern
+  end
+  object pnBackpack: TPanel[1]
+    Left = 0
+    Height = 152
+    Top = 373
+    Width = 514
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = 'pnBackpack'
+    ClientHeight = 152
+    ClientWidth = 514
+    TabOrder = 0
+    object BackPack: TStringGrid
+      Left = 0
+      Height = 152
+      Top = 0
+      Width = 514
+      Align = alClient
+      AutoFillColumns = True
+      ColCount = 1
+      Columns = <      
+        item
+          MinSize = 100
+          MaxSize = 1000
+          Title.Caption = 'Backpack'
+          Width = 513
+        end>
+      FixedCols = 0
+      Flat = True
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goAutoAddRows, goSmoothScroll]
+      RowCount = 1
+      TabOrder = 0
+      OnKeyDown = BackPackKeyDown
+      OnResize = BackPackResize
+      OnSelectEditor = BackPackSelectEditor
+      ColWidths = (
+        513
+      )
+    end
+    object BackpackSelector: TComboBox
+      Left = 16
+      Height = 23
+      Top = 32
+      Width = 200
+      ItemHeight = 15
+      OnEditingDone = BackpackSelectorEditingDone
+      Style = csDropDownList
+      TabOrder = 1
+      Visible = False
+    end
+  end
+  object pnSlots: TPanel[2]
+    Left = 0
+    Height = 349
+    Top = 19
+    Width = 514
+    Align = alClient
+    BevelOuter = bvNone
+    ChildSizing.LeftRightSpacing = 5
+    ChildSizing.TopBottomSpacing = 5
+    ChildSizing.HorizontalSpacing = 15
+    ChildSizing.VerticalSpacing = 5
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 4
+    TabOrder = 2
+  end
+  object Panel1: TPanel[3]
+    Left = 0
+    Height = 19
+    Top = 0
+    Width = 514
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 19
+    ClientWidth = 514
+    TabOrder = 3
+    object cbCustomise: TCheckBox
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 514
+      Align = alTop
+      AutoSize = False
+      Caption = 'Customise'
+      TabOrder = 0
+    end
+  end
+end

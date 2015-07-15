@@ -375,6 +375,10 @@ type
     FHeroInfos: THeroInfos;
     FHeroMap: TStringList;
 
+    FArtifactInfos: TArtifactInfos;
+    FArtifactMap: TStringList;
+
+
     procedure LoadPrimSkills;
     procedure LoadSkills;
     procedure LoadTextDataConfig;
@@ -385,10 +389,10 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
-    FArtifactInfos: TArtifactInfos;
-    FArtifactMap: TStringList;
+
     FTextDataConfig: TTextDataConfig;
 
+    function GetArtifactSlotMap(ASlot: Integer): TStrings;
     function GetHeroClasses(AId: AnsiString): THeroClassInfo;
     function GetHeroes(AId: AnsiString): THeroInfo;
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
@@ -448,6 +452,8 @@ type
     function ArtifactIndexToString (AIndex: TCustomID): AnsiString;
     property ArtifactInfos: TArtifactInfos read FArtifactInfos;
     property ArtifactMap: TStringList read FArtifactMap;
+
+    property ArtifactSlotMap[ASlot: Integer]: TStrings read GetArtifactSlotMap;
 
     //Heroes
     function HeroIndexToString (AIndex: TCustomID): AnsiString;
@@ -919,6 +925,11 @@ end;
 function TListsManager.GetHeroClasses(AId: AnsiString): THeroClassInfo;
 begin
   Result := FHeroClassMap.Objects[FHeroClassMap.IndexOf(AId)] as THeroClassInfo;
+end;
+
+function TListsManager.GetArtifactSlotMap(ASlot: Integer): TStrings;
+begin
+  //todo:GetArtifactSlotMap
 end;
 
 function TListsManager.AssembleConfig(APaths: TStrings;

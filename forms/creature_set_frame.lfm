@@ -329,13 +329,13 @@ inherited CreatureSetFrame: TCreatureSetFrame
     ClientHeight = 26
     ClientWidth = 619
     TabOrder = 1
-    object edTune: TCheckBox
+    object edCustomize: TCheckBox
       Left = 8
       Height = 19
       Top = 8
-      Width = 54
-      Caption = 'Tuned'
-      OnChange = edTuneChange
+      Width = 76
+      Caption = 'Customise'
+      OnChange = edCustomizeChange
       TabOrder = 0
     end
     object edRemovableUnits: TCheckBox

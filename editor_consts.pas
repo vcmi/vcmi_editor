@@ -210,6 +210,10 @@ const
   TYPE_ARTIFACT = 'artifact';
   TYPE_RESOURCE = 'resource';
 
+const
+
+  ARTIFACT_SLOT_COUNT = 19;
+
 implementation
 
 end.

@@ -15,7 +15,7 @@ type
 
   TCreatureSetFrame = class(TBaseObjectOptionsFrame)
     edRemovableUnits: TCheckBox;
-    edTune: TCheckBox;
+    edCustomize: TCheckBox;
     edCell1: TComboBox;
     edCell2: TComboBox;
     edCell3: TComboBox;
@@ -42,7 +42,7 @@ type
     edCell6Amount: TSpinEdit;
     edCell7Amount: TSpinEdit;
     procedure CreatureTypeChange(Sender: TObject);
-    procedure edTuneChange(Sender: TObject);
+    procedure edCustomizeChange(Sender: TObject);
   private
     FOptions: TCreatureSet;
 
@@ -74,7 +74,7 @@ implementation
 
 { TCreatureSetFrame }
 
-procedure TCreatureSetFrame.edTuneChange(Sender: TObject);
+procedure TCreatureSetFrame.edCustomizeChange(Sender: TObject);
 begin
   UpdateControls;
 end;
@@ -89,7 +89,7 @@ var
   cell_number: Integer;
   disableAll: Boolean;
 begin
-  disableAll := not edTune.Checked;
+  disableAll := not edCustomize.Checked;
 
   for cell_number in [0..6] do
   begin
@@ -106,7 +106,7 @@ var
 begin
   FOptions := ASrc;
 
-  edTune.Checked:=ASrc.Count>0;
+  edCustomize.Checked:=ASrc.Count>0;
 
   for cell_number in [0..6] do
   begin
@@ -167,7 +167,7 @@ begin
 
   FOptions.Clear;
 
-  if not edTune.Checked then
+  if not edCustomize.Checked then
   begin
     Exit; //not tuned army is empty collection
   end;

@@ -24,7 +24,7 @@ unit base_object_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil, Forms, Controls, Spin,
+  Classes, SysUtils, gvector, FileUtil,  LCLType,  Forms, Controls, Spin, Grids,
   editor_types,
   object_options, map,
   lists_manager, editor_consts;
@@ -46,6 +46,9 @@ type
     procedure VisitNormalHero({%H-}AOptions: THeroOptions);virtual;
     procedure VisitRandomHero({%H-}AOptions: THeroOptions);virtual;
     procedure VisitPrison({%H-}AOptions: THeroOptions);virtual;
+
+    procedure HandleStringGridKeyDown(Sender: TObject;  var Key: Word; Shift: TShiftState);
+    procedure HandleStringGridResize(Sender: TObject);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -203,6 +206,32 @@ end;
 procedure TBaseObjectOptionsFrame.VisitPrison(AOptions: THeroOptions);
 begin
 
+end;
+
+procedure TBaseObjectOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if (key = VK_DELETE) and (Shift=[]) then
+  begin
+    (Sender as TCustomStringGrid).DeleteRow((Sender as TCustomStringGrid).Row);
+    Exit;
+  end;
+
+  if (key = VK_INSERT) and (Shift=[]) then
+  begin
+    (Sender as TCustomStringGrid).InsertColRow(false, (Sender as TCustomStringGrid).Row+1);
+    Exit;
+  end;
+end;
+
+procedure TBaseObjectOptionsFrame.HandleStringGridResize(Sender: TObject);
+var
+  grid: TCustomStringGrid;
+begin
+  grid := Sender as TCustomStringGrid;
+
+  if grid.EditorMode then
+    grid.Editor.BoundsRect := grid.CellRect(grid.Col,grid.Row);
 end;
 
 procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

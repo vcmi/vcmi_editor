@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, Spin, Grids, LCLType, CheckLst, base_object_options_frame,
+  StdCtrls, Spin, Grids, CheckLst, base_object_options_frame,
   gui_helpers, object_options, base_info, editor_classes;
 
 type
@@ -82,7 +82,6 @@ type
     procedure edSecondarySkillsResize(Sender: TObject);
     procedure edSecondarySkillsSelectEditor(Sender: TObject; aCol,
       aRow: Integer; var Editor: TWinControl);
-    procedure edSecondarySkillsSelection(Sender: TObject; aCol, aRow: Integer);
     procedure MasterySelectorEditingDone(Sender: TObject);
     procedure SecondarySkillSelectorEditingDone(Sender: TObject);
   private
@@ -109,12 +108,6 @@ implementation
 
 { TPandorasRewardFrame }
 
-procedure TPandorasRewardFrame.edSecondarySkillsSelection(Sender: TObject; aCol,
-  aRow: Integer);
-begin
-  //(Sender as TCustomStringGrid).EditorMode :=true;
-end;
-
 procedure TPandorasRewardFrame.edSecondarySkillsSelectEditor(Sender: TObject;
   aCol, aRow: Integer; var Editor: TWinControl);
 
@@ -137,35 +130,18 @@ begin
     end
   end;
 
-  Editor.BoundsRect := grid.CellRect(aCol,aRow);;
+  Editor.BoundsRect := grid.CellRect(aCol,aRow);
 end;
 
 procedure TPandorasRewardFrame.edSecondarySkillsResize(Sender: TObject);
-var
-  grid: TCustomStringGrid;
 begin
-  grid := Sender as TCustomStringGrid;
-
-  if grid.EditorMode then
-    grid.Editor.BoundsRect := grid.CellRect(grid.Col,grid.Row);
+  HandleStringGridResize(Sender);
 end;
 
 procedure TPandorasRewardFrame.edSecondarySkillsKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
-//
-  if (key = VK_DELETE) and (Shift=[]) then
-  begin
-    (Sender as TCustomStringGrid).DeleteRow((Sender as TCustomStringGrid).Row);
-    Exit;
-  end;
-
-  if (key = VK_INSERT) and (Shift=[]) then
-  begin
-    (Sender as TCustomStringGrid).InsertColRow(false, (Sender as TCustomStringGrid).Row+1);
-    Exit;
-  end;
-
+  HandleStringGridKeyDown(Sender, Key, Shift)
 end;
 
 procedure TPandorasRewardFrame.MasterySelectorEditingDone(Sender: TObject);
@@ -231,10 +207,7 @@ begin
 
     edSecondarySkills.Cells[1, row] := MasterySelector.Items[option.Level];
     edSecondarySkills.Objects[1, row] := TObject(option.Level);
-
-
   end;
-
 end;
 
 procedure TPandorasRewardFrame.LoadResources(AOptions: TResourceSet);

@@ -12,9 +12,9 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
     Height = 315
     Top = 0
     Width = 544
-    ActivePage = tsSpells
+    ActivePage = tsSecondary
     Align = alClient
-    TabIndex = 4
+    TabIndex = 1
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -205,7 +205,6 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
         OnKeyDown = edSecondarySkillsKeyDown
         OnResize = edSecondarySkillsResize
         OnSelectEditor = edSecondarySkillsSelectEditor
-        OnSelection = edSecondarySkillsSelection
         ColWidths = (
           267
           268

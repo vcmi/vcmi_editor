@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
-  object_link, logical_id_condition, vcmi_json, fpjson;
+  object_link, logical_id_condition, vcmi_json, editor_consts, fpjson;
 
 type
 
@@ -175,7 +175,7 @@ type
 
   THeroArtifacts = class
   private
-    FSlots: array[0..18] of AnsiString;
+    FSlots: array[0..ARTIFACT_SLOT_COUNT-1] of AnsiString;
     FBackpack: TStringList;
     function GetBackpack: TStrings;
     function GetBySlotNumber(ASlotID: Integer): AnsiString;
@@ -187,6 +187,9 @@ type
 
     property BySlotNumber[ASlotID: Integer]: AnsiString read GetBySlotNumber write SetBySlotNumber;
 
+    function IsEmpty: Boolean;
+
+    procedure Clear;
   published
     property Head: AnsiString       index 0 read GetBySlotNumber write SetBySlotNumber;
     property Shoulders: AnsiString  index 1 read GetBySlotNumber write SetBySlotNumber;
@@ -726,8 +729,6 @@ function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TOb
 
 implementation
 
-uses
-  editor_consts;
 
 function CreateByID(ID: AnsiString; SubID: AnsiString;AObject: IMapObject): TObjectOptions;
 var
@@ -888,6 +889,31 @@ destructor THeroArtifacts.Destroy;
 begin
   FBackpack.Free;
   inherited Destroy;
+end;
+
+function THeroArtifacts.IsEmpty: Boolean;
+var
+  s: String;
+begin
+  if not (FBackpack.Count = 0) then
+    exit(false);
+
+  for s in FSlots do
+    if s <> '' then
+      Exit(false);
+
+  Exit(true);
+end;
+
+procedure THeroArtifacts.Clear;
+var
+  slot: Integer;
+begin
+  FBackpack.Clear;
+  for slot in [0..ARTIFACT_SLOT_COUNT-1] do
+  begin
+    FSlots[slot] := '';
+  end;
 end;
 
 { TResourceSet }
