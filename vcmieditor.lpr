@@ -41,7 +41,7 @@ uses
   object_link, object_link_frame, logical_id_condition, logical_event_condition,
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame, 
 artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame, 
-local_event_frame;
+local_event_frame, hero_frame, editor_rtti;
 
 {$R *.res}
 

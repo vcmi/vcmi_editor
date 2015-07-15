@@ -175,7 +175,7 @@ begin
   for cell_number in [0..6] do
   begin
     inst_info :=  FOptions.Add;
-    inst_info.&type := FCellTypes[cell_number].GetValueWithEmptyOption(ListsManager.CreatureMap);
+    inst_info.&type := FCellTypes[cell_number].GetValueWithEmptyOption();
 
     if inst_info.IsEmptyType() then
     begin

@@ -24,7 +24,7 @@ unit map_format_h3m;
 interface
 
 uses
-  Classes, SysUtils, math, fgl, FileUtil, map, map_format, terrain,
+  Classes, SysUtils, math, fgl, typinfo, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
   objects, object_link, editor_graphics, logical_id_condition,
   logical_event_condition, logical_expression;
@@ -1218,7 +1218,7 @@ begin
     TOwnerSize.size4:FSrc.Skip(3);
   end;
 
-  Assert(AOptions.MayBeOwned, 'Attempt to read owner of not ownable object');
+  Assert(IsPublishedProp(AOptions, 'Owner'), 'Attempt to read owner of not ownable object');
 
   if tmp = 255 then
   begin

@@ -205,8 +205,13 @@ type
   { THeroClassInfo }
 
   THeroClassInfo = class(TMapObjectInfo)
+  private
+    FPrimarySkills: THeroPrimarySkills;
   public
-
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property PrimarySkills: THeroPrimarySkills read FPrimarySkills;
   end;
 
   THeroClassInfoList = specialize TFPGObjectList<THeroClassInfo>;
@@ -329,7 +334,7 @@ type
     property Texts: THeroTexts read FTexts;
     property Female: Boolean read FFemale write SetFemale nodefault;
     property Special: Boolean read FSpecial write SetSpecial default False;
-    property HeroClass: AnsiString read FHeroClass write SetHeroClass;
+    property &Class: AnsiString read FHeroClass write SetHeroClass;
   end;
 
   THeroInfoList = specialize TFPGObjectList<THeroInfo>;
@@ -384,6 +389,8 @@ type
     FArtifactMap: TStringList;
     FTextDataConfig: TTextDataConfig;
 
+    function GetHeroClasses(AId: AnsiString): THeroClassInfo;
+    function GetHeroes(AId: AnsiString): THeroInfo;
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
   public
@@ -392,7 +399,7 @@ type
 
     procedure PreLoad;
 
-    procedure LoadFactions(APaths: TModdedConfigPaths); //todo: mod support for factions
+    procedure LoadFactions(APaths: TModdedConfigPaths);
     procedure LoadHeroClasses(APaths: TModdedConfigPaths);
     procedure LoadCreatures(APaths: TModdedConfigPaths);
     procedure LoadArtifacts(APaths: TModdedConfigPaths);
@@ -430,6 +437,7 @@ type
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
     property HeroClassMap: TStringList read FHeroClassMap;
     function HeroClassIndexToString (AIndex: TCustomID):AnsiString;
+    property HeroClasses[AId: AnsiString]: THeroClassInfo read GetHeroClasses;
 
     //Creatures
     function CreatureIndexToString (AIndex: TCustomID): AnsiString;
@@ -446,6 +454,9 @@ type
     property HeroInfos: THeroInfos read FHeroInfos;
     property HeroMap: TStringList read FHeroMap;
 
+    property Heroes[AId: AnsiString]: THeroInfo read GetHeroes;
+
+    procedure FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
   end;
 
 implementation
@@ -477,6 +488,20 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ THeroClassInfo }
+
+constructor THeroClassInfo.Create;
+begin
+  inherited Create;
+  FPrimarySkills := THeroPrimarySkills.Create;
+end;
+
+destructor THeroClassInfo.Destroy;
+begin
+  FPrimarySkills.Free;
+  inherited Destroy;
+end;
 
 { TGuildSpell }
 
@@ -886,6 +911,16 @@ begin
   end;
 end;
 
+function TListsManager.GetHeroes(AId: AnsiString): THeroInfo;
+begin
+  Result := FHeroMap.Objects[FHeroMap.IndexOf(AId)] as THeroInfo;
+end;
+
+function TListsManager.GetHeroClasses(AId: AnsiString): THeroClassInfo;
+begin
+  Result := FHeroClassMap.Objects[FHeroClassMap.IndexOf(AId)] as THeroClassInfo;
+end;
+
 function TListsManager.AssembleConfig(APaths: TStrings;
   ALegacyData: TJsonObjectList): TJSONObject;
 var
@@ -1043,6 +1078,24 @@ begin
   end;
 
   raise Exception.CreateFmt('Hero index not found: %d',[AIndex]);
+end;
+
+procedure TListsManager.FillWithHeroesOfClass(ATarget: TStrings;
+  AHeroClass: AnsiString);
+var
+  hero_info: THeroInfo;
+  i: Integer;
+begin
+  ATarget.Clear;
+  for i := 0 to FHeroMap.Count - 1 do
+  begin
+    hero_info := FHeroMap.Objects[i] as THeroInfo;
+
+    if hero_info.&Class = AHeroClass then
+    begin
+      ATarget.AddObject(hero_info.Name, hero_info);
+    end;
+  end;
 end;
 
 procedure TListsManager.PreLoad;

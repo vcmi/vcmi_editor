@@ -25,7 +25,7 @@ unit logical_id_condition;
 interface
 
 uses
-  Classes, SysUtils, editor_types, editor_utils, editor_classes;
+  Classes, SysUtils, fpjson, editor_types, editor_utils, editor_classes;
 
 type
   { TLogicalIDCondition }
@@ -53,10 +53,10 @@ type
     function IsPermissive: Boolean;
 
   public //ISerializeNotify
-    procedure AfterSerialize;
-    procedure BeforeSerialize;
-    procedure AfterDeSerialize;
-    procedure BeforeDeSerialize;
+    procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+    procedure BeforeSerialize(Sender:TObject);
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
+    procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
 
   public
     procedure FPOObservedChanged(ASender: TObject;
@@ -174,22 +174,24 @@ begin
   Result := (FAnyOf.Count = 0) and (FAllOf.Count = 0);
 end;
 
-procedure TLogicalIDCondition.AfterSerialize;
+procedure TLogicalIDCondition.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
 
 end;
 
-procedure TLogicalIDCondition.BeforeSerialize;
-begin
-  Minimize;
-end;
-
-procedure TLogicalIDCondition.AfterDeSerialize;
+procedure TLogicalIDCondition.BeforeSerialize(Sender: TObject);
 begin
   Minimize;
 end;
 
-procedure TLogicalIDCondition.BeforeDeSerialize;
+procedure TLogicalIDCondition.AfterDeSerialize(Sender: TObject; AData: TJSONData
+  );
+begin
+  Minimize;
+end;
+
+procedure TLogicalIDCondition.BeforeDeSerialize(Sender: TObject;
+  AData: TJSONData);
 begin
   Clear;
 end;

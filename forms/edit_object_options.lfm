@@ -1,7 +1,7 @@
 object EditObjectOptions: TEditObjectOptions
-  Left = 291
+  Left = 441
   Height = 369
-  Top = 165
+  Top = 148
   Width = 502
   Caption = 'EditObjectOptions'
   ClientHeight = 369
@@ -20,7 +20,7 @@ object EditObjectOptions: TEditObjectOptions
     TabIndex = 0
     TabOrder = 0
     object tsCommon: TTabSheet
-      Caption = 'Common options'
+      Caption = 'Main options'
       ClientHeight = 301
       ClientWidth = 494
       object lbNothingToEdit: TLabel

@@ -24,10 +24,10 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, fgl, LCLIntf, gvector, gpriorityqueue, editor_types,
-  editor_consts, terrain, editor_classes, editor_graphics, objects,
-  object_options, lists_manager, logical_id_condition, logical_event_condition,
-  logical_expression;
+  Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
+  editor_types, editor_consts, terrain, editor_classes, editor_graphics,
+  objects, object_options, lists_manager, logical_id_condition,
+  logical_event_condition, logical_expression;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -247,10 +247,10 @@ type
     destructor Destroy; override;
 
     procedure Assign(AOther: TObjTemplate);
-    procedure BeforeSerialize;
-    procedure BeforeDeSerialize;
-    procedure AfterSerialize;
-    procedure AfterDeSerialize;
+    procedure BeforeSerialize(Sender:TObject);
+    procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+    procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -652,22 +652,24 @@ begin
   FZIndex := AOther.ZIndex;
 end;
 
-procedure TMapObjectTemplate.BeforeSerialize;
+procedure TMapObjectTemplate.BeforeSerialize(Sender: TObject);
 begin
   CompactMask;
 end;
 
-procedure TMapObjectTemplate.BeforeDeSerialize;
+procedure TMapObjectTemplate.BeforeDeSerialize(Sender: TObject; AData: TJSONData
+  );
 begin
 
 end;
 
-procedure TMapObjectTemplate.AfterSerialize;
+procedure TMapObjectTemplate.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
 
 end;
 
-procedure TMapObjectTemplate.AfterDeSerialize;
+procedure TMapObjectTemplate.AfterDeSerialize(Sender: TObject; AData: TJSONData
+  );
 begin
   CompactMask;
 end;
@@ -829,14 +831,7 @@ end;
 
 function TMapObject.GetPlayer: TPlayer;
 begin
-  if Options.MayBeOwned then
-  begin
-    Result := Options.Owner;
-  end
-  else
-  begin
-    Result := TPlayer.none;
-  end;
+  Result := Options.Owner;
 end;
 
 function TMapObject.GetIdx: integer;

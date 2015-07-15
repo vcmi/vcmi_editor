@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, contnrs, fpjson, fgl, RegExpr, vcmi_fpjsonrtti, typinfo, filesystem_base,
-  editor_classes, editor_types;
+  editor_classes, editor_types, editor_rtti;
 
 type
 
@@ -459,14 +459,20 @@ function TVCMIJSONStreamer.ObjectToJSON(const AObject: TObject): TJSONObject;
 begin
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).BeforeSerialize();
+    (AObject as ISerializeNotify).BeforeSerialize(Self);
   end;
 
-  Result:=inherited ObjectToJSON(AObject);
+  if AObject is TJSONObject then
+  begin
+    Result := TJSONObject(TJSONObject(AObject).Clone);
+  end
+  else begin
+    Result:=inherited ObjectToJSON(AObject);
+  end;
 
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).AfterSerialize();
+    (AObject as ISerializeNotify).AfterSerialize(Self, Result);
   end;
 end;
 
@@ -474,7 +480,7 @@ function TVCMIJSONStreamer.ObjectToJsonEx(const AObject: TObject): TJSONData;
 begin
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).BeforeSerialize();
+    (AObject as ISerializeNotify).BeforeSerialize(Self);
   end;
 
   if AObject is ISerializeSpecial then
@@ -491,7 +497,7 @@ begin
 
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).AfterSerialize();
+    (AObject as ISerializeNotify).AfterSerialize(Self, Result);
   end;
 end;
 
@@ -527,15 +533,8 @@ end;
 
 procedure TVCMIJSONStreamer.DoBeforeStreamProperty(const AObject: TObject;
   PropertyInfo: PPropInfo; var Skip: boolean);
-var
-  PropType: PTypeInfo;
-  Value: Int64;
-  DefValue: Int64;
-  SValue: String;
 begin
   inherited DoBeforeStreamProperty(AObject, PropertyInfo, Skip);
-
-  PropType := PropertyInfo^.PropType;
 
   if not IsStoredProp(AObject,PropertyInfo) then
   begin
@@ -543,24 +542,7 @@ begin
     Exit;
   end;
 
-  case PropType^.Kind of
-    tkInteger, tkInt64, tkChar, tkEnumeration, tkWChar,tkSet, tkBool, tkQWord: begin
-      Value := GetOrdProp(AObject, PropertyInfo);
-      DefValue := PropertyInfo^.Default;
-
-      if (Value = DefValue) and (DefValue<>longint($80000000)) then
-      begin
-        Skip := True;
-      end;
-    end;
-    tkString, tkAString:begin
-      SValue := GetStrProp(AObject, PropertyInfo);
-      if SValue = '' then
-      begin
-         Skip := True;
-      end;
-    end;
-  end;
+  Skip := IsDefaultValue(AObject, PropertyInfo);
 end;
 
 procedure TVCMIJSONStreamer.DoPreparePropName(var PropName: AnsiString);
@@ -812,7 +794,7 @@ procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;
 begin
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).BeforeDeSerialize();
+    (AObject as ISerializeNotify).BeforeDeSerialize(Self, JSON);
   end;
 
   if AObject is IEmbeddedCollection then
@@ -829,7 +811,7 @@ begin
 
   if AObject is ISerializeNotify then
   begin
-    (AObject as ISerializeNotify).AfterDeSerialize();
+    (AObject as ISerializeNotify).AfterDeSerialize(Self, JSON);
   end;
 end;
 

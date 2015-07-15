@@ -28,7 +28,7 @@ uses
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
   artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame,
-  local_event_frame;
+  local_event_frame, hero_frame;
 
 type
 
@@ -206,6 +206,7 @@ end;
 
 procedure TEditObjectOptions.VisitHero(AOptions: THeroOptions);
 begin
+  CreateFrame(THeroFrame, AOptions,tsCommon);
   VisitArmedObject(AOptions);
 end;
 

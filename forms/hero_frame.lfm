@@ -1,0 +1,292 @@
+inherited HeroFrame: THeroFrame
+  Height = 457
+  Width = 704
+  ChildSizing.LeftRightSpacing = 5
+  ChildSizing.TopBottomSpacing = 5
+  ChildSizing.HorizontalSpacing = 5
+  ChildSizing.VerticalSpacing = 5
+  ChildSizing.EnlargeHorizontal = crsScaleChilds
+  ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+  ChildSizing.ShrinkHorizontal = crsScaleChilds
+  ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+  ChildSizing.Layout = cclLeftToRightThenTopToBottom
+  ChildSizing.ControlsPerLine = 3
+  ClientHeight = 457
+  ClientWidth = 704
+  Constraints.MinHeight = 410
+  Constraints.MinWidth = 420
+  object lbHeroClass: TLabel[0]
+    Left = 5
+    Height = 23
+    Top = 18
+    Width = 90
+    Caption = 'Hero class:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edHeroClass: TComboBox[1]
+    Left = 131
+    Height = 23
+    Top = 18
+    Width = 408
+    ItemHeight = 15
+    OnChange = edHeroClassChange
+    Style = csDropDownList
+    TabOrder = 11
+  end
+  object Placeholder1: TLabel[2]
+    Left = 544
+    Height = 23
+    Top = 18
+    Width = 90
+    Constraints.MaxWidth = 90
+    Constraints.MinHeight = 10
+    Constraints.MinWidth = 50
+    ParentColor = False
+  end
+  object lbType: TLabel[3]
+    Left = 5
+    Height = 23
+    Top = 59
+    Width = 90
+    Caption = 'Type:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edType: TComboBox[4]
+    Left = 131
+    Height = 23
+    Top = 59
+    Width = 408
+    Constraints.MinWidth = 150
+    ItemHeight = 15
+    OnChange = edTypeChange
+    Style = csDropDownList
+    TabOrder = 0
+  end
+  object Placeholder2: TLabel[5]
+    Left = 544
+    Height = 23
+    Top = 59
+    Width = 90
+    Constraints.MaxWidth = 90
+    Constraints.MinHeight = 10
+    Constraints.MinWidth = 50
+    ParentColor = False
+  end
+  object lbOwner: TLabel[6]
+    Left = 5
+    Height = 23
+    Top = 100
+    Width = 90
+    Caption = 'Owner:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edOwner: TComboBox[7]
+    Left = 131
+    Height = 23
+    Top = 100
+    Width = 408
+    ItemHeight = 15
+    Style = csDropDownList
+    TabOrder = 1
+  end
+  object Placeholder3: TLabel[8]
+    Left = 544
+    Height = 23
+    Top = 100
+    Width = 90
+    Constraints.MaxWidth = 90
+    Constraints.MinHeight = 10
+    Constraints.MinWidth = 50
+    ParentColor = False
+  end
+  object lbPortrait: TLabel[9]
+    Left = 5
+    Height = 22
+    Top = 141
+    Width = 90
+    Caption = 'Portrait:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edPortrait: TComboBoxEx[10]
+    Left = 131
+    Height = 22
+    Top = 141
+    Width = 408
+    ItemHeight = 16
+    ItemsEx = <>
+    ReadOnly = True
+    TabOrder = 2
+  end
+  object cbPortrait: TCheckBox[11]
+    Left = 544
+    Height = 22
+    Top = 141
+    Width = 90
+    Caption = 'Customise'
+    Constraints.MaxWidth = 90
+    OnChange = cbPortraitChange
+    TabOrder = 3
+  end
+  object lbExperience: TLabel[12]
+    Left = 5
+    Height = 23
+    Top = 181
+    Width = 90
+    Caption = 'Experience:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edExperience: TEdit[13]
+    Left = 131
+    Height = 23
+    Top = 181
+    Width = 408
+    NumbersOnly = True
+    TabOrder = 4
+  end
+  object cbExperience: TCheckBox[14]
+    Left = 544
+    Height = 23
+    Top = 181
+    Width = 90
+    Caption = 'Customise'
+    Constraints.MaxWidth = 90
+    OnChange = cbExperienceChange
+    TabOrder = 5
+  end
+  object lbName: TLabel[15]
+    Left = 5
+    Height = 23
+    Top = 222
+    Width = 90
+    Caption = 'Name:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edName: TEdit[16]
+    Left = 131
+    Height = 23
+    Top = 222
+    Width = 408
+    OnChange = edNameChange
+    OnEditingDone = edNameEditingDone
+    TabOrder = 6
+  end
+  object cbName: TCheckBox[17]
+    Left = 544
+    Height = 23
+    Top = 222
+    Width = 90
+    Caption = 'Customise'
+    Constraints.MaxWidth = 90
+    OnChange = cbNameChange
+    TabOrder = 7
+  end
+  object lbSex: TLabel[18]
+    Left = 5
+    Height = 23
+    Top = 263
+    Width = 90
+    Caption = 'Sex:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edSex: TComboBox[19]
+    Left = 131
+    Height = 23
+    Top = 263
+    Width = 408
+    ItemHeight = 15
+    Items.Strings = (
+      'Male'
+      'Female'
+    )
+    OnChange = edSexChange
+    Style = csDropDownList
+    TabOrder = 8
+  end
+  object cbSex: TCheckBox[20]
+    Left = 544
+    Height = 23
+    Top = 263
+    Width = 90
+    Caption = 'Customise'
+    Constraints.MaxWidth = 90
+    OnChange = cbSexChange
+    TabOrder = 12
+  end
+  object lbBiography: TLabel[21]
+    Left = 5
+    Height = 100
+    Top = 304
+    Width = 90
+    Caption = 'Biography:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edBiography: TMemo[22]
+    Left = 131
+    Height = 100
+    Top = 304
+    Width = 408
+    Constraints.MinHeight = 100
+    Constraints.MinWidth = 200
+    ScrollBars = ssAutoBoth
+    TabOrder = 13
+  end
+  object cbBiography: TCheckBox[23]
+    Left = 544
+    Height = 100
+    Top = 304
+    Width = 90
+    Caption = 'Customise'
+    Constraints.MaxWidth = 90
+    OnChange = cbBiographyChange
+    TabOrder = 9
+  end
+  object lbPatrol: TLabel[24]
+    Left = 5
+    Height = 23
+    Top = 422
+    Width = 90
+    Caption = 'Patrol:'
+    Constraints.MaxWidth = 90
+    Layout = tlCenter
+    ParentColor = False
+  end
+  object edPatrol: TComboBox[25]
+    Left = 131
+    Height = 23
+    Top = 422
+    Width = 408
+    ItemHeight = 15
+    Items.Strings = (
+      'Disabled'
+      'Stand still'
+    )
+    OnKeyPress = edPatrolKeyPress
+    TabOrder = 10
+  end
+  object Placeholder5: TLabel[26]
+    Left = 544
+    Height = 23
+    Top = 422
+    Width = 90
+    Constraints.MaxWidth = 90
+    Constraints.MinHeight = 10
+    Constraints.MinWidth = 50
+    ParentColor = False
+  end
+end

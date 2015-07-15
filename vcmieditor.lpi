@@ -126,7 +126,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="67">
+    <Units Count="69">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -469,6 +469,17 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit66>
+      <Unit67>
+        <Filename Value="forms\hero_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HeroFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit67>
+      <Unit68>
+        <Filename Value="editor_rtti.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit68>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -27,7 +27,7 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, undo_base, undo_map, Map, editor_types, objects;
+  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects;
 
 type
 
@@ -172,7 +172,7 @@ begin
   TargetObject.X := X;
   TargetObject.Y := Y;
 
-  if TargetObject.Options.MayBeOwned then
+  if IsPublishedProp(TargetObject.Options, 'Owner') then
   begin
     TargetObject.Options.Owner := CurrentPlayer;
   end;

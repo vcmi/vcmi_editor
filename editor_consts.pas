@@ -204,6 +204,8 @@ const
 const
   TYPE_MONSTER = 'monster';
   TYPE_HERO = 'hero';
+  TYPE_PRISON = 'prison';
+  TYPE_RANDOMHERO = 'randomHero';
   TYPE_TOWN = 'town';
   TYPE_ARTIFACT = 'artifact';
   TYPE_RESOURCE = 'resource';

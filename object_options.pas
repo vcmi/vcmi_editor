@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
-  object_link, logical_id_condition;
+  object_link, logical_id_condition, vcmi_json, fpjson;
 
 type
 
@@ -43,21 +43,24 @@ type
     function GetSubId: AnsiString;
   end;
 
-  TObjectOptions = class
+  TObjectOptions = class(TObject, ISerializeNotify)
   private
     FObject: IMapObject;
     FOwner: TPlayer;
     procedure SetOwner(AValue: TPlayer);
+  public//ISerializeNotify
+    procedure BeforeDeSerialize(Sender: TObject; AData: TJSONData); virtual;
+    procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); virtual;
+    procedure BeforeSerialize(Sender: TObject); virtual;
+    procedure AfterSerialize(Sender: TObject; AData: TJSONData); virtual;
   public
     constructor Create(AObject: IMapObject); virtual;
-
-    class function MayBeOwned: Boolean; virtual;
 
     procedure ApplyVisitor({%H-}AVisitor: IObjectOptionsVisitor); virtual;
 
     property MapObject: IMapObject read FObject;
-  published
-    property Owner: TPlayer read FOwner write SetOwner stored MayBeOwned default TPlayer.none;
+  public
+    property Owner: TPlayer read FOwner write SetOwner;
   end;
 {$pop}
 
@@ -109,27 +112,6 @@ type
     property Gold: integer index TResType.gold read GetAmount write SetAmount default 0;
     property Mithril: integer index TResType.mithril read GetAmount write SetAmount default 0;
   end;
-
-
-  { THeroPrimarySkills }
-
-  THeroPrimarySkills = class
-  private
-    FAttack: Integer;
-    FDefence: Integer;
-    FKnowledge: Integer;
-    FSpellpower: Integer;
-  public
-    constructor Create;
-    function IsDefault: Boolean;
-  published
-    property Attack: Integer read FAttack write FAttack default -1;
-    property Defence: Integer read FDefence write FDefence default -1;
-    property Spellpower: Integer read FSpellpower write FSpellpower default -1;
-    property Knowledge: Integer read FKnowledge write FKnowledge default -1;
-  end;
-
-
 
   { TQuest }
 
@@ -229,22 +211,13 @@ type
     property Backpack: TStrings read GetBackpack;
   end;
 
-  { THeroSecondarySkill }
-
-  THeroSecondarySkill = class(TNamedCollectionItem, IEmbeddedValue)
-  private
-    FLevel: Integer;
-    procedure SetLevel(AValue: Integer);
-  published
-    property Level: Integer read FLevel write SetLevel nodefault;
-  end;
-
-  { THeroSecondarySkills }
-
-  THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
-  end;
-
 {$pop}
+
+  { TCustomObjectOptions }
+
+  TCustomObjectOptions = class(TObjectOptions)
+
+  end;
 
   { TGuardedObjectOptions }
 
@@ -265,8 +238,9 @@ type
 
   TOwnedObjectOptions = class (TObjectOptions)
   public
-    class function MayBeOwned: Boolean; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  published
+    property Owner default TPlayer.none;
   end;
 
   { TSignBottleOptions }
@@ -377,6 +351,9 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+
+    procedure AfterSerialize(Sender: TObject; AData: TJSONData); override;
+    procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
   published
     property &type: AnsiString read FId write SetId;
     property Portrait: AnsiString read FPortrait write SetPortrait;
@@ -390,9 +367,9 @@ type
     property TightFormation: Boolean read FTightFormation write SetTightFormation;
 
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
-    property Sex: THeroSex read FSex write SetSex default THeroSex.default;
-
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
+  public //manual streaming
+     property Sex: THeroSex read FSex write SetSex;
   end;
 
   { TMonsterOptions }
@@ -640,7 +617,6 @@ type
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
-    class function MayBeOwned: Boolean; override;
 
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
@@ -650,6 +626,8 @@ type
     property Linked: boolean read FLinked write SetLinked;
 
     property SameAsTown: TObjectLink read FSameAsTown stored IsSameAsTownStored;
+  published
+     property Owner default TPlayer.none;
   end;
 
   { TRandomDwellingOptions }
@@ -708,11 +686,11 @@ type
     procedure SetPower(AValue: UInt8);
     procedure SetTypeID(AValue: AnsiString);
   public
-    class function MayBeOwned: Boolean; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property &Type: AnsiString read FTypeID write SetTypeID;
     property Power: UInt8 read FPower write SetPower default 0;
+    property Owner default TPlayer.none;
   end;
 
 
@@ -843,30 +821,7 @@ begin
   Result := c.Create(AObject);
 end;
 
-{ THeroPrimarySkills }
 
-constructor THeroPrimarySkills.Create;
-begin
-  Attack :=-1;
-  Defence:=-1;
-  Spellpower:=-1;
-  Knowledge:=-1;
-end;
-
-function THeroPrimarySkills.IsDefault: Boolean;
-begin
-  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
-end;
-
-{ THeroSecondarySkill }
-
-procedure THeroSecondarySkill.SetLevel(AValue: Integer);
-begin
-  if FLevel=AValue then Exit;
-  if AValue <=0 then
-    raise Exception.CreateFmt('Skill level invalid %d',[AValue]);
-  FLevel:=AValue;
-end;
 
 { THeroArtifacts }
 
@@ -1097,11 +1052,6 @@ end;
 
 { THeroPlaceholderOptions }
 
-class function THeroPlaceholderOptions.MayBeOwned: Boolean;
-begin
-  Result := True;
-end;
-
 procedure THeroPlaceholderOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitHeroPlaseholder(Self);
@@ -1118,11 +1068,6 @@ begin
 end;
 
 { TOwnedObjectOptions }
-
-class function TOwnedObjectOptions.MayBeOwned: Boolean;
-begin
-  result := True;
-end;
 
 procedure TOwnedObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
@@ -1195,11 +1140,6 @@ begin
   FSameAsTown.Free;
   FAllowedFactions.Free;
   inherited Destroy;
-end;
-
-class function TBaseRandomDwellingOptions.MayBeOwned: Boolean;
-begin
-  Result := True;
 end;
 
 function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
@@ -1683,6 +1623,47 @@ begin
   AVisitor.VisitHero(Self);
 end;
 
+procedure THeroOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
+var
+  o: TJSONObject;
+begin
+  inherited AfterSerialize(Sender, AData);
+
+  o := AData as TJSONObject;
+
+  case Sex of
+    THeroSex.default:   o.Add('female');
+    THeroSex.male:   o.Add('female', false);
+    THeroSex.female:   o.Add('female', True);
+  end;
+
+end;
+
+procedure THeroOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+var
+  o: TJSONObject;
+  idx: Integer;
+begin
+  inherited AfterSerialize(Sender, AData);
+
+  o := AData as TJSONObject;
+
+
+  idx := o.IndexOfName('female');
+
+  if idx = -1 then
+  begin
+    Sex :=  THeroSex.default;
+  end
+  else
+  begin
+    case o.Get('female', false) of
+      false: Sex :=  THeroSex.male;
+      true: Sex :=  THeroSex.female;
+    end;
+  end;
+end;
+
 procedure THeroOptions.SetExperience(AValue: UInt64);
 begin
   if FExperience=AValue then Exit;
@@ -1821,11 +1802,6 @@ begin
   FObject := AObject;
 end;
 
-class function TObjectOptions.MayBeOwned: Boolean;
-begin
-  Result := False;
-end;
-
 procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   //do nothing here
@@ -1838,6 +1814,26 @@ begin
     raise Exception.CreateFmt('Invalid player color %d',[Integer(AValue)]);
   end;
   FOwner := AValue;
+end;
+
+procedure TObjectOptions.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TObjectOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TObjectOptions.BeforeSerialize(Sender: TObject);
+begin
+
+end;
+
+procedure TObjectOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+
 end;
 
 end.

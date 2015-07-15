@@ -59,7 +59,9 @@ type
     procedure FillFromList(AFullList: TStrings; ASelected: TBaseInfo);
 
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
-    function GetValueWithEmptyOption(AFullList: TStrings): AnsiString;
+    function GetValueWithEmptyOption(): AnsiString;
+
+    function SelectedInfo: TBaseInfo;
   end;
 
 implementation
@@ -102,6 +104,18 @@ begin
   begin
     info := ATarget.Items.Objects[i] as TBaseInfo;
     ATarget.Checked[i] := ASrc.IsAllowed(info.ID);
+  end;
+end;
+
+
+function GetSelectedInfo(AItems: TStrings; AIndex: Integer): TBaseInfo;
+begin
+  if AIndex < 0 then
+  begin
+    Exit(nil);
+  end
+  else begin
+    Exit(AItems.Objects[AIndex] as TBaseInfo);
   end;
 end;
 
@@ -225,16 +239,20 @@ begin
 
 end;
 
-function TComboBoxHelper.GetValueWithEmptyOption(AFullList: TStrings
-  ): AnsiString;
+function TComboBoxHelper.GetValueWithEmptyOption: AnsiString;
 begin
   if ItemIndex <= 0 then
   begin
     Exit('');
   end
   else begin
-    exit((Items.Objects[ItemIndex] as TBaseInfo).ID)
+    exit(SelectedInfo.ID)
   end;
+end;
+
+function TComboBoxHelper.SelectedInfo: TBaseInfo;
+begin
+  Result := GetSelectedInfo(Items,ItemIndex);
 end;
 
 { TCheckListBoxHelper }
@@ -277,7 +295,7 @@ end;
 
 function TListBoxHelper.SelectedInfo: TBaseInfo;
 begin
-  Result := Items.Objects[ItemIndex] as TBaseInfo;
+  Result := GetSelectedInfo(Items,ItemIndex);
 end;
 
 end.

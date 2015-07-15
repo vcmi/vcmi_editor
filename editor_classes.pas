@@ -33,11 +33,11 @@ type
   { ISerializeNotify }
 
   ISerializeNotify = interface ['ISerializeNotify']
-     procedure BeforeSerialize();
-     procedure AfterSerialize();
+     procedure BeforeSerialize(Sender:TObject);
+     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
 
-     procedure BeforeDeSerialize();
-     procedure AfterDeSerialize();
+     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
   end;
 
   { TNamedCollectionItem }
@@ -127,6 +127,39 @@ type
     procedure Deref(Item: Pointer); override;
   end;
 
+  { THeroPrimarySkills }
+
+  THeroPrimarySkills = class(TPersistent)
+  private
+    FAttack: Integer;
+    FDefence: Integer;
+    FKnowledge: Integer;
+    FSpellpower: Integer;
+  public
+    constructor Create;
+    function IsDefault: Boolean;
+  published
+    property Attack: Integer read FAttack write FAttack default -1;
+    property Defence: Integer read FDefence write FDefence default -1;
+    property Spellpower: Integer read FSpellpower write FSpellpower default -1;
+    property Knowledge: Integer read FKnowledge write FKnowledge default -1;
+  end;
+
+  { THeroSecondarySkill }
+
+  THeroSecondarySkill = class(TNamedCollectionItem, IEmbeddedValue)
+  private
+    FLevel: Integer;
+    procedure SetLevel(AValue: Integer);
+  published
+    property Level: Integer read FLevel write SetLevel nodefault;
+  end;
+
+  { THeroSecondarySkills }
+
+  THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
+  end;
+
 
 implementation
 
@@ -172,6 +205,31 @@ begin
   Finalize(TKey(Item^));
 
   TData(Pointer(PByte(Item)+KeySize)^).Free;
+end;
+
+{ THeroPrimarySkills }
+
+constructor THeroPrimarySkills.Create;
+begin
+  Attack :=-1;
+  Defence:=-1;
+  Spellpower:=-1;
+  Knowledge:=-1;
+end;
+
+function THeroPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
+end;
+
+{ THeroSecondarySkill }
+
+procedure THeroSecondarySkill.SetLevel(AValue: Integer);
+begin
+  if FLevel=AValue then Exit;
+  if AValue <=0 then
+    raise Exception.CreateFmt('Skill level invalid %d',[AValue]);
+  FLevel:=AValue;
 end;
 
 end.
