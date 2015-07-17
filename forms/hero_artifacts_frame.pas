@@ -56,6 +56,7 @@ type
 
     procedure FillSlotCaptions;
     procedure CreateSlots;
+    procedure PrepareSlots;
 
     procedure Load;
     procedure Clear;
@@ -185,6 +186,16 @@ begin
   end;
 end;
 
+procedure THeroArtifactsFrame.PrepareSlots;
+var
+  slot: Integer;
+begin
+  for slot in [0..ARTIFACT_SLOT_COUNT-1] do
+  begin
+    FSlotEditors[slot].FillFromListWithEmptyOption(ListsManager.ArtifactSlotMap[slot], '');
+  end;
+end;
+
 procedure THeroArtifactsFrame.Load;
 var
   slot: Integer;
@@ -203,7 +214,7 @@ begin
 
     for slot in [0..ARTIFACT_SLOT_COUNT-1] do
     begin
-      FSlotEditors[slot].FillFromListWithEmptyOption(ListsManager.ArtifactMap, FOptions.BySlotNumber[slot]);
+      FSlotEditors[slot].SetValueWithEmptyOption(ListsManager.ArtifactSlotMap[slot], FOptions.BySlotNumber[slot]);
     end;
 
     BackPack.RowCount:=BackPack.FixedRows + FOptions.Backpack.Count;
@@ -295,10 +306,11 @@ end;
 
 procedure THeroArtifactsFrame.VisitHero(AOptions: THeroOptions);
 begin
+  PrepareSlots;
   inherited VisitHero(AOptions);
   FOptions := AOptions.Artifacts;
   cbCustomise.OnChange:=nil;
-  cbCustomise.Checked:=not FOptions.IsEmpty; //also updates controls
+  cbCustomise.Checked:=not FOptions.IsEmpty;
   cbCustomise.OnChange:=@cbCustomiseChange;
   UpdateControls;
 end;

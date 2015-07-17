@@ -369,6 +369,9 @@ type
   { TListsManager }
 
   TListsManager = class (TFSConsumer)
+  private
+    type
+      TSlotMap = specialize gmap.TMap<AnsiString, Integer, TStringCompare>;
   strict private
     FDestreamer: TVCMIJSONDestreamer;
 
@@ -398,6 +401,11 @@ type
     FArtifactInfos: TArtifactInfos;
     FArtifactMap: TStringList;
 
+    FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStrings;
+
+    FSlotIds: TSlotMap;
+
+    procedure FillSlotIds;
 
     procedure LoadPrimSkills;
     procedure LoadSkills;
@@ -417,6 +425,7 @@ type
     function GetHeroes(AId: AnsiString): THeroInfo;
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
+    procedure FillArtifactCache;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -859,6 +868,8 @@ end;
 { TListsManager }
 
 constructor TListsManager.Create(AOwner: TComponent);
+var
+  i: SizeInt;
 begin
   inherited Create(AOwner);
   FTextDataConfig := TTextDataConfig.Create;
@@ -888,15 +899,31 @@ begin
   FArtifactInfos := TArtifactInfos.Create(True);
   FArtifactMap := CrStrList;
 
+  for i in [0..ARTIFACT_SLOT_COUNT-1] do
+  begin
+    FArtifactSlotMaps[i] := CrStrList;
+  end;
+
   FHeroInfos := THeroInfos.Create(True);
   FHeroMap := CrStrList;
+
+  FSlotIds := TSlotMap.Create;
+  FillSlotIds;
 end;
 
 destructor TListsManager.Destroy;
+var
+  i: SizeInt;
+
 begin
+  FSlotIds.Free;
   FHeroInfos.Free;
   FHeroMap.Free;
 
+  for i in [0..ARTIFACT_SLOT_COUNT-1] do
+  begin
+    FArtifactSlotMaps[i].Free;
+  end;
   FArtifactInfos.Free;
   FArtifactMap.Free;
 
@@ -969,7 +996,7 @@ end;
 
 function TListsManager.GetArtifactSlotMap(ASlot: Integer): TStrings;
 begin
-  //todo:GetArtifactSlotMap
+  Result := FArtifactSlotMaps[ASlot];
 end;
 
 function TListsManager.AssembleConfig(APaths: TStrings;
@@ -1363,7 +1390,7 @@ var
   begin
     for ofs in [0..ARTIFACT_SLOT_COUNT-1] do
     begin
-      if artraits.Value[3+ofs, i+2] = 'x' then
+      if artraits.Value[2+ofs, i+2] = 'x' then
       begin
         slots.Add(H3_ART_SLOTS[ofs]);
       end;
@@ -1422,6 +1449,70 @@ begin
     FConfig.Free;
     artraits.free;
     legacy_data.Free;
+  end;
+
+  FillArtifactCache;
+end;
+
+procedure TListsManager.FillArtifactCache;
+var
+  info: TArtifactInfo;
+  procedure ProcessSlotId(id: String);
+  var
+    iter: TSlotMap.TIterator;
+  begin
+    iter := FSlotIds.Find(id);
+
+    if Assigned(iter) then
+    begin
+      FArtifactSlotMaps[iter.Value].AddObject(info.ID, info);
+    end;
+  end;
+
+var
+  slot_id: String;
+begin
+  for info in FArtifactInfos do
+  begin
+    for slot_id in info.Slot do
+    begin
+      if slot_id = 'RING' then
+      begin
+        ProcessSlotId('LEFT_RING');
+        ProcessSlotId('RIGHT_RING');
+      end
+      else if slot_id = 'MISC' then
+      begin
+        ProcessSlotId('MISC1');
+        ProcessSlotId('MISC2');
+        ProcessSlotId('MISC3');
+        ProcessSlotId('MISC4');
+        ProcessSlotId('MISC5');
+      end
+      else
+      begin
+        ProcessSlotId(slot_id);
+      end;
+    end;
+  end;
+end;
+
+procedure TListsManager.FillSlotIds;
+const
+  SLOT_IDS: array[0..ARTIFACT_SLOT_COUNT-1] of AnsiString =
+  (
+	'HEAD', 'SHOULDERS', 'NECK', 'RIGHT_HAND', 'LEFT_HAND', 'TORSO',
+	'RIGHT_RING', 'LEFT_RING', 'FEET',
+	'MISC1', 'MISC2', 'MISC3', 'MISC4',
+	'MACH1', 'MACH2', 'MACH3', 'MACH4',
+	'SPELLBOOK', 'MISC5'
+  );
+var
+  i: SizeInt;
+begin
+  for i := 0 to ARTIFACT_SLOT_COUNT - 1 do
+  begin
+    FSlotIds.Insert(SLOT_IDS[i],i);
   end;
 end;
 

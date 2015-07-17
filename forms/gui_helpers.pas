@@ -60,6 +60,8 @@ type
 
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
     function GetValueWithEmptyOption(): AnsiString;
+    //assumes items filed from AFullList
+    procedure SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
     function SelectedInfo: TBaseInfo;
   end;
@@ -248,6 +250,16 @@ begin
   else begin
     exit(SelectedInfo.ID)
   end;
+end;
+
+procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: TStrings;
+  ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  idx := AFullList.IndexOf(ASelected);
+
+  itemindex := idx+1;
 end;
 
 function TComboBoxHelper.SelectedInfo: TBaseInfo;
