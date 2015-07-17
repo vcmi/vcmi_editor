@@ -78,6 +78,8 @@ type
     procedure CollectionArrayCallback(Item: TJSONData; Data: TObject; var Continue: Boolean);
   protected
     procedure DoPreparePropName(var PropName: AnsiString); override;
+    procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); override;
+
     //preprocess comments
     function ObjectFromString(const JSON: TJSONStringType): TJSONData; override;
   public
@@ -688,6 +690,47 @@ begin
   MakeCamelCase(PropName);
 end;
 
+procedure TVCMIJSONDestreamer.DoRestoreProperty(AObject: TObject;
+  PropInfo: PPropInfo; PropData: TJSONData);
+Var
+  PI : PPropInfo;
+  TI : PTypeInfo;
+
+  str_data : TVCMIJsonString;
+
+  value: TJSONStringType;
+  idx: SizeInt;
+begin
+  PI:=PropInfo;
+  TI:=PropInfo^.PropType;
+
+  if (TI = TypeInfo(TIdentifier)) and (PropData is TVCMIJsonString) then
+  begin
+    str_data := TVCMIJsonString(PropData);
+
+    value := str_data.AsString;
+
+    if str_data.Meta <> '' then
+    begin
+      DebugLn(['Loading ident: ', value, '; meta: ', str_data.Meta]);
+
+      idx := pos(':', value);
+
+      if idx = 0 then
+      begin
+        value := str_data.Meta +':'+value;
+      end;
+
+    end;
+
+    SetStrProp(AObject,PI,value);
+  end
+  else
+  begin
+    inherited DoRestoreProperty(AObject, PropInfo, PropData);
+  end;
+end;
+
 function TVCMIJSONDestreamer.JSONStreamToJson(AStream: TStream): TJSONData;
 var
   src: TStringStream;
@@ -944,7 +987,8 @@ var
   current: TJsonResource;
   APath: String;
   item: TModdedConfig;
-  key: TModId;
+
+  meta: TJSONStringType;
 begin
   for i := 0 to SizeInt(APaths.Size) - 1 do
   begin
@@ -966,7 +1010,13 @@ begin
         current.Free;
       end;
     end;
-    item.Config.SetMeta(AModdedPath.ModID,true);
+
+    if AModdedPath.ModID = MODID_CORE then
+      meta := ''
+    else
+      meta := AModdedPath.ModID;
+
+    item.Config.SetMeta(meta,true);
   end;
 end;
 
@@ -1061,13 +1111,11 @@ end;
 
 procedure TModdedConfigs.ApplyPatches;
 var
-  mod_id: String;
   mod_data: TModdedConfig;
   i: Integer;
 begin
   for i := 0 to FMap.Count - 1 do
   begin
-    mod_id := FMap.Keys[i];
     mod_data:= FMap.Data[i];
 
     MergeJson(mod_data.Patches, mod_data.Config);

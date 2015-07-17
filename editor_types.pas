@@ -62,6 +62,8 @@ type
 
   TWinLossCondition = (have, haveBuilding,  destroy,  daysPassed,  isHuman,  standardWin,  daysWithoutTown,  constValue);
 
+  TIdentifier = type AnsiString;
+
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 

@@ -354,11 +354,11 @@ type
   THeroInfo = class(TBaseInfo)
   private
     FFemale: Boolean;
-    FHeroClass: AnsiString;
+    FHeroClass: TIdentifier;
     FSpecial: Boolean;
     FTexts: THeroTexts;
     procedure SetFemale(AValue: Boolean);
-    procedure SetHeroClass(AValue: AnsiString);
+    procedure SetHeroClass(AValue: TIdentifier);
     procedure SetSpecial(AValue: Boolean);
   protected
     function GetName: TLocalizedString; override;
@@ -370,7 +370,7 @@ type
     property Texts: THeroTexts read FTexts;
     property Female: Boolean read FFemale write SetFemale nodefault;
     property Special: Boolean read FSpecial write SetSpecial default False;
-    property &Class: AnsiString read FHeroClass write SetHeroClass;
+    property &Class: TIdentifier read FHeroClass write SetHeroClass;
   end;
 
   THeroInfoList = specialize TFPGObjectList<THeroInfo>;
@@ -616,7 +616,7 @@ end;
 
 { THeroInfo }
 
-procedure THeroInfo.SetHeroClass(AValue: AnsiString);
+procedure THeroInfo.SetHeroClass(AValue: TIdentifier);
 begin
   if FHeroClass=AValue then Exit;
   FHeroClass:=AValue;
