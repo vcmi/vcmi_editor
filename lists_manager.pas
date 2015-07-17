@@ -1466,6 +1466,7 @@ var
     if Assigned(iter) then
     begin
       FArtifactSlotMaps[iter.Value].AddObject(info.ID, info);
+      iter.Free;
     end;
   end;
 
