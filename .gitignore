@@ -5,3 +5,4 @@
 /units
 
 *.bak
+/3rd_party/csvdocument/lib
