@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils,FileUtil,
   gmap, gqueue, fgl,
-  lazutf8classes,
+  lazutf8classes, LazFileUtils,
   vcmi_json,
   editor_classes,
   filesystem_base, lod, editor_types, fpjson, zipper ;
@@ -334,7 +334,9 @@ type
 
     procedure AddModPathsTo(sl:TStrings);
 
-    procedure OnModConfigFound(FileIterator: TFileIterator);
+    procedure ProcessModConfig(AParentModID: AnsiString; APath: TFilename; out AModID: AnsiString);
+
+    procedure DoScanMods(AParentModID: AnsiString; AModRoot: TFilename);
 
     procedure ScanMods;
 
@@ -692,6 +694,50 @@ begin
   end;
 end;
 
+procedure TFSManager.ProcessModConfig(AParentModID: AnsiString;
+  APath: TFilename; out AModID: AnsiString);
+var
+  stm: TFileStreamUTF8;
+  destreamer: TVCMIJSONDestreamer;
+  mod_path: String;
+  mod_config: TModConfig;
+begin
+  //APath points to mod.json
+
+  mod_path := IncludeTrailingPathDelimiter(ExtractFileDir(APath));
+
+  AModID := NormalizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
+
+  if AParentModID <> '' then
+  begin
+    AModID := AParentModID +'.'+ AModID;
+  end;
+
+  DebugLn(['Loading mod ',AModID]);
+
+  if FEnabledModList.IndexOf(AModID) < 0 then
+  begin
+    exit;
+  end;
+
+  destreamer := TVCMIJSONDestreamer.Create(nil);
+  stm := TFileStreamUTF8.Create(APath,fmOpenRead or fmShareDenyWrite);
+  try
+    mod_config := TModConfig.Create;
+    mod_config.ID := AModID;
+    mod_config.Path := ExtractFileNameOnly(ExcludeTrailingBackslash(ExtractFilePath(mod_path)));
+    destreamer.JSONStreamToObject(stm, mod_config,'');
+    mod_config.MayBeSetDefaultFSConfig;
+    FMods.Add(mod_config);
+    FModMap.Add(mod_config.ID,mod_config);
+    FConfigMap.Add(mod_config.ID,mod_config);
+  finally
+    stm.Free;
+    destreamer.Free;
+  end;
+end;
+
+
 procedure TFSManager.OnDirectoryFound(FileIterator: TFileIterator);
 var
   srch: TFileSearcher;
@@ -926,7 +972,6 @@ end;
 
 procedure TFSManager.ScanMods;
 var
-  searcher: TFileSearcher;
 
   mod_roots, mod_paths: TStringListUTF8;
   mod_paths_config: String;
@@ -938,8 +983,6 @@ var
   AMod: TModConfig;
 begin
   //find mods
-  searcher := TFileSearcher.Create;
-  searcher.OnFileFound := @OnModConfigFound;
 
   mod_roots := TStringListUTF8.Create;
   mod_paths := TStringListUTF8.Create;
@@ -952,7 +995,7 @@ begin
 
     for i := 0 to mod_roots.Count - 1 do
     begin
-      searcher.Search(mod_roots[i],MOD_CONFIG)
+      DoScanMods('',mod_roots[i]);
     end;
 
     //<STUB>
@@ -985,14 +1028,10 @@ begin
     //TODO:determine load order
   finally
     mod_roots.Free;
-    searcher.Free;
     mod_paths.Free;
   end;
 
   //configs loaded at this point
-
-
-
 end;
 
 procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: string);
@@ -1096,40 +1135,39 @@ begin
 
 end;
 
-procedure TFSManager.OnModConfigFound(FileIterator: TFileIterator);
+procedure TFSManager.DoScanMods(AParentModID: AnsiString; AModRoot: TFilename);
 var
-  stm: TFileStreamUTF8;
-  destreamer: TVCMIJSONDestreamer;
-  mod_path: String;
-  mod_id: String;
-  mod_config: TModConfig;
+  mod_dirs: TStringList;
+  mod_dir: String;
+  mod_header_path: String;
+
+  mod_id: AnsiString;
 begin
-  //iterator points to mod.json
 
 
-  mod_path := FileIterator.Path;
+  DebugLn(['Processing mods in ',AModRoot,', parent =',AParentModID]);
 
-  mod_id := NormalizeModId(ExtractFileNameOnly(ExcludeTrailingBackslash(mod_path)));
-
-  if FEnabledModList.IndexOf(mod_id) < 0 then
-  begin
-    exit;
-  end;
-
-  destreamer := TVCMIJSONDestreamer.Create(nil);
-  stm := TFileStreamUTF8.Create(FileIterator.FileName,fmOpenRead or fmShareDenyWrite);
+  mod_dirs := FindAllDirectories(AModRoot, False);
   try
-    mod_config := TModConfig.Create;
-    mod_config.ID := mod_id;
-    mod_config.Path := ExtractFileNameOnly(ExcludeTrailingBackslash(ExtractFilePath(mod_path)));
-    destreamer.JSONStreamToObject(stm, mod_config,'');
-    mod_config.MayBeSetDefaultFSConfig;
-    FMods.Add(mod_config);
-    FModMap.Add(mod_config.ID,mod_config);
-    FConfigMap.Add(mod_config.ID,mod_config);
+
+    for mod_dir in mod_dirs do
+    begin
+      DebugLn(['Processing mod dir ',mod_dir]);
+
+      mod_header_path := IncludeTrailingPathDelimiter(mod_dir) + MOD_CONFIG;
+
+      if FileExistsUTF8(mod_header_path) then
+      begin
+        DebugLn(['Found mod config in ',mod_header_path]);
+
+        ProcessModConfig(AParentModID, mod_header_path, mod_id);
+
+        DoScanMods(mod_id, IncludeTrailingPathDelimiter(mod_dir)+'Mods');
+      end;
+    end;
+
   finally
-    stm.Free;
-    destreamer.Free;
+    mod_dirs.Free;
   end;
 end;
 
@@ -1279,7 +1317,7 @@ begin
   s := GetPrivateConfigPath+GAME_PATH_CONFIG;
   if FileUtil.FileExistsUTF8(s) then
   begin
-    FGamePath .LoadFromFile(s);
+    FGamePath.LoadFromFile(s);
   end
   else begin
     FGamePath.Append(ParamStr(0));

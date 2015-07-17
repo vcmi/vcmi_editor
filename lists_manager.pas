@@ -248,6 +248,10 @@ type
     property Name: TLocalizedString read FName write SetName;
   end;
 
+  TCreatureName = class
+
+  end;
+
   {$pop}
 
   TCreatureGraphics = class(TBaseGraphics)
@@ -259,10 +263,12 @@ type
   TCreatureInfo = class(TBaseInfo)
   private
     FGraphics: TCreatureGraphics;
+    FName: TCreatureName;
   public
     constructor Create;
     destructor Destroy; override;
   published
+    property Name:TCreatureName read FName;
     property Graphics: TCreatureGraphics read FGraphics;
   end;
 
@@ -1340,6 +1346,8 @@ begin
       info := TCreatureInfo.Create;
 
       info.ID := iter.Key;
+
+      DebugLn(['Loading creature ',iter.Key]);
 
       FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
 
