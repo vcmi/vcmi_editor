@@ -282,16 +282,36 @@ type
   TArtifactGraphics = class(TBaseGraphics)
   end;
 
+  TArtifactTexts = class(TBaseTexts)
+
+  end;
+
+  TArtifactType = (HERO, CREATURE, COMMANDER);
+  TArtifactTypes = set of TArtifactType;
+
+
   { TArtifactInfo }
 
   TArtifactInfo = class(TBaseInfo)
   private
     FGraphics: TArtifactGraphics;
+    FTexts: TArtifactTexts;
+    FSlot: TStrings;
+    FType: TArtifactTypes;
+    procedure SetType(AValue: TArtifactTypes);
+  protected
+    function GetName: TLocalizedString; override;
+    procedure SetName(AValue: TLocalizedString); override;
   public
     constructor Create;
     destructor Destroy; override;
   published
     property Graphics: TArtifactGraphics read FGraphics;
+
+    property Slot: TStrings read FSlot;
+    property Text: TArtifactTexts read FTexts;
+
+    property &type:TArtifactTypes read FType write SetType;
   end;
 
   TArtifactInfoList = specialize TFPGObjectList<TArtifactInfo>;
@@ -643,13 +663,33 @@ end;
 
 { TArtifactInfo }
 
+procedure TArtifactInfo.SetType(AValue: TArtifactTypes);
+begin
+  if FType=AValue then Exit;
+  FType:=AValue;
+end;
+
+function TArtifactInfo.GetName: TLocalizedString;
+begin
+  Result:= FTexts.Name;
+end;
+
+procedure TArtifactInfo.SetName(AValue: TLocalizedString);
+begin
+  FTexts.Name:=AValue;
+end;
+
 constructor TArtifactInfo.Create;
 begin
   FGraphics := TArtifactGraphics.Create;
+  FSlot := TStringList.Create;
+  FTexts := TArtifactTexts.Create;
 end;
 
 destructor TArtifactInfo.Destroy;
 begin
+  FTexts.Free;
+  FSlot.Free;
   FGraphics.Free;
   inherited Destroy;
 end;
@@ -1289,14 +1329,52 @@ begin
 end;
 
 procedure TListsManager.LoadArtifacts(APaths: TModdedConfigPaths);
+const
+  H3_ART_SLOTS : array [0..ARTIFACT_SLOT_COUNT-1] of string =
+  (
+  'SPELLBOOK',
+	'MACH4',
+	'MACH3',
+	'MACH2',
+	'MACH1',
+	'MISC5',
+	'MISC4',
+	'MISC3',
+	'MISC2',
+	'MISC1',
+	'FEET',
+	'LEFT_RING',
+	'RIGHT_RING',
+	'TORSO',
+	'LEFT_HAND',
+	'RIGHT_HAND',
+	'NECK',
+	'SHOULDERS',
+	'HEAD');
+
+var
+  artraits: TTextResource;
+  i: SizeInt;
+  slots: TJSONArray;
+
+  procedure LoadSlots();
+  var
+    ofs: SizeInt;
+  begin
+    for ofs in [0..ARTIFACT_SLOT_COUNT-1] do
+    begin
+      if artraits.Value[3+ofs, i+2] = 'x' then
+      begin
+        slots.Add(H3_ART_SLOTS[ofs]);
+      end;
+    end;
+  end;
+
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
   legacy_data: TJsonObjectList;
-  artraits: TTextResource;
   iter: TJSONEnum;
-
-  i: SizeInt;
   o: TJSONObject;
   info: TArtifactInfo;
 begin
@@ -1315,6 +1393,9 @@ begin
 
       o.GetOrCreateObject('text').Strings['name'] := artraits.Value[0,i+2];
 
+      slots := CreateJSONArray([]);
+      LoadSlots();
+      o.Add('slot', slots);
       legacy_data.Add(o);
     end;
 
@@ -1331,8 +1412,6 @@ begin
       o := iter.Value as TJSONObject;
 
       FDestreamer.JSONToObject(o, info);
-
-      info.Name:=o.Objects['text'].Strings['name'];
 
       ArtifactInfos.Add(info);
       ArtifactMap.AddObject(info.ID, info);

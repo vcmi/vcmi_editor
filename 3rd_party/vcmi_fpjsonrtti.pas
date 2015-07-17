@@ -589,7 +589,10 @@ Var
 begin
   Case JSON.JSONType of
     jtString:
-      AStrings.Text:=JSON.AsString;
+      begin
+      AStrings.Clear;
+      AStrings.Add(JSON.AsString);
+      end;
     jtArray:
       begin
       AStrings.Clear;

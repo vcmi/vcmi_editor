@@ -42,7 +42,6 @@ type
     tsArtifacts: TTabSheet;
     tsArmy: TTabSheet;
     tsObject: TTabSheet;
-    tsWog: TTabSheet;
     tsCommon: TTabSheet;
     procedure btOkClick(Sender: TObject);
   strict private

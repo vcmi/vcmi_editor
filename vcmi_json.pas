@@ -785,8 +785,6 @@ begin
   begin
     inherited JSONToCollection(JSON, ACollection);
   end;
-
-
 end;
 
 procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;

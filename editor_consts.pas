@@ -214,6 +214,8 @@ const
 
   ARTIFACT_SLOT_COUNT = 19;
 
+
+
 implementation
 
 end.

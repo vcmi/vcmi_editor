@@ -19,7 +19,7 @@ object EditObjectOptions: TEditObjectOptions
     ActivePage = tsArtifacts
     Align = alClient
     BorderSpacing.Bottom = 40
-    TabIndex = 4
+    TabIndex = 3
     TabOrder = 0
     object tsCommon: TTabSheet
       Caption = 'Main options'
@@ -41,9 +41,6 @@ object EditObjectOptions: TEditObjectOptions
     end
     object tsArtifacts: TTabSheet
       Caption = 'Artifacts'
-    end
-    object tsWog: TTabSheet
-      Caption = 'tsWog'
     end
   end
   object btOk: TButton
