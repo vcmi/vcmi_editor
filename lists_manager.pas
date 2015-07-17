@@ -248,8 +248,17 @@ type
     property Name: TLocalizedString read FName write SetName;
   end;
 
-  TCreatureName = class
+  { TCreatureName }
 
+  TCreatureName = class
+  private
+    FPlural: TLocalizedString;
+    FSingular: TLocalizedString;
+    procedure SetPlural(AValue: TLocalizedString);
+    procedure SetSingular(AValue: TLocalizedString);
+  published
+    property Singular: TLocalizedString read FSingular write SetSingular;
+    property Plural: TLocalizedString read FPlural write SetPlural;
   end;
 
   {$pop}
@@ -264,6 +273,9 @@ type
   private
     FGraphics: TCreatureGraphics;
     FName: TCreatureName;
+  protected
+    function GetName: TLocalizedString; override;
+    procedure SetName(AValue: TLocalizedString); override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -271,8 +283,6 @@ type
     property Name:TCreatureName read FName;
     property Graphics: TCreatureGraphics read FGraphics;
   end;
-
-
 
   TCreatureInfoList = specialize TFPGObjectList<TCreatureInfo>;
 
@@ -530,6 +540,20 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TCreatureName }
+
+procedure TCreatureName.SetPlural(AValue: TLocalizedString);
+begin
+  if FPlural=AValue then Exit;
+  FPlural:=AValue;
+end;
+
+procedure TCreatureName.SetSingular(AValue: TLocalizedString);
+begin
+  if FSingular=AValue then Exit;
+  FSingular:=AValue;
+end;
+
 { THeroClassInfo }
 
 constructor THeroClassInfo.Create;
@@ -749,13 +773,25 @@ end;
 
 { TCreatureInfo }
 
+function TCreatureInfo.GetName: TLocalizedString;
+begin
+  Result:=FName.Plural;
+end;
+
+procedure TCreatureInfo.SetName(AValue: TLocalizedString);
+begin
+  FName.Plural := AValue;
+end;
+
 constructor TCreatureInfo.Create;
 begin
   FGraphics := TCreatureGraphics.Create;
+  FName := TCreatureName.Create;
 end;
 
 destructor TCreatureInfo.Destroy;
 begin
+  FName.Free;
   FGraphics.Free;
   inherited Destroy;
 end;
@@ -1312,6 +1348,8 @@ var
   iter: TJSONEnum;
   info: TCreatureInfo;
   shift: Integer;
+
+  name_count: integer;
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
@@ -1320,6 +1358,14 @@ begin
   crtraits := TTextResource.Create(CREATURE_TRAITS);
   try
     crtraits.Load(ResourceLoader);
+
+    if (crtraits.Value[0,1] <> 'Singular') or (crtraits.Value[1,1] <> 'Plural') then
+      raise Exception.Create('Invalid crtraits format');
+
+    if crtraits.Value[2,1] = 'Plural2' then
+      name_count := 3
+    else
+      name_count := 2;
 
     shift := 2;
 
@@ -1332,7 +1378,8 @@ begin
         inc(shift);
       end;
 
-      o.Strings['name'] := crtraits.Value[0,i+shift];
+      o.GetOrCreateObject('name').Strings['singular'] := crtraits.Value[0,i+shift];
+      o.GetOrCreateObject('name').Strings['plural'] := crtraits.Value[name_count-1,i+shift];
 
       legacy_data.Add(o);
     end;

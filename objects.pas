@@ -1021,7 +1021,7 @@ begin
       begin
         full_id := TypToId(obj_type.Index, obj_sub_type.Index);
 
-        FLegacyObjTypes.KeyData[full_id] := obj_sub_type ;
+        FLegacyObjTypes.KeyData[full_id] := obj_sub_type;
       end;
     end;
   end;
