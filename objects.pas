@@ -932,6 +932,10 @@ begin
     town_type := TJSONObject.Create;
     town_type.Add('index', faction.Index);
 
+    DebugLn([faction.Town.MapObject.AsJSON]);
+
+    MergeJson(faction.Town.MapObject, town_type);
+
     town_types.Add(faction.ID , town_type);
   end;
 

@@ -1145,20 +1145,20 @@ var
 begin
 
 
-  DebugLn(['Processing mods in ',AModRoot,', parent =',AParentModID]);
+  //DebugLn(['Processing mods in ',AModRoot,', parent =',AParentModID]);
 
   mod_dirs := FindAllDirectories(AModRoot, False);
   try
 
     for mod_dir in mod_dirs do
     begin
-      DebugLn(['Processing mod dir ',mod_dir]);
+      //DebugLn(['Processing mod dir ',mod_dir]);
 
       mod_header_path := IncludeTrailingPathDelimiter(mod_dir) + MOD_CONFIG;
 
       if FileExistsUTF8(mod_header_path) then
       begin
-        DebugLn(['Found mod config in ',mod_header_path]);
+        //DebugLn(['Found mod config in ',mod_header_path]);
 
         ProcessModConfig(AParentModID, mod_header_path, mod_id);
 

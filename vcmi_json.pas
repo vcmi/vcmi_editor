@@ -295,8 +295,14 @@ begin
 end;
 
 procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
+var
+  iter: TJSONEnum;
 begin
-  Assert(false,'MergeJsonStruct for arrays Not implemented');
+  ADest.Clear;
+  for iter in Asrc do
+  begin
+    ADest.Add(iter.Value.Clone);
+  end;
 end;
 
 procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out
@@ -712,7 +718,7 @@ begin
 
     if str_data.Meta <> '' then
     begin
-      DebugLn(['Loading ident: ', value, '; meta: ', str_data.Meta]);
+      //DebugLn(['Loading ident: ', value, '; meta: ', str_data.Meta]);
 
       idx := pos(':', value);
 

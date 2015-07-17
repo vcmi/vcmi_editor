@@ -160,8 +160,8 @@ type
   published
     property MapObject: TJSONObject read FMapObject;
 
-    property GuildSpells:TGuildSpells read FGuildSpells;
-    property Buildings:TTownBuildings read FBuildings;
+    //property GuildSpells:TGuildSpells read FGuildSpells;
+    //property Buildings:TTownBuildings read FBuildings;
     property MageGuild:Integer read FMageGuild write SetMageGuild;
   end;
 
@@ -187,7 +187,7 @@ type
     property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
     property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
     property HasTown: Boolean read FHasTown write SetHasTown;
-
+  published
     property Town: TTownInfo read FTown;
   end;
 
