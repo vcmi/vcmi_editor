@@ -199,6 +199,11 @@ type
 
   procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out AObjectId: AnsiString);
 
+  //serialise helpers
+
+  procedure SaveHeroSex(ADest: TJSONData; AValue: THeroSex);
+  function LoadHeroSex(ASrc: TJSONData):THeroSex;
+
 implementation
 
 uses
@@ -316,6 +321,39 @@ begin
   AModId:=rexp_oid.Match[2];
   AObjectId:=rexp_oid.Match[3];
   Assert(Length(AObjectId)>0,'ObjectId is empty');
+end;
+
+procedure SaveHeroSex(ADest: TJSONData; AValue: THeroSex);
+var
+  o: TJSONObject;
+begin
+  o := ADest as TJSONObject;
+
+  case AValue of
+    THeroSex.default:   o.Add('female');
+    THeroSex.male:   o.Add('female', false);
+    THeroSex.female:   o.Add('female', True);
+  end;
+end;
+
+function LoadHeroSex(ASrc: TJSONData): THeroSex;
+var
+  o: TJSONObject;
+  idx: Integer;
+begin
+  Result :=  THeroSex.default;
+  o := ASrc as TJSONObject;
+
+  idx := o.IndexOfName('female');
+
+  if idx > -1 then
+  begin
+    case o.Get('female', false) of
+      false: Result :=  THeroSex.male;
+      true: Result :=  THeroSex.female;
+    end;
+  end;
+
 end;
 
 { TVCMIJsonArray }

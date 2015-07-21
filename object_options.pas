@@ -1650,44 +1650,17 @@ begin
 end;
 
 procedure THeroOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
-var
-  o: TJSONObject;
 begin
   inherited AfterSerialize(Sender, AData);
 
-  o := AData as TJSONObject;
-
-  case Sex of
-    THeroSex.default:   o.Add('female');
-    THeroSex.male:   o.Add('female', false);
-    THeroSex.female:   o.Add('female', True);
-  end;
-
+  SaveHeroSex(AData, Sex);
 end;
 
 procedure THeroOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
-var
-  o: TJSONObject;
-  idx: Integer;
 begin
   inherited AfterSerialize(Sender, AData);
 
-  o := AData as TJSONObject;
-
-
-  idx := o.IndexOfName('female');
-
-  if idx = -1 then
-  begin
-    Sex :=  THeroSex.default;
-  end
-  else
-  begin
-    case o.Get('female', false) of
-      false: Sex :=  THeroSex.male;
-      true: Sex :=  THeroSex.female;
-    end;
-  end;
+  Sex:=LoadHeroSex(AData);
 end;
 
 procedure THeroOptions.SetExperience(AValue: UInt64);

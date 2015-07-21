@@ -33,15 +33,16 @@ uses
   map_format_h3m, stream_adapter, editor_str_consts, map_format_vcmi,
   vcmi_fpjsonrtti, glext40, map_options, editor_classes, editor_consts,
   root_manager, progress_form, editor_gl, object_options, edit_object_options,
-  signbottle_frame, base_object_options_frame, grail_frame,
+  base_object_options_frame, grail_frame,
   flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers,
   shrine_frame, spellscroll_frame, root_form, dwelling_frame, map_format_zip,
   map_format_json, map_terrain_actions, map_road_river_actions,
   map_object_actions, road_transitions, transitions, base_info, monster_frame,
   object_link, object_link_frame, logical_id_condition, logical_event_condition,
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
-  artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame,
-  local_event_frame, hero_frame, editor_rtti, hero_artifacts_frame;
+  resource_frame, pandoras_reward_frame,
+  local_event_frame, hero_frame, editor_rtti, hero_artifacts_frame, 
+message_frame;
 
 {$R *.res}
 

@@ -75,7 +75,7 @@ type
     procedure edTypeChange(Sender: TObject);
   private
     FOptions: THeroOptions;
-    FCurrentHero: THeroInfo;
+    FCurrentHero: THeroInfo;//todo: use map specicfic defaults
 
     FCustomName: TLocalizedString;
     FCustomFemale: Boolean;

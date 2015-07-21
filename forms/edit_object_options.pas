@@ -27,8 +27,8 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  artifact_frame, resource_frame, pandoras_frame, pandoras_reward_frame,
-  local_event_frame, hero_frame, hero_artifacts_frame;
+  resource_frame, pandoras_reward_frame,
+  local_event_frame, hero_frame, hero_artifacts_frame, message_frame;
 
 type
 
@@ -95,7 +95,7 @@ type
 implementation
 
 uses
-  signbottle_frame, grail_frame, flaggable_object_frame, witchhut_frame,
+  grail_frame, flaggable_object_frame, witchhut_frame,
   shrine_frame, spellscroll_frame, dwelling_frame, root_manager;
 
 {$R *.lfm}
@@ -189,7 +189,7 @@ end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);
 begin
-  CreateFrame(TArtifactFrame, AOptions, tsCommon);
+  CreateFrame(TMessageFrame, AOptions, tsCommon);
   VisitGuardedObject(AOptions);
 end;
 
@@ -236,7 +236,7 @@ end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-  CreateFrame(TPandorasFrame,AOptions,tsCommon);
+  CreateFrame(TMessageFrame,AOptions,tsCommon);
   CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;
@@ -287,7 +287,7 @@ end;
 
 procedure TEditObjectOptions.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-  CreateFrame(TSignBottleFrame,AOptions,tsCommon);
+  CreateFrame(TMessageFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);

@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression;
+  logical_event_condition, logical_expression, vcmi_json;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -402,7 +402,7 @@ type
 
   { THeroDefinition }
 
-  THeroDefinition = class (TNamedCollectionItem)
+  THeroDefinition = class (TNamedCollectionItem, ISerializeNotify)
   private
     FArtifacts: THeroArtifacts;
     FBiography: TLocalizedString;
@@ -419,15 +419,21 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+  public//ISerializeNotify
+    procedure BeforeDeSerialize({%H-}Sender: TObject; {%H-}AData: TJSONData);
+    procedure AfterDeSerialize(Sender: TObject; AData: TJSONData);
+    procedure BeforeSerialize({%H-}Sender: TObject);
+    procedure AfterSerialize(Sender: TObject; AData: TJSONData);
   published
     property Experience: UInt64 read FExperience write SetExperience default 0;
     property Skills: THeroSecondarySkills read FSkills;
     property Artifacts: THeroArtifacts read FArtifacts;
 
     property Biography: TLocalizedString read FBiography write SetBiography;
-    property Sex:THeroSex read FSex write SetSex default THeroSex.default;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+  public //manual streaming
+    property Sex:THeroSex read FSex write SetSex default THeroSex.default;
   end;
 
   { THeroDefinitions }
@@ -720,6 +726,26 @@ begin
   FArtifacts.Free;
   FSkills.Free;
   inherited Destroy;
+end;
+
+procedure THeroDefinition.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+  //do nothing
+end;
+
+procedure THeroDefinition.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+  Sex:=LoadHeroSex(AData);
+end;
+
+procedure THeroDefinition.BeforeSerialize(Sender: TObject);
+begin
+  //do nothing
+end;
+
+procedure THeroDefinition.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+  SaveHeroSex(AData, Sex);
 end;
 
 { THeroDefinitions }

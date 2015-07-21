@@ -17,8 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-
-unit artifact_frame;
+unit message_frame;
 
 {$I compilersetup.inc}
 
@@ -30,37 +29,61 @@ uses
 
 type
 
-  { TArtifactFrame }
+  { TMessageFrame }
 
-  TArtifactFrame = class(TBaseObjectOptionsFrame)
+  TMessageFrame = class(TBaseObjectOptionsFrame)
     edMessage: TMemo;
     Label1: TLabel;
   private
-    FOptions:TArtifactOptions;
+    FGuardedOptions: TGuardedObjectOptions;
+    FSignOptions: TSignBottleOptions;
   public
     procedure Commit; override;
     procedure VisitArtifact(AOptions: TArtifactOptions); override;
+    procedure VisitPandorasBox(AOptions: TPandorasOptions); override;
+    procedure VisitSignBottle(AOptions: TSignBottleOptions); override;
   end;
 
 implementation
 
 {$R *.lfm}
 
-{ TArtifactFrame }
+{ TMessageFrame }
 
-procedure TArtifactFrame.Commit;
+procedure TMessageFrame.Commit;
 begin
   inherited Commit;
-  FOptions.GuardMessage:=edMessage.Text;
+
+  if Assigned(FGuardedOptions) then
+  begin
+    FGuardedOptions.GuardMessage:=edMessage.Text;
+  end;
+  if Assigned(FSignOptions) then
+  begin
+    FSignOptions.Text:=edMessage.Text;
+  end;
+
 end;
 
-procedure TArtifactFrame.VisitArtifact(AOptions: TArtifactOptions);
+procedure TMessageFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
   inherited VisitArtifact(AOptions);
+  FGuardedOptions := AOptions;
+  edMessage.Text:=FGuardedOptions.GuardMessage;
+end;
 
-  FOptions := AOptions;
+procedure TMessageFrame.VisitPandorasBox(AOptions: TPandorasOptions);
+begin
+  inherited VisitPandorasBox(AOptions);
+  FGuardedOptions := AOptions;
+  edMessage.Text:=FGuardedOptions.GuardMessage;
+end;
 
-  edMessage.Text:=AOptions.GuardMessage;
+procedure TMessageFrame.VisitSignBottle(AOptions: TSignBottleOptions);
+begin
+  inherited VisitSignBottle(AOptions);
+  FSignOptions := AOptions;
+  edMessage.Text := FSignOptions.Text;
 end;
 
 end.

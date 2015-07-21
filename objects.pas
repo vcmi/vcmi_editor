@@ -824,6 +824,7 @@ var
   obj_template: TJSONObject;
   base: TJSONObject;
 begin
+  DebugLn([#9,#9,AName]);
   obj_template := Item as TJSONObject;
 
   base := nil;
@@ -844,6 +845,7 @@ var
   base: TJSONObject;
   idx: Integer;
 begin
+  DebugLn([#9,AName]);
   obj_subtype := Item as TJSONObject;
 
   base := nil;
@@ -862,9 +864,9 @@ begin
   if idx<0 then
   begin
     if Assigned(base) then
-      DebugLn(['Subtype ', AName, ' has "base" but no templates'])
+      DebugLn([#9,'Subtype ', AName, ' has "base" but no templates'])
     else
-      DebugLn(['Subtype ', AName, ' has no templates']);
+      DebugLn([#9,'Subtype ', AName, ' has no templates']);
     exit; //no templates - nothing to do
     //todo: display full name
   end;
@@ -882,6 +884,8 @@ var
   idx: Integer;
 begin
   //AName = object type id
+
+  DebugLn([AName]);
 
   obj_type  := Item as TJSONObject;
 
@@ -931,8 +935,6 @@ begin
 
     town_type := TJSONObject.Create;
     town_type.Add('index', faction.Index);
-
-    DebugLn([faction.Town.MapObject.AsJSON]);
 
     MergeJson(faction.Town.MapObject, town_type);
 

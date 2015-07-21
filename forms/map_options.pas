@@ -43,6 +43,7 @@ type
     tsMain: TTabSheet;
     procedure btOkClick(Sender: TObject);
     procedure cbEnableLevelLimitChange(Sender: TObject);
+    procedure edAllowedHeroesDblClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FMap: TVCMIMap;
@@ -89,6 +90,11 @@ end;
 procedure TMapOptionsForm.cbEnableLevelLimitChange(Sender: TObject);
 begin
   UpdateControls;
+end;
+
+procedure TMapOptionsForm.edAllowedHeroesDblClick(Sender: TObject);
+begin
+  //
 end;
 
 procedure TMapOptionsForm.FormShow(Sender: TObject);

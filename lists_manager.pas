@@ -394,28 +394,28 @@ type
     FNameMap: TNameToIdMap;
 
     FPrimSkillInfos: TPrimSkillInfos;
-    FPrimSkillMap: TStringList;
+    FPrimSkillMap: TStrings;
 
     FSkillInfos: TSkillInfos;
-    FSkillMap: TStringList;
+    FSkillMap: TStrings;
 
     FSpellInfos: TSpellInfos;
-    FSpellMap: TStringList;
+    FSpellMap: TStrings;
 
     FFactionInfos: TFactionInfos;
-    FFactionMap: TStringList;
+    FFactionMap: TStrings;
 
     FHeroClassInfos: THeroClassInfos;
-    FHeroClassMap: TStringList;
+    FHeroClassMap: TStrings;
 
     FCreatureInfos: TCreatureInfos;
-    FCreatureMap: TStringList;
+    FCreatureMap: TStrings;
 
     FHeroInfos: THeroInfos;
-    FHeroMap: TStringList;
+    FHeroMap: TStrings;
 
     FArtifactInfos: TArtifactInfos;
-    FArtifactMap: TStringList;
+    FArtifactMap: TStrings;
 
     FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStrings;
 
@@ -463,47 +463,47 @@ type
     function SIDIdNID(AID: AnsiString): TCustomID;
 
     //primary skills
-    property PrimSkillMap: TStringList read FPrimSkillMap;
+    property PrimSkillMap: TStrings read FPrimSkillMap;
 
     //secondary skills
     function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
-    property SkillMap:TStringList read FSkillMap;
+    property SkillMap: TStrings read FSkillMap;
 
     //Spells
     function SpellIndexToString (ASpell: TCustomID): AnsiString;
     property SpellInfos: TSpellInfos read FSpellInfos;
     function GetSpell(const AID: AnsiString): TSpellInfo;
-    property SpellMap: TStringList read FSpellMap;
+    property SpellMap: TStrings read FSpellMap;
 
     //Factions
     property FactionInfos:TFactionInfos read FFactionInfos;
-    property FactionMap: TStringList read FFactionMap;
+    property FactionMap: TStrings read FFactionMap;
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
     function GetFaction(const AID: AnsiString): TFactionInfo;
 
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
-    property HeroClassMap: TStringList read FHeroClassMap;
+    property HeroClassMap: TStrings read FHeroClassMap;
     function HeroClassIndexToString (AIndex: TCustomID):AnsiString;
     property HeroClasses[AId: AnsiString]: THeroClassInfo read GetHeroClasses;
 
     //Creatures
     function CreatureIndexToString (AIndex: TCustomID): AnsiString;
     property CreatureInfos: TCreatureInfos read FCreatureInfos;
-    property CreatureMap: TStringList read FCreatureMap;
+    property CreatureMap: TStrings read FCreatureMap;
 
     //Artifacts
     function ArtifactIndexToString (AIndex: TCustomID): AnsiString;
     property ArtifactInfos: TArtifactInfos read FArtifactInfos;
-    property ArtifactMap: TStringList read FArtifactMap;
+    property ArtifactMap: TStrings read FArtifactMap;
 
     property ArtifactSlotMap[ASlot: Integer]: TStrings read GetArtifactSlotMap;
 
     //Heroes
     function HeroIndexToString (AIndex: TCustomID): AnsiString;
     property HeroInfos: THeroInfos read FHeroInfos;
-    property HeroMap: TStringList read FHeroMap;
+    property HeroMap: TStrings read FHeroMap;
 
     property Heroes[AId: AnsiString]: THeroInfo read GetHeroes;
 

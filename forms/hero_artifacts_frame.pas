@@ -250,7 +250,7 @@ begin
 
   for slot in [0..ARTIFACT_SLOT_COUNT-1] do
   begin
-    FSlotEditors[slot].ItemIndex := -1;
+    FSlotEditors[slot].ItemIndex := -1; //todo: use map specific defaults
   end;
 end;
 
