@@ -351,7 +351,7 @@ type
 
   { THeroInfo }
 
-  THeroInfo = class(TBaseInfo)
+  THeroInfo = class(TBaseInfo, IHeroInfo)
   private
     FFemale: Boolean;
     FHeroClass: TIdentifier;
@@ -366,6 +366,10 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    //IHeroInfo
+    function GetSex: THeroSex;
+    function GetBiography: TLocalizedString;
   published
     property Texts: THeroTexts read FTexts;
     property Female: Boolean read FFemale write SetFemale nodefault;
@@ -654,6 +658,19 @@ destructor THeroInfo.Destroy;
 begin
   FTexts.Free;
   inherited Destroy;
+end;
+
+function THeroInfo.GetSex: THeroSex;
+begin
+  if Female then
+     Result := THeroSex.female
+  else
+    Result := THeroSex.male;
+end;
+
+function THeroInfo.GetBiography: TLocalizedString;
+begin
+  Result := FTexts.Biography;
 end;
 
 { THeroTexts }

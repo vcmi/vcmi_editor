@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, object_options, base_object_options_frame;
+  ExtCtrls, object_options, base_options_frame;
 
 type
 
   { TFlaggableFrame }
 
-  TFlaggableFrame = class(TBaseObjectOptionsFrame)
+  TFlaggableFrame = class(TBaseOptionsFrame)
     edOwnerRG: TRadioGroup;
   strict private
     FObject: TObjectOptions;

@@ -1,9 +1,9 @@
-object HeroOptions: THeroOptions
+object EditHeroOptions: TEditHeroOptions
   Left = 676
   Height = 381
   Top = 175
   Width = 463
-  Caption = 'HeroOptions'
+  Caption = 'EditHeroOptions'
   ClientHeight = 381
   ClientWidth = 463
   LCLVersion = '1.4.1.0'
@@ -50,11 +50,16 @@ object HeroOptions: THeroOptions
     Height = 330
     Top = 3
     Width = 457
+    ActivePage = tsMain
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
+    TabIndex = 0
     TabOrder = 2
+    object tsMain: TTabSheet
+      Caption = 'tsMain'
+    end
   end
 end

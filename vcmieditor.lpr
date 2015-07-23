@@ -33,7 +33,7 @@ uses
   map_format_h3m, stream_adapter, editor_str_consts, map_format_vcmi,
   vcmi_fpjsonrtti, glext40, map_options, editor_classes, editor_consts,
   root_manager, progress_form, editor_gl, object_options, edit_object_options,
-  base_object_options_frame, grail_frame,
+  base_options_frame, grail_frame,
   flaggable_object_frame, lists_manager, witchhut_frame, h3_txt, gui_helpers,
   shrine_frame, spellscroll_frame, root_form, dwelling_frame, map_format_zip,
   map_format_json, map_terrain_actions, map_road_river_actions,
@@ -42,7 +42,7 @@ uses
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame,
   local_event_frame, hero_frame, editor_rtti, hero_artifacts_frame, 
-message_frame, hero_options;
+message_frame, edit_hero_options, hero_options_frame, hero_definition_frame;
 
 {$R *.res}
 

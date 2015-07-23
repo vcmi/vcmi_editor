@@ -25,10 +25,10 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, object_options, map, editor_str_consts, base_object_options_frame,
+  StdCtrls, object_options, map, editor_str_consts, base_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  resource_frame, pandoras_reward_frame,
-  local_event_frame, hero_frame, hero_artifacts_frame, message_frame;
+  resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
+  hero_artifacts_frame, message_frame, hero_options_frame;
 
 type
 
@@ -47,12 +47,9 @@ type
   strict private
     FMap: TVCMIMap;
 
-    FActiveEditors: TObjectOptionsFrameList;
+    FActiveEditors: TBaseOptionsFrameList;
 
     procedure HideAllTabs;
-
-    procedure CreateFrame (AClass: TBaseObjectOptionsFrameClass;
-      AOptions: TObjectOptions; AParent:TTabSheet);
 
     procedure SaveChanges;
 
@@ -110,22 +107,7 @@ end;
 constructor TEditObjectOptions.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
-  FActiveEditors := TObjectOptionsFrameList.Create;
-end;
-
-procedure TEditObjectOptions.CreateFrame(AClass: TBaseObjectOptionsFrameClass;
-  AOptions: TObjectOptions; AParent: TTabSheet);
-var
-  frame: TBaseObjectOptionsFrame;
-begin
-  frame := AClass.Create(Self);
-  frame.Parent := AParent;
-  frame.Align := alClient;
-  frame.ListsManager := RootManager.ListsManager;
-  frame.Map := FMap;
-  AOptions.ApplyVisitor(frame); //do AFTER assign properties
-  FActiveEditors.PushBack(frame);
-  AParent.TabVisible := true;
+  FActiveEditors := TBaseOptionsFrameList.Create(Self);
 end;
 
 destructor TEditObjectOptions.Destroy;
@@ -138,6 +120,10 @@ procedure TEditObjectOptions.EditObject(Obj: TMapObject);
 begin
   FActiveEditors.Clear;
   FMap := Obj.GetMap;
+
+  FActiveEditors.Map:=FMap;
+  FActiveEditors.ListsManager := RootManager.ListsManager;
+
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
   Caption:=Format('Object %s::%s at %d %d %d',[Obj.&type, Obj.subtype,Obj.X,Obj.Y,Obj.L]);
@@ -165,31 +151,31 @@ end;
 
 procedure TEditObjectOptions.VisitDwelling(AOptions: TObjectOptions);
 begin
-  CreateFrame(TFlaggableFrame,AOptions,tsCommon);
-  CreateFrame(TDwellingFrame, AOptions,tsObject);
+  FActiveEditors.AddFrame(TFlaggableFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TDwellingFrame, AOptions,tsObject);
   tsObject.TabVisible:=true;
 end;
 
 procedure TEditObjectOptions.VisitGuardedObject(AOptions: TObjectOptions);
 begin
-  CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
+  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, tsArmy);
   tsArmy.Caption := rsGuards;
 end;
 
 procedure TEditObjectOptions.VisitArmedObject(AOptions: TObjectOptions);
 begin
-  CreateFrame(TCreatureSetFrame, AOptions, tsArmy);
+  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, tsArmy);
   tsArmy.Caption := rsArmy;
 end;
 
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
-  CreateFrame(TAbandonedFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TAbandonedFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);
 begin
-  CreateFrame(TMessageFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TMessageFrame, AOptions, tsCommon);
   VisitGuardedObject(AOptions);
 end;
 
@@ -201,14 +187,14 @@ end;
 
 procedure TEditObjectOptions.VisitGrail(AOptions: TGrailOptions);
 begin
-  CreateFrame(TGrailFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TGrailFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitHero(AOptions: THeroOptions);
 begin
-  CreateFrame(THeroFrame, AOptions,tsCommon);
+  FActiveEditors.AddFrame(THeroOptionsFrame, AOptions,tsCommon);
   VisitArmedObject(AOptions);
-  CreateFrame(THeroArtifactsFrame,AOptions,tsArtifacts);
+  FActiveEditors.AddFrame(THeroArtifactsFrame,AOptions,tsArtifacts);
 end;
 
 procedure TEditObjectOptions.VisitHeroPlaseholder(
@@ -219,25 +205,25 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-  CreateFrame(TLocalEventFrame, AOptions,tsCommon);
-  CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
+  FActiveEditors.AddFrame(TLocalEventFrame, AOptions,tsCommon);
+  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitMonster(AOptions: TMonsterOptions);
 begin
-  CreateFrame(TMonsterFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TMonsterFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitOwnedObject(AOptions: TOwnedObjectOptions);
 begin
-  CreateFrame(TFlaggableFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TFlaggableFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-  CreateFrame(TMessageFrame,AOptions,tsCommon);
-  CreateFrame(TPandorasRewardFrame,AOptions,tsObject);
+  FActiveEditors.AddFrame(TMessageFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,tsObject);
   VisitGuardedObject(AOptions);
 end;
 
@@ -266,13 +252,13 @@ end;
 
 procedure TEditObjectOptions.VisitResource(AOptions: TResourceOptions);
 begin
-  CreateFrame(TResourceFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TResourceFrame, AOptions, tsCommon);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitScholar(AOptions: TScholarOptions);
 begin
-  CreateFrame(TScholarFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TScholarFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitSeerHut(AOptions: TSeerHutOptions);
@@ -282,17 +268,17 @@ end;
 
 procedure TEditObjectOptions.VisitShrine(AOptions: TShrineOptions);
 begin
-  CreateFrame(TShrineFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TShrineFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-  CreateFrame(TMessageFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TMessageFrame,AOptions,tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
-  CreateFrame(TSpellScrollFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TSpellScrollFrame,AOptions,tsCommon);
   VisitGuardedObject(AOptions);
 end;
 
@@ -303,7 +289,7 @@ end;
 
 procedure TEditObjectOptions.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-  CreateFrame(TWitchHutFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TWitchHutFrame,AOptions,tsCommon);
 end;
 
 end.

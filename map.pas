@@ -402,11 +402,12 @@ type
 
   { THeroDefinition }
 
-  THeroDefinition = class (TNamedCollectionItem, ISerializeNotify)
+  THeroDefinition = class (TNamedCollectionItem, ISerializeNotify, IHeroInfo)
   private
     FArtifacts: THeroArtifacts;
     FBiography: TLocalizedString;
     FExperience: UInt64;
+    FName: TLocalizedString;
     FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
@@ -415,6 +416,7 @@ type
     function IsSpellBookStored: Boolean;
     procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
+    procedure SetName(AValue: TLocalizedString);
     procedure SetSex(AValue: THeroSex);
   public
     constructor Create(ACollection: TCollection); override;
@@ -424,16 +426,21 @@ type
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData);
     procedure BeforeSerialize({%H-}Sender: TObject);
     procedure AfterSerialize(Sender: TObject; AData: TJSONData);
+  public//IHeroInfo
+    function GetSex: THeroSex;
+    function GetBiography: TLocalizedString;
+    function GetName: TLocalizedString;
   published
     property Experience: UInt64 read FExperience write SetExperience default 0;
     property Skills: THeroSecondarySkills read FSkills;
     property Artifacts: THeroArtifacts read FArtifacts;
 
-    property Biography: TLocalizedString read FBiography write SetBiography;
+    property Biography: TLocalizedString read GetBiography write SetBiography;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+    property Name: TLocalizedString read GetName write SetName;
   public //manual streaming
-    property Sex:THeroSex read FSex write SetSex default THeroSex.default;
+    property Sex:THeroSex read GetSex write SetSex default THeroSex.default;
   end;
 
   { THeroDefinitions }
@@ -690,6 +697,12 @@ begin
   FExperience:=AValue;
 end;
 
+procedure THeroDefinition.SetName(AValue: TLocalizedString);
+begin
+  if FName=AValue then Exit;
+  FName:=AValue;
+end;
+
 procedure THeroDefinition.SetSex(AValue: THeroSex);
 begin
   if FSex=AValue then Exit;
@@ -705,6 +718,21 @@ end;
 function THeroDefinition.IsPrimarySkillsStored: Boolean;
 begin
   Result := not FPrimarySkills.IsDefault;
+end;
+
+function THeroDefinition.GetSex: THeroSex;
+begin
+  Result := FSex;
+end;
+
+function THeroDefinition.GetBiography: TLocalizedString;
+begin
+  Result := FBiography;
+end;
+
+function THeroDefinition.GetName: TLocalizedString;
+begin
+  Result := FName;
 end;
 
 function THeroDefinition.IsSpellBookStored: Boolean;

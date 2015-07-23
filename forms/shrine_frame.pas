@@ -26,13 +26,13 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   gui_helpers, lists_manager,
-  base_object_options_frame, object_options;
+  base_options_frame, object_options;
 
 type
 
   { TShrineFrame }
 
-  TShrineFrame = class(TBaseObjectOptionsFrame)
+  TShrineFrame = class(TBaseOptionsFrame)
     GroupBox1: TGroupBox;
     edSpell: TListBox;
     rbRandom: TRadioButton;

@@ -1,4 +1,4 @@
-object BaseObjectOptionsFrame: TBaseObjectOptionsFrame
+object BaseOptionsFrame: TBaseOptionsFrame
   Left = 0
   Height = 240
   Top = 0

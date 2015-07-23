@@ -17,23 +17,23 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit base_object_options_frame;
+unit base_options_frame;
 
 {$I compilersetup.inc}
 
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil,  LCLType,  Forms, Controls, Spin, Grids,
+  Classes, SysUtils, gvector, FileUtil,  LCLType,  Forms, Controls, ComCtrls, Spin, Grids,
   editor_types,
   object_options, map,
   lists_manager, editor_consts;
 
 type
 
-  { TBaseObjectOptionsFrame }
+  { TBaseOptionsFrame }
 
-  TBaseObjectOptionsFrame = class(TFrame,IObjectOptionsVisitor)
+  TBaseOptionsFrame = class(TFrame,IObjectOptionsVisitor)
   private
     FListsManager: TListsManager;
     FMap: TVCMIMap;
@@ -79,64 +79,136 @@ type
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
   public //map options
 
-    procedure VisitHeroOptions({%H-}AOptions: THeroDefinition); virtual;
+    procedure VisitHeroDefinition({%H-}AOptions: THeroDefinition); virtual;
 
   public
     property ListsManager: TListsManager read FListsManager write SetListsManager;
     property Map: TVCMIMap read FMap write SetMap;
   end;
 
-  TBaseObjectOptionsFrameClass = class of TBaseObjectOptionsFrame;
+  TBaseOptionsFrameClass = class of TBaseOptionsFrame;
 
-  { TObjectOptionsFrameList }
+  { TBaseOptionsFrameList }
 
-  TObjectOptionsFrameList = class(specialize TVector<TBaseObjectOptionsFrame>)
+  TBaseOptionsFrameVector = specialize TVector<TBaseOptionsFrame>;
+
+  TBaseOptionsFrameList = class(TComponent)
+  private
+    FListsManager: TListsManager;
+    FMap: TVCMIMap;
+
+    FData:  TBaseOptionsFrameVector;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: TObjectOptions; AParent:TTabSheet);
+    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: THeroDefinition; AParent:TTabSheet);
+    procedure Clear;
+
     procedure Commit;
+
+    property ListsManager: TListsManager read FListsManager write FListsManager;
+    property Map: TVCMIMap read FMap write FMap;
   end;
 
 implementation
 
-{ TObjectOptionsFrameList }
+{ TBaseOptionsFrameList }
 
-procedure TObjectOptionsFrameList.Commit;
+constructor TBaseOptionsFrameList.Create(AOwner: TComponent);
+begin
+  FData := TBaseOptionsFrameVector.Create;
+  inherited Create(AOwner);
+
+end;
+
+destructor TBaseOptionsFrameList.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
+
+procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass;
+  AOptions: TObjectOptions; AParent: TTabSheet);
+var
+  F: TBaseOptionsFrame;
+begin
+  Assert(Assigned(FMap));
+  Assert(Assigned(FListsManager));
+
+  F := AClass.Create(Self);
+  F.Parent := AParent;
+  F.Align := alClient;
+  F.ListsManager := ListsManager;
+  F.Map := Map;
+  AOptions.ApplyVisitor(F); //do AFTER assign properties
+  FData.PushBack(F);
+  AParent.TabVisible := true;
+end;
+
+procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass;
+  AOptions: THeroDefinition; AParent: TTabSheet);
+var
+  F: TBaseOptionsFrame;
+begin
+  Assert(Assigned(FMap));
+  Assert(Assigned(FListsManager));
+
+  F := AClass.Create(Self);
+  F.Parent := AParent;
+  F.Align := alClient;
+  F.ListsManager := ListsManager;
+  F.Map := Map;
+  F.VisitHeroDefinition(AOptions); //do AFTER assign properties
+  FData.PushBack(F);
+  AParent.TabVisible := true;
+
+end;
+
+procedure TBaseOptionsFrameList.Clear;
+begin
+  FData.Clear;
+end;
+
+procedure TBaseOptionsFrameList.Commit;
 var
   i: SizeInt;
 begin
-  for i := 0 to Size - 1 do
+  for i := 0 to FData.Size - 1 do
   begin
-    Items[i].Commit;
+    FData[i].Commit;
   end;
 
 end;
 
 {$R *.lfm}
 
-{ TBaseObjectOptionsFrame }
+{ TBaseOptionsFrame }
 
-procedure TBaseObjectOptionsFrame.Commit;
+procedure TBaseOptionsFrame.Commit;
 begin
 
 end;
 
-constructor TBaseObjectOptionsFrame.Create(TheOwner: TComponent);
+constructor TBaseOptionsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
 end;
 
-procedure TBaseObjectOptionsFrame.SetListsManager(AValue: TListsManager);
+procedure TBaseOptionsFrame.SetListsManager(AValue: TListsManager);
 begin
   if FListsManager = AValue then Exit;
   FListsManager := AValue;
 end;
 
-procedure TBaseObjectOptionsFrame.SetMap(AValue: TVCMIMap);
+procedure TBaseOptionsFrame.SetMap(AValue: TVCMIMap);
 begin
   if FMap=AValue then Exit;
   FMap:=AValue;
 end;
 
-procedure TBaseObjectOptionsFrame.ReadResourceSet(AParentControl: TWinControl;
+procedure TBaseOptionsFrame.ReadResourceSet(AParentControl: TWinControl;
   ASrc: TResourceSet);
 var
   res_type: TResType;
@@ -166,7 +238,7 @@ begin
   end;
 end;
 
-procedure TBaseObjectOptionsFrame.SaveResourceSet(AParentControl: TWinControl;
+procedure TBaseOptionsFrame.SaveResourceSet(AParentControl: TWinControl;
   ADest: TResourceSet);
 var
   res_type: TResType;
@@ -197,22 +269,22 @@ begin
 
 end;
 
-procedure TBaseObjectOptionsFrame.VisitNormalHero(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitNormalHero(AOptions: THeroOptions);
 begin
 
 end;
 
-procedure TBaseObjectOptionsFrame.VisitRandomHero(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitRandomHero(AOptions: THeroOptions);
 begin
 
 end;
 
-procedure TBaseObjectOptionsFrame.VisitPrison(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitPrison(AOptions: THeroOptions);
 begin
 
 end;
 
-procedure TBaseObjectOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
+procedure TBaseOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
   if (key = VK_DELETE) and (Shift=[]) then
@@ -228,7 +300,7 @@ begin
   end;
 end;
 
-procedure TBaseObjectOptionsFrame.HandleStringGridResize(Sender: TObject);
+procedure TBaseOptionsFrame.HandleStringGridResize(Sender: TObject);
 var
   grid: TCustomStringGrid;
 begin
@@ -238,28 +310,28 @@ begin
     grid.Editor.BoundsRect := grid.CellRect(grid.Col,grid.Row);
 end;
 
-procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
+procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
   );
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);
+procedure TBaseOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitGarrison(AOptions: TGarrisonOptions);
+procedure TBaseOptionsFrame.VisitGarrison(AOptions: TGarrisonOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitGrail(AOptions: TGrailOptions);
+procedure TBaseOptionsFrame.VisitGrail(AOptions: TGrailOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitHero(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitHero(AOptions: THeroOptions);
 begin
   case AOptions.MapObject.GetID of
     TYPE_HERO: VisitNormalHero(AOptions);
@@ -268,97 +340,97 @@ begin
   end;
 end;
 
-procedure TBaseObjectOptionsFrame.VisitHeroPlaseholder(
+procedure TBaseOptionsFrame.VisitHeroPlaseholder(
   AOptions: THeroPlaceholderOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
+procedure TBaseOptionsFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitMonster(AOptions: TMonsterOptions);
+procedure TBaseOptionsFrame.VisitMonster(AOptions: TMonsterOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions
+procedure TBaseOptionsFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions
   );
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitHeroOptions(AOptions: THeroDefinition);
+procedure TBaseOptionsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);
+procedure TBaseOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitQuestGuard(AOptions: TQuestGuardOptions);
+procedure TBaseOptionsFrame.VisitQuestGuard(AOptions: TQuestGuardOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitRandomDwelling(
+procedure TBaseOptionsFrame.VisitRandomDwelling(
   AOptions: TRandomDwellingOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitRandomDwellingLVL(
+procedure TBaseOptionsFrame.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitRandomDwellingTown(
+procedure TBaseOptionsFrame.VisitRandomDwellingTown(
   AOptions: TRandomDwellingTownOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitResource(AOptions: TResourceOptions);
+procedure TBaseOptionsFrame.VisitResource(AOptions: TResourceOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitScholar(AOptions: TScholarOptions);
+procedure TBaseOptionsFrame.VisitScholar(AOptions: TScholarOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitSeerHut(AOptions: TSeerHutOptions);
+procedure TBaseOptionsFrame.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitShrine(AOptions: TShrineOptions);
+procedure TBaseOptionsFrame.VisitShrine(AOptions: TShrineOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitSignBottle(AOptions: TSignBottleOptions);
+procedure TBaseOptionsFrame.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
+procedure TBaseOptionsFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitTown(AOptions: TTownOptions);
+procedure TBaseOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
   //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitWitchHut(AOptions: TWitchHutOptions);
+procedure TBaseOptionsFrame.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
   //do nothig
 end;

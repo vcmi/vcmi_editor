@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, object_options, base_object_options_frame;
+  Spin, object_options, base_options_frame;
 
 type
 
   { TGrailFrame }
 
-  TGrailFrame = class(TBaseObjectOptionsFrame)
+  TGrailFrame = class(TBaseOptionsFrame)
     lbRadius: TLabel;
     edRadius: TSpinEdit;
   strict private

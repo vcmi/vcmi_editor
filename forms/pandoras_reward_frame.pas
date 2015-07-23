@@ -26,14 +26,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, Spin, Grids, CheckLst, base_object_options_frame,
+  StdCtrls, Spin, Grids, CheckLst, base_options_frame,
   gui_helpers, object_options, base_info, editor_classes;
 
 type
 
   { TPandorasRewardFrame }
 
-  TPandorasRewardFrame = class(TBaseObjectOptionsFrame)
+  TPandorasRewardFrame = class(TBaseOptionsFrame)
     edArtifacts: TCheckListBox;
     edSpells: TCheckListBox;
     edMercury: TSpinEdit;

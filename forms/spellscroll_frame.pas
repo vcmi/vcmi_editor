@@ -26,13 +26,13 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, object_options, gui_helpers, lists_manager,
-  base_object_options_frame;
+  base_options_frame;
 
 type
 
   { TSpellScrollFrame }
 
-  TSpellScrollFrame = class(TBaseObjectOptionsFrame)
+  TSpellScrollFrame = class(TBaseOptionsFrame)
     edSpell: TListBox;
     Label1: TLabel;
     edMessage: TMemo;

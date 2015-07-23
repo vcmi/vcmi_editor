@@ -26,7 +26,7 @@ unit editor_classes;
 interface
 
 uses
-  Classes, SysUtils, fgl, fpjson, contnrs;
+  Classes, SysUtils, fgl, editor_types, fpjson, contnrs;
 
 type
 
@@ -186,6 +186,12 @@ type
   { THeroSecondarySkills }
 
   THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
+  end;
+
+  IHeroInfo = interface
+    function GetBiography: TLocalizedString;
+    function GetSex: THeroSex;
+    function GetName: TLocalizedString;
   end;
 
 

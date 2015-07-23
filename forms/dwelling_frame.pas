@@ -25,13 +25,13 @@ interface
 
 uses
   Classes, SysUtils, Math, FileUtil, Forms, Controls, StdCtrls, Spin, CheckLst,
-  ExtCtrls, object_options, base_object_options_frame, object_link_frame;
+  ExtCtrls, object_options, base_options_frame, object_link_frame;
 
 type
 
   { TDwellingFrame }
 
-  TDwellingFrame = class(TBaseObjectOptionsFrame)
+  TDwellingFrame = class(TBaseOptionsFrame)
     edFaction: TCheckListBox;
     gbLevel: TGroupBox;
     gbFaction: TGroupBox;

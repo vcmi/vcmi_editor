@@ -129,7 +129,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="69">
+    <Units Count="71">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -278,9 +278,9 @@
         <ResourceBaseClass Value="Form"/>
       </Unit31>
       <Unit32>
-        <Filename Value="forms\base_object_options_frame.pas"/>
+        <Filename Value="forms\base_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="BaseObjectOptionsFrame"/>
+        <ComponentName Value="BaseOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit32>
@@ -478,11 +478,26 @@
         <ResourceBaseClass Value="Frame"/>
       </Unit67>
       <Unit68>
-        <Filename Value="forms\hero_options.pas"/>
+        <Filename Value="forms\edit_hero_options.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="HeroOptions"/>
+        <ComponentName Value="EditHeroOptions"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit68>
+      <Unit69>
+        <Filename Value="forms\hero_options_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HeroOptionsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit69>
+      <Unit70>
+        <Filename Value="forms\hero_definition_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HeroDefinitionFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit70>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

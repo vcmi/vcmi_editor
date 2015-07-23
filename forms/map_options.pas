@@ -26,8 +26,8 @@ interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, hero_options, Map,
-  lists_manager, base_info;
+  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, edit_hero_options, Map,
+  lists_manager, base_info, root_manager;
 
 type
 
@@ -115,16 +115,16 @@ end;
 
 procedure TMapOptionsForm.edAllowedHeroesDblClick(Sender: TObject);
 var
-  frm: THeroOptions;
+  frm: TEditHeroOptions;
 
   option: THeroDefinition;
 
   info: TBaseInfo;
 begin
-  frm := THeroOptions.Create(Self);
+  frm := TEditHeroOptions.Create(Self);
 
   frm.Map := Map;
-
+  frm.ListsManager := RootManager.ListsManager;
 
   info := edAllowedHeroes.selectedInfo();
 

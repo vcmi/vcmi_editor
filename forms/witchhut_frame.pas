@@ -25,13 +25,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, CheckLst,
-  StdCtrls,editor_types, gui_helpers, base_object_options_frame, object_options;
+  StdCtrls,editor_types, gui_helpers, base_options_frame, object_options;
 
 type
 
   { TWitchHutFrame }
 
-  TWitchHutFrame = class(TBaseObjectOptionsFrame)
+  TWitchHutFrame = class(TBaseOptionsFrame)
     edAllowedSkills: TCheckListBox;
     lbAllowedSkills: TLabel;
     procedure edAllowedSkillsClickCheck(Sender: TObject);

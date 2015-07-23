@@ -6,14 +6,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, base_object_options_frame, gui_helpers, object_options,
+  StdCtrls, base_options_frame, gui_helpers, object_options,
   editor_types, editor_consts, lists_manager, base_info;
 
 type
 
   { TScholarFrame }
 
-  TScholarFrame = class(TBaseObjectOptionsFrame)
+  TScholarFrame = class(TBaseOptionsFrame)
     edBonusID: TComboBox;
     edBonusType: TRadioGroup;
     Label1: TLabel;

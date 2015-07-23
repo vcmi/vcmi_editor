@@ -1,0 +1,5 @@
+inherited HeroOptionsFrame: THeroOptionsFrame
+  inherited edHeroClass: TComboBox
+    OnChange = edHeroClassChange
+  end
+end

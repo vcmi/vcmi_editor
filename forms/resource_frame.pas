@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, base_object_options_frame, object_options;
+  Spin, base_options_frame, object_options;
 
 type
 
   { TResourceFrame }
 
-  TResourceFrame = class(TBaseObjectOptionsFrame)
+  TResourceFrame = class(TBaseOptionsFrame)
     cbRandom: TCheckBox;
     GroupAmount: TGroupBox;
     edAmount: TSpinEdit;

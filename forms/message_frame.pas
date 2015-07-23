@@ -25,13 +25,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, 
-    base_object_options_frame, object_options;
+    base_options_frame, object_options;
 
 type
 
   { TMessageFrame }
 
-  TMessageFrame = class(TBaseObjectOptionsFrame)
+  TMessageFrame = class(TBaseOptionsFrame)
     edMessage: TMemo;
     Label1: TLabel;
   private

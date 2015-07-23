@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, ExtCtrls, object_options, base_object_options_frame, gui_helpers;
+  Spin, ExtCtrls, object_options, base_options_frame, gui_helpers;
 
 type
 
   { TMonsterFrame }
 
-  TMonsterFrame = class(TBaseObjectOptionsFrame)
+  TMonsterFrame = class(TBaseOptionsFrame)
     edRewardArtifact: TComboBox;
     edNoGrowing: TCheckBox;
     edRandomCount: TCheckBox;

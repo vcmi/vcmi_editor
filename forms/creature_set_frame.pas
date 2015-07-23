@@ -6,14 +6,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Spin, base_object_options_frame, gui_helpers, object_options,
+  StdCtrls, Spin, base_options_frame, gui_helpers, object_options,
   lists_manager;
 
 type
 
   { TCreatureSetFrame }
 
-  TCreatureSetFrame = class(TBaseObjectOptionsFrame)
+  TCreatureSetFrame = class(TBaseOptionsFrame)
     edRemovableUnits: TCheckBox;
     edCustomize: TCheckBox;
     edCell1: TComboBox;

@@ -25,14 +25,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Buttons, Grids, base_object_options_frame, gui_helpers,
+  StdCtrls, Buttons, Grids, base_options_frame, gui_helpers,
   object_options, editor_types, editor_consts, base_info;
 
 type
 
   { THeroArtifactsFrame }
 
-  THeroArtifactsFrame = class(TBaseObjectOptionsFrame)
+  THeroArtifactsFrame = class(TBaseOptionsFrame)
     BackpackSelector: TComboBox;
     cbCustomise: TCheckBox;
     Panel1: TPanel;

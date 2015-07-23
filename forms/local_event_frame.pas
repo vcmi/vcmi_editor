@@ -26,14 +26,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, base_object_options_frame, gui_helpers, object_options,
+  ExtCtrls, base_options_frame, gui_helpers, object_options,
   editor_types;
 
 type
 
   { TLocalEventFrame }
 
-  TLocalEventFrame = class(TBaseObjectOptionsFrame)
+  TLocalEventFrame = class(TBaseOptionsFrame)
     edRemoveAfterVisit: TCheckBox;
     edPlayers: TCheckGroup;
     edActivableBy: TComboBox;

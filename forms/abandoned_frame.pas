@@ -26,14 +26,14 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  CheckLst, base_object_options_frame, editor_types, object_options,
+  CheckLst, base_options_frame, editor_types, object_options,
   editor_consts;
 
 type
 
   { TAbandonedFrame }
 
-  TAbandonedFrame = class(TBaseObjectOptionsFrame)
+  TAbandonedFrame = class(TBaseOptionsFrame)
     edPossibleResources: TCheckListBox;
     Label1: TLabel;
   private
