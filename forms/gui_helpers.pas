@@ -41,6 +41,8 @@ type
     procedure SaveToCondition(AFullList: TStrings; ADest: TLogicalIDCondition; Permissive: Boolean);
 
     procedure FillFromCondition(AFullList: TStrings; ASrc: TLogicalIDCondition);
+
+    function SelectedInfo: TBaseInfo;
   end;
 
   { TListBoxHelper }
@@ -289,6 +291,11 @@ procedure TCheckListBoxHelper.FillFromCondition(AFullList: TStrings;
   ASrc: TLogicalIDCondition);
 begin
   FillCheckListBox(Self,AFullList,ASrc);
+end;
+
+function TCheckListBoxHelper.SelectedInfo: TBaseInfo;
+begin
+  Result := GetSelectedInfo(Items,ItemIndex);
 end;
 
 

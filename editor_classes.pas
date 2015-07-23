@@ -30,41 +30,17 @@ uses
 
 type
 
-  { ISerializeNotify }
+  { IProgressCallback }
 
-  ISerializeNotify = interface ['ISerializeNotify']
-     procedure BeforeSerialize(Sender:TObject);
-     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+  IProgressCallback = interface
+    function GetMax: Integer;
+    procedure SetMax(AValue: Integer);
 
-     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
-     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
+    property Max: Integer read GetMax write SetMax;
+
+    procedure Advance(ADelta: integer);
   end;
 
-  { TNamedCollectionItem }
-
-  TNamedCollectionItem = class(TCollectionItem)
-  private
-    FDisplayName: string;
-  protected
-    function GetDisplayName: string; override;
-    procedure SetDisplayName(const Value: string); override;
-  end;
-
-  { TGCollection }
-
-  generic TGCollection <TItem> = class (TCollection)
-  private
-    function GetItems(const Idx: Integer): TItem;
-    procedure SetItems(const Idx: Integer; AValue: TItem);
-  public
-    type
-      TItemType = Titem;
-    constructor Create;
-
-    function Add: TItem;
-
-    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
-  end;
 
   {
     May contain only one published property serialized directly (w/o object node)
@@ -92,33 +68,85 @@ type
   { IEmbeddedCollection }
 
   IEmbeddedCollection = interface ['{F3D6E58A-CA30-4030-B98B-5E75A5AB796A}']
-
     function GetCollection: TCollection;
   end;
 
+  { ISerializeNotify }
+
+  ISerializeNotify = interface ['ISerializeNotify']
+     procedure BeforeSerialize(Sender:TObject);
+     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+
+     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
+  end;
+
+  { TNamedCollectionItem }
+
+  TNamedCollectionItem = class(TCollectionItem)
+  private
+    FDisplayName: string;
+  protected
+    function GetDisplayName: string; override;
+    procedure SetDisplayName(const Value: string); override;
+  end;
+
+  TNamedCollectionItemClass = class of TNamedCollectionItem;
+
+  { THashedCollection }
+
+  THashedCollection = class(TCollection)
+  private
+    FHash: TFPHashObjectList;
+
+    procedure ItemAdded(Item: TCollectionItem);
+    procedure ItemRemoved(Item: TCollectionItem);
+  protected
+    procedure Notify(Item: TCollectionItem; Action: TCollectionNotification);
+      override;
+  public
+    constructor Create(AItemClass: TNamedCollectionItemClass);
+    destructor Destroy; override;
+
+    function IndexOfName(const AName: String): Integer;
+
+    function FindItem(const AName: String): TNamedCollectionItem;
+  end;
+
+
   { TGArrayCollection }
 
-  generic TGArrayCollection <TItem> = class (specialize TGCollection <TItem>, IArrayCollection)
+  generic TGArrayCollection <TItem> = class (TCollection, IArrayCollection)
+  private
+    function GetItems(const Idx: Integer): TItem;
+    procedure SetItems(const Idx: Integer; AValue: TItem);
+  public
+    type
+      TItemType = Titem;
+    constructor Create;
 
+    function Add: TItem;
+
+    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
   end;
 
   { TGNamedCollection }
 
-  generic TGNamedCollection <TItem> = class (specialize TGCollection <TItem>, INamedCollection)
+  generic TGNamedCollection <TItem> = class (THashedCollection, INamedCollection)
+  private
+    function GetItems(const Idx: Integer): TItem;
+    procedure SetItems(const Idx: Integer; AValue: TItem);
+  public
+    type
+      TItemType = Titem;
+    constructor Create;
 
+    function Add: TItem;
+
+    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
+
+    function FindItem(const AName: String): TItemType;
   end;
-
-  { IProgressCallback }
-
-  IProgressCallback = interface
-    function GetMax: Integer;
-    procedure SetMax(AValue: Integer);
-
-    property Max: Integer read GetMax write SetMax;
-
-    procedure Advance(ADelta: integer);
-  end;
-
 
   { TObjectMap }
 
@@ -163,6 +191,103 @@ type
 
 implementation
 
+{ TGNamedCollection }
+
+function TGNamedCollection.GetItems(const Idx: Integer): TItem;
+begin
+  Result := TItem( inherited Items[Idx]);
+end;
+
+procedure TGNamedCollection.SetItems(const Idx: Integer; AValue: TItem);
+begin
+  inherited Items[Idx] := AValue;
+end;
+
+constructor TGNamedCollection.Create;
+begin
+  inherited Create(TItem);
+end;
+
+function TGNamedCollection.Add: TItem;
+begin
+   Result := TItem(inherited Add);
+end;
+
+function TGNamedCollection.FindItem(const AName: String): TItemType;
+begin
+  Result := TItemType(inherited FindItem(AName));
+end;
+
+{ THashedCollection }
+
+procedure THashedCollection.ItemAdded(Item: TCollectionItem);
+begin
+  FHash.Add(Item.DisplayName, Item);
+end;
+
+procedure THashedCollection.ItemRemoved(Item: TCollectionItem);
+begin
+  FHash.Remove(Item); //todo: optimise
+end;
+
+procedure THashedCollection.Notify(Item: TCollectionItem;
+  Action: TCollectionNotification);
+begin
+  inherited Notify(Item, Action);
+
+  Case Action of
+    cnAdded                 : ItemAdded(Item);
+    cnExtracting, cnDeleting: ItemRemoved(Item);
+  end;
+end;
+
+constructor THashedCollection.Create(AItemClass: TNamedCollectionItemClass);
+begin
+  inherited Create(AItemClass);
+  FHash := TFPHashObjectList.Create(False);
+end;
+
+destructor THashedCollection.Destroy;
+begin
+  inherited Destroy;
+  FHash.Free;//has is used by inherited destructor
+end;
+
+function THashedCollection.IndexOfName(const AName: String): Integer;
+var
+  hash_idx: Integer;
+
+  item : TCollectionItem;
+begin
+
+  hash_idx := FHash.FindIndexOf(AName);
+
+  if hash_idx = -1 then
+  begin
+    Result := -1;
+  end
+  else
+  begin
+    item := TCollectionItem(FHash.Items[hash_idx]);
+
+    Result := item.Index;
+
+    Assert(Items[Result] = item, 'THashedCollection desynch');
+  end;
+end;
+
+function THashedCollection.FindItem(const AName: String): TNamedCollectionItem;
+var
+  idx: Integer;
+begin
+  idx := IndexOfName(AName);
+
+  if idx = -1 then
+    Result := nil
+  else
+    Result := TNamedCollectionItem(Items[idx]);
+end;
+
 { TNamedCollectionItem }
 
 function TNamedCollectionItem.GetDisplayName: string;
@@ -178,22 +303,22 @@ end;
 
 { TGCollection }
 
-function TGCollection.Add: TItem;
+function TGArrayCollection.Add: TItem;
 begin
   Result := TItem(inherited Add);
 end;
 
-constructor TGCollection.Create;
+constructor TGArrayCollection.Create;
 begin
   inherited Create(TItem);
 end;
 
-function TGCollection.GetItems(const Idx: Integer): TItem;
+function TGArrayCollection.GetItems(const Idx: Integer): TItem;
 begin
   Result := TItem( inherited Items[Idx]);
 end;
 
-procedure TGCollection.SetItems(const Idx: Integer; AValue: TItem);
+procedure TGArrayCollection.SetItems(const Idx: Integer; AValue: TItem);
 begin
   inherited Items[Idx] := AValue;
 end;

@@ -26,7 +26,8 @@ interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, hero_options, Map;
+  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, hero_options, Map,
+  lists_manager, base_info;
 
 type
 
@@ -115,12 +116,26 @@ end;
 procedure TMapOptionsForm.edAllowedHeroesDblClick(Sender: TObject);
 var
   frm: THeroOptions;
+
+  option: THeroDefinition;
+
+  info: TBaseInfo;
 begin
   frm := THeroOptions.Create(Self);
 
   frm.Map := Map;
 
-//  frm.EditObject();
+
+  info := edAllowedHeroes.selectedInfo();
+
+  option := Map.PredefinedHeroes.FindItem(info.ID);
+
+  if not Assigned(option) then
+  begin
+    option := Map.PredefinedHeroes.Add;
+  end;
+
+  frm.EditObject(option);
 end;
 
 procedure TMapOptionsForm.FormShow(Sender: TObject);
