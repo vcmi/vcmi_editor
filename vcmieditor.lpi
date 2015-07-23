@@ -129,7 +129,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="68">
+    <Units Count="69">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -477,6 +477,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit67>
+      <Unit68>
+        <Filename Value="forms\hero_options.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HeroOptions"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit68>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

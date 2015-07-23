@@ -42,7 +42,7 @@ uses
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame,
   local_event_frame, hero_frame, editor_rtti, hero_artifacts_frame, 
-message_frame;
+message_frame, hero_options;
 
 {$R *.res}
 

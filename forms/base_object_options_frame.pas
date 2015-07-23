@@ -77,6 +77,10 @@ type
     procedure VisitHeroPlaseholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
 
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
+  public //map options
+
+    procedure VisitHeroOptions({%H-}AOptions: THeroDefinition); virtual;
+
   public
     property ListsManager: TListsManager read FListsManager write SetListsManager;
     property Map: TVCMIMap read FMap write SetMap;
@@ -237,22 +241,22 @@ end;
 procedure TBaseObjectOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
   );
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitGarrison(AOptions: TGarrisonOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitGrail(AOptions: TGrailOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitHero(AOptions: THeroOptions);
@@ -267,92 +271,96 @@ end;
 procedure TBaseObjectOptionsFrame.VisitHeroPlaseholder(
   AOptions: THeroPlaceholderOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitMonster(AOptions: TMonsterOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions
   );
 begin
+  //do nothig
+end;
 
+procedure TBaseObjectOptionsFrame.VisitHeroOptions(AOptions: THeroDefinition);
+begin
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitQuestGuard(AOptions: TQuestGuardOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitRandomDwelling(
   AOptions: TRandomDwellingOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitRandomDwellingTown(
   AOptions: TRandomDwellingTownOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitResource(AOptions: TResourceOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitScholar(AOptions: TScholarOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitShrine(AOptions: TShrineOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-
+  //do nothig
 end;
 
-procedure TBaseObjectOptionsFrame.VisitSpellScroll(AOptions: TSpellScrollOptions
-  );
+procedure TBaseObjectOptionsFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
-
+  //do nothig
 end;
 
 procedure TBaseObjectOptionsFrame.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-
+  //do nothig
 end;
 
 end.

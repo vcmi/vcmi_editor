@@ -1,11 +1,11 @@
 object MapOptionsForm: TMapOptionsForm
   Left = 343
-  Height = 421
+  Height = 400
   Top = 204
-  Width = 518
+  Width = 503
   Caption = 'MapOptionsForm'
-  ClientHeight = 421
-  ClientWidth = 518
+  ClientHeight = 400
+  ClientWidth = 503
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
@@ -14,9 +14,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 342
+    Left = 327
     Height = 26
-    Top = 385
+    Top = 364
     Width = 81
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -30,9 +30,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 433
+    Left = 418
     Height = 26
-    Top = 385
+    Top = 364
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -49,21 +49,21 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 370
+    Height = 349
     Top = 3
-    Width = 512
-    ActivePage = tsMain
+    Width = 497
+    ActivePage = tsHeroes
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
-      ClientHeight = 342
-      ClientWidth = 504
+      ClientHeight = 321
+      ClientWidth = 489
       object edDifficulty: TRadioGroup
         AnchorSideLeft.Control = tsMain
         AnchorSideTop.Control = tsMain
@@ -72,7 +72,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 97
         Top = 0
-        Width = 494
+        Width = 479
         Anchors = [akTop, akLeft, akRight]
         AutoFill = True
         BorderSpacing.Left = 5
@@ -87,7 +87,7 @@ object MapOptionsForm: TMapOptionsForm
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
         ClientHeight = 77
-        ClientWidth = 490
+        ClientWidth = 475
         Columns = 2
         Items.Strings = (
           'Easy'
@@ -117,7 +117,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 15
         Top = 143
-        Width = 494
+        Width = 479
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -131,7 +131,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 23
         Top = 164
-        Width = 493
+        Width = 478
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 6
@@ -153,9 +153,9 @@ object MapOptionsForm: TMapOptionsForm
         AnchorSideBottom.Control = tsMain
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 130
+        Height = 109
         Top = 207
-        Width = 494
+        Width = 479
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -176,13 +176,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsAbilities: TTabSheet
       Caption = 'Abilities'
-      ClientHeight = 342
-      ClientWidth = 504
+      ClientHeight = 321
+      ClientWidth = 489
       object edAbilities: TCheckListBox
         Left = 0
-        Height = 292
+        Height = 271
         Top = 0
-        Width = 504
+        Width = 489
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -191,12 +191,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel2: TPanel
         Left = 0
         Height = 50
-        Top = 292
-        Width = 504
+        Top = 271
+        Width = 489
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 504
+        ClientWidth = 489
         TabOrder = 1
         object Label3: TLabel
           Left = 17
@@ -223,13 +223,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsSpells: TTabSheet
       Caption = 'Spells'
-      ClientHeight = 342
-      ClientWidth = 504
+      ClientHeight = 321
+      ClientWidth = 489
       object edSpells: TCheckListBox
         Left = 0
-        Height = 292
+        Height = 271
         Top = 0
-        Width = 504
+        Width = 489
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -238,12 +238,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel1: TPanel
         Left = 0
         Height = 50
-        Top = 292
-        Width = 504
+        Top = 271
+        Width = 489
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 504
+        ClientWidth = 489
         TabOrder = 1
         object Label2: TLabel
           Left = 17
@@ -270,13 +270,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsHeroes: TTabSheet
       Caption = 'Heroes'
-      ClientHeight = 342
-      ClientWidth = 504
+      ClientHeight = 321
+      ClientWidth = 489
       object edAllowedHeroes: TCheckListBox
         Left = 0
-        Height = 342
+        Height = 321
         Top = 0
-        Width = 504
+        Width = 489
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -286,13 +286,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsArtifacts: TTabSheet
       Caption = 'Artifacts'
-      ClientHeight = 342
-      ClientWidth = 504
+      ClientHeight = 321
+      ClientWidth = 489
       object edArtifacts: TCheckListBox
         Left = 0
-        Height = 292
+        Height = 271
         Top = 0
-        Width = 504
+        Width = 489
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -301,12 +301,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel3: TPanel
         Left = 0
         Height = 50
-        Top = 292
-        Width = 504
+        Top = 271
+        Width = 489
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 504
+        ClientWidth = 489
         TabOrder = 1
         object Label4: TLabel
           Left = 17

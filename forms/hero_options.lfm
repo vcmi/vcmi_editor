@@ -1,0 +1,60 @@
+object HeroOptions: THeroOptions
+  Left = 676
+  Height = 381
+  Top = 175
+  Width = 463
+  Caption = 'HeroOptions'
+  ClientHeight = 381
+  ClientWidth = 463
+  LCLVersion = '1.4.1.0'
+  object btOk: TButton
+    AnchorSideRight.Control = btCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 287
+    Height = 26
+    Top = 345
+    Width = 81
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = 'Ok'
+    ModalResult = 1
+    OnClick = btOkClick
+    TabOrder = 0
+  end
+  object btCancel: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 378
+    Height = 26
+    Top = 345
+    Width = 75
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object pcMain: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 3
+    Height = 330
+    Top = 3
+    Width = 457
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
+    BorderSpacing.Bottom = 48
+    TabOrder = 2
+  end
+end
