@@ -408,6 +408,7 @@ type
     FBiography: TLocalizedString;
     FExperience: UInt64;
     FName: TLocalizedString;
+    FPortrait: TIdentifier;
     FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
@@ -417,6 +418,7 @@ type
     procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
     procedure SetName(AValue: TLocalizedString);
+    procedure SetPortrait(AValue: TIdentifier);
     procedure SetSex(AValue: THeroSex);
   public
     constructor Create(ACollection: TCollection); override;
@@ -435,12 +437,13 @@ type
     property Skills: THeroSecondarySkills read FSkills;
     property Artifacts: THeroArtifacts read FArtifacts;
 
-    property Biography: TLocalizedString read GetBiography write SetBiography;
+    property Biography: TLocalizedString read FBiography write SetBiography;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
-    property Name: TLocalizedString read GetName write SetName;
+    property Name: TLocalizedString read FName write SetName;
+    property Portrait: TIdentifier read FPortrait write SetPortrait;
   public //manual streaming
-    property Sex:THeroSex read GetSex write SetSex default THeroSex.default;
+    property Sex:THeroSex read FSex write SetSex default THeroSex.default;
   end;
 
   { THeroDefinitions }
@@ -703,6 +706,12 @@ begin
   FName:=AValue;
 end;
 
+procedure THeroDefinition.SetPortrait(AValue: TIdentifier);
+begin
+  if FPortrait=AValue then Exit;
+  FPortrait:=AValue;
+end;
+
 procedure THeroDefinition.SetSex(AValue: THeroSex);
 begin
   if FSex=AValue then Exit;
@@ -747,6 +756,8 @@ begin
   FArtifacts := THeroArtifacts.Create;
   FSpellBook := TStringList.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
+
+  FSex:=THeroSex.default;
 end;
 
 destructor THeroDefinition.Destroy;

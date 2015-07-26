@@ -31,7 +31,6 @@ inherited HeroFrame: THeroFrame
     Top = 18
     Width = 408
     ItemHeight = 15
-    OnChange = edHeroClassChange
     Style = csDropDownList
     TabOrder = 11
   end
@@ -62,7 +61,6 @@ inherited HeroFrame: THeroFrame
     Width = 408
     Constraints.MinWidth = 150
     ItemHeight = 15
-    OnChange = edTypeChange
     Style = csDropDownList
     TabOrder = 0
   end
@@ -178,7 +176,6 @@ inherited HeroFrame: THeroFrame
     Height = 23
     Top = 222
     Width = 408
-    OnChange = edNameChange
     OnEditingDone = edNameEditingDone
     TabOrder = 6
   end

@@ -26,16 +26,28 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ComboEx, EditBtn,
   ComCtrls, Graphics, Dialogs, hero_frame, gui_helpers, object_options,
-  editor_types, base_info, editor_consts;
+  editor_types, base_info, editor_consts, lists_manager, editor_classes;
 
 type
 
   { THeroOptionsFrame }
 
   THeroOptionsFrame = class(THeroFrame)
+    procedure cbBiographyChange(Sender: TObject);
+    procedure cbExperienceChange(Sender: TObject);
+    procedure cbNameChange(Sender: TObject);
+    procedure cbPortraitChange(Sender: TObject);
+    procedure cbSexChange(Sender: TObject);
     procedure edHeroClassChange(Sender: TObject);
+    procedure edNameChange(Sender: TObject);
+    procedure edNameEditingDone(Sender: TObject);
+    procedure edPatrolKeyPress(Sender: TObject; var Key: char);
+    procedure edSexChange(Sender: TObject);
+    procedure edTypeChange(Sender: TObject);
   private
     FOptions: THeroOptions;
+
+    FCurrentDefinition: IHeroInfo; //map specific
 
     procedure Load();
 
@@ -43,6 +55,10 @@ type
     function GetHeroClassName():TLocalizedString;
 
   protected
+    function GetDefaultBiography: TLocalizedString; override;
+    function GetDefaultName: TLocalizedString; override;
+    function GetDefaultSex: THeroSex; override;
+
     procedure VisitNormalHero(AOptions: THeroOptions);override;
     procedure VisitRandomHero(AOptions: THeroOptions);override;
     procedure VisitPrison(AOptions: THeroOptions);override;
@@ -59,6 +75,31 @@ implementation
 {$R *.lfm}
 
 { THeroOptionsFrame }
+
+procedure THeroOptionsFrame.cbBiographyChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.cbExperienceChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.cbNameChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.cbPortraitChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.cbSexChange(Sender: TObject);
+begin
+  inherited;
+end;
 
 procedure THeroOptionsFrame.edHeroClassChange(Sender: TObject);
 var
@@ -107,6 +148,53 @@ begin
   edTypeChange(edType);
 end;
 
+procedure THeroOptionsFrame.edNameChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.edNameEditingDone(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.edPatrolKeyPress(Sender: TObject; var Key: char);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.edSexChange(Sender: TObject);
+begin
+  inherited;
+end;
+
+procedure THeroOptionsFrame.edTypeChange(Sender: TObject);
+var
+  editor: TCustomComboBox;
+
+  info: TBaseInfo;
+begin
+  FCurrentHero := nil;
+
+  editor := Sender as TCustomComboBox;
+
+  info := editor.SelectedInfo;
+
+  if Assigned(info) then
+  begin
+    FCurrentHero := info as THeroInfo;
+
+    FCurrentDefinition := Map.PredefinedHeroes.FindItem(info.ID);
+  end;
+
+  cbPortraitChange(cbPortrait);
+  cbNameChange(cbName);
+  cbSexChange(cbSex);
+  cbBiographyChange(cbBiography);
+  UpdateControls;
+
+end;
+
 procedure THeroOptionsFrame.Load;
 begin
     cbPortrait.Checked:=FOptions.Portrait <> '';
@@ -138,7 +226,11 @@ begin
       edExperience.Text := '0';
     end;
 
-    cbName.Checked:= FOptions.Name <> '';
+    if cbName.Checked then
+    begin
+      FCustomName:=FOptions.Name;
+    end;
+
     cbNameChange(cbName);
 
     case FOptions.PatrolRadius of
@@ -190,6 +282,51 @@ begin
   hero_class := ListsManager.Heroes[FOptions.&type].&Class;
 
   Result := ListsManager.HeroClasses[hero_class].Name;
+end;
+
+function THeroOptionsFrame.GetDefaultBiography: TLocalizedString;
+begin
+  Result := '';
+
+  if Assigned(FCurrentDefinition) then
+  begin
+    Result :=FCurrentDefinition.GetBiography;
+  end;
+
+  if Result = '' then
+  begin
+    Result := inherited GetDefaultBiography;
+  end;
+end;
+
+function THeroOptionsFrame.GetDefaultName: TLocalizedString;
+begin
+  Result := '';
+
+  if Assigned(FCurrentDefinition) then
+  begin
+    Result :=FCurrentDefinition.GetName;
+  end;
+
+  if Result = '' then
+  begin
+    Result := inherited GetDefaultName;
+  end
+end;
+
+function THeroOptionsFrame.GetDefaultSex: THeroSex;
+begin
+  Result := THeroSex.default;
+
+  if Assigned(FCurrentDefinition) then
+  begin
+    Result :=FCurrentDefinition.GetSex;
+  end;
+
+  if Result = THeroSex.default then
+  begin
+    Result := inherited GetDefaultSex;
+  end
 end;
 
 procedure THeroOptionsFrame.UpdateControls;
@@ -245,6 +382,8 @@ begin
     FOptions.Owner := TPlayer(edOwner.ItemIndex);
   end;
 
+  //todo: save portrait
+
   if cbExperience.Checked then
   begin
     FOptions.Experience := StrToQWordDef(edExperience.Text, 0);
@@ -252,6 +391,41 @@ begin
   else begin
     FOptions.Experience := 0;
   end;
+
+  if cbName.Checked then
+  begin
+    FOptions.Name := edName.Text;
+  end
+  else begin
+    FOptions.Name := '';
+  end;
+
+  if cbSex.Checked then
+  begin
+    FOptions.Sex := THeroSex(Integer(FCustomFemale));
+  end
+  else begin
+    FOptions.Sex := THeroSex.default;
+  end;
+
+  if cbBiography.Checked then
+  begin
+    FOptions.Biography:=edBiography.Text;
+  end
+  else
+  begin
+    FOptions.Biography:='';
+  end;
+
+  if edPatrol.ItemIndex >=0 then
+  begin
+    FOptions.PatrolRadius := edPatrol.ItemIndex-1;
+  end
+  else
+  begin
+    FOptions.PatrolRadius := StrToIntDef(edPatrol.Text, -1);
+  end;
+
 end;
 
 end.

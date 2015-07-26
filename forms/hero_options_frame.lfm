@@ -2,4 +2,32 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   inherited edHeroClass: TComboBox
     OnChange = edHeroClassChange
   end
+  inherited edType: TComboBox
+    OnChange = edTypeChange
+  end
+  inherited cbPortrait: TCheckBox
+    OnChange = cbPortraitChange
+  end
+  inherited cbExperience: TCheckBox
+    OnChange = cbExperienceChange
+  end
+  inherited edName: TEdit
+    OnChange = edNameChange
+    OnEditingDone = edNameEditingDone
+  end
+  inherited cbName: TCheckBox
+    OnChange = cbNameChange
+  end
+  inherited edSex: TComboBox
+    OnChange = edSexChange
+  end
+  inherited cbSex: TCheckBox
+    OnChange = cbSexChange
+  end
+  inherited cbBiography: TCheckBox
+    OnChange = cbBiographyChange
+  end
+  inherited edPatrol: TComboBox
+    OnKeyPress = edPatrolKeyPress
+  end
 end

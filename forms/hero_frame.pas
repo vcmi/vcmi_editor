@@ -67,12 +67,9 @@ type
     procedure cbPortraitChange(Sender: TObject);
     procedure cbSexChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
-    procedure edHeroClassChange(Sender: TObject);
-    procedure edNameChange(Sender: TObject);
     procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
-    procedure edTypeChange(Sender: TObject);
   private
 
   protected
@@ -81,6 +78,10 @@ type
     FCustomBiography: TLocalizedString;
 
     FCurrentHero: IHeroInfo;//todo: use map specicfic defaults
+
+    function GetDefaultBiography: TLocalizedString; virtual;
+    function GetDefaultName: TLocalizedString; virtual;
+    function GetDefaultSex: THeroSex; virtual;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
@@ -94,11 +95,6 @@ implementation
 {$R *.lfm}
 
 { THeroFrame }
-
-procedure THeroFrame.edNameChange(Sender: TObject);
-begin
-
-end;
 
 procedure THeroFrame.edNameEditingDone(Sender: TObject);
 begin
@@ -121,14 +117,42 @@ begin
   end;
 end;
 
+function THeroFrame.GetDefaultBiography: TLocalizedString;
+begin
+  if Assigned(FCurrentHero) then
+  begin
+    Result := FCurrentHero.GetBiography;
+  end
+  else begin
+    Result := '';
+  end;
+end;
+
+function THeroFrame.GetDefaultName: TLocalizedString;
+begin
+  if Assigned(FCurrentHero) then
+  begin
+    Result := FCurrentHero.GetName;
+  end
+  else begin
+    Result := '';
+  end;
+end;
+
+function THeroFrame.GetDefaultSex: THeroSex;
+begin
+  if Assigned(FCurrentHero) then
+  begin
+    Result := FCurrentHero.GetSex;
+  end
+  else begin
+    Result := THeroSex.default; //???
+  end;
+end;
+
 procedure THeroFrame.CustomiseChange(Sender: TObject);
 begin
   UpdateControls();
-end;
-
-procedure THeroFrame.edHeroClassChange(Sender: TObject);
-begin
-
 end;
 
 procedure THeroFrame.cbPortraitChange(Sender: TObject);
@@ -146,10 +170,7 @@ begin
   end
   else
   begin
-    if Assigned(FCurrentHero) then
-    begin
-      edSex.ItemIndex := Integer(FCurrentHero.GetSex);
-    end;
+    edSex.ItemIndex := Integer(GetDefaultSex);
   end;
 end;
 
@@ -159,59 +180,15 @@ begin
 end;
 
 procedure THeroFrame.cbBiographyChange(Sender: TObject);
-var
-  ADefault: TLocalizedString;
 begin
   CustomiseChange(Sender);
-
-  if Assigned(FCurrentHero) then
-  begin
-    ADefault := FCurrentHero.GetBiography;
-  end
-  else begin
-    ADefault := '';
-  end;
-
-  UpdateText(edBiography, cbBiography, FCustomBiography,ADefault);
+  UpdateText(edBiography, cbBiography, FCustomBiography,GetDefaultBiography());
 end;
 
 procedure THeroFrame.cbNameChange(Sender: TObject);
-var
-  ADefault: TLocalizedString;
-
 begin
   CustomiseChange(Sender);
-
-  if Assigned(FCurrentHero) then
-  begin
-    ADefault := FCurrentHero.GetName;
-  end
-  else begin
-    ADefault := '';
-  end;
-
-  UpdateText(edName, cbName, FCustomName,ADefault);
-
-end;
-
-procedure THeroFrame.edTypeChange(Sender: TObject);
-var
-  editor: TCustomComboBox;
-begin
-  FCurrentHero := nil;
-
-  editor := Sender as TCustomComboBox;
-
-  if Assigned(editor.SelectedInfo) then
-  begin
-    FCurrentHero := editor.SelectedInfo as THeroInfo;
-  end;
-
-  cbPortraitChange(cbPortrait);
-  cbNameChange(cbName);
-  cbSexChange(cbSex);
-  cbBiographyChange(cbBiography);
-  UpdateControls;
+  UpdateText(edName, cbName, FCustomName,GetDefaultName);
 end;
 
 procedure THeroFrame.UpdateControls;

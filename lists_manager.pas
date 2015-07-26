@@ -361,13 +361,14 @@ type
     procedure SetHeroClass(AValue: TIdentifier);
     procedure SetSpecial(AValue: Boolean);
   protected
-    function GetName: TLocalizedString; override;
+
     procedure SetName(AValue: TLocalizedString); override;
   public
     constructor Create;
     destructor Destroy; override;
 
     //IHeroInfo
+    function GetName: TLocalizedString; override;
     function GetSex: THeroSex;
     function GetBiography: TLocalizedString;
   published

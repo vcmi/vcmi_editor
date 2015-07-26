@@ -1,19 +1,20 @@
 object EditHeroOptions: TEditHeroOptions
-  Left = 676
-  Height = 381
-  Top = 175
-  Width = 463
+  Left = 443
+  Height = 592
+  Top = 122
+  Width = 569
   Caption = 'EditHeroOptions'
-  ClientHeight = 381
-  ClientWidth = 463
+  ClientHeight = 592
+  ClientWidth = 569
+  Position = poMainFormCenter
   LCLVersion = '1.4.1.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 287
+    Left = 393
     Height = 26
-    Top = 345
+    Top = 556
     Width = 81
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -28,9 +29,9 @@ object EditHeroOptions: TEditHeroOptions
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 378
+    Left = 484
     Height = 26
-    Top = 345
+    Top = 556
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -47,9 +48,9 @@ object EditHeroOptions: TEditHeroOptions
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 330
+    Height = 541
     Top = 3
-    Width = 457
+    Width = 563
     ActivePage = tsMain
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
@@ -59,7 +60,7 @@ object EditHeroOptions: TEditHeroOptions
     TabIndex = 0
     TabOrder = 2
     object tsMain: TTabSheet
-      Caption = 'tsMain'
+      Caption = 'Main options'
     end
   end
 end
