@@ -199,9 +199,11 @@ type
 
     FLegacyObjTypes: TLegacyIdMap;
 
+    FProgress: IProgressCallback;
+
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
 
-    procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
+    procedure LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap);
     procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
 
     procedure HandleInteritanceObjectTemplate(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
@@ -215,6 +217,8 @@ type
     procedure AddArtifacts(AConfig: TJSONObject);
 
     procedure PopulateMapOfLegacyObjects;
+
+    procedure OnObjectDestream(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   private
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
@@ -439,13 +443,14 @@ var
   item: TJSONObject;
 begin
   FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
-  LoadLegacy(AProgressCallback,FFullIdToDefMap);
+  LoadLegacy(FFullIdToDefMap);
 
-  //todo: support for vcmi object lists
+  FProgress := AProgressCallback;
 
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
   destreamer := TVCMIJSONDestreamer.Create(nil);
+  destreamer.AfterReadObject := @OnObjectDestream;
   try
     FConfig.Load(APaths,ResourceLoader, FCombinedConfig);
 
@@ -470,6 +475,7 @@ begin
 
     HandleInteritance(FCombinedConfig);
 
+    FProgress.Max:=FCombinedConfig.Count;
     destreamer.JSONToObject(FCombinedConfig,FObjTypes);
 
     PopulateMapOfLegacyObjects;
@@ -534,8 +540,8 @@ begin
   Int64Rec(Result).Lo := SubType;
 end;
 
-procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
-  AFullIdToDefMap: TLegacyObjConfigFullIdMap);
+procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
+  );
   var
     row, col: Integer;
 
@@ -628,18 +634,8 @@ begin
   try
     objects_txt.Load(ResourceLoader);
 
-    AProgressCallback.Max := 200;
-
-    progess_delta := objects_txt.RowCount div 200;
-
     for row := 1 to objects_txt.RowCount-1 do //first row contains no data, so start with 1
     begin
-
-      if (row mod progess_delta) = 0 then
-      begin
-        AProgressCallback.Advance(1);
-      end;
-
       col := 0;
 
       def := TLegacyObjTemplate.Create;
@@ -1030,6 +1026,15 @@ begin
         FLegacyObjTypes.KeyData[full_id] := obj_sub_type;
       end;
     end;
+  end;
+end;
+
+procedure TObjectsManager.OnObjectDestream(Sender: TObject; AObject: TObject;
+  JSON: TJSONObject);
+begin
+  if Assigned(FProgress) and (AObject is TObjType) then
+  begin
+    FProgress.Advance(1);
   end;
 end;
 

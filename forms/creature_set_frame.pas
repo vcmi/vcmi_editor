@@ -238,7 +238,7 @@ end;
 procedure TCreatureSetFrame.VisitTown(AOptions: TTownOptions);
 begin
   inherited VisitTown(AOptions);
-  Load(AOptions.Garrison);
+  Load(AOptions.Army);
 end;
 
 end.

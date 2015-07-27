@@ -522,7 +522,8 @@ type
 
   TTownOptions = class(TOwnedObjectOptions)
   private
-    FGarrison: TCreatureSet;
+    FBuildings: TLogicalIDCondition;
+    FArmy: TCreatureSet;
     FName: TLocalizedString;
     FSpells: TLogicalIDCondition;
     FTightFormation: Boolean;
@@ -533,10 +534,11 @@ type
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
-    property Garrison: TCreatureSet read FGarrison;
+    property Army: TCreatureSet read FArmy;
     property TightFormation: Boolean read FTightFormation write SetTightFormation;
     property Name: TLocalizedString read FName write SetName;
     property Spells: TLogicalIDCondition read FSpells;
+    property Buildings: TLogicalIDCondition read FBuildings;
   end;
 
   { TAbandonedOptions }
@@ -1380,14 +1382,16 @@ end;
 constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FGarrison := TCreatureSet.Create();
+  FArmy := TCreatureSet.Create();
   FSpells := TLogicalIDCondition.Create;
+  FBuildings := TLogicalIDCondition.Create;
 end;
 
 destructor TTownOptions.Destroy;
 begin
+  FBuildings.Free;
   FSpells.Free;
-  FGarrison.Free;
+  FArmy.Free;
   inherited Destroy;
 end;
 

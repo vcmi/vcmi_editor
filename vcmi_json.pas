@@ -711,10 +711,13 @@ var
 begin
   ACollection:=TCollection(Data);
 
-  new_item := ACollection.Add;
-  new_item.DisplayName := AName;
+  if item.JSONType <> jtNull then
+  begin
+    new_item := ACollection.Add;
+    new_item.DisplayName := AName;
 
-  DestreamCollectionItem(ACollection, Item, new_item);
+    DestreamCollectionItem(ACollection, Item, new_item);
+  end;
 
   Continue := True;
 end;

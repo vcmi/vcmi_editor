@@ -1417,8 +1417,6 @@ var
 
   definition:  THeroDefinition;
 begin
-  //TODO:  ReadPredefinedHeroes
-
   if FMapVersion < MAP_VERSION_SOD then Exit;
 
   for i := 0 to HERO_QUANTITY - 1 do
@@ -2003,7 +2001,7 @@ begin
 
     if ReadBoolean then
     begin
-      ReadCreatureSet(AOptions.Garrison,7);
+      ReadCreatureSet(AOptions.Army,7);
     end;
 
     AOptions.TightFormation := ReadBoolean;

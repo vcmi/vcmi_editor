@@ -136,12 +136,21 @@ type
   { TTownBuilding }
 
   TTownBuilding = class(TNamedCollectionItem)
-
+  private
+    FID: Integer;
+    FUpgrades: AnsiString;
+    procedure SetID(AValue: Integer);
+    procedure SetUpgrades(AValue: AnsiString);
+  published
+    property ID:Integer read FID write SetID;
+    property Upgrades: AnsiString read FUpgrades write SetUpgrades;
   end;
 
   { TTownBuildings }
 
-  TTownBuildings = class(specialize TGNamedCollection<TTownBuilding>)
+  TTownBuildingCollection = specialize TGNamedCollection<TTownBuilding>;
+
+  TTownBuildings = class(TTownBuildingCollection)
   end;
 
   { TTownInfo }
@@ -160,8 +169,8 @@ type
   published
     property MapObject: TJSONObject read FMapObject;
 
-    //property GuildSpells:TGuildSpells read FGuildSpells;
-    //property Buildings:TTownBuildings read FBuildings;
+    property GuildSpells:TGuildSpells read FGuildSpells;
+    property Buildings:TTownBuildings read FBuildings;
     property MageGuild:Integer read FMageGuild write SetMageGuild;
   end;
 
@@ -544,6 +553,20 @@ const
     'Player 6 (purple)',
     'Player 7 (teal)',
     'Player 8 (pink)');
+
+{ TTownBuilding }
+
+procedure TTownBuilding.SetID(AValue: Integer);
+begin
+  if FID=AValue then Exit;
+  FID:=AValue;
+end;
+
+procedure TTownBuilding.SetUpgrades(AValue: AnsiString);
+begin
+  if FUpgrades=AValue then Exit;
+  FUpgrades:=AValue;
+end;
 
 { TCreatureName }
 
