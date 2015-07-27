@@ -330,7 +330,7 @@ begin
   o := ADest as TJSONObject;
 
   case AValue of
-    THeroSex.default:   o.Add('female');
+    //THeroSex.default:   o.Add('female');
     THeroSex.male:   o.Add('female', false);
     THeroSex.female:   o.Add('female', True);
   end;
