@@ -32,6 +32,7 @@ const
   TERRAIN_CODES: array[TTerrainType] of string = ('dt', 'sa', 'gr', 'sn', 'sw', 'rg', 'sb', 'lv', 'wt', 'rc');
   ROAD_CODES: array[TRoadType] of String = ('', 'pd','pg', 'pc');
   RIVER_CODES: array[TRiverType] of string = ('', 'rw', 'ri', 'rm', 'rl');
+  FLIP_CODES: array[0..3] of string = ('_','-','|','+');
 
   TILES_FIELD = 'tiles';
   TEMPLATES_FIELD = 'templates';
@@ -108,25 +109,25 @@ procedure TMapWriterJson.StreamTile(AJson: TJSONArray; tile: PMapTile);
 var
   s: string;
 begin
-//  [terrain code][terrain index]
-//[P][path type][path index]
-//[R][river type][river index]
-  s := TERRAIN_CODES[tile^.TerType]+IntToStr(tile^.TerSubType);
+//  [terrain code][terrain index][flip]
+//[P][path type][path index][flip]
+//[R][river type][river index][flip]
+  s := TERRAIN_CODES[tile^.TerType]+IntToStr(tile^.TerSubType)+FLIP_CODES[tile^.Flags mod 4];
 
   if tile^.RoadType <> 0 then
   begin
-    s := s + ROAD_CODES[TRoadType(tile^.RoadType)]+IntToStr(tile^.RoadDir);
+    s := s + ROAD_CODES[TRoadType(tile^.RoadType)]+IntToStr(tile^.RoadDir)+FLIP_CODES[(tile^.Flags shr 4) mod 4];
   end;
 
   if tile^.RiverType <> 0 then
   begin
-    s := s + RIVER_CODES[TRiverType(tile^.RiverType)]+IntToStr(tile^.RiverDir);
+    s := s + RIVER_CODES[TRiverType(tile^.RiverType)]+IntToStr((tile^.RiverDir shr 2) mod 4);
   end;
 
-  if tile^.Flags <> 0 then
-  begin
-    s := s + 'f' + IntToStr(tile^.Flags);
-  end;
+  //if tile^.Flags <> 0 then
+  //begin
+  //  s := s + 'f' + IntToStr(tile^.Flags);
+  //end;
 
   AJson.Add(s)
 
@@ -204,6 +205,20 @@ begin
 end;
 
 procedure TMapReaderJson.DeStreamTile(Encoded: string; Tile: PMapTile);
+
+  function ParseFlip(Src: AnsiChar): Uint8;
+  begin
+    //('_','-','|','+');
+    case Src of
+      '_': Result := 0;
+      '-': Result := 1;
+      '|': Result := 2;
+      '+': Result := 3;
+    else
+      raise Exception.CreateFmt('Invalid tile flip %s',[Src]);
+    end;
+  end;
+
 var
   terrainCode: String;
   tt: TTerrainType;
@@ -212,36 +227,38 @@ begin
   if not FTileExpression.Exec(Encoded) then
      raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
 
+  //1-tt, 2 - tcode, 3 - tflip , 4-road (5 6 7) 8 - river (9 10 11)
+
   if (FTileExpression.MatchLen[1]=0) or (FTileExpression.MatchLen[2]=0) then
     raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
+
+  Tile^.Flags := 0;
 
   terrainCode := FTileExpression.Match[1];
   tt := FTerrainTypeMap.KeyData[terrainCode];
   Tile^.TerType:=tt;
   Tile^.TerSubType:= StrToInt(FTileExpression.Match[2]);
 
-  if FTileExpression.MatchLen[3]>0 then
+  Tile^.Flags := ParseFlip(FTileExpression.Match[3][1]);
+
+  if FTileExpression.MatchLen[4]>0 then
   begin
-    Assert(FTileExpression.MatchLen[4]>0);
     Assert(FTileExpression.MatchLen[5]>0);
+    Assert(FTileExpression.MatchLen[6]>0);
 
-    Tile^.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[4]]);
-    Tile^.RoadDir:= StrToInt(FTileExpression.Match[5]);;
+    Tile^.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[5]]);
+    Tile^.RoadDir:= StrToInt( FTileExpression.Match[6]);
+    Tile^.Flags := Tile^.Flags or (ParseFlip(FTileExpression.Match[7][1]) shl 4);
   end;
 
-  if FTileExpression.MatchLen[6]>0 then
+  if FTileExpression.MatchLen[8]>0 then
   begin
-    Assert(FTileExpression.MatchLen[7]>0);
-    Assert(FTileExpression.MatchLen[8]>0);
-
-    Tile^.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[7]]);
-    Tile^.RiverDir:= StrToInt(FTileExpression.Match[8]);
-  end;
-
-  if FTileExpression.MatchLen[9]>0 then
-  begin
+    Assert(FTileExpression.MatchLen[9]>0);
     Assert(FTileExpression.MatchLen[10]>0);
-    Tile^.Flags:=StrToInt(FTileExpression.Match[10]);
+
+    Tile^.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[9]]);
+    Tile^.RiverDir:= StrToInt(FTileExpression.Match[10]);
+    Tile^.Flags := Tile^.Flags or (ParseFlip(FTileExpression.Match[11][1]) shl 2);
   end;
 
 end;
@@ -321,7 +338,12 @@ begin
 
   //1-tt, 2 - tst ,  4-pt, 5-pst, 7-rt, 8 - rst , 10- flags
 
-  FTileExpression.Expression:='^(\w{2,2})(\d+)((p\w)(\d+))?((r\w)(\d+))?(f(\d+))?$';
+//  FTileExpression.Expression:='^(\w{2,2})(\d+)((p\w)(\d+))?((r\w)(\d+))?(f(\d+))?$';
+
+  //1-tt, 2 - tcode, 3 - tflip , 4-road (5 6 7) 8 - river (9 10 11)
+
+  FTileExpression.Expression:='^(\w{2,2})(\d+)(.)((p\w)(\d+)(.))?((r\w)(\d+)(.))?$';
+
   FTileExpression.Compile;
 end;
 
