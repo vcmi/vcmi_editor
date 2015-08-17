@@ -124,11 +124,6 @@ begin
     s := s + RIVER_CODES[TRiverType(tile^.RiverType)]+IntToStr((tile^.RiverDir shr 2) mod 4);
   end;
 
-  //if tile^.Flags <> 0 then
-  //begin
-  //  s := s + 'f' + IntToStr(tile^.Flags);
-  //end;
-
   AJson.Add(s)
 
 end;

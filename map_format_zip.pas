@@ -45,7 +45,7 @@ type
 
     FJsonBuffer: TStringList;
 
-    FHeaderJson, FTerrainJson, FTemplatesJson, FObjectsJson: TJSONData;
+    FHeaderJson, FTemplatesJson, FObjectsJson: TJSONData;
 
     procedure UnZipperOnOpenInputStream(Sender: TObject; var AStream: TStream);
     procedure UnZipperOnCloseInputStream(Sender: TObject; var AStream: TStream);
@@ -86,7 +86,6 @@ const
   HEADER_FILENAME = 'header.json';
   TEMPLATES_FILENAME = 'templates.json';
   OBJECTS_FILENAME = 'objects.json';
-  TERRAIN_FILENAME = 'terrain.json';
 
 { TMapReaderZIP }
 
@@ -131,11 +130,6 @@ begin
     begin
       FObjectsJson := FDestreamer.JSONStreamToJson(AStream);
       FFreeList.Add(FObjectsJson);
-    end;
-    TERRAIN_FILENAME:
-    begin
-      FTerrainJson := FDestreamer.JSONStreamToJson(AStream);
-      FFreeList.Add(FTerrainJson);
     end;
   else
     begin
@@ -228,8 +222,6 @@ begin
   FDestreamer.JSONToObject(map_o, Result);
 
   FDestreamer.JSONToCollection(FObjectsJson,Result.Objects);
-
-  //DeStreamTiles(FTerrainJson as TJSONArray, Result);
 
   for i := 0 to Result.Levels.Count - 1 do
   begin
