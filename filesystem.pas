@@ -213,8 +213,6 @@ type
     //list of IDs
     property Conflicts: TStrings read GetConflicts;
 
-    //TODO: Spells
-
     property Filesystem: TFilesystemConfig read FFilesystem;
 
   end;
@@ -339,6 +337,7 @@ type
     procedure DoScanMods(AParentModID: AnsiString; AModRoot: TFilename);
 
     procedure ScanMods;
+    procedure ResolveDeps;
 
     procedure LoadGameConfig;
 
@@ -662,6 +661,7 @@ begin
   FConfigMap.OnKeyCompare := @ComapreModId;
 
   FEnabledModList := TStringListUTF8.Create;
+  FEnabledModList.Sorted := false;
 
   FUnzipBuffer := TMemoryStream.Create;
 end;
@@ -715,11 +715,6 @@ begin
 
   DebugLn(['Loading mod ',AModID]);
 
-  if FEnabledModList.IndexOf(AModID) < 0 then
-  begin
-    exit;
-  end;
-
   destreamer := TVCMIJSONDestreamer.Create(nil);
   stm := TFileStreamUTF8.Create(APath,fmOpenRead or fmShareDenyWrite);
   try
@@ -728,6 +723,12 @@ begin
     mod_config.Path := ExtractFileNameOnly(ExcludeTrailingBackslash(ExtractFilePath(mod_path)));
     destreamer.JSONStreamToObject(stm, mod_config,'');
     mod_config.MayBeSetDefaultFSConfig;
+
+    if AParentModID <> '' then
+    begin
+      mod_config.Depends.Add(AParentModID);
+    end;
+
     FMods.Add(mod_config);
     FModMap.Add(mod_config.ID,mod_config);
     FConfigMap.Add(mod_config.ID,mod_config);
@@ -820,9 +821,6 @@ end;
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   ScanFilesystem;
-
-  FEnabledModList.LoadFromFile(GetPrivateConfigPath + 'modlist.txt');   //<STUB>
-
   ScanMods;
   LoadGameConfig;
 end;
@@ -998,6 +996,8 @@ begin
       DoScanMods('',mod_roots[i]);
     end;
 
+    ResolveDeps;
+
     //<STUB>
 
     for i := 0 to FEnabledModList.Count - 1 do
@@ -1032,6 +1032,77 @@ begin
   end;
 
   //configs loaded at this point
+end;
+
+procedure TFSManager.ResolveDeps;
+var
+  Initial, Resolved, ToResolve: TStringList;
+
+
+  function IsResolved(AConfig: TModConfig): Boolean;
+  var
+    mod_id: AnsiString;
+  begin
+    for mod_id in AConfig.Depends do
+    begin
+      if Resolved.IndexOf(mod_id) = 0 then
+      begin
+        Result := false;
+        exit;
+      end;
+      Result := true;
+    end;
+  end;
+
+var
+  i: Integer;
+  mod_id: AnsiString;
+begin
+  FEnabledModList.Clear;
+
+  Initial := TStringList.Create;
+  Initial.Sorted:=true;
+  Initial.Duplicates:=dupError;
+
+  Resolved := TStringList.Create;
+  Resolved.Sorted := true;
+  Resolved.Duplicates:=dupIgnore;
+
+  ToResolve := TStringList.Create;
+  ToResolve.Sorted := true;
+  ToResolve.Duplicates:=dupIgnore;
+
+  try
+
+    for i := 0 to FModMap.Count - 1 do
+      Initial.Add(FModMap.Keys[i]);
+
+    while Initial.Count > 0 do
+    begin
+      ToResolve.Clear;
+
+      i := 0;
+
+      while i < Initial.Count do
+      begin
+        mod_id := Initial[i];
+        if IsResolved(FModMap.KeyData[mod_id]) then
+        begin
+          ToResolve.Add(mod_id);
+          FEnabledModList.Add(mod_id);
+          Initial.Delete(i);
+        end
+        else
+          inc(i);
+      end;
+
+      for mod_id in ToResolve do
+        Resolved.Add(mod_id);
+    end;
+  finally
+    Initial.Free;
+  end;
+
 end;
 
 procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: string);
