@@ -233,7 +233,7 @@ end;
 
 procedure THashedCollection.ItemRemoved(Item: TCollectionItem);
 begin
-  FHash.Remove(Item); //todo: optimise
+  FHash.Remove(Item);
 end;
 
 procedure THashedCollection.Notify(Item: TCollectionItem;

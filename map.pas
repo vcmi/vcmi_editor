@@ -1611,7 +1611,7 @@ end;
 
 procedure TVCMIMap.SetCurrentLevelIndex(AValue: Integer);
 begin
-  if FCurrentLevel = AValue then Exit; //TODO: check
+  if FCurrentLevel = AValue then Exit;
   FCurrentLevel := AValue;
 end;
 

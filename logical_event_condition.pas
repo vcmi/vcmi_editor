@@ -112,12 +112,12 @@ uses typinfo;
 
 procedure TTriggeredEvents.AddStandardVictory;
 begin
-  //todo:
+  //todo:TTriggeredEvents.AddStandardVictory
 end;
 
-procedure TTriggeredEvents.AddStandardDefeat;
+procedure TTriggeredEvents.AddStandardVictory;
 begin
-  //todo:
+  //todo:TTriggeredEvents.AddStandardVictory
 end;
 
 { TLogicalEventCondition }

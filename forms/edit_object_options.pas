@@ -146,7 +146,6 @@ end;
 procedure TEditObjectOptions.SaveChanges;
 begin
   FActiveEditors.Commit;
-  //TODO: free all editors and use cashed form
 end;
 
 procedure TEditObjectOptions.VisitDwelling(AOptions: TObjectOptions);

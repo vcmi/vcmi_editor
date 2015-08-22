@@ -78,8 +78,6 @@ const
     [TResourceType.Animation, TResourceType.Json],
     [TResourceType.Json,TResourceType.Text]);
 
-  //TODO: mod support
-
 type
 
   { TFilesystemConfigItem }
@@ -998,8 +996,6 @@ begin
 
     ResolveDeps;
 
-    //<STUB>
-
     for i := 0 to FEnabledModList.Count - 1 do
     begin
       mod_id := NormalizeModId(FEnabledModList[i]);
@@ -1024,8 +1020,6 @@ begin
       end;
     end;
 
-    //</STUB>
-    //TODO:determine load order
   finally
     mod_roots.Free;
     mod_paths.Free;

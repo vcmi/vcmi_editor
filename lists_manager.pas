@@ -1131,7 +1131,6 @@ var
   info: TFactionInfo;
   i: Integer;
 begin
-  //todo:  optimize
   Result := '';
   for i := 0 to FFactionInfos.Count - 1 do
   begin

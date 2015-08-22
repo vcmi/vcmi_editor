@@ -822,7 +822,6 @@ begin
   begin
     Exit;
   end;
-  //TODO: use UNDO/REDO
 
   dx := 0;
   dy := 0;

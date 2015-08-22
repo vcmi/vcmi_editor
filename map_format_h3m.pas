@@ -2106,8 +2106,6 @@ var
   req: TResolveRequest;
   o: TMapObject;
 begin
-  //todo:ResolveQuestIdentifiers
-
   while FLinksToResolve.Count>0 do
   begin
     req := FLinksToResolve[0];
@@ -2117,7 +2115,6 @@ begin
     req.Link.L:=o.L;
     req.Link.X:=o.X;
     req.Link.Y:=o.Y;
-
 
     FLinksToResolve.Delete(0);
   end;

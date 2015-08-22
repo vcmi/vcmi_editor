@@ -28,7 +28,7 @@ uses
   Classes, SysUtils, math, matrix, GL, glext40, LazLoggerBase;
 
 type
-  TRBGAColor = packed record   //todo: optimise
+  TRBGAColor = packed record
     r,g,b,a : UInt8;
   end;
 
@@ -456,8 +456,6 @@ begin
   glLinkProgram(program_object);
   status := GL_FALSE;
   glGetProgramiv(program_object, GL_LINK_STATUS, @status);
-
-  //todo: print log
 
   if (status = GL_TRUE) then
     Result := program_object;

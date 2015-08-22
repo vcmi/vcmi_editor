@@ -29,7 +29,7 @@ uses
 
 type
 
-  TResourceType = (Text,Json,Animation, Mask);  //TODO: other types
+  TResourceType = (Text,Json,Animation, Mask);
 
   TResourceTypes = set of TResourceType;
 
