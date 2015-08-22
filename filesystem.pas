@@ -1095,6 +1095,8 @@ begin
     end;
   finally
     Initial.Free;
+    Resolved.Free;
+    ToResolve.Free;
   end;
 
 end;
