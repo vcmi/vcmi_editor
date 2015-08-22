@@ -43,7 +43,7 @@ const
 type
    TOwnerSize = (size1,size4);
 
-  TQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
+  TH3MQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
 
   { TLegacyMapObjectTemplate }
 
@@ -120,7 +120,7 @@ type
      FTemplates: TLegacyMapObjectTemplates;
 
      FCurrentObject: TMapObject;
-     FQuestIdentifierMap: TQuestIdentifierMap;
+     FQuestIdentifierMap: TH3MQuestIdentifierMap;
      FLinksToResolve: TResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
@@ -322,7 +322,7 @@ end;
 constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
-  FQuestIdentifierMap := TQuestIdentifierMap.Create;
+  FQuestIdentifierMap := TH3MQuestIdentifierMap.Create;
   FLinksToResolve := TResolveRequests.Create(True);
   FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
@@ -1353,19 +1353,19 @@ begin
     if FMapVersion = MAP_VERSION_ROE then
     begin
       Attr.GenerateHeroAtMainTown := True;
-      Attr.MainTownType := '';
+      Attr.MainTown.subType := '';
     end else
     begin
       Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
 
-      Attr.MainTownType := ReadID1(@FMap.ListsManager.FactionIndexToString);
+      Attr.MainTown.subType := ReadID1(@FMap.ListsManager.FactionIndexToString);
     end;
 
-    with Attr,FSrc do
+    with Attr.MainTown,FSrc do
     begin
-      MainTownX := ReadByte;
-      MainTownY := ReadByte;
-      MainTownL := ReadByte;
+      X := ReadByte;
+      Y := ReadByte;
+      L := ReadByte;
     end;
 
   end; //main town

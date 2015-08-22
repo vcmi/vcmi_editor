@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression, vcmi_json;
+  logical_event_condition, logical_expression, vcmi_json, object_link;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -84,13 +84,14 @@ type
     FRandomFaction: boolean;
     FMainHeroName: TLocalizedString;
     FMainHeroPortrait: AnsiString;
-    FMainTownL: Integer;
+
     FMainTownType: AnsiString;
-    FMainTownX: Integer;
-    FMainTownY: Integer;
+
+    FMainTown: TObjectLink;
     FRandomHero: Boolean;
     FMainHero: AnsiString;
     FTeamId: Integer;
+
     function GetHasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
     procedure SetCanComputerPlay(AValue: boolean);
@@ -100,10 +101,6 @@ type
     procedure SetRandomFaction(AValue: boolean);
     procedure SetMainHeroName(AValue: TLocalizedString);
     procedure SetMainHeroPortrait(AValue: AnsiString);
-    procedure SetMainTownL(AValue: Integer);
-    procedure SetMainTownType(AValue: AnsiString);
-    procedure SetMainTownX(AValue: Integer);
-    procedure SetMainTownY(AValue: Integer);
     procedure SetRandomHero(AValue: Boolean);
     procedure SetMainHero(AValue: AnsiString);
     procedure SetTeamId(AValue: Integer);
@@ -121,20 +118,16 @@ type
     property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
 
     property HasMainTown: boolean read GetHasMainTown write SetHasMainTown;
+    property MainTown: TObjectLink read FMainTown stored GetHasMainTown;
 
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored GetHasMainTown;
-    property MainTownType: AnsiString read FMainTownType write SetMainTownType stored GetHasMainTown;
-    property MainTownX: Integer read FMainTownX write SetMainTownX stored GetHasMainTown;
-    property MainTownY: Integer read FMainTownY write SetMainTownY stored GetHasMainTown;
-    property MainTownL: Integer read FMainTownL write SetMainTownL stored GetHasMainTown;
-
 
     property MainHero: AnsiString read FMainHero write SetMainHero;
     property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero;
-    property TeamId: Integer read FTeamId write SetTeamId default 0;
+    property TeamId: Integer read FTeamId write SetTeamId nodefault;
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   end;
@@ -457,11 +450,15 @@ type
     constructor Create(AOwner: TVCMIMap);
   end;
 
+  TInstanceMap = specialize TFPGMap<TInstanceID, TMapObject>;
+
 
   { TVCMIMap }
 
   TVCMIMap = class (TPersistent, IFPObserver)
   private
+    FInstanceMap: TInstanceMap;
+
     FAllowedAbilities: TLogicalIDCondition;
     FAllowedArtifacts: TLogicalIDCondition;
     FAllowedSpells: TLogicalIDCondition;
@@ -1073,11 +1070,13 @@ begin
   FAllowedFactions := TLogicalIDCondition.Create;
 
   FPlasedHeroes := TPlasedHeroes.Create;
-
+  FMainTown := TObjectLink.Create;
+  FMainTown.&type:=TYPE_TOWN;
 end;
 
 destructor TPlayerAttr.Destroy;
 begin
+  FMainTown.Free;
   FPlasedHeroes.Free;
   FAllowedFactions.Free;
   inherited Destroy;
@@ -1122,30 +1121,6 @@ procedure TPlayerAttr.SetRandomFaction(AValue: boolean);
 begin
   if FRandomFaction = AValue then Exit;
   FRandomFaction := AValue;
-end;
-
-procedure TPlayerAttr.SetMainTownL(AValue: Integer);
-begin
-  if FMainTownL = AValue then Exit;
-  FMainTownL := AValue;
-end;
-
-procedure TPlayerAttr.SetMainTownType(AValue: AnsiString);
-begin
-  if FMainTownType = AValue then Exit;
-  FMainTownType := AValue;
-end;
-
-procedure TPlayerAttr.SetMainTownX(AValue: Integer);
-begin
-  if FMainTownX = AValue then Exit;
-  FMainTownX := AValue;
-end;
-
-procedure TPlayerAttr.SetMainTownY(AValue: Integer);
-begin
-  if FMainTownY = AValue then Exit;
-  FMainTownY := AValue;
 end;
 
 procedure TPlayerAttr.SetRandomHero(AValue: Boolean);

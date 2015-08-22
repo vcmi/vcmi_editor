@@ -169,42 +169,70 @@ begin
   begin
     TJSONArray(Result).Add(GetEnumName(TypeInfo(TWinLossCondition), Integer(ConditionType)));
 
-    o := CreateJSONObject([]);
+    o := (ObjectLink.Serialize(AHandler)) as TJSONObject;
 
     if Value <> 0 then
     begin
       o.Add('value', Value);
     end;
 
-    if ObjectLink.&type <> '' then
-    begin
-      o.Add('type', ObjectLink.&type);
-
-      if ObjectLink.subType <> '' then
-      begin
-        o.Add('subType', ObjectLink.subType);
-      end;
-
-    end;
-
-    o.Add('position', CreateJSONArray([ObjectLink.X,ObjectLink.Y,ObjectLink.L]));
-
+    TJSONArray(Result).Add(o);
   end;
 end;
 
 procedure TLogicalEventConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer;
   ASrc: TJSONData);
 var
-  AsrcArray: TJSONArray;
+  ASrcArray: TJSONArray;
+  instruction_name: TJSONStringType;
+  raw_instruction: Integer;
+  i: Integer;
+  SubExpression: TLogicalEventConditionItem;
+  o: TJSONObject;
 begin
   if ASrc.JSONType <> jtArray then
   begin
     raise Exception.Create('invalid format for event condition, array required');
   end;
 
-  AsrcArray := TJSONArray(ASrc);
+  ASrcArray :=  TJSONArray(ASrc);
 
-  //todo: TLogicalEventConditionItem.Deserialize
+  instruction_name :=  ASrcArray.Strings[0];
+
+  raw_instruction := GetEnumValue(TypeInfo(TLogicalOperator), instruction_name);
+
+  if raw_instruction >=0 then
+  begin
+    LogicalOperator:=TLogicalOperator(raw_instruction);
+
+    for i := 1 to ASrcArray.Count - 1 do
+    begin
+      SubExpression := TLogicalEventConditionItem (SubExpressions.Add);
+
+      SubExpression.Deserialize(AHandler, ASrcArray.Items[i]);
+    end;
+  end
+  else
+  begin
+    raw_instruction := GetEnumValue(TypeInfo(TWinLossCondition), instruction_name);
+
+    if raw_instruction <0 then
+    begin
+      raise Exception.Create('invalid instruction for event condition: '+instruction_name);
+    end;
+
+    ConditionType := TWinLossCondition(raw_instruction);
+
+    o := ASrcArray.Objects[1];
+
+    ObjectLink.Deserialize(AHandler, o);
+
+    if o.IndexOfName('value') >=0 then
+    begin
+      Value:=o.Integers['value'];
+    end;
+  end;
+
 end;
 
 constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
