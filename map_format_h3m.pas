@@ -2116,6 +2116,9 @@ begin
     req.Link.X:=o.X;
     req.Link.Y:=o.Y;
 
+    req.Link.&type:=o.&Type;
+    req.Link.subType:=o.Subtype;
+
     FLinksToResolve.Delete(0);
   end;
 end;
