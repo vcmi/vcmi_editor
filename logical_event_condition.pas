@@ -115,9 +115,9 @@ begin
   //todo:TTriggeredEvents.AddStandardVictory
 end;
 
-procedure TTriggeredEvents.AddStandardVictory;
+procedure TTriggeredEvents.AddStandardDefeat;
 begin
-  //todo:TTriggeredEvents.AddStandardVictory
+  //todo:TTriggeredEvents.AddStandardDefeat
 end;
 
 { TLogicalEventCondition }

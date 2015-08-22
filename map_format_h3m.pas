@@ -1292,6 +1292,7 @@ var
   h: Integer;
   Main_Hero: TCustomID;
   AllowedFactionsSet: Boolean;
+  HasMainTown: Boolean;
 
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
@@ -1347,9 +1348,10 @@ begin
 
   Attr.RandomFaction := FSrc.ReadBoolean;
 
-  Attr.HasMainTown := FSrc.ReadBoolean;
-  if Attr.HasMainTown then
+  HasMainTown := FSrc.ReadBoolean;
+  if HasMainTown then
   begin
+    Attr.MainTown.&type := TYPE_TOWN;
     if FMapVersion = MAP_VERSION_ROE then
     begin
       Attr.GenerateHeroAtMainTown := True;
@@ -1357,7 +1359,6 @@ begin
     end else
     begin
       Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
-
       Attr.MainTown.subType := ReadID1(@FMap.ListsManager.FactionIndexToString);
     end;
 

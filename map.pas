@@ -92,12 +92,11 @@ type
     FMainHero: AnsiString;
     FTeamId: Integer;
 
-    function GetHasMainTown: boolean;
+    function HasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
     procedure SetCanComputerPlay(AValue: boolean);
     procedure SetCanHumanPlay(AValue: boolean);
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
-    procedure SetHasMainTown(AValue: boolean);
     procedure SetRandomFaction(AValue: boolean);
     procedure SetMainHeroName(AValue: TLocalizedString);
     procedure SetMainHeroPortrait(AValue: AnsiString);
@@ -117,10 +116,9 @@ type
 
     property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
 
-    property HasMainTown: boolean read GetHasMainTown write SetHasMainTown;
-    property MainTown: TObjectLink read FMainTown stored GetHasMainTown;
+    property MainTown: TObjectLink read FMainTown stored HasMainTown;
 
-    property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored GetHasMainTown;
+    property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
     property MainHero: AnsiString read FMainHero write SetMainHero;
     property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
@@ -1088,9 +1086,9 @@ begin
   FAITactics := AValue;
 end;
 
-function TPlayerAttr.GetHasMainTown: boolean;
+function TPlayerAttr.HasMainTown: boolean;
 begin
-  Result := FHasMainTown;
+  Result := not FMainTown.IsEmpty;
 end;
 
 procedure TPlayerAttr.SetCanComputerPlay(AValue: boolean);
@@ -1109,12 +1107,6 @@ procedure TPlayerAttr.SetGenerateHeroAtMainTown(AValue: boolean);
 begin
   if FGenerateHeroAtMainTown = AValue then Exit;
   FGenerateHeroAtMainTown := AValue;
-end;
-
-procedure TPlayerAttr.SetHasMainTown(AValue: boolean);
-begin
-  if FHasMainTown = AValue then Exit;
-  FHasMainTown := AValue;
 end;
 
 procedure TPlayerAttr.SetRandomFaction(AValue: boolean);

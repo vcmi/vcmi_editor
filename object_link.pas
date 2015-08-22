@@ -32,6 +32,8 @@ type
     //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+
+    function IsEmpty: Boolean;
   published
     property &type: AnsiString read FType write SetType;
     property subType: AnsiString read FsubType write SetsubType;
@@ -135,6 +137,11 @@ begin
     L := Position.Integers[2];
   end;
 
+end;
+
+function TObjectLink.IsEmpty: Boolean;
+begin
+  Result := not HasPosition and (FType = '') and (FsubType = '');
 end;
 
 end.
