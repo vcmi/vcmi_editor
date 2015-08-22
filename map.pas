@@ -80,12 +80,9 @@ type
     FCanHumanPlay: boolean;
     FPlasedHeroes: TPlasedHeroes;
     FGenerateHeroAtMainTown: boolean;
-    FHasMainTown: boolean;
     FRandomFaction: boolean;
     FMainHeroName: TLocalizedString;
     FMainHeroPortrait: AnsiString;
-
-    FMainTownType: AnsiString;
 
     FMainTown: TObjectLink;
     FRandomHero: Boolean;
@@ -120,11 +117,11 @@ type
 
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
-    property MainHero: AnsiString read FMainHero write SetMainHero;
+    property RandomHero:Boolean read FRandomHero write SetRandomHero; //if true main hero is random and not selectable
+    property MainHero: AnsiString read FMainHero write SetMainHero; //if empty main hero is selectable from all available
     property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
-    property RandomHero:Boolean read FRandomHero write SetRandomHero;
     property TeamId: Integer read FTeamId write SetTeamId nodefault;
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
@@ -1069,7 +1066,6 @@ begin
 
   FPlasedHeroes := TPlasedHeroes.Create;
   FMainTown := TObjectLink.Create;
-  FMainTown.&type:=TYPE_TOWN;
 end;
 
 destructor TPlayerAttr.Destroy;
