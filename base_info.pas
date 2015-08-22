@@ -54,7 +54,7 @@ type
     property FullID: AnsiString read GetFullID;
   published
     property Name: TLocalizedString read GetName write SetName;
-    property Index: TCustomID read FIndex write SetIndex default -1;
+    property Index: TCustomID read FIndex write SetIndex default ID_INVALID;
   end;
 
   { TMapObjectInfo }

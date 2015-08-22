@@ -614,6 +614,7 @@ end;
 
 constructor TTownInfo.Create;
 begin
+  inherited Create;
   FMapObject := CreateJSONObject([]);
   FGuildSpells := TGuildSpells.Create;
   FBuildings := TTownBuildings.Create;
@@ -674,7 +675,7 @@ end;
 
 constructor THeroInfo.Create;
 begin
-  inherited Create;
+  inherited;
   FTexts := THeroTexts.Create;
 end;
 
@@ -761,6 +762,7 @@ end;
 
 constructor TArtifactInfo.Create;
 begin
+  inherited;
   FGraphics := TArtifactGraphics.Create;
   FSlot := TStringList.Create;
   FTexts := TArtifactTexts.Create;
@@ -826,6 +828,7 @@ end;
 
 constructor TCreatureInfo.Create;
 begin
+  inherited;
   FGraphics := TCreatureGraphics.Create;
   FName := TCreatureName.Create;
 end;
@@ -1437,6 +1440,8 @@ begin
       DebugLn(['Loading creature ',iter.Key]);
 
       FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+
+      DebugLn(['Index ',info.Index]);
 
       CreatureInfos.Add(info);
       CreatureMap.AddObject(info.ID, info);
