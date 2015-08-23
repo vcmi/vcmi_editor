@@ -207,6 +207,7 @@ const
   TYPE_PRISON = 'prison';
   TYPE_RANDOMHERO = 'randomHero';
   TYPE_TOWN = 'town';
+  TYPE_RANDOMTOWN = 'randomTown';
   TYPE_ARTIFACT = 'artifact';
   TYPE_RESOURCE = 'resource';
 

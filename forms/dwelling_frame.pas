@@ -148,6 +148,7 @@ end;
 
 procedure TDwellingFrame.LoadLink;
 begin
+  FLinkFrame.Map := Map;
   FLinkFrame.Load(FOptions.SameAsTown);
 end;
 

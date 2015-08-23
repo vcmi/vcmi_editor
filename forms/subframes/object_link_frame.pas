@@ -81,7 +81,7 @@ begin
     begin
 
     end
-    else if (map_object.Options is TTownOptions) and (FLink.&type = TYPE_TOWN) then
+    else if (map_object.Options is TTownOptions) and ((FLink.&type = TYPE_TOWN) or (FLink.&type = TYPE_RANDOMTOWN)) then
     begin
       ObjectList.AddItem(Format('%s at %d %d %d',[GetTownName, map_object.L, map_object.X, map_object.Y]),map_object);
     end
