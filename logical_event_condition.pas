@@ -58,9 +58,10 @@ type
 
   { TLogicalEventCondition }
 
-  TLogicalEventCondition = class(TLogicalExpression)
+  TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify)
   public
     constructor Create();
+    procedure NotifyReferenced(AIdentifier: AnsiString);
   end;
 
   { TTriggeredEventEffect }
@@ -125,6 +126,11 @@ end;
 constructor TLogicalEventCondition.Create;
 begin
   inherited Create(TLogicalEventConditionItem);
+end;
+
+procedure TLogicalEventCondition.NotifyReferenced(AIdentifier: AnsiString);
+begin
+
 end;
 
 { TLogicalEventConditionItem }
@@ -238,7 +244,7 @@ end;
 constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FObjectLink := TObjectLink.Create;
+  FObjectLink := TObjectLink.Create();
 end;
 
 destructor TLogicalEventConditionItem.Destroy;

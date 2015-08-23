@@ -28,7 +28,7 @@ type
 
     function HasPosition: Boolean;
   public
-    constructor Create;
+    constructor Create();
     //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -83,7 +83,7 @@ begin
   Result := (X>=0) or (Y>=0) or (L>=0);
 end;
 
-constructor TObjectLink.Create;
+constructor TObjectLink.Create();
 begin
   FX:=-1;
   FY:=-1;

@@ -72,8 +72,9 @@ type
 
   { TPlayerAttr }
 
-  TPlayerAttr = class
+  TPlayerAttr = class(Tobject)
   private
+    FOwner: IReferenceNotify;
     FAITactics: TAITactics;
     FAllowedFactions: TLogicalIDCondition;
     FCanComputerPlay: boolean;
@@ -102,8 +103,10 @@ type
     procedure SetTeam(AValue: Integer);
 
   public
-    constructor Create;
+    constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
+
+
   published
     property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
     property RandomFaction: boolean read FRandomFaction write SetRandomFaction default false;
@@ -131,9 +134,10 @@ type
 
   TPlayerAttrs = class
   private
+    Fowner:IReferenceNotify;
     FColors : array[TPlayerColor] of TPlayerAttr;
   public
-    constructor Create;
+    constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
     function GetAttr(color: Integer): TPlayerAttr;
@@ -448,7 +452,7 @@ type
 
   { TVCMIMap }
 
-  TVCMIMap = class (TPersistent, IFPObserver)
+  TVCMIMap = class (TPersistent, IFPObserver, IReferenceNotify)
   private
     FAllowedAbilities: TLogicalIDCondition;
     FAllowedArtifacts: TLogicalIDCondition;
@@ -525,7 +529,7 @@ type
 
     procedure BeforeSerialize;
 
-    procedure ObjectReferenced(AIdentifier: AnsiString);
+    procedure NotifyReferenced(AIdentifier: AnsiString);
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -962,6 +966,7 @@ begin
   if FSubtype=AValue then Exit;
   FSubtype:=AValue;
   TypeChanged;
+  NotifyReferenced(AValue);
 end;
 
 procedure TMapObject.SetType(AValue: AnsiString);
@@ -969,6 +974,7 @@ begin
   if FType=AValue then Exit;
   FType:=AValue;
   TypeChanged;
+  NotifyReferenced(AValue);
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -1030,7 +1036,7 @@ end;
 
 procedure TMapObject.NotifyReferenced(AIdentifier: AnsiString);
 begin
-
+  GetMap.NotifyReferenced(AIdentifier);
 end;
 
 { TMapObjects }
@@ -1062,12 +1068,13 @@ begin
   FType := AValue;
 end;
 
-constructor TPlayerAttr.Create;
+constructor TPlayerAttr.Create(AOwner: IReferenceNotify);
 begin
+  FOwner:= AOwner;
   FAllowedFactions := TLogicalIDCondition.Create;
 
   FPlasedHeroes := TPlasedHeroes.Create;
-  FMainTown := TObjectLink.Create;
+  FMainTown := TObjectLink.Create();
 end;
 
 destructor TPlayerAttr.Destroy;
@@ -1145,12 +1152,13 @@ end;
 
 { TPlayerAttrs }
 
-constructor TPlayerAttrs.Create;
+constructor TPlayerAttrs.Create(AOwner: IReferenceNotify);
 var
   color: TPlayerColor;
 begin
+  Fowner := AOwner;
   for color in TPlayerColor do
-    FColors[color] := TPlayerAttr.Create;
+    FColors[color] := TPlayerAttr.Create(Fowner);
 end;
 
 destructor TPlayerAttrs.Destroy;
@@ -1423,7 +1431,7 @@ begin
   FAllowedHeroes := TLogicalIDCondition.Create;
   AttachTo(FAllowedHeroes);
 
-  FPlayers := TPlayerAttrs.Create;
+  FPlayers := TPlayerAttrs.Create(Self);
   FObjects := TMapObjects.Create(Self);
   AttachTo(FObjects);
 
@@ -1597,9 +1605,22 @@ begin
    FLevels.BeforeSerialize;
 end;
 
-procedure TVCMIMap.ObjectReferenced(AIdentifier: AnsiString);
+procedure TVCMIMap.NotifyReferenced(AIdentifier: AnsiString);
+var
+  colon_pos: SizeInt;
+  mod_id: AnsiString;
 begin
+  if(AIdentifier = '') then
+    exit;
 
+  colon_pos := pos(':',AIdentifier);
+
+  if colon_pos <= 0 then
+    exit;//object is from core
+
+  mod_id := copy(AIdentifier, 1, colon_pos-1);
+
+  DebugLn(['Referenced ', copy(AIdentifier, colon_pos +1, MaxInt), ' from ', mod_id]);
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

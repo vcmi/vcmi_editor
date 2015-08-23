@@ -81,6 +81,10 @@ type
      procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
   end;
 
+  IReferenceNotify = interface
+     procedure NotifyReferenced(AIdentifier: AnsiString);
+  end;
+
   { TNamedCollectionItem }
 
   TNamedCollectionItem = class(TCollectionItem)

@@ -38,10 +38,9 @@ type
   TObjectOptionsClass = class of TObjectOptions;
   IObjectOptionsVisitor = interface;
 
-  IMapObject = interface
+  IMapObject = interface(IReferenceNotify)
     function GetID: AnsiString;
     function GetSubId: AnsiString;
-    procedure NotifyReferenced(AIdentifier: AnsiString);
   end;
 
   TObjectOptions = class(TObject, ISerializeNotify)
@@ -84,9 +83,14 @@ type
 
   { TCreatureSet }
 
-  TCreatureSet = class (specialize TGArrayCollection<TCreatureInstInfo>)
+  TCreatureInstInfoCollection = specialize TGArrayCollection<TCreatureInstInfo>;
+
+  TCreatureSet = class (TCreatureInstInfoCollection)
+  private
+    FOwner: IMapObject;
   public
-    constructor Create();
+    constructor Create(AOwner: IMapObject);
+    procedure NotifyReferenced(AIdentifier: AnsiString);
   end;
 
   {$push}
@@ -120,6 +124,7 @@ type
 
   TQuest = class
   private
+    FOwner: IMapObject;
     FArmy: TCreatureSet;
     FCompletedText: TLocalizedString;
     FFirstVisitText: TLocalizedString;
@@ -151,7 +156,7 @@ type
     procedure SetPlayerID(AValue: TPlayer);
     procedure SetTimeLimit(AValue: Integer);
   public
-    constructor Create;
+    constructor Create(AOwner: IMapObject);
     destructor Destroy; override;
   published
     property FirstVisitText: TLocalizedString read FFirstVisitText write SetFirstVisitText;
@@ -1021,6 +1026,7 @@ procedure TQuest.SetHeroID(AValue: AnsiString);
 begin
   if FHeroID=AValue then Exit;
   FHeroID:=AValue;
+  FOwner.NotifyReferenced(AValue);
 end;
 
 procedure TQuest.SetHeroLevel(AValue: Integer);
@@ -1057,16 +1063,17 @@ begin
   FTimeLimit:=AValue;
 end;
 
-constructor TQuest.Create;
+constructor TQuest.Create(AOwner: IMapObject);
 begin
+  FOwner := AOwner;
   TimeLimit := -1;
   FArtifacts := TStringList.Create;
-  FArmy := TCreatureSet.Create();
+  FArmy := TCreatureSet.Create(FOwner);
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
   FPlayerID:=TPlayer.NONE;
-  FKillTarget := TObjectLink.Create;
+  FKillTarget := TObjectLink.Create();
 end;
 
 destructor TQuest.Destroy;
@@ -1113,7 +1120,7 @@ end;
 constructor TQuestGuardOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FQuest := TQuest.Create;
+  FQuest := TQuest.Create(AObject);
 end;
 
 destructor TQuestGuardOptions.Destroy;
@@ -1160,7 +1167,7 @@ begin
   FAllowedFactions.Duplicates := dupIgnore;
 
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
-  FSameAsTown := TObjectLink.Create;
+  FSameAsTown := TObjectLink.Create();
   FSameAsTown.&type := TYPE_TOWN;
 end;
 
@@ -1197,6 +1204,7 @@ procedure TCreatureInstInfo.SetType(AValue: AnsiString);
 begin
   if FType=AValue then Exit;
   FType:=AValue;
+  (Collection as TCreatureSet).NotifyReferenced(AValue);
 end;
 
 { TGuardedObjectOptions }
@@ -1204,7 +1212,7 @@ end;
 constructor TGuardedObjectOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FGuards := TCreatureSet.Create();
+  FGuards := TCreatureSet.Create(AObject);
 end;
 
 destructor TGuardedObjectOptions.Destroy;
@@ -1220,9 +1228,15 @@ end;
 
 { TCreatureSet }
 
-constructor TCreatureSet.Create();
+constructor TCreatureSet.Create(AOwner: IMapObject);
 begin
   inherited Create;
+  FOwner := AOwner;
+end;
+
+procedure TCreatureSet.NotifyReferenced(AIdentifier: AnsiString);
+begin
+  FOwner.NotifyReferenced(AIdentifier);
 end;
 
 { TRandomDwellingOptions }
@@ -1312,7 +1326,7 @@ end;
 constructor TPandorasOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FCreatures := TCreatureSet.Create();
+  FCreatures := TCreatureSet.Create(AObject);
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FSecondarySkills := THeroSecondarySkills.Create;
@@ -1383,7 +1397,7 @@ end;
 constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create();
+  FArmy := TCreatureSet.Create(AObject);
   FSpells := TLogicalIDCondition.Create;
   FBuildings := TLogicalIDCondition.Create;
 end;
@@ -1455,7 +1469,7 @@ end;
 constructor TGarrisonOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create();
+  FArmy := TCreatureSet.Create(AObject);
 end;
 
 destructor TGarrisonOptions.Destroy;
@@ -1570,7 +1584,7 @@ end;
 constructor TSeerHutOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FQuest := TQuest.Create;
+  FQuest := TQuest.Create(AObject);
 end;
 
 destructor TSeerHutOptions.Destroy;
@@ -1734,7 +1748,7 @@ end;
 constructor THeroOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create();
+  FArmy := TCreatureSet.Create(AObject);
   FArtifacts := THeroArtifacts.Create;
   FExperience:=0;
   FSecondarySkills := THeroSecondarySkills.Create;
