@@ -125,6 +125,7 @@ type
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
      function IsNotROE: boolean;
+     function IsWog: Boolean;
 
      procedure SkipNotImpl(count: Integer);
      procedure PushResolveRequest(AIdent: UInt32; ALink: TObjectLink);
@@ -340,6 +341,11 @@ begin
   Result :=  FMapVersion <> MAP_VERSION_ROE;
 end;
 
+function TMapReaderH3m.IsWog: Boolean;
+begin
+  Result :=  FMapVersion >= MAP_VERSION_WOG;
+end;
+
 procedure TMapReaderH3m.MayBeReadGuards(AOptions: TGuardedObjectOptions);
 var
   is_guard: Boolean;
@@ -439,6 +445,11 @@ begin
     ReadEvents();
 
     ResolveQuestIdentifiers();
+
+    if IsWog then
+    begin
+      FMap.Mods.AllOf.Add('wog');
+    end;
   except
     FreeAndNil(Fmap);
     raise;
@@ -1931,7 +1942,7 @@ begin
     for player in TPlayerColor do
     begin
       team := FSrc.ReadByte;
-      FMap.Players.GetAttr(Integer(player)).TeamId := team;
+      FMap.Players.GetAttr(Integer(player)).Team := team;
     end;
   end
   else begin
@@ -1940,7 +1951,7 @@ begin
       attr :=FMap.Players.GetAttr(Integer(player));
       if attr.CanComputerPlay or attr.CanHumanPlay then
       begin
-        attr.TeamId := team_count;
+        attr.Team := team_count;
         Inc(team_count);
       end;
     end;

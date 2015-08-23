@@ -87,7 +87,7 @@ type
     FMainTown: TObjectLink;
     FRandomHero: Boolean;
     FMainHero: AnsiString;
-    FTeamId: Integer;
+    FTeam: Integer;
 
     function HasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
@@ -99,7 +99,7 @@ type
     procedure SetMainHeroPortrait(AValue: AnsiString);
     procedure SetRandomHero(AValue: Boolean);
     procedure SetMainHero(AValue: AnsiString);
-    procedure SetTeamId(AValue: Integer);
+    procedure SetTeam(AValue: Integer);
 
   public
     constructor Create;
@@ -122,7 +122,7 @@ type
     property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
     property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
-    property TeamId: Integer read FTeamId write SetTeamId nodefault;
+    property Team: Integer read FTeam write SetTeam nodefault;
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   end;
@@ -290,6 +290,7 @@ type
   public //ImapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
+    procedure NotifyReferenced(AIdentifier: AnsiString);
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -304,9 +305,6 @@ type
 
     function HasOptions: boolean;
   end;
-
-
-  TMapObjectList = specialize TFPGObjectList<TMapObject>;
 
   { TObjPriorityCompare }
 
@@ -452,8 +450,6 @@ type
 
   TVCMIMap = class (TPersistent, IFPObserver)
   private
-    FInstanceMap: TInstanceMap;
-
     FAllowedAbilities: TLogicalIDCondition;
     FAllowedArtifacts: TLogicalIDCondition;
     FAllowedSpells: TLogicalIDCondition;
@@ -462,6 +458,7 @@ type
     FCurrentLevel: Integer;
     FDescription: TLocalizedString;
     FDifficulty: TDifficulty;
+    FMods: TLogicalIDCondition;
     FTriggeredEvents: TTriggeredEvents;
 
 
@@ -527,6 +524,8 @@ type
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
 
     procedure BeforeSerialize;
+
+    procedure ObjectReferenced(AIdentifier: AnsiString);
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -548,14 +547,12 @@ type
     property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
 
     property TriggeredEvents: TTriggeredEvents read FTriggeredEvents;
+
+    property Mods: TLogicalIDCondition read FMods;
   public //manual streamimg
     property Objects: TMapObjects read FObjects;
   public
     function CurrentLevel: TMapLevel;
-
-    //property Towns: TMapObjectList;
-    //property Heroes: TMapObjectList;
-    //property Monsters: TMapObjectList;
   end;
 
   {$pop}
@@ -1031,6 +1028,11 @@ begin
   Result := subtype;
 end;
 
+procedure TMapObject.NotifyReferenced(AIdentifier: AnsiString);
+begin
+
+end;
+
 { TMapObjects }
 
 constructor TMapObjects.Create(AOwner: TVCMIMap);
@@ -1117,10 +1119,10 @@ begin
   FRandomHero := AValue;
 end;
 
-procedure TPlayerAttr.SetTeamId(AValue: Integer);
+procedure TPlayerAttr.SetTeam(AValue: Integer);
 begin
-  if FTeamId = AValue then Exit;
-  FTeamId := AValue;
+  if FTeam = AValue then Exit;
+  FTeam := AValue;
 end;
 
 procedure TPlayerAttr.SetMainHero(AValue: AnsiString);
@@ -1434,10 +1436,13 @@ begin
 
   FTriggeredEvents := TTriggeredEvents.Create;
   AttachTo(FTriggeredEvents);
+
+  FMods := TLogicalIDCondition.Create;
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FMods.Free;
   FTriggeredEvents.Free;
 
   FPredefinedHeroes.Free;
@@ -1590,6 +1595,11 @@ end;
 procedure TVCMIMap.BeforeSerialize;
 begin
    FLevels.BeforeSerialize;
+end;
+
+procedure TVCMIMap.ObjectReferenced(AIdentifier: AnsiString);
+begin
+
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

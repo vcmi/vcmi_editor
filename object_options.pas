@@ -41,6 +41,7 @@ type
   IMapObject = interface
     function GetID: AnsiString;
     function GetSubId: AnsiString;
+    procedure NotifyReferenced(AIdentifier: AnsiString);
   end;
 
   TObjectOptions = class(TObject, ISerializeNotify)
