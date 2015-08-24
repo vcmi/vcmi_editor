@@ -136,7 +136,6 @@ begin
     Y := Position.Integers[1];
     L := Position.Integers[2];
   end;
-
 end;
 
 function TObjectLink.IsEmpty: Boolean;

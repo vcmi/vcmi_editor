@@ -274,6 +274,12 @@ type
     procedure SetType(AValue: AnsiString);
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
+
+  strict private
+    type
+      TLinkList = specialize TFPGList<TObjectLink>;
+    var
+      FLinks: TLinkList;
   protected
     procedure TypeChanged;
     procedure SetCollection(Value: TCollection); override;
@@ -296,6 +302,9 @@ type
     function GetID: AnsiString;
     function GetSubId: AnsiString;
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+
+    procedure Link(ALink: TObjectLink);
+    procedure UnLink(ALink: TObjectLink);
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -1006,10 +1015,12 @@ begin
   FLastFrame := 0;
   FTemplate := TMapObjectTemplate.Create;
   FOptions := TObjectOptions.Create(Self);
+  FLinks := TLinkList.Create;
 end;
 
 destructor TMapObject.Destroy;
 begin
+  FLinks.Free;
   FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
   inherited Destroy;
@@ -1186,6 +1197,16 @@ begin
   begin
     GetMap.NotifyReferenced(AOldIdentifier, ANewIdentifier);
   end;
+end;
+
+procedure TMapObject.Link(ALink: TObjectLink);
+begin
+  FLinks.Add(ALink);
+end;
+
+procedure TMapObject.UnLink(ALink: TObjectLink);
+begin
+  FLinks.Remove(ALink);
 end;
 
 { TMapObjects }
