@@ -129,7 +129,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="71">
+    <Units Count="73">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -498,6 +498,19 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit70>
+      <Unit71>
+        <Filename Value="forms\player_options_form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PlayerOptionsForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit71>
+      <Unit72>
+        <Filename Value="forms\player_options_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PlayerOptionsFrame"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit72>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,0 +1,60 @@
+object PlayerOptionsForm: TPlayerOptionsForm
+  Left = 595
+  Height = 528
+  Top = 143
+  Width = 636
+  Caption = 'PlayerOptionsForm'
+  ClientHeight = 528
+  ClientWidth = 636
+  LCLVersion = '1.4.1.0'
+  object btOk: TButton
+    AnchorSideRight.Control = btCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 460
+    Height = 26
+    Top = 492
+    Width = 81
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = 'Ok'
+    ModalResult = 1
+    OnClick = btOkClick
+    TabOrder = 0
+  end
+  object btCancel: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 551
+    Height = 26
+    Top = 492
+    Width = 75
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 10
+    BorderSpacing.Bottom = 10
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object pcMain: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 3
+    Height = 477
+    Top = 3
+    Width = 630
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
+    BorderSpacing.Bottom = 48
+    TabOrder = 2
+  end
+end

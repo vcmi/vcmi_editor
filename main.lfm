@@ -1939,6 +1939,9 @@ object fMain: TfMain
       object MenuItem11: TMenuItem
         Action = actMapOptions
       end
+      object MenuItem7: TMenuItem
+        Action = actPlayerOptions
+      end
     end
     object menuPlayer: TMenuItem
       Caption = 'Player'
@@ -1987,7 +1990,7 @@ object fMain: TfMain
       OnExecute = actSaveMapAsExecute
     end
     object actMapOptions: TAction
-      Caption = 'Map options'
+      Caption = 'Map options ...'
       OnExecute = actMapOptionsExecute
     end
     object actProperties: TAction
@@ -2002,6 +2005,10 @@ object fMain: TfMain
       OnExecute = actDeleteExecute
       OnUpdate = actDeleteUpdate
       ShortCut = 46
+    end
+    object actPlayerOptions: TAction
+      Caption = 'Player options ...'
+      OnExecute = actPlayerOptionsExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

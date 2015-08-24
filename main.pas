@@ -29,7 +29,7 @@ uses
   Buttons, Map, terrain, editor_types, undo_base, map_actions, objects,
   editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
   zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions,
-  map_object_actions, gpriorityqueue, types;
+  map_object_actions, player_options_form, gpriorityqueue, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -76,6 +76,7 @@ type
 
   TfMain = class(TForm)
     actDelete: TAction;
+    actPlayerOptions: TAction;
     actProperties: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
@@ -111,6 +112,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    MenuItem7: TMenuItem;
     menuLevel: TMenuItem;
     menuPlayer: TMenuItem;
     MenuItem2: TMenuItem;
@@ -159,6 +161,7 @@ type
     procedure actDeleteUpdate(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
+    procedure actPlayerOptionsExecute(Sender: TObject);
     procedure actPropertiesExecute(Sender: TObject);
     procedure actPropertiesUpdate(Sender: TObject);
     procedure actRedoExecute(Sender: TObject);
@@ -491,6 +494,15 @@ begin
     LoadMap(OpenMapDialog.FileName);
 
   end;
+end;
+
+procedure TfMain.actPlayerOptionsExecute(Sender: TObject);
+var
+  f: TPlayerOptionsForm;
+begin
+  f := TPlayerOptionsForm.Create(self);
+  f.Map := Fmap;
+  f.ShowModal;
 end;
 
 procedure TfMain.actPropertiesExecute(Sender: TObject);
