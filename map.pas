@@ -276,6 +276,7 @@ type
     procedure SetY(AValue: integer);
   protected
     procedure TypeChanged;
+    procedure SetCollection(Value: TCollection); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -294,7 +295,7 @@ type
   public //ImapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
-    procedure NotifyReferenced(AIdentifier: AnsiString);
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -494,6 +495,41 @@ type
     procedure SetName(AValue: TLocalizedString);
 
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set terrain with random subtype
+
+  private
+    type
+
+      { TModRefCountInfo }
+
+      TModRefCountInfo = class(TNamedCollectionItem)
+      private
+        FForced: boolean;
+        FRefCount: Integer;
+        procedure SetForced(AValue: boolean);
+        procedure SetRefCount(AValue: Integer);
+      public
+        property RefCount: Integer read FRefCount write SetRefCount;
+        property Forced: boolean read FForced write SetForced;
+      end;
+
+      TModRefCountInfos = specialize TGNamedCollection <TModRefCountInfo>;
+
+      { TModUsage }
+
+      TModUsage = class (TModRefCountInfos)
+      strict private
+        FModsCondition: TLogicalIDCondition;
+        function GetMod(AIdentifier: AnsiString): TModRefCountInfo;
+        procedure UpdateMod(AIdentifier: AnsiString; AInfo: TModRefCountInfo);
+      public
+        constructor Create(AModsCondition: TLogicalIDCondition);
+        procedure ForceMod(AIdentifier: AnsiString; AForce: Boolean);
+        procedure ReferenceMod(AIdentifier: AnsiString);
+        procedure DeReferenceMod(AIdentifier: AnsiString);
+      end;
+
+     var
+       FModUsage:TModUsage;
   public
     //create with default params
     constructor CreateDefault(env: TMapEnvironment);
@@ -529,7 +565,7 @@ type
 
     procedure BeforeSerialize;
 
-    procedure NotifyReferenced(AIdentifier: AnsiString);
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -557,6 +593,7 @@ type
     property Objects: TMapObjects read FObjects;
   public
     function CurrentLevel: TMapLevel;
+    property ModUsage:TModUsage read FModUsage;
   end;
 
   {$pop}
@@ -565,6 +602,95 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils;
+
+{ TVCMIMap.TModRefCountInfo }
+
+procedure TVCMIMap.TModRefCountInfo.SetRefCount(AValue: Integer);
+begin
+  if FRefCount=AValue then Exit;
+  FRefCount:=AValue;
+end;
+
+procedure TVCMIMap.TModRefCountInfo.SetForced(AValue: boolean);
+begin
+  if FForced=AValue then Exit;
+  FForced:=AValue;
+end;
+
+{ TVCMIMap.TModUsage }
+
+function TVCMIMap.TModUsage.GetMod(AIdentifier: AnsiString): TModRefCountInfo;
+begin
+  Result := FindItem(AIdentifier);
+  if not Assigned(Result) then
+  begin
+    Result := TModRefCountInfo(ItemClass.Create(nil));
+    Result.DisplayName := AIdentifier;
+    Result.Collection := self;
+  end;
+end;
+
+procedure TVCMIMap.TModUsage.UpdateMod(AIdentifier: AnsiString;
+  AInfo: TModRefCountInfo);
+var
+  idx: Integer;
+begin
+  if (AInfo.Forced) or (AInfo.RefCount > 0 ) then
+  begin
+    FModsCondition.AllOf.Add(AIdentifier);
+  end
+  else
+  begin
+    idx := FModsCondition.AllOf.IndexOf(AIdentifier);
+    if idx >=0 then
+       FModsCondition.AllOf.Delete(idx);
+  end;
+end;
+
+constructor TVCMIMap.TModUsage.Create(AModsCondition: TLogicalIDCondition);
+begin
+  inherited Create;
+  FModsCondition := AModsCondition;
+end;
+
+procedure TVCMIMap.TModUsage.ForceMod(AIdentifier: AnsiString; AForce: Boolean);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := GetMod(AIdentifier);
+
+  if mod_info.Forced <> AForce then
+  begin
+    mod_info.Forced:=AForce;
+    UpdateMod(AIdentifier, mod_info);
+  end;
+end;
+
+procedure TVCMIMap.TModUsage.ReferenceMod(AIdentifier: AnsiString);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := GetMod(AIdentifier);
+  mod_info.RefCount:=mod_info.RefCount+1;
+
+  if (mod_info.RefCount = 1) and (not mod_info.Forced) then
+  begin
+    UpdateMod(AIdentifier, mod_info);
+  end;
+end;
+
+procedure TVCMIMap.TModUsage.DeReferenceMod(AIdentifier: AnsiString);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := GetMod(AIdentifier);
+  mod_info.RefCount:=mod_info.RefCount-1;
+
+  if (mod_info.RefCount = 0) and (not mod_info.Forced) then
+  begin
+    UpdateMod(AIdentifier, mod_info);
+  end;
+end;
 
 { TMapObjectTemplate }
 
@@ -964,17 +1090,17 @@ end;
 procedure TMapObject.SetSubtype(AValue: AnsiString);
 begin
   if FSubtype=AValue then Exit;
+  NotifyReferenced(FSubtype,AValue);
   FSubtype:=AValue;
   TypeChanged;
-  NotifyReferenced(AValue);
 end;
 
 procedure TMapObject.SetType(AValue: AnsiString);
 begin
   if FType=AValue then Exit;
+  NotifyReferenced(FType,AValue);
   FType:=AValue;
   TypeChanged;
-  NotifyReferenced(AValue);
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -1012,6 +1138,25 @@ begin
   end;
 end;
 
+procedure TMapObject.SetCollection(Value: TCollection);
+begin
+  //notify old collection
+  if Assigned(Collection) then
+  begin
+    GetMap.NotifyReferenced(FType, '');
+    GetMap.NotifyReferenced(FSubtype, '');
+  end;
+
+  inherited SetCollection(Value);
+
+  //notify new collection
+  if Assigned(Collection) then
+  begin
+    GetMap.NotifyReferenced('', FType);
+    GetMap.NotifyReferenced('', FSubtype);
+  end;
+end;
+
 function TMapObject.GetMap: TVCMIMap;
 begin
   Result := (Collection as TMapObjects).Map;
@@ -1034,9 +1179,13 @@ begin
   Result := subtype;
 end;
 
-procedure TMapObject.NotifyReferenced(AIdentifier: AnsiString);
+procedure TMapObject.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString
+  );
 begin
-  GetMap.NotifyReferenced(AIdentifier);
+  if Assigned(Collection) then
+  begin
+    GetMap.NotifyReferenced(AOldIdentifier, ANewIdentifier);
+  end;
 end;
 
 { TMapObjects }
@@ -1446,10 +1595,13 @@ begin
   AttachTo(FTriggeredEvents);
 
   FMods := TLogicalIDCondition.Create;
+
+  FModUsage := TModUsage.Create(FMods);
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FModUsage.Free;
   FMods.Free;
   FTriggeredEvents.Free;
 
@@ -1605,22 +1757,40 @@ begin
    FLevels.BeforeSerialize;
 end;
 
-procedure TVCMIMap.NotifyReferenced(AIdentifier: AnsiString);
+procedure TVCMIMap.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+
+  function ExtractModID(AIdentifier:AnsiString): AnsiString;
+  var
+    colon_pos: SizeInt;
+  begin
+    if(AIdentifier = '') then
+      exit('');
+
+    colon_pos := pos(':',AIdentifier);
+
+    if colon_pos <= 0 then
+      exit('');//object is from core
+
+    Result := copy(AIdentifier, 1, colon_pos-1);
+  end;
+
 var
-  colon_pos: SizeInt;
   mod_id: AnsiString;
 begin
-  if(AIdentifier = '') then
-    exit;
 
-  colon_pos := pos(':',AIdentifier);
+  mod_id:=ExtractModID(AOldIdentifier);
 
-  if colon_pos <= 0 then
-    exit;//object is from core
+  if mod_id <> '' then
+  begin
+    FModUsage.DeReferenceMod(mod_id);
+  end;
 
-  mod_id := copy(AIdentifier, 1, colon_pos-1);
+  mod_id:=ExtractModID(ANewIdentifier);
 
-  DebugLn(['Referenced ', copy(AIdentifier, colon_pos +1, MaxInt), ' from ', mod_id]);
+  if mod_id <> '' then
+  begin
+    FModUsage.ReferenceMod(mod_id);
+  end;
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

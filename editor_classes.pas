@@ -82,7 +82,7 @@ type
   end;
 
   IReferenceNotify = interface
-     procedure NotifyReferenced(AIdentifier: AnsiString);
+     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   end;
 
   { TNamedCollectionItem }

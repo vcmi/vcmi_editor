@@ -48,6 +48,8 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    lbRequiredMods: TLabel;
+    edRequiredMods: TListBox;
     lMapName: TLabel;
     lMapDescription: TLabel;
     edDescription: TMemo;
@@ -57,6 +59,7 @@ type
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
+    tsMods: TTabSheet;
     tsArtifacts: TTabSheet;
     tsHeroes: TTabSheet;
     tsSpells: TTabSheet;
@@ -145,6 +148,8 @@ begin
 end;
 
 procedure TMapOptionsForm.ReadData;
+var
+  mod_id: AnsiString;
 begin
 
   edDifficulty.ItemIndex := Integer(FMap.Difficulty);
@@ -163,6 +168,11 @@ begin
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
   edAllowedHeroes.FillFromCondition(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
+
+  for mod_id in FMap.Mods.AllOf do
+  begin
+    edRequiredMods.AddItem(mod_id, nil);
+  end;
 
   UpdateControls;
 end;

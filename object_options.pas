@@ -90,7 +90,7 @@ type
     FOwner: IMapObject;
   public
     constructor Create(AOwner: IMapObject);
-    procedure NotifyReferenced(AIdentifier: AnsiString);
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   end;
 
   {$push}
@@ -1025,8 +1025,8 @@ end;
 procedure TQuest.SetHeroID(AValue: AnsiString);
 begin
   if FHeroID=AValue then Exit;
+  FOwner.NotifyReferenced(FHeroID,AValue);
   FHeroID:=AValue;
-  FOwner.NotifyReferenced(AValue);
 end;
 
 procedure TQuest.SetHeroLevel(AValue: Integer);
@@ -1203,8 +1203,9 @@ end;
 procedure TCreatureInstInfo.SetType(AValue: AnsiString);
 begin
   if FType=AValue then Exit;
+
+  (Collection as TCreatureSet).NotifyReferenced(FType, AValue);
   FType:=AValue;
-  (Collection as TCreatureSet).NotifyReferenced(AValue);
 end;
 
 { TGuardedObjectOptions }
@@ -1234,9 +1235,9 @@ begin
   FOwner := AOwner;
 end;
 
-procedure TCreatureSet.NotifyReferenced(AIdentifier: AnsiString);
+procedure TCreatureSet.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
 begin
-  FOwner.NotifyReferenced(AIdentifier);
+  FOwner.NotifyReferenced(AOldIdentifier, ANewIdentifier);
 end;
 
 { TRandomDwellingOptions }

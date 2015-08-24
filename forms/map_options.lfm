@@ -1,11 +1,11 @@
 object MapOptionsForm: TMapOptionsForm
   Left = 343
-  Height = 400
+  Height = 373
   Top = 204
-  Width = 503
+  Width = 473
   Caption = 'MapOptionsForm'
-  ClientHeight = 400
-  ClientWidth = 503
+  ClientHeight = 373
+  ClientWidth = 473
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
@@ -14,9 +14,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 327
+    Left = 297
     Height = 26
-    Top = 364
+    Top = 337
     Width = 81
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -30,9 +30,9 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 418
+    Left = 388
     Height = 26
-    Top = 364
+    Top = 337
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
@@ -49,16 +49,16 @@ object MapOptionsForm: TMapOptionsForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 349
+    Height = 322
     Top = 3
-    Width = 497
-    ActivePage = tsMain
+    Width = 467
+    ActivePage = tsMods
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -171,6 +171,30 @@ object MapOptionsForm: TMapOptionsForm
         Top = 112
         Width = 83
         Caption = 'Hero level limit:'
+        ParentColor = False
+      end
+    end
+    object tsMods: TTabSheet
+      Caption = 'Mods'
+      ClientHeight = 294
+      ClientWidth = 459
+      object edRequiredMods: TListBox
+        Left = 5
+        Height = 259
+        Top = 30
+        Width = 449
+        Align = alClient
+        BorderSpacing.Top = 25
+        BorderSpacing.Around = 5
+        ItemHeight = 0
+        TabOrder = 0
+      end
+      object lbRequiredMods: TLabel
+        Left = 8
+        Height = 15
+        Top = 8
+        Width = 50
+        Caption = 'Required:'
         ParentColor = False
       end
     end

@@ -61,7 +61,7 @@ type
   TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify)
   public
     constructor Create();
-    procedure NotifyReferenced(AIdentifier: AnsiString);
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   end;
 
   { TTriggeredEventEffect }
@@ -128,7 +128,8 @@ begin
   inherited Create(TLogicalEventConditionItem);
 end;
 
-procedure TLogicalEventCondition.NotifyReferenced(AIdentifier: AnsiString);
+procedure TLogicalEventCondition.NotifyReferenced(AOldIdentifier,
+  ANewIdentifier: AnsiString);
 begin
 
 end;

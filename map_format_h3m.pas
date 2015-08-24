@@ -448,7 +448,7 @@ begin
 
     if IsWog then
     begin
-      FMap.Mods.AllOf.Add('wog');
+      FMap.ModUsage.ForceMod('wog', true);
     end;
   except
     FreeAndNil(Fmap);
