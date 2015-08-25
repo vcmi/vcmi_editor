@@ -93,6 +93,7 @@ type
   protected
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;
+
   end;
 
   TNamedCollectionItemClass = class of TNamedCollectionItem;
@@ -105,6 +106,7 @@ type
 
     procedure ItemAdded(Item: TCollectionItem);
     procedure ItemRemoved(Item: TCollectionItem);
+    procedure ItemNameChanged(Item: TCollectionItem; AOldName: String; ANewName: String);
   protected
     procedure Notify(Item: TCollectionItem; Action: TCollectionNotification);
       override;
@@ -240,6 +242,23 @@ begin
   FHash.Remove(Item);
 end;
 
+procedure THashedCollection.ItemNameChanged(Item: TCollectionItem;
+  AOldName: String; ANewName: String);
+begin
+  if(AOldName <> '') and (ANewName <> '') then
+  begin
+    FHash.Rename(AOldName,ANewName);
+  end
+  else if (AOldName <> '') then
+  begin
+    FHash.Remove(Item);
+  end
+  else if (ANewName <> '') then
+  begin
+    FHash.Add(ANewName,Item);
+  end;
+end;
+
 procedure THashedCollection.Notify(Item: TCollectionItem;
   Action: TCollectionNotification);
 begin
@@ -308,6 +327,8 @@ end;
 procedure TNamedCollectionItem.SetDisplayName(const Value: string);
 begin
   inherited SetDisplayName(Value);
+  if Assigned(Collection) then
+    (Collection as THashedCollection).ItemNameChanged(Self, FDisplayName, Value);
   FDisplayName := Value;
 end;
 
