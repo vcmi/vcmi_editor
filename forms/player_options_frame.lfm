@@ -1,9 +1,9 @@
 object PlayerOptionsFrame: TPlayerOptionsFrame
   Left = 0
-  Height = 348
+  Height = 415
   Top = 0
-  Width = 479
+  Width = 601
   TabOrder = 0
-  DesignLeft = 286
-  DesignTop = 113
+  DesignLeft = 374
+  DesignTop = 159
 end

@@ -33,10 +33,13 @@ type
   TPlayerOptionsFrame = class(TFrame)
   private
     FMap: TVCMIMap;
+    FObject: TPlayerAttr;
     procedure SetMap(AValue: TVCMIMap);
-    { private declarations }
+    procedure ReadData;
   public
     property Map: TVCMIMap read FMap write SetMap;
+    procedure EditObject(AObject: TPlayerAttr);
+    procedure Commit;
   end;
 
 implementation
@@ -49,6 +52,22 @@ procedure TPlayerOptionsFrame.SetMap(AValue: TVCMIMap);
 begin
   if FMap=AValue then Exit;
   FMap:=AValue;
+end;
+
+procedure TPlayerOptionsFrame.ReadData;
+begin
+
+end;
+
+procedure TPlayerOptionsFrame.EditObject(AObject: TPlayerAttr);
+begin
+  FObject := AObject;
+  ReadData;
+end;
+
+procedure TPlayerOptionsFrame.Commit;
+begin
+
 end;
 
 end.

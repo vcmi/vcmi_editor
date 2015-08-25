@@ -70,18 +70,24 @@ var
   Player: TPlayer;
   page: TTabSheet;
 begin
-
   for Player in TPlayerColor do
   begin
     page := FEditors[Player].Parent as TTabSheet;
     page.Caption:=FMap.ListsManager.PlayerName[Player];
-  end;
 
+    FEditors[Player].Map := FMap;
+    FEditors[Player].EditObject(FMap.Players.GetAttr(Integer(Player)));
+  end;
 end;
 
 procedure TPlayerOptionsForm.Commit;
+var
+  Player: TPlayer;
 begin
-
+  for Player in TPlayerColor do
+  begin
+    FEditors[Player].Commit;
+  end;
 end;
 
 constructor TPlayerOptionsForm.Create(TheOwner: TComponent);
