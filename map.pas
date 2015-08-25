@@ -82,8 +82,6 @@ type
     FPlasedHeroes: TPlasedHeroes;
     FGenerateHeroAtMainTown: boolean;
     FRandomFaction: boolean;
-    FMainHeroName: TLocalizedString;
-    FMainHeroPortrait: AnsiString;
 
     FMainTown: TObjectLink;
     FRandomHero: Boolean;
@@ -96,8 +94,6 @@ type
     procedure SetCanHumanPlay(AValue: boolean);
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
     procedure SetRandomFaction(AValue: boolean);
-    procedure SetMainHeroName(AValue: TLocalizedString);
-    procedure SetMainHeroPortrait(AValue: AnsiString);
     procedure SetRandomHero(AValue: Boolean);
     procedure SetMainHero(AValue: AnsiString);
     procedure SetTeam(AValue: Integer);
@@ -122,10 +118,8 @@ type
 
     property RandomHero:Boolean read FRandomHero write SetRandomHero; //if true main hero is random and not selectable
     property MainHero: AnsiString read FMainHero write SetMainHero; //if empty main hero is selectable from all available
-    property MainHeroPortrait:AnsiString read FMainHeroPortrait write SetMainHeroPortrait;
-    property MainHeroName:TLocalizedString read FMainHeroName write SetMainHeroName;
 
-    property Team: Integer read FTeam write SetTeam nodefault;
+    property Team: Integer read FTeam write SetTeam nodefault;//todo: remove
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   end;
@@ -1306,18 +1300,6 @@ procedure TPlayerAttr.SetMainHero(AValue: AnsiString);
 begin
   if FMainHero = AValue then Exit;
   FMainHero := AValue;
-end;
-
-procedure TPlayerAttr.SetMainHeroName(AValue: TLocalizedString);
-begin
-  if FMainHeroName = AValue then Exit;
-  FMainHeroName := AValue;
-end;
-
-procedure TPlayerAttr.SetMainHeroPortrait(AValue: AnsiString);
-begin
-  if FMainHeroPortrait = AValue then Exit;
-  FMainHeroPortrait := AValue;
 end;
 
 { TPlayerAttrs }

@@ -1304,7 +1304,6 @@ var
   Main_Hero: TCustomID;
   AllowedFactionsSet: Boolean;
   HasMainTown: Boolean;
-
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
   Attr.CanComputerPlay := FSrc.ReadBoolean;
@@ -1390,8 +1389,8 @@ begin
     begin
       MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
 
-      MainHeroPortrait := ReadID(@FMapEnv.lm.HeroIndexToString,1);
-      MainHeroName := ReadLocalizedString;
+      FSrc.Skip(1); // MainHeroPortrait  unused
+      ReadLocalizedString;// MainHeroName unused
     end;
   end;
 
