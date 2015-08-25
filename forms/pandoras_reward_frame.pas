@@ -126,7 +126,7 @@ begin
     1:
     begin
       Editor := MasterySelector;
-      MasterySelector.ItemIndex := Integer(grid.Objects[grid.Col, Grid.Row]);
+      MasterySelector.ItemIndex := Integer(PtrUInt(grid.Objects[grid.Col, Grid.Row]));
     end
   end;
 
@@ -148,7 +148,7 @@ procedure TPandorasRewardFrame.MasterySelectorEditingDone(Sender: TObject);
 begin
   edSecondarySkills.Cells[edSecondarySkills.Col,edSecondarySkills.Row]:=(Sender as TCustomComboBox).Text;
 
-  edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := TObject((Sender as TCustomComboBox).ItemIndex);
+  edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := TObject(PtrUint((Sender as TCustomComboBox).ItemIndex));
 end;
 
 procedure TPandorasRewardFrame.SecondarySkillSelectorEditingDone(Sender: TObject
@@ -206,7 +206,7 @@ begin
     edSecondarySkills.Objects[0, row] := info;
 
     edSecondarySkills.Cells[1, row] := MasterySelector.Items[option.Level];
-    edSecondarySkills.Objects[1, row] := TObject(option.Level);
+    edSecondarySkills.Objects[1, row] := TObject(PtrUint(option.Level));
   end;
 end;
 
@@ -267,7 +267,7 @@ begin
 
     option := AOptions.Add;
     option.DisplayName := info.ID;
-    option.Level:=Integer(edSecondarySkills.Objects[1, i]);
+    option.Level:=Integer(PtrUint(edSecondarySkills.Objects[1, i]));
   end;
 
 end;
