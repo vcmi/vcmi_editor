@@ -32,9 +32,6 @@
           <UseLineInfoUnit Value="False"/>
         </Debugging>
       </Linking>
-      <Other>
-        <CustomOptions Value="-al"/>
-      </Other>
     </CompilerOptions>
     <Description Value="CsvDocument library is a unit contaning set of classes for CSV files handling."/>
     <License Value="Modified LGPL (same as FPC RTL and Lazarus LCL)"/>

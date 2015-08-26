@@ -1,0 +1,10 @@
+language: c
+
+install:
+    - wget http://downloads.sourceforge.net/project/lazarus/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.2/lazarus_1.4.2-0_amd64.deb
+    - wget http://downloads.sourceforge.net/project/lazarus/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.2/fpc-src_2.6.4-150228_amd64.deb
+    - wget http://downloads.sourceforge.net/project/lazarus/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.2/fpc_2.6.4-150228_amd64.deb
+    - sudo dpkg -i fpc-src_2.6.4-150228_amd64.deb fpc_2.6.4-150228_amd64.deb lazarus_1.4.2-0_amd64.deb
+
+script:
+    - make
