@@ -1,8 +1,14 @@
 *.lps
 *.res
 *.compiled
+*.o
+*.ppu
 /bin
 /units
 
 *.bak
+*.swp
 /3rd_party/csvdocument/lib
+heap.trc
+
+tests/tests
