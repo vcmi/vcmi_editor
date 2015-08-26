@@ -1299,7 +1299,7 @@ var
   faction_mask_size: integer;
   faction_count: Integer;
   heroes_count: DWord;
-  hero: TPlasedHero;
+  hero: TPlacedHero;
   h: Integer;
   Main_Hero: TCustomID;
   AllowedFactionsSet: Boolean;
@@ -1402,7 +1402,7 @@ begin
 
     for h := 0 to heroes_count - 1 do
     begin
-      hero := TPlasedHero(Attr.PlasedHeroes.Add);
+      hero := TPlacedHero(Attr.PlacedHeroes.Add);
 
       hero.&type := ReadID(@FMapEnv.lm.HeroIndexToString,1);
       hero.Name := FSrc.ReadLocalizedString;

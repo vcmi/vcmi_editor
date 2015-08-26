@@ -52,9 +52,9 @@ type
   {$push}
   {$m+}
 
-  { TPlasedHero }
+  { TPlacedHero }
 
-  TPlasedHero = class (TCollectionItem)
+  TPlacedHero = class (TCollectionItem)
   private
     FName: TLocalizedString;
     FType: AnsiString;
@@ -65,9 +65,9 @@ type
     property Name: TLocalizedString read FName write SetName;
   end;
 
-  { TPlasedHeroes }
+  { TPlacedHeroes }
 
-  TPlasedHeroes = class (specialize TGArrayCollection<TPlasedHero>)
+  TPlacedHeroes = class (specialize TGArrayCollection<TPlacedHero>)
   end;
 
   { TPlayerAttr }
@@ -79,7 +79,7 @@ type
     FAllowedFactions: TLogicalIDCondition;
     FCanComputerPlay: boolean;
     FCanHumanPlay: boolean;
-    FPlasedHeroes: TPlasedHeroes;
+    FPlasedHeroes: TPlacedHeroes;
     FGenerateHeroAtMainTown: boolean;
     FRandomFaction: boolean;
 
@@ -110,7 +110,7 @@ type
     property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
     property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
 
-    property PlasedHeroes: TPlasedHeroes read FPlasedHeroes;
+    property PlacedHeroes: TPlacedHeroes read FPlasedHeroes;
 
     property MainTown: TObjectLink read FMainTown stored HasMainTown;
 
@@ -1218,15 +1218,15 @@ end;
 
 
 
-{ TPlasedHero }
+{ TPlacedHero }
 
-procedure TPlasedHero.SetName(AValue: TLocalizedString);
+procedure TPlacedHero.SetName(AValue: TLocalizedString);
 begin
   if FName=AValue then Exit;
   FName:=AValue;
 end;
 
-procedure TPlasedHero.SetType(AValue: AnsiString);
+procedure TPlacedHero.SetType(AValue: AnsiString);
 begin
   if FType = AValue then Exit;
   FType := AValue;
@@ -1237,7 +1237,7 @@ begin
   FOwner:= AOwner;
   FAllowedFactions := TLogicalIDCondition.Create;
 
-  FPlasedHeroes := TPlasedHeroes.Create;
+  FPlasedHeroes := TPlacedHeroes.Create;
   FMainTown := TObjectLink.Create();
 end;
 
