@@ -8,3 +8,5 @@ install:
 
 script:
     - make
+    - make build_tests
+    - make test
