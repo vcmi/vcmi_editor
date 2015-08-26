@@ -1387,7 +1387,7 @@ begin
     FGamePath.LoadFromFile(s);
   end
   else begin
-    FGamePath.Append(ParamStr(0));
+    FGamePath.Append(ExtractFilePath(ParamStr(0)));
   end;
 
   for i := 0 to FGamePath.Count - 1 do
