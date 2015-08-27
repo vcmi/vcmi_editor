@@ -54,10 +54,10 @@ type
     destructor Destroy; override;
 
     property ConditionType: TWinLossCondition read FEventType write SetEventType;
-
+  published
     property Value:Int32 read FValue write SetValue;
 
-    property ObjectLink: string read FObjectLink write SetObjectLink;
+    property &Object: string read FObjectLink write SetObjectLink;
 
     property Position: TPosition read FPosition;
     property &type: AnsiString read FType write SetType;
@@ -196,15 +196,7 @@ begin
   begin
     TJSONArray(Result).Add(GetEnumName(TypeInfo(TWinLossCondition), Integer(ConditionType)));
 
-    o := CreateJSONObject([]);
-
-    //todo: serialize
-
-    if Value <> 0 then
-    begin
-      o.Add('value', Value);
-    end;
-
+    o := AHandler.ObjectToJSON(Self);
     TJSONArray(Result).Add(o);
   end;
 end;
@@ -251,17 +243,10 @@ begin
     end;
 
     ConditionType := TWinLossCondition(raw_instruction);
-
     o := ASrcArray.Objects[1];
 
-    //TODO: Deserialize
-
-    if o.IndexOfName('value') >=0 then
-    begin
-      Value:=o.Integers['value'];
-    end;
+    AHandler.JSONToObject(o,Self);
   end;
-
 end;
 
 constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
