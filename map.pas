@@ -269,6 +269,7 @@ type
     procedure SetX(AValue: integer);
     procedure SetY(AValue: integer);
 
+    procedure UpdateIdentifier;
   strict private
     type
       TLinkList = specialize TFPGList<TObjectLink>;
@@ -328,14 +329,22 @@ type
   TMapObjectCollection = specialize TGNamedCollection<TMapObject>;
 
   TMapObjects = class (TMapObjectCollection)
-  private
+  strict private
     FMap: TVCMIMap;
+    FNextIdentifier: Integer;
+
+    procedure ProcessItemIdentifier(AIdentifier: String);
   protected
     function GetOwner: TPersistent; override;
+    procedure ItemAdded(Item: TCollectionItem); override;
+    procedure ItemNameChanged(Item: TCollectionItem; AOldName: String;
+      ANewName: String); override;
   public
     constructor Create(AOwner: TVCMIMap);
 
     property Map: TVCMIMap read FMap;
+
+    function GenerateIdentifier: Integer;
   end;
 
   TMapEnvironment = record
@@ -1107,11 +1116,7 @@ begin
   NotifyReferenced(FType,AValue);
   FType:=AValue;
   TypeChanged;
-
-  if(FType <> '') and (DisplayName) <> '' then
-  begin
-    DisplayName := StripScope(FType)+'_'+IntToStr(ID);
-  end;
+  UpdateIdentifier;
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -1137,6 +1142,14 @@ begin
 
   if FY = AValue then Exit;
   FY := AValue;
+end;
+
+procedure TMapObject.UpdateIdentifier;
+begin
+  if(FType <> '') and (DisplayName = '') and (Assigned(Collection)) then
+  begin
+    DisplayName := StripScope(FType)+'_'+IntToStr((Collection as TMapObjects).GenerateIdentifier());
+  end;
 end;
 
 procedure TMapObject.TypeChanged;
@@ -1165,6 +1178,7 @@ begin
   begin
     GetMap.NotifyReferenced('', FType);
     GetMap.NotifyReferenced('', FSubtype);
+    UpdateIdentifier;
   end;
 end;
 
@@ -1217,9 +1231,49 @@ begin
   FMap  := AOwner;
 end;
 
+function TMapObjects.GenerateIdentifier: Integer;
+begin
+  Result := FNextIdentifier;
+  inc(FNextIdentifier);
+end;
+
+procedure TMapObjects.ProcessItemIdentifier(AIdentifier: String);
+var
+  underscore: Integer;
+  numeric_id: Integer;
+  raw_numeric_id: String;
+begin
+  underscore := RPos('_', AIdentifier);
+
+  if underscore > 0 then
+  begin
+    raw_numeric_id := Copy(AIdentifier, underscore+1, MaxInt);
+
+    if TryStrToInt(raw_numeric_id, numeric_id) then
+    begin
+      FNextIdentifier := Max(FNextIdentifier, numeric_id+1);
+    end;
+  end;
+end;
+
 function TMapObjects.GetOwner: TPersistent;
 begin
   Result := FMap;
+end;
+
+procedure TMapObjects.ItemAdded(Item: TCollectionItem);
+begin
+  inherited ItemAdded(Item);
+
+  ProcessItemIdentifier(Item.DisplayName);
+end;
+
+procedure TMapObjects.ItemNameChanged(Item: TCollectionItem; AOldName: String;
+  ANewName: String);
+begin
+  inherited ItemNameChanged(Item, AOldName, ANewName);
+
+  ProcessItemIdentifier(ANewName);
 end;
 
 { TPlacedHero }
