@@ -248,7 +248,7 @@ type
 
   { TMapObject }
 
-  TMapObject = class (TCollectionItem, IMapObject)
+  TMapObject = class (TNamedCollectionItem, IMapObject)
   strict private
     FLastFrame: Integer;
     FLastTick: DWord;
@@ -325,12 +325,13 @@ type
 
   { TMapObjects }
 
-  TMapObjects = class (specialize TGArrayCollection<TMapObject>)
+  TMapObjectCollection = specialize TGNamedCollection<TMapObject>;
+
+  TMapObjects = class (TMapObjectCollection)
   private
     FMap: TVCMIMap;
   protected
     function GetOwner: TPersistent; override;
-
   public
     constructor Create(AOwner: TVCMIMap);
 
@@ -1106,6 +1107,11 @@ begin
   NotifyReferenced(FType,AValue);
   FType:=AValue;
   TypeChanged;
+
+  if(FType <> '') and (DisplayName) <> '' then
+  begin
+    DisplayName := StripScope(FType)+'_'+IntToStr(ID);
+  end;
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -1215,8 +1221,6 @@ function TMapObjects.GetOwner: TPersistent;
 begin
   Result := FMap;
 end;
-
-
 
 { TPlacedHero }
 

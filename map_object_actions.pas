@@ -162,7 +162,7 @@ end;
 procedure TAddObject.Execute;
 begin
   TargetObject := FMap.Objects.Add;
-
+  //(!)do not set TargetObject display name
   TargetObject.&Type:=Template.ObjType.DisplayName;
   TargetObject.Subtype:=Template.ObjSubType.DisplayName;
 

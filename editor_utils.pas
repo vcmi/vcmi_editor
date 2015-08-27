@@ -51,6 +51,8 @@ type
 
   function NormalizeResourceName(const AName: string): string;
 
+  function StripScope(const AIdentifier: string): string;
+
 implementation
 
 uses
@@ -91,6 +93,22 @@ begin
   Result := SetDirSeparators(AName);
   Result := UpperCase(Result);
   Result := ExtractFileNameWithoutExt(Result);
+end;
+
+function StripScope(const AIdentifier: string): string;
+var
+  colon_position: SizeInt;
+begin
+  colon_position := Pos(':', AIdentifier);
+
+  if colon_position <=0 then
+  begin
+    Result := AIdentifier;
+  end
+  else
+  begin
+    Result := copy(AIdentifier, colon_position+1, MaxInt);
+  end;
 end;
 
 { TStringCompare }
