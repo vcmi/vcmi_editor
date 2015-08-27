@@ -129,7 +129,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="73">
+    <Units Count="72">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -226,291 +226,287 @@
         <IsPartOfProject Value="True"/>
       </Unit21>
       <Unit22>
-        <Filename Value="map_format_vcmi.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit22>
-      <Unit23>
         <Filename Value="forms\map_options.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MapOptionsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="3rd_party\vcmi_fpjsonrtti.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit23>
       <Unit24>
-        <Filename Value="3rd_party\vcmi_fpjsonrtti.pas"/>
+        <Filename Value="editor_classes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit24>
       <Unit25>
-        <Filename Value="editor_classes.pas"/>
+        <Filename Value="editor_consts.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit25>
       <Unit26>
-        <Filename Value="editor_consts.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit26>
-      <Unit27>
         <Filename Value="root_manager.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RootManager"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="DataModule"/>
-      </Unit27>
-      <Unit28>
+      </Unit26>
+      <Unit27>
         <Filename Value="progress_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ProgressForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="editor_gl.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit28>
       <Unit29>
-        <Filename Value="editor_gl.pas"/>
+        <Filename Value="object_options.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit29>
       <Unit30>
-        <Filename Value="object_options.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit30>
-      <Unit31>
         <Filename Value="forms\edit_object_options.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditObjectOptions"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit31>
-      <Unit32>
+      </Unit30>
+      <Unit31>
         <Filename Value="forms\base_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="BaseOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit32>
-      <Unit33>
+      </Unit31>
+      <Unit32>
         <Filename Value="forms\grail_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="GrailFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit33>
-      <Unit34>
+      </Unit32>
+      <Unit33>
         <Filename Value="forms\flaggable_object_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FlaggableFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit34>
-      <Unit35>
+      </Unit33>
+      <Unit34>
         <Filename Value="lists_manager.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit35>
-      <Unit36>
+      </Unit34>
+      <Unit35>
         <Filename Value="forms\witchhut_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="WitchHutFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="h3_txt.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit36>
       <Unit37>
-        <Filename Value="h3_txt.pas"/>
+        <Filename Value="forms\gui_helpers.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit37>
       <Unit38>
-        <Filename Value="forms\gui_helpers.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit38>
-      <Unit39>
         <Filename Value="forms\shrine_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ShrineFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit39>
-      <Unit40>
+      </Unit38>
+      <Unit39>
         <Filename Value="forms\spellscroll_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SpellScrollFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit40>
-      <Unit41>
+      </Unit39>
+      <Unit40>
         <Filename Value="3rd_party\glext40.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit41>
-      <Unit42>
+      </Unit40>
+      <Unit41>
         <Filename Value="root_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RootForm"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit42>
-      <Unit43>
+      </Unit41>
+      <Unit42>
         <Filename Value="forms\dwelling_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DwellingFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="map_format_zip.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit43>
       <Unit44>
-        <Filename Value="map_format_zip.pas"/>
+        <Filename Value="map_format_json.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit44>
       <Unit45>
-        <Filename Value="map_format_json.pas"/>
+        <Filename Value="map_terrain_actions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit45>
       <Unit46>
-        <Filename Value="map_terrain_actions.pas"/>
+        <Filename Value="map_road_river_actions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit46>
       <Unit47>
-        <Filename Value="map_road_river_actions.pas"/>
+        <Filename Value="map_object_actions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit47>
       <Unit48>
-        <Filename Value="map_object_actions.pas"/>
+        <Filename Value="road_transitions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit48>
       <Unit49>
-        <Filename Value="road_transitions.pas"/>
+        <Filename Value="transitions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit49>
       <Unit50>
-        <Filename Value="transitions.pas"/>
+        <Filename Value="base_info.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit50>
       <Unit51>
-        <Filename Value="base_info.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit51>
-      <Unit52>
         <Filename Value="forms\monster_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MonsterFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit52>
-      <Unit53>
+      </Unit51>
+      <Unit52>
         <Filename Value="object_link.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit53>
-      <Unit54>
+      </Unit52>
+      <Unit53>
         <Filename Value="forms\subframes\object_link_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ObjectLinkFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="logical_id_condition.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit54>
       <Unit55>
-        <Filename Value="logical_id_condition.pas"/>
+        <Filename Value="logical_event_condition.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit55>
       <Unit56>
-        <Filename Value="logical_event_condition.pas"/>
+        <Filename Value="logical_expression.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit56>
       <Unit57>
-        <Filename Value="logical_expression.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit57>
-      <Unit58>
         <Filename Value="forms\abandoned_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AbandonedFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit58>
-      <Unit59>
+      </Unit57>
+      <Unit58>
         <Filename Value="forms\scholar_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ScholarFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit59>
-      <Unit60>
+      </Unit58>
+      <Unit59>
         <Filename Value="forms\creature_set_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="CreatureSetFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit60>
-      <Unit61>
+      </Unit59>
+      <Unit60>
         <Filename Value="forms\resource_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ResourceFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit61>
-      <Unit62>
+      </Unit60>
+      <Unit61>
         <Filename Value="forms\pandoras_reward_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PandorasRewardFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit62>
-      <Unit63>
+      </Unit61>
+      <Unit62>
         <Filename Value="forms\local_event_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="LocalEventFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit63>
-      <Unit64>
+      </Unit62>
+      <Unit63>
         <Filename Value="forms\hero_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit64>
-      <Unit65>
+      </Unit63>
+      <Unit64>
         <Filename Value="editor_rtti.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit65>
-      <Unit66>
+      </Unit64>
+      <Unit65>
         <Filename Value="forms\hero_artifacts_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroArtifactsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit66>
-      <Unit67>
+      </Unit65>
+      <Unit66>
         <Filename Value="forms\message_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MessageFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit67>
-      <Unit68>
+      </Unit66>
+      <Unit67>
         <Filename Value="forms\edit_hero_options.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditHeroOptions"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit68>
-      <Unit69>
+      </Unit67>
+      <Unit68>
         <Filename Value="forms\hero_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit69>
-      <Unit70>
+      </Unit68>
+      <Unit69>
         <Filename Value="forms\hero_definition_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroDefinitionFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit70>
-      <Unit71>
+      </Unit69>
+      <Unit70>
         <Filename Value="forms\player_options_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerOptionsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit71>
-      <Unit72>
+      </Unit70>
+      <Unit71>
         <Filename Value="forms\player_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerOptionsFrame"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit72>
+      </Unit71>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

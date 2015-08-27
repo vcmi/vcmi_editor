@@ -5,11 +5,8 @@ unit editor_str_consts;
 interface
 
 const
-
-  FORMAT_VCMI_EXT = '.JSON';
   FORMAT_H3M_EXT = '.H3M';
   FORMAT_ZIP_EXT = '.ZIP';
-  FORMAT_VMAP_EXT = '.VMAP';
 
 resourcestring
   rsDefaultMapName = 'Untitled';

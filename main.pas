@@ -348,8 +348,8 @@ var
 implementation
 
 uses
-  undo_map, map_format, map_format_h3m, map_format_vcmi, editor_str_consts,
-  root_manager, map_format_json, map_format_zip, editor_consts, map_options,
+  undo_map, map_format, map_format_h3m, editor_str_consts,
+  root_manager, map_format_zip, editor_consts, map_options,
   new_map, edit_object_options, Math, lazutf8classes;
 
 {$R *.lfm}
@@ -993,12 +993,6 @@ begin
 
   try
     case file_ext of
-      FORMAT_VCMI_EXT:
-        begin
-          reader := TMapReaderVCMI.Create(FEnv);
-          cstm := stm;
-          set_filename := True; //support saving
-        end;
       FORMAT_H3M_EXT:
         begin
           reader := TMapReaderH3m.Create(FEnv);
@@ -1015,7 +1009,7 @@ begin
              cstm := stm;
           end;
         end;
-      FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
+      FORMAT_ZIP_EXT:
       begin
          reader := TMapReaderZIP.Create(FEnv);
          cstm := stm;
@@ -1701,13 +1695,8 @@ begin
   stm.Size := 0;
 
   try
-
    case file_ext of
-    FORMAT_VCMI_EXT:
-      begin
-        writer := TMapWriterVCMI.Create(FEnv);
-      end;
-    FORMAT_VMAP_EXT,FORMAT_ZIP_EXT:
+    FORMAT_ZIP_EXT:
     begin
        writer := TMapWriterZIP.Create(FEnv);
     end
