@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression, vcmi_json, object_link;
+  logical_event_condition, logical_expression, vcmi_json;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -83,7 +83,7 @@ type
     FGenerateHeroAtMainTown: boolean;
     FRandomFaction: boolean;
 
-    FMainTown: TObjectLink;
+    FMainTown: string;
     FRandomHero: Boolean;
     FMainHero: AnsiString;
     FTeam: Integer;
@@ -112,7 +112,7 @@ type
 
     property PlacedHeroes: TPlacedHeroes read FPlasedHeroes;
 
-    property MainTown: TObjectLink read FMainTown stored HasMainTown;
+    property MainTown: String read FMainTown write FMainTown stored HasMainTown;
 
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
@@ -270,11 +270,6 @@ type
     procedure SetY(AValue: integer);
 
     procedure UpdateIdentifier;
-  strict private
-    type
-      TLinkList = specialize TFPGList<TObjectLink>;
-    var
-      FLinks: TLinkList;
   protected
     procedure TypeChanged;
     procedure SetCollection(Value: TCollection); override;
@@ -297,9 +292,6 @@ type
     function GetID: AnsiString;
     function GetSubId: AnsiString;
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
-
-    procedure Link(ALink: TObjectLink);
-    procedure UnLink(ALink: TObjectLink);
   published
     property X:integer read FX write SetX;
     property Y:integer read FY write SetY;
@@ -1019,12 +1011,10 @@ begin
   FLastFrame := 0;
   FTemplate := TMapObjectTemplate.Create;
   FOptions := TObjectOptions.Create(Self);
-  FLinks := TLinkList.Create;
 end;
 
 destructor TMapObject.Destroy;
 begin
-  FLinks.Free;
   FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
   inherited Destroy;
@@ -1213,16 +1203,6 @@ begin
   end;
 end;
 
-procedure TMapObject.Link(ALink: TObjectLink);
-begin
-  FLinks.Add(ALink);
-end;
-
-procedure TMapObject.UnLink(ALink: TObjectLink);
-begin
-  FLinks.Remove(ALink);
-end;
-
 { TMapObjects }
 
 constructor TMapObjects.Create(AOwner: TVCMIMap);
@@ -1296,12 +1276,10 @@ begin
   FAllowedFactions := TLogicalIDCondition.Create;
 
   FPlasedHeroes := TPlacedHeroes.Create;
-  FMainTown := TObjectLink.Create();
 end;
 
 destructor TPlayerAttr.Destroy;
 begin
-  FMainTown.Free;
   FPlasedHeroes.Free;
   FAllowedFactions.Free;
   inherited Destroy;
@@ -1315,7 +1293,7 @@ end;
 
 function TPlayerAttr.HasMainTown: boolean;
 begin
-  Result := not FMainTown.IsEmpty;
+  Result := FMainTown <> '';
 end;
 
 procedure TPlayerAttr.SetCanComputerPlay(AValue: boolean);

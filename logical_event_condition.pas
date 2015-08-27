@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, fpjson, editor_classes, logical_expression, editor_types,
-  vcmi_json, object_link;
+  vcmi_json, position;
 
 type
 
@@ -34,11 +34,15 @@ type
 
   TLogicalEventConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
   private
-    FEventType: TWinLossCondition;
-    FObjectLink: TObjectLink;
+    FSubType: AnsiString;
     Ftype: AnsiString;
+    FEventType: TWinLossCondition;
+    FObjectLink: string;
+    FPosition: TPosition;
     FValue: Int32;
     procedure SetEventType(AValue: TWinLossCondition);
+    procedure SetObjectLink(AValue: string);
+    procedure SetSubType(AValue: AnsiString);
     procedure Settype(AValue: AnsiString);
     procedure SetValue(AValue: Int32);
   public
@@ -53,7 +57,11 @@ type
 
     property Value:Int32 read FValue write SetValue;
 
-    property ObjectLink: TObjectLink read FObjectLink;
+    property ObjectLink: string read FObjectLink write SetObjectLink;
+
+    property Position: TPosition read FPosition;
+    property &type: AnsiString read FType write SetType;
+    property SubType: AnsiString read FSubType write SetSubType;
   end;
 
   { TLogicalEventCondition }
@@ -142,6 +150,18 @@ begin
   FEventType:=AValue;
 end;
 
+procedure TLogicalEventConditionItem.SetObjectLink(AValue: string);
+begin
+  if FObjectLink=AValue then Exit;
+  FObjectLink:=AValue;
+end;
+
+procedure TLogicalEventConditionItem.SetSubType(AValue: AnsiString);
+begin
+  if FSubType=AValue then Exit;
+  FSubType:=AValue;
+end;
+
 procedure TLogicalEventConditionItem.Settype(AValue: AnsiString);
 begin
   if Ftype=AValue then Exit;
@@ -176,7 +196,9 @@ begin
   begin
     TJSONArray(Result).Add(GetEnumName(TypeInfo(TWinLossCondition), Integer(ConditionType)));
 
-    o := (ObjectLink.Serialize(AHandler)) as TJSONObject;
+    o := CreateJSONObject([]);
+
+    //todo: serialize
 
     if Value <> 0 then
     begin
@@ -232,7 +254,7 @@ begin
 
     o := ASrcArray.Objects[1];
 
-    ObjectLink.Deserialize(AHandler, o);
+    //TODO: Deserialize
 
     if o.IndexOfName('value') >=0 then
     begin
@@ -245,12 +267,13 @@ end;
 constructor TLogicalEventConditionItem.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FObjectLink := TObjectLink.Create();
+  FPosition := TPosition.Create;
+
 end;
 
 destructor TLogicalEventConditionItem.Destroy;
 begin
-  FObjectLink.Free;
+  FPosition.Free;
   inherited Destroy;
 end;
 

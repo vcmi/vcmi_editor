@@ -37,13 +37,13 @@ uses
   witchhut_frame, h3_txt, gui_helpers, shrine_frame, spellscroll_frame,
   root_form, dwelling_frame, map_format_zip, map_format_json,
   map_terrain_actions, map_road_river_actions, map_object_actions,
-  road_transitions, transitions, base_info, monster_frame, object_link,
+  road_transitions, transitions, base_info, monster_frame,
   object_link_frame, logical_id_condition, logical_event_condition,
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
   editor_rtti, hero_artifacts_frame, message_frame, edit_hero_options,
   hero_options_frame, hero_definition_frame, player_options_form, 
-player_options_frame;
+player_options_frame, position;
 
 {$R *.res}
 

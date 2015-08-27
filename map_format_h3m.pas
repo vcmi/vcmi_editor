@@ -26,8 +26,8 @@ interface
 uses
   Classes, SysUtils, math, fgl, typinfo, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
-  objects, object_link, editor_graphics, logical_id_condition,
-  logical_event_condition, logical_expression;
+  objects, editor_graphics, logical_id_condition,
+  logical_event_condition, logical_expression, position;
 
 const
   MAP_VERSION_ROE = $0e;
@@ -94,20 +94,23 @@ type
     constructor Create(AGraphicsManager: TGraphicsManager);
   end;
 
-   { TResolveRequest }
+   { TQIResolveRequest }
 
-   TResolveRequest = class
+   TQIResolveRequest = class
+   public
+     Type
+       TResolveProc = procedure (AValue: string) of object;
    private
      FIdentifier: UInt32;
-     FLink: TObjectLink;
+     FResolveProc: TResolveProc;
      procedure SetIdentifier(AValue: UInt32);
-     procedure SetLink(AValue: TObjectLink);
+     procedure SetResolveProc(AValue: TResolveProc);
    public
-     property Link: TObjectLink read FLink write SetLink; //not owned, must have valid metaclass
      property Identifier: UInt32 read FIdentifier write SetIdentifier;
+     property ResolveProc:TResolveProc read FResolveProc write SetResolveProc;
    end;
 
-   TResolveRequests = specialize TFPGObjectList<TResolveRequest>;
+   TQIResolveRequests = specialize TFPGObjectList<TQIResolveRequest>;
 
    { TMapReaderH3m }
 
@@ -121,14 +124,14 @@ type
 
      FCurrentObject: TMapObject;
      FQuestIdentifierMap: TH3MQuestIdentifierMap;
-     FLinksToResolve: TResolveRequests;
+     FLinksToResolve: TQIResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
      function IsNotROE: boolean;
      function IsWog: Boolean;
 
      procedure SkipNotImpl(count: Integer);
-     procedure PushResolveRequest(AIdent: UInt32; ALink: TObjectLink);
+     procedure PushResolveRequest(AIdent: UInt32; AResolveProc: TQIResolveRequest.TResolveProc);
      procedure ResolveQuestIdentifiers;
    strict private
      type
@@ -154,7 +157,7 @@ type
      procedure ReadSecondarySkills4(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills1(ASkills: THeroSecondarySkills);
 
-     procedure ReadObjectLinkPosition(ALink: TObjectLink);
+     procedure ReadPosition(APosition: TPosition);
    strict private
      procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
      procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
@@ -292,18 +295,17 @@ begin
   FZIndex := AValue;
 end;
 
-{ TResolveRequest }
+{ TQIResolveRequest }
 
-procedure TResolveRequest.SetLink(AValue: TObjectLink);
-begin
-  if FLink=AValue then Exit;
-  FLink:=AValue;
-end;
-
-procedure TResolveRequest.SetIdentifier(AValue: UInt32);
+procedure TQIResolveRequest.SetIdentifier(AValue: UInt32);
 begin
   if FIdentifier=AValue then Exit;
   FIdentifier:=AValue;
+end;
+
+procedure TQIResolveRequest.SetResolveProc(AValue: TResolveProc);
+begin
+  FResolveProc:=AValue;
 end;
 
 { TMapReaderH3m }
@@ -324,7 +326,7 @@ constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
   FQuestIdentifierMap := TH3MQuestIdentifierMap.Create;
-  FLinksToResolve := TResolveRequests.Create(True);
+  FLinksToResolve := TQIResolveRequests.Create(True);
   FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
 
@@ -815,11 +817,14 @@ begin
 
 end;
 
-procedure TMapReaderH3m.ReadObjectLinkPosition(ALink: TObjectLink);
+procedure TMapReaderH3m.ReadPosition(APosition: TPosition);
 begin
-  ALink.X:=FSrc.ReadByte;
-  ALink.Y:=FSrc.ReadByte;
-  ALink.L:=FSrc.ReadByte;
+  with APosition, FSrc do
+  begin
+    X:=ReadByte;
+    Y:=ReadByte;
+    L:=ReadByte;
+  end;
 end;
 
 procedure TMapReaderH3m.ReadDefInfo;
@@ -1122,7 +1127,7 @@ var
   i: Integer;
   x,y,l: Byte;
   tid: DWord;
-  spos: Int32;
+  //spos: Int32;
 
   template: TLegacyMapObjectTemplate;
 begin
@@ -1131,7 +1136,7 @@ begin
   for i := 0 to cnt - 1 do
   begin
     try
-      spos := FSrc.GetPos;
+      //spos := FSrc.GetPos;
       FCurrentObject := TMapObject(FMap.Objects.Add);
       x:=FSrc.ReadByte;
       y:=FSrc.ReadByte;
@@ -1304,6 +1309,8 @@ var
   Main_Hero: TCustomID;
   AllowedFactionsSet: Boolean;
   HasMainTown: Boolean;
+
+  main_town_pos: TPosition;
 begin
   Attr.CanHumanPlay := FSrc.ReadBoolean;
   Attr.CanComputerPlay := FSrc.ReadBoolean;
@@ -1361,24 +1368,25 @@ begin
   HasMainTown := FSrc.ReadBoolean;
   if HasMainTown then
   begin
-    Attr.MainTown.&type := TYPE_TOWN;
     if FMapVersion = MAP_VERSION_ROE then
     begin
       Attr.GenerateHeroAtMainTown := True;
-      Attr.MainTown.subType := '';
     end else
     begin
       Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
-      Attr.MainTown.subType := ReadID1(@FMap.ListsManager.FactionIndexToString);
+      SkipNotImpl(1); //todo: in VCMI it is GenerateHero
     end;
 
-    with Attr.MainTown,FSrc do
+    main_town_pos := TPosition.Create;
+
+    with main_town_pos,FSrc do
     begin
       X := ReadByte;
       Y := ReadByte;
       L := ReadByte;
     end;
 
+    main_town_pos.Free; //todo: push request
   end; //main town
   with Attr,FSrc do
   begin
@@ -1485,7 +1493,7 @@ begin
         obj.HeroLevel:=ReadDWord;
       end;
       TQuestMission.KillHero,TQuestMission.KillCreature: begin
-        PushResolveRequest(ReadDWord, obj.KillTarget);
+        PushResolveRequest(ReadDWord, @obj.SetKillTarget);
       end;
       TQuestMission.Artifact: begin
         ReadArtifactSet(obj.Artifacts);
@@ -1540,7 +1548,7 @@ begin
   end
   else
   begin
-    PushResolveRequest(ident, AOptions.SameAsTown);
+    PushResolveRequest(ident, @AOptions.SetSameAsTown);
   end;
 
   AOptions.MinLevel := FSrc.ReadByte;
@@ -1565,7 +1573,7 @@ begin
   end
   else
   begin
-    PushResolveRequest(ident, AOptions.SameAsTown);
+    PushResolveRequest(ident, @AOptions.SetSameAsTown);
   end;
 end;
 
@@ -1770,8 +1778,8 @@ var
 
   procedure SetHaveCondition(ObjType, ObjSubtype: AnsiString; Amount: Int32);
   begin
-    special_condition.ObjectLink.&type:=ObjType;
-    special_condition.ObjectLink.subType:=ObjSubtype;
+    special_condition.&type:=ObjType;
+    special_condition.subType:=ObjSubtype;
     special_condition.Value := Amount;
     special_condition.ConditionType:=TWinLossCondition.have;
   end;
@@ -1867,22 +1875,22 @@ begin
       TVictoryCondition.BEATHERO:
       begin
         special_condition.ConditionType:=TWinLossCondition.destroy;
-        special_condition.ObjectLink.&type:=TYPE_HERO;
+        special_condition.&type:=TYPE_HERO;
 
-        ReadObjectLinkPosition(special_condition.ObjectLink);
+        ReadPosition(special_condition.Position);
       end;
       TVictoryCondition.CAPTURECITY:
       begin
         special_condition.ConditionType:=TWinLossCondition.have;
-        special_condition.ObjectLink.&type:=TYPE_TOWN;
-        ReadObjectLinkPosition(special_condition.ObjectLink);
+        special_condition.&type:=TYPE_TOWN;
+        ReadPosition(special_condition.Position);
       end;
       TVictoryCondition.BEATMONSTER:
       begin
         special_condition.ConditionType:=TWinLossCondition.destroy;
-        special_condition.ObjectLink.&type:=TYPE_MONSTER;
+        special_condition.&type:=TYPE_MONSTER;
 
-        ReadObjectLinkPosition(special_condition.ObjectLink);
+        ReadPosition(special_condition.Position);
       end;
       TVictoryCondition.TAKEDWELLINGS:
       begin
@@ -2102,19 +2110,20 @@ begin
   FSrc.Skip(count);
 end;
 
-procedure TMapReaderH3m.PushResolveRequest(AIdent: UInt32; ALink: TObjectLink);
+procedure TMapReaderH3m.PushResolveRequest(AIdent: UInt32;
+  AResolveProc: TQIResolveRequest.TResolveProc);
 var
-  request: TResolveRequest;
+  request: TQIResolveRequest;
 begin
-  request := TResolveRequest.Create;
-  request.Link := ALink;
+  request := TQIResolveRequest.Create;
+  request.ResolveProc := AResolveProc;
   request.Identifier:=AIdent;
   FLinksToResolve.Add(request);
 end;
 
 procedure TMapReaderH3m.ResolveQuestIdentifiers;
 var
-  req: TResolveRequest;
+  req: TQIResolveRequest;
   o: TMapObject;
 begin
   while FLinksToResolve.Count>0 do
@@ -2123,12 +2132,7 @@ begin
 
     o := FQuestIdentifierMap.KeyData[req.Identifier];
 
-    req.Link.L:=o.L;
-    req.Link.X:=o.X;
-    req.Link.Y:=o.Y;
-
-    req.Link.&type:=o.&Type;
-    req.Link.subType:=o.Subtype;
+    req.ResolveProc(o.DisplayName);
 
     FLinksToResolve.Delete(0);
   end;

@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
-  object_link, logical_id_condition, vcmi_json, editor_consts, fpjson;
+  logical_id_condition, vcmi_json, editor_consts, fpjson;
 
 type
 
@@ -130,7 +130,7 @@ type
     FFirstVisitText: TLocalizedString;
     FHeroID: AnsiString;
     FHeroLevel: Integer;
-    FKillTarget: TObjectLink;
+    FKillTarget: String;
     FMissionType: TQuestMission;
     FNextVisitText: TLocalizedString;
     FPlayerID: TPlayer;
@@ -158,6 +158,8 @@ type
   public
     constructor Create(AOwner: IMapObject);
     destructor Destroy; override;
+
+    procedure SetKillTarget(AValue: String);
   published
     property FirstVisitText: TLocalizedString read FFirstVisitText write SetFirstVisitText;
     property NextVisitText: TLocalizedString read FNextVisitText write SetNextVisitText;
@@ -174,7 +176,7 @@ type
     property Hero: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
     property Player: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
 
-    property KillTarget: TObjectLink read FKillTarget stored IsKillTargetStored;
+    property KillTarget: String read FKillTarget write SetKillTarget stored IsKillTargetStored;
   end;
 
   { THeroArtifacts }
@@ -618,7 +620,7 @@ type
     FLinked: boolean;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
-    FSameAsTown: TObjectLink;
+    FSameAsTown: String;
     function GetAllowedFactions: TStrings;
     function IsSameAsTownStored: Boolean;
     procedure SetLinked(AValue: boolean);
@@ -636,7 +638,8 @@ type
 
     property Linked: boolean read FLinked write SetLinked;
 
-    property SameAsTown: TObjectLink read FSameAsTown stored IsSameAsTownStored;
+    procedure SetSameAsTown(AValue: string);
+    property SameAsTown: string read FSameAsTown write SetSameAsTown stored IsSameAsTownStored;
   published
      property Owner default TPlayer.none;
   end;
@@ -1035,15 +1038,16 @@ begin
   FHeroLevel:=AValue;
 end;
 
+procedure TQuest.SetKillTarget(AValue: String);
+begin
+  if FKillTarget=AValue then Exit;
+  FKillTarget:=AValue;
+end;
+
 procedure TQuest.SetMissionType(AValue: TQuestMission);
 begin
   if FMissionType=AValue then Exit;
   FMissionType:=AValue;
-
-  case FMissionType of
-    TQuestMission.KillCreature: FKillTarget.&type:=TYPE_MONSTER;
-    TQuestMission.KillHero:FKillTarget.&type:=TYPE_HERO;
-  end;
 end;
 
 procedure TQuest.SetNextVisitText(AValue: TLocalizedString);
@@ -1073,12 +1077,10 @@ begin
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
   FPlayerID:=TPlayer.NONE;
-  FKillTarget := TObjectLink.Create();
 end;
 
 destructor TQuest.Destroy;
 begin
-  FKillTarget.Free;
   FPrimarySkills.Free;
   FResources.Free;
   FArmy.Free;
@@ -1167,13 +1169,10 @@ begin
   FAllowedFactions.Duplicates := dupIgnore;
 
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
-  FSameAsTown := TObjectLink.Create();
-  FSameAsTown.&type := TYPE_TOWN;
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;
 begin
-  FSameAsTown.Free;
   FAllowedFactions.Free;
   inherited Destroy;
 end;
@@ -1181,6 +1180,12 @@ end;
 function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
 begin
   Result := not Linked;
+end;
+
+procedure TBaseRandomDwellingOptions.SetSameAsTown(AValue: string);
+begin
+  if FSameAsTown=AValue then Exit;
+  FSameAsTown:=AValue;
 end;
 
 { TCreatureInstInfo }
