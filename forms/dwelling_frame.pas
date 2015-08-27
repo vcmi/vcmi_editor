@@ -154,7 +154,7 @@ end;
 
 procedure TDwellingFrame.SaveLink;
 begin
-  FLinkFrame.Commit;
+  FOptions.SameAsTown := FLinkFrame.SelectedObject.DisplayName;
 end;
 
 procedure TDwellingFrame.NormalizeLevels;
@@ -170,6 +170,7 @@ begin
   FLinkFrame.Parent := pnLink;
   FLinkFrame.Visible := true;
   FLinkFrame.Align:=alClient;
+  FLinkFrame.TypeFilter := TTownOptions;
 end;
 
 procedure TDwellingFrame.Commit;

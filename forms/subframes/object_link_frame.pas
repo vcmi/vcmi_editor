@@ -35,12 +35,16 @@ type
     ObjectList: TListBox;
   private
     FMap: TVCMIMap;
+    FTypeFilter: TObjectOptionsClass;
     procedure SetMap(AValue: TVCMIMap);
+    procedure SetTypeFilter(AValue: TObjectOptionsClass);
   public
-    procedure Commit;
+    function SelectedObject: TMapObject;
     procedure Load(AIdentifier: String);
 
     property Map: TVCMIMap read FMap write SetMap;
+
+    property TypeFilter: TObjectOptionsClass read FTypeFilter write SetTypeFilter;
   end;
 
 implementation
@@ -57,13 +61,21 @@ begin
   FMap:=AValue;
 end;
 
-procedure TObjectLinkFrame.Commit;
-var
-  map_object: TMapObject;
+procedure TObjectLinkFrame.SetTypeFilter(AValue: TObjectOptionsClass);
 begin
-  map_object := (ObjectList.Items.Objects[ObjectList.ItemIndex] as TMapObject);
+  if FTypeFilter=AValue then Exit;
+  FTypeFilter:=AValue;
+end;
 
-  //todo: TObjectLinkFrame.Commit
+function TObjectLinkFrame.SelectedObject: TMapObject;
+begin
+  if ObjectList.ItemIndex < 0 then
+  begin
+    Result := nil;
+  end
+  else begin
+    Result := (ObjectList.Items.Objects[ObjectList.ItemIndex] as TMapObject);
+  end;
 end;
 
 procedure TObjectLinkFrame.Load(AIdentifier: String);
@@ -71,47 +83,28 @@ var
   map_object: TMapObject;
   item: TCollectionItem;
 
-  function GetTownName(): AnsiString;
-  begin
-    if map_object.GetID = 'randomTown' then
-    begin
-      Result := 'Random town';
-    end
-    else
-    begin
-      Result := Map.ListsManager.GetFaction(map_object.GetSubId).Name;
-    end;
-  end;
 begin
   //todo: TObjectLinkFrame.Load
 
-  //FLink := Alink;
-  //
-  //for item in FMap.Objects do
-  //begin
-  //  map_object := item as TMapObject;
-  //
-  //  if (map_object.Options is TMonsterOptions) and (FLink.&type = TYPE_MONSTER) then
-  //  begin
-  //
-  //  end
-  //  else if (map_object.Options is THeroOptions) and (FLink.&type = TYPE_HERO) then
-  //  begin
-  //
-  //  end
-  //  else if (map_object.Options is TTownOptions) and ((FLink.&type = TYPE_TOWN) or (FLink.&type = TYPE_RANDOMTOWN)) then
-  //  begin
-  //    ObjectList.AddItem(Format('%s at %d %d %d',[GetTownName, map_object.L, map_object.X, map_object.Y]),map_object);
-  //  end
-  //  else
-  //    Continue;
-  //
-  //  if (map_object.L = FLink.L) and (map_object.X = FLink.x) and (map_object.Y = FLink.Y) then
-  //  begin
-  //    ObjectList.ItemIndex := ObjectList.Count-1; //select recently added object
-  //  end;
-  //
-  //end;
+
+
+  for item in FMap.Objects do
+  begin
+    map_object := TMapObject(item);
+
+    if map_object.Options is FTypeFilter then
+    begin
+      ObjectList.AddItem(Format('%s at %d %d %d',[map_object.&Type, map_object.L, map_object.X, map_object.Y]),map_object);
+    end
+    else
+      Continue;
+
+    if map_object.DisplayName = AIdentifier then
+    begin
+      ObjectList.ItemIndex := ObjectList.Count-1; //select recently added object
+    end;
+
+  end;
 
   ObjectList.Invalidate;
 end;

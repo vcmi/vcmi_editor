@@ -303,7 +303,6 @@ type
     property Template: TMapObjectTemplate read FTemplate;
   public
     property Options: TObjectOptions read FOptions;
-
     function HasOptions: boolean;
   end;
 
