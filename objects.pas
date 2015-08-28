@@ -614,7 +614,6 @@ procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
     def: TLegacyObjTemplate;
 
     s_tmp: string;
-    progess_delta: Integer;
     legacy_config: TJSONObject;
     list: TLegacyObjConfigList;
     full_id: TLegacyTemplateId;
@@ -735,7 +734,6 @@ var
   i,j,k: Integer;
   idx: Integer;
   obj, subTypes: TJSONObject;
-  obj_name: AnsiString;
   subTypeObj, templates_obj: TJSONObject;
   full_id: TLegacyTemplateId;
   legacy_data: TLegacyObjConfigList;

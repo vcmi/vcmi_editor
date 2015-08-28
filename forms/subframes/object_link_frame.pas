@@ -82,12 +82,7 @@ procedure TObjectLinkFrame.Load(AIdentifier: String);
 var
   map_object: TMapObject;
   item: TCollectionItem;
-
 begin
-  //todo: TObjectLinkFrame.Load
-
-
-
   for item in FMap.Objects do
   begin
     map_object := TMapObject(item);
@@ -103,7 +98,6 @@ begin
     begin
       ObjectList.ItemIndex := ObjectList.Count-1; //select recently added object
     end;
-
   end;
 
   ObjectList.Invalidate;
