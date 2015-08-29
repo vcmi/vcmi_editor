@@ -564,7 +564,7 @@ var
   j: Integer;
 
   MappingString: String;
-  FlipModeStr, s1,s2: string;
+  FlipModeStr, s2: string;
 
   MappingsList: TStringList;
   k: Integer;

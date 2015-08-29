@@ -200,7 +200,7 @@ end;
 
 procedure TAreaTerrainBrush.RenderSelection;
 var
-  dim,cx,cy: Integer;
+  cx,cy: Integer;
   r:TMapRect;
 begin
   if Dragging then
