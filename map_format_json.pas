@@ -100,7 +100,7 @@ begin
 
     if (AObject as TMapObject).HasOptions then
     begin
-      JSON.Add('options', (Sender as TVCMIJSONStreamer).ObjectToJSON((AObject as TMapObject).Options));
+      JSON.Add('options', (Sender as TVCMIJSONStreamer).ObjectToJsonEx((AObject as TMapObject).Options));
     end;
   end;
 end;
@@ -194,7 +194,7 @@ begin
   begin
     //manual destreaming of Options
 
-    (Sender as TVCMIJSONDestreamer).JSONToObject(JSON.Objects['options'], (AObject as TMapObject).Options);
+    (Sender as TVCMIJSONDestreamer).JSONToObjectEx(JSON.Objects['options'], (AObject as TMapObject).Options);
 
   end;
 end;

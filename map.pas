@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression, vcmi_json;
+  logical_event_condition, logical_expression, vcmi_json, vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -37,6 +37,7 @@ const
 
 type
   TVCMIMap = class;
+  TMapObject = class;
 
   IMapWriter = interface
     procedure Write(AStream: TStream; AMap: TVCMIMap);
@@ -52,76 +53,100 @@ type
   {$push}
   {$m+}
 
-  { TPlacedHero }
+  { TPlayerHero }
 
-  TPlacedHero = class (TCollectionItem)
+  TPlayerHero = class (TNamedCollectionItem)
   private
-    FName: TLocalizedString;
-    FType: AnsiString;
-    procedure SetName(AValue: TLocalizedString);
-    procedure SetType(AValue: AnsiString);
+    FMapObject: TMapObject;
+    function GetName: TLocalizedString;
+    function GetType: AnsiString;
+    procedure SetMapObject(AValue: TMapObject);
+  public
+    property MapObject: TMapObject read FMapObject write SetMapObject;
   published
-    property &type:AnsiString read FType write SetType;
-    property Name: TLocalizedString read FName write SetName;
+    property &type:AnsiString read GetType;
+    property Name: TLocalizedString read GetName;
   end;
 
-  { TPlacedHeroes }
+  { TPlayerHeroes }
 
-  TPlacedHeroes = class (specialize TGArrayCollection<TPlacedHero>)
+  TPlayerHeroCollection = specialize TGNamedCollection<TPlayerHero>;
+
+  TPlayerHeroes = class (TPlayerHeroCollection)
+  end;
+
+  { TPlayerTown }
+
+  TPlayerTown = class(TNamedCollectionItem)
+  private
+    FMapObject: TMapObject;
+    function GetType: AnsiString;
+    procedure SetMapObject(AValue: TMapObject);
+  public
+    property MapObject: TMapObject read FMapObject write SetMapObject;
+  published
+    property &type:AnsiString read GetType;
+  end;
+
+
+  TPlayerTownCollection = specialize TGNamedCollection<TPlayerTown>;
+
+  { TPlayerTowns }
+
+  TPlayerTowns = class (TPlayerTownCollection)
+
   end;
 
   { TPlayerAttr }
 
-  TPlayerAttr = class(Tobject)
+  TPlayerAttr = class(TObject, ISerializeSpecial)
   private
+    FCanPlay: TPlayableBy;
     FOwner: IReferenceNotify;
     FAITactics: TAITactics;
     FAllowedFactions: TLogicalIDCondition;
-    FCanComputerPlay: boolean;
-    FCanHumanPlay: boolean;
-    FPlasedHeroes: TPlacedHeroes;
+    FHeroes: TPlayerHeroes;
     FGenerateHeroAtMainTown: boolean;
     FRandomFaction: boolean;
 
     FMainTown: string;
     FRandomHero: Boolean;
-    FMainHero: AnsiString;
+    FMainHero: String;
     FTeam: Integer;
+    FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
     procedure SetAITactics(AValue: TAITactics);
-    procedure SetCanComputerPlay(AValue: boolean);
-    procedure SetCanHumanPlay(AValue: boolean);
+    procedure SetCanPlay(AValue: TPlayableBy);
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
     procedure SetRandomFaction(AValue: boolean);
     procedure SetRandomHero(AValue: Boolean);
-    procedure SetMainHero(AValue: AnsiString);
     procedure SetTeam(AValue: Integer);
 
   public
     constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
 
   published
     property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
-    property RandomFaction: boolean read FRandomFaction write SetRandomFaction default false;
 
-    property CanComputerPlay: boolean read FCanComputerPlay write SetCanComputerPlay;
-    property CanHumanPlay: boolean read FCanHumanPlay write SetCanHumanPlay;
-
-    property PlacedHeroes: TPlacedHeroes read FPlasedHeroes;
+    property CanPlay: TPlayableBy read FCanPlay write SetCanPlay default TPlayableBy.PlayerOrAI;
 
     property MainTown: String read FMainTown write FMainTown stored HasMainTown;
 
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
-    property RandomHero:Boolean read FRandomHero write SetRandomHero; //if true main hero is random and not selectable
-    property MainHero: AnsiString read FMainHero write SetMainHero; //if empty main hero is selectable from all available
+    property MainHero: String read FMainHero write FMainHero;
 
     property Team: Integer read FTeam write SetTeam nodefault;//todo: remove
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
+  public //special streaming
+    property Towns: TPlayerTowns read FTowns;
+    property Heroes: TPlayerHeroes read FHeroes;
   end;
 
   { TPlayerAttrs }
@@ -137,7 +162,7 @@ type
     function GetAttr(color: Integer): TPlayerAttr;
 
   published
-    property Red:TPlayerAttr index Integer(TPlayerColor.Red) read GetAttr ;
+    property Red:TPlayerAttr index Integer(TPlayerColor.Red) read GetAttr;
     property Blue:TPlayerAttr index Integer(TPlayerColor.Blue) read GetAttr;
     property Tan:TPlayerAttr index Integer(TPlayerColor.Tan) read GetAttr;
     property Green:TPlayerAttr index Integer(TPlayerColor.Green) read GetAttr;
@@ -253,7 +278,7 @@ type
     FLastFrame: Integer;
     FLastTick: DWord;
     FOptions: TObjectOptions;
-
+    FPlayer: TPlayer;
     FL: integer;
     FSubtype: AnsiString;
     FTemplate: TMapObjectTemplate;
@@ -261,7 +286,7 @@ type
     FX: integer;
     FY: integer;
     function GetIdx: integer;
-    function GetPlayer: TPlayer; inline;
+
     procedure Render(Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
     procedure SetSubtype(AValue: AnsiString);
@@ -288,9 +313,12 @@ type
 
     procedure AssignTemplate(ATemplate: TObjTemplate);
 
-  public //ImapObject
+  public //IMapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
+    function GetPlayer: TPlayer;
+    procedure SetPlayer(AValue: TPlayer);
+
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
     property X:integer read FX write SetX;
@@ -328,6 +356,7 @@ type
   protected
     function GetOwner: TPersistent; override;
     procedure ItemAdded(Item: TCollectionItem); override;
+    procedure ItemRemoved(Item: TCollectionItem); override;
     procedure ItemNameChanged(Item: TCollectionItem; AOldName: String;
       ANewName: String); override;
   public
@@ -378,7 +407,6 @@ type
     procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
     procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
 
-    procedure BeforeSerialize;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -387,12 +415,13 @@ type
 
   { TMapLevels }
 
-  TMapLevels = class(specialize TGNamedCollection<TMapLevel>)
+  TMapLevelsCollection = specialize TGNamedCollection<TMapLevel>;
+
+  TMapLevels = class(TMapLevelsCollection)
   private
     FOwner: TVCMIMap;
   public
     constructor Create(AOwner: TVCMIMap);
-    procedure BeforeSerialize;
   end;
 
   { THeroDefinition }
@@ -502,7 +531,6 @@ type
 
   private
     type
-
       { TModRefCountInfo }
 
       TModRefCountInfo = class(TNamedCollectionItem)
@@ -567,9 +595,8 @@ type
 
     procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
 
-    procedure BeforeSerialize;
-
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+    procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -606,6 +633,25 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils;
+
+{ TPlayerTown }
+
+function TPlayerTown.GetType: AnsiString;
+begin
+  if Assigned(FMapObject) and (FMapObject.&Type = TYPE_TOWN) then
+  begin
+    Result := FMapObject.Subtype;
+  end
+  else
+    Result := '';
+end;
+
+procedure TPlayerTown.SetMapObject(AValue: TMapObject);
+begin
+  if FMapObject=AValue then Exit;
+  FMapObject:=AValue;
+  DisplayName:=AValue.DisplayName;
+end;
 
 { TVCMIMap.TModRefCountInfo }
 
@@ -928,16 +974,6 @@ begin
   FOwner := AOwner;
 end;
 
-procedure TMapLevels.BeforeSerialize;
-var
-  i: integer;
-begin
-  for i := 0 to Count - 1 do
-  begin
-    items[i].BeforeSerialize;
-  end;
-end;
-
 { TRumor }
 
 procedure TRumor.SetName(AValue: TLocalizedString);
@@ -1006,22 +1042,23 @@ end;
 
 constructor TMapObject.Create(ACollection: TCollection);
 begin
-  inherited Create(ACollection);
   FLastFrame := 0;
   FTemplate := TMapObjectTemplate.Create;
   FOptions := TObjectOptions.Create(Self);
+  FPlayer:=TPlayer.none;
+  inherited Create(ACollection);
 end;
 
 destructor TMapObject.Destroy;
 begin
+  inherited Destroy;
   FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
-  inherited Destroy;
 end;
 
 function TMapObject.GetPlayer: TPlayer;
 begin
-  Result := Options.Owner;
+  Result := FPlayer;
 end;
 
 function TMapObject.GetIdx: integer;
@@ -1183,6 +1220,17 @@ begin
   Subtype := ATemplate.ObjSubType.DisplayName;
 end;
 
+procedure TMapObject.SetPlayer(AValue: TPlayer);
+begin
+  if FPlayer = AValue then
+    Exit;
+  if Assigned(Collection) then
+  begin
+    GetMap.NotifyOwnerChanged(self, FPlayer, AValue);
+  end;
+  FPlayer:=AValue;
+end;
+
 function TMapObject.GetID: AnsiString;
 begin
   Result := &type;
@@ -1245,6 +1293,13 @@ begin
   inherited ItemAdded(Item);
 
   ProcessItemIdentifier(Item.DisplayName);
+  FMap.NotifyOwnerChanged(TMapObject(Item), TPlayer.none, TMapObject(Item).GetPlayer());
+end;
+
+procedure TMapObjects.ItemRemoved(Item: TCollectionItem);
+begin
+  inherited ItemRemoved(Item);
+  FMap.NotifyOwnerChanged(TMapObject(Item),TMapObject(Item).GetPlayer(), TPlayer.none);
 end;
 
 procedure TMapObjects.ItemNameChanged(Item: TCollectionItem; AOldName: String;
@@ -1255,18 +1310,32 @@ begin
   ProcessItemIdentifier(ANewName);
 end;
 
-{ TPlacedHero }
+{ TPlayerHero }
 
-procedure TPlacedHero.SetName(AValue: TLocalizedString);
+function TPlayerHero.GetName: TLocalizedString;
 begin
-  if FName=AValue then Exit;
-  FName:=AValue;
+  if Assigned(FMapObject) then
+    Result := THeroOptions(FMapObject.Options).Name
+  else
+    Result := '';
 end;
 
-procedure TPlacedHero.SetType(AValue: AnsiString);
+function TPlayerHero.GetType: AnsiString;
 begin
-  if FType = AValue then Exit;
-  FType := AValue;
+  if Assigned(FMapObject) and (FMapObject.&Type = TYPE_HERO) then
+  begin
+    Result := THeroOptions(FMapObject.Options).&type;
+  end
+  else
+    Result := '';
+end;
+
+procedure TPlayerHero.SetMapObject(AValue: TMapObject);
+begin
+  if FMapObject=AValue then Exit;
+  FMapObject:=AValue;
+
+  DisplayName:=AValue.DisplayName;
 end;
 
 constructor TPlayerAttr.Create(AOwner: IReferenceNotify);
@@ -1274,14 +1343,30 @@ begin
   FOwner:= AOwner;
   FAllowedFactions := TLogicalIDCondition.Create;
 
-  FPlasedHeroes := TPlacedHeroes.Create;
+  FHeroes := TPlayerHeroes.Create;
+  FTowns := TPlayerTowns.Create;
 end;
 
 destructor TPlayerAttr.Destroy;
 begin
-  FPlasedHeroes.Free;
+  FTowns.Free;
+  FHeroes.Free;
   FAllowedFactions.Free;
   inherited Destroy;
+end;
+
+procedure TPlayerAttr.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+begin
+  AHandler.JSONToObject(ASrc as TJSONObject, Self);
+  // heroes and towns are ignored, they will be refilled later
+end;
+
+function TPlayerAttr.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+begin
+  Result := AHandler.ObjectToJSON(Self);
+
+  TJSONObject(Result).Add('heroes', AHandler.StreamCollection(Heroes));
+  TJSONObject(Result).Add('towns', AHandler.StreamCollection(Towns));
 end;
 
 procedure TPlayerAttr.SetAITactics(AValue: TAITactics);
@@ -1295,16 +1380,10 @@ begin
   Result := FMainTown <> '';
 end;
 
-procedure TPlayerAttr.SetCanComputerPlay(AValue: boolean);
+procedure TPlayerAttr.SetCanPlay(AValue: TPlayableBy);
 begin
-  if FCanComputerPlay = AValue then Exit;
-  FCanComputerPlay := AValue;
-end;
-
-procedure TPlayerAttr.SetCanHumanPlay(AValue: boolean);
-begin
-  if FCanHumanPlay = AValue then Exit;
-  FCanHumanPlay := AValue;
+  if FCanPlay=AValue then Exit;
+  FCanPlay:=AValue;
 end;
 
 procedure TPlayerAttr.SetGenerateHeroAtMainTown(AValue: boolean);
@@ -1329,12 +1408,6 @@ procedure TPlayerAttr.SetTeam(AValue: Integer);
 begin
   if FTeam = AValue then Exit;
   FTeam := AValue;
-end;
-
-procedure TPlayerAttr.SetMainHero(AValue: AnsiString);
-begin
-  if FMainHero = AValue then Exit;
-  FMainHero := AValue;
 end;
 
 { TPlayerAttrs }
@@ -1459,10 +1532,6 @@ begin
     RiverDir:=ARriverDir;
     Flags := (Flags and $F3) or (AMir shl 2);
   end;
-end;
-
-procedure TMapLevel.BeforeSerialize;
-begin
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
@@ -1790,11 +1859,6 @@ begin
   end;
 end;
 
-procedure TVCMIMap.BeforeSerialize;
-begin
-   FLevels.BeforeSerialize;
-end;
-
 procedure TVCMIMap.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
 
   function ExtractModID(AIdentifier:AnsiString): AnsiString;
@@ -1829,6 +1893,69 @@ begin
   begin
     FModUsage.ReferenceMod(mod_id);
   end;
+end;
+
+procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner,
+  ANewOwner: TPlayer);
+
+  procedure Remove(ACollection: THashedCollection; AIdentifier: string);
+  var
+    idx: Integer;
+  begin
+    idx := ACollection.IndexOfName(AIdentifier);
+    if idx>=0 then
+      ACollection.Delete(idx);
+  end;
+
+var
+  opt: TPlayerAttr;
+  player_hero: TPlayerHero;
+  player_town: TPlayerTown;
+begin
+  if AOldOwner <> TPlayer.none then
+  begin
+    if AOldOwner in [TPlayer.red..TPlayer.pink] then
+    begin
+      opt := FPlayers.GetAttr(Integer(AOldOwner));
+
+      case AObject.&Type of
+        TYPE_HERO, TYPE_RANDOMHERO:
+            Remove(opt.Heroes, AObject.DisplayName);
+        TYPE_TOWN, TYPE_RANDOMTOWN:
+            Remove(opt.Towns, AObject.DisplayName);
+      end;
+    end
+    else begin
+      DebugLn(['invalid player color', Integer(AOldOwner)]);
+    end;
+  end;
+
+
+  if ANewOwner <> TPlayer.none then
+  begin
+    if ANewOwner in [TPlayer.red..TPlayer.pink] then
+    begin
+      opt := FPlayers.GetAttr(Integer(ANewOwner));
+
+      case AObject.&Type of
+        TYPE_HERO, TYPE_RANDOMHERO:
+        begin
+          player_hero := opt.Heroes.Add;
+          player_hero.MapObject := AObject;
+        end;
+        TYPE_TOWN, TYPE_RANDOMTOWN:
+        begin
+          player_town := opt.Towns.Add;
+          player_town.MapObject := AObject;
+        end;
+      end;
+    end
+    else begin
+      DebugLn(['invalid player color', Integer(ANewOwner)]);
+    end;
+  end;
+
+
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

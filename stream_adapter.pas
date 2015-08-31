@@ -59,6 +59,7 @@ type
     function ReadBoolean: Boolean; inline;
 
     procedure Skip(Count: Integer);
+    procedure SkipString;
 
     function ReadIDByte:TCustomID;
 
@@ -143,7 +144,6 @@ begin
   L := ReadDWord;
   SetLength(Result,L);
   if L > 0 then ReadBuffer(Result[1],L);
-  //Result := SysToUTF8(Result);
 end;
 
 function TStreamReadAdapter.ReadWord: Word;
@@ -154,6 +154,14 @@ end;
 procedure TStreamReadAdapter.Skip(Count: Integer);
 begin
   FStm.Seek(Count,soCurrent);
+end;
+
+procedure TStreamReadAdapter.SkipString;
+var
+  L: int32;
+begin
+  L := ReadDWord;
+  Skip(L);
 end;
 
 { TStreamAdapter }

@@ -104,6 +104,9 @@ Type
     // TStrings results in { Strings: [S,S,S] } or { Strings: { "S1" : O1, "S2" : O2 }} depending on Options.
     // Collection results in { Items: [I,I,I] }
     Function ObjectToJSON(Const AObject : TObject) : TJSONObject; virtual;
+
+    function ObjectToJsonEx(const AObject: TObject): TJSONData; virtual;
+
     // Stream a collection - always returns an array
     function StreamCollection(Const ACollection: TCollection): TJSONData; virtual;
     // Stream a TStrings instance as an array
@@ -164,6 +167,8 @@ Type
     // Convert JSON object to properties of AObject
     Procedure JSONToObject(Const JSON : TJSONStringType; AObject : TObject);
     Procedure JSONToObject(Const JSON : TJSONObject; AObject : TObject); virtual;
+
+    Procedure JSONToObjectEx(Const JSON : TJSONObject; AObject : TObject); virtual;
     // Convert JSON object/array to collection.
     Procedure JSONToCollection(Const JSON : TJSONStringType; ACollection : TCollection);
     Procedure JSONToCollection(Const JSON : TJSONData; ACollection : TCollection); virtual;
@@ -249,7 +254,8 @@ begin
   inherited Destroy;
 end;
 
-procedure TJSONDeStreamer.JSONToObject(Const JSON: TJSONStringType; AObject: TObject);
+procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONStringType;
+  AObject: TObject);
 
 Var
   D : TJSONData;
@@ -258,7 +264,7 @@ begin
   D:=ObjectFromString(JSON);
   try
     If D.JSONType=jtObject then
-      JSONToObject(D as TJSONObject,AObject)
+      JSONToObjectEx(D as TJSONObject,AObject)
     else if D.JSONType=jtArray then
       begin
       If AObject is TStrings then
@@ -277,7 +283,7 @@ begin
   end;
 end;
 
-Function TJSONDeStreamer.JSONToVariant(Data : TJSONData) : Variant;
+function TJSONDeStreamer.JSONToVariant(Data: TJSONData): Variant;
 
 Var
   I : integer;
@@ -345,7 +351,7 @@ begin
       SetObjectProp(AObject,PropInfo,O);
       end;
     If (O<>Nil) and (PropData.JSONType=jtObject) then
-      JSONToObject(PropData as TJSONObject,O);
+      JSONToObjectEx(PropData as TJSONObject,O);
     end;
 end;
 
@@ -479,7 +485,8 @@ begin
   end;
 end;
 
-procedure TJSONDeStreamer.JSONToObject(Const JSON: TJSONObject; AObject: TObject);
+procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONObject; AObject: TObject
+  );
 Var
   I,J : Integer;
   PIL : TPropInfoList;
@@ -507,6 +514,12 @@ begin
     end;
   If Assigned(FAfterReadObject) then
     FAfterReadObject(Self,AObject,JSON)
+end;
+
+procedure TJSONDeStreamer.JSONToObjectEx(const JSON: TJSONObject;
+  AObject: TObject);
+begin
+  JSONToObject(JSON, AObject);
 end;
 
 procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONStringType;
@@ -542,7 +555,7 @@ begin
     If (A.Types[i]<>jtObject) then
       Error(SErrUnsupportedCollectionItemType,[I,JSONTypeName(A.Types[I])])
     else
-      JSONToObject(A.Objects[i],ACollection.Add);
+      JSONToObjectEx(A.Objects[i],ACollection.Add);
 end;
 
 procedure TJSONDeStreamer.JSONToStrings(const JSON: TJSONStringType;
@@ -559,7 +572,9 @@ begin
   end;
 end;
 
-Function TJSONDeStreamer.GetObject(AInstance : TObject; Const APropName : TJSONStringType; D : TJSONObject; PropInfo : PPropInfo) : TObject;
+function TJSONDeStreamer.GetObject(AInstance: TObject;
+  const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo
+  ): TObject;
 
 Var
   C : TClass;
@@ -644,7 +659,7 @@ end;
 Procedure TStreamChildrenHelper.StreamChild(AChild : TComponent);
 
 begin
-  FChildren.Add(FStreamer.ObjectToJSON(AChild));
+  FChildren.Add(FStreamer.ObjectToJsonEx(AChild));
 end;
 
 Function TStreamChildrenHelper.StreamChildren(AComponent : TComponent; AStreamer : TJSONStreamer): TJSONArray;
@@ -702,7 +717,7 @@ begin
 
 end;
 
-Function TJSONStreamer.StreamChildren(AComp : TComponent) : TJSONArray;
+function TJSONStreamer.StreamChildren(AComp: TComponent): TJSONArray;
 
 begin
   With TStreamChildrenHelper.Create do
@@ -735,7 +750,7 @@ begin
   Result := not Skip;
 end;
 
-function TJSONStreamer.ObjectToJSON(Const AObject: TObject): TJSONObject;
+function TJSONStreamer.ObjectToJSON(const AObject: TObject): TJSONObject;
 
 Var
   PIL : TPropInfoList;
@@ -782,13 +797,19 @@ begin
   end;
 end;
 
-function TJSONStreamer.StreamProperty(Const AObject: TObject; Const PropertyName : String): TJSONData;
+function TJSONStreamer.ObjectToJsonEx(const AObject: TObject): TJSONData;
+begin
+  Result := ObjectToJSON(AObject);
+end;
+
+function TJSONStreamer.StreamProperty(const AObject: TObject;
+  const PropertyName: String): TJSONData;
 
 begin
   Result:=StreamProperty(AObject,GetPropInfo(AObject,PropertyName));
 end;
 
-Function TJSONStreamer.StreamVariant(Const Data : Variant): TJSONData;
+function TJSONStreamer.StreamVariant(const Data: Variant): TJSONData;
 
 Var
   A : TJSONArray;
@@ -847,7 +868,7 @@ Var
   O : TJSONData;
 
 begin
-  O:=ObjectToJSON(AObject);
+  O:=ObjectToJsonEx(AObject);
   try
     if (jsoUseFormatString in Options) then
       Result:=O.FormatJSON()
@@ -858,7 +879,8 @@ begin
   end;
 end;
 
-function TJSONStreamer.StringsToJSON(Const Strings: TStrings; AsObject: Boolean = False): TJSONStringType;
+function TJSONStreamer.StringsToJSON(const Strings: TStrings; AsObject: Boolean
+  ): TJSONStringType;
 
 Var
   D : TJSONData;
@@ -913,7 +935,8 @@ begin
   end;
 end;
 
-Function TJSONStreamer.StreamTStringsArray(Const AStrings : TStrings) : TJSONArray;
+function TJSONStreamer.StreamTStringsArray(const AStrings: TStrings
+  ): TJSONArray;
 
 Var
   I : Integer;
@@ -929,7 +952,8 @@ begin
   end;
 end;
 
-function TJSONStreamer.StreamTStringsObject(Const AStrings: TStrings): TJSONObject;
+function TJSONStreamer.StreamTStringsObject(const AStrings: TStrings
+  ): TJSONObject;
 
 Var
   I : Integer;
@@ -940,7 +964,7 @@ begin
   try
     For I:=0 to AStrings.Count-1 do
       begin
-      O:=ObjectToJSON(AStrings.Objects[i]);
+      O:=ObjectToJsonEx(AStrings.Objects[i]);
       If O=Nil then
         O:=TJSONNull.Create;
       Result.Add(AStrings[i],O);
@@ -951,7 +975,7 @@ begin
   end;
 end;
 
-function TJSONStreamer.StreamTStrings(Const AStrings: TStrings): TJSONData;
+function TJSONStreamer.StreamTStrings(const AStrings: TStrings): TJSONData;
 begin
   If jsoTStringsAsArray in Options then
     Result:=StreamTStringsArray(AStrings)
@@ -970,14 +994,14 @@ begin
   Result:=TJSONArray.Create;
   try
     For I:=0 to ACollection.Count-1 do
-      TJSONArray(Result).Add(ObjectToJSON(ACollection.Items[i]));
+      TJSONArray(Result).Add(ObjectToJsonEx(ACollection.Items[i]));
   except
     FreeAndNil(Result);
     Raise;
   end;
 end;
 
-Function TJSONStreamer.StreamClassProperty(Const AObject : TObject): TJSONData;
+function TJSONStreamer.StreamClassProperty(const AObject: TObject): TJSONData;
 begin
   Result:=Nil;
   If (AObject=Nil) then
@@ -985,7 +1009,7 @@ begin
   else if (AObject is TComponent) then
     begin
     if (csSubComponent in TComponent(AObject).ComponentStyle) or (jsoComponentsInline in Options) then
-      Result:=ObjectToJSON(AObject)
+      Result:=ObjectToJsonEx(AObject)
     else
       Result:=TJSONString.Create(TComponent(AObject).Name);
     end
@@ -994,10 +1018,11 @@ begin
   else if (AObject is TCollection) then
     Result:=StreamCollection(TCollection(Aobject))
   else // Normally, this is only TPersistent.
-    Result:=ObjectToJSON(AObject);
+    Result:=ObjectToJsonEx(AObject);
 end;
 
-function TJSONStreamer.StreamProperty(Const AObject: TObject; PropertyInfo: PPropInfo): TJSONData;
+function TJSONStreamer.StreamProperty(const AObject: TObject;
+  PropertyInfo: PPropInfo): TJSONData;
 
 Var
   PI : PPropInfo;
@@ -1081,7 +1106,7 @@ begin
     FOnStreamProperty(Self,AObject,PI,Result);
 end;
 
-function TJSONStreamer.FormatDateProp(Const DateTime: TDateTime): TJSONString;
+function TJSONStreamer.FormatDateProp(const DateTime: TDateTime): TJSONString;
 
 Var
   S: String;

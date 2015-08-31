@@ -104,11 +104,10 @@ type
   private
     FHash: TFPHashObjectList;
 
-    procedure ItemRemoved(Item: TCollectionItem);
-
   protected
     procedure ItemNameChanged(Item: TCollectionItem; AOldName: String; ANewName: String); virtual;
     procedure ItemAdded(Item: TCollectionItem); virtual;
+    procedure ItemRemoved(Item: TCollectionItem); virtual;
     procedure Notify(Item: TCollectionItem; Action: TCollectionNotification);
       override;
   public
@@ -235,7 +234,7 @@ end;
 
 procedure THashedCollection.ItemAdded(Item: TCollectionItem);
 begin
-  FHash.Add(Item.DisplayName, Item);
+  ItemNameChanged( Item, '', Item.DisplayName);
 end;
 
 procedure THashedCollection.ItemRemoved(Item: TCollectionItem);

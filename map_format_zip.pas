@@ -219,7 +219,7 @@ begin
 
   Result := TVCMIMap.CreateEmpty(FMapEnv);
 
-  FDestreamer.JSONToObject(map_o, Result);
+  FDestreamer.JSONToObjectEx(map_o, Result);
 
   FDestreamer.JSONToCollection(FObjectsJson,Result.Objects);
 
@@ -250,7 +250,7 @@ end;
 
 procedure TMapWriterZIP.WriteHeader(AMap: TVCMIMap);
 begin
-  AddArchiveEntry( FStreamer.ObjectToJSON(AMap), HEADER_FILENAME);
+  AddArchiveEntry( FStreamer.ObjectToJsonEx(AMap), HEADER_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteObjects(AMap: TVCMIMap);
@@ -307,7 +307,6 @@ end;
 
 procedure TMapWriterZIP.Write(AStream: TStream; AMap: TVCMIMap);
 begin
-  AMap.BeforeSerialize;
   WriteHeader(AMap);
   WriteObjects(AMap);
   WriteTerrain(AMap);

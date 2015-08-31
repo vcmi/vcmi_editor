@@ -87,7 +87,7 @@ type
     destructor Destroy; override;
 
     Procedure JSONToCollection(Const JSON : TJSONData; ACollection : TCollection); override;
-    procedure JSONToObject(const JSON: TJSONObject; AObject: TObject); override;
+    procedure JSONToObjectEx(const JSON: TJSONObject; AObject: TObject); override;
 
     procedure JSONStreamToObject(AStream: TStream; AObject: TObject; AName: string);
 
@@ -110,9 +110,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    function ObjectToJSON(const AObject: TObject): TJSONObject; override;
-
-    function ObjectToJsonEx(const AObject: TObject): TJSONData;
+    function ObjectToJsonEx(const AObject: TObject): TJSONData; override;
 
     function StreamCollection(const ACollection: TCollection): TJSONData;
       override;
@@ -501,27 +499,6 @@ begin
   inherited Create(AOwner);
 end;
 
-function TVCMIJSONStreamer.ObjectToJSON(const AObject: TObject): TJSONObject;
-begin
-  if AObject is ISerializeNotify then
-  begin
-    (AObject as ISerializeNotify).BeforeSerialize(Self);
-  end;
-
-  if AObject is TJSONObject then
-  begin
-    Result := TJSONObject(TJSONObject(AObject).Clone);
-  end
-  else begin
-    Result:=inherited ObjectToJSON(AObject);
-  end;
-
-  if AObject is ISerializeNotify then
-  begin
-    (AObject as ISerializeNotify).AfterSerialize(Self, Result);
-  end;
-end;
-
 function TVCMIJSONStreamer.ObjectToJsonEx(const AObject: TObject): TJSONData;
 begin
   if AObject is ISerializeNotify then
@@ -538,7 +515,7 @@ begin
     Result := EmbeddedValueToJson(AObject);
   end
   else begin
-    Result := inherited ObjectToJSON(AObject);
+    Result := ObjectToJSON(AObject);
   end;
 
   if AObject is ISerializeNotify then
@@ -877,7 +854,7 @@ begin
   end;
 end;
 
-procedure TVCMIJSONDestreamer.JSONToObject(const JSON: TJSONObject;
+procedure TVCMIJSONDestreamer.JSONToObjectEx(const JSON: TJSONObject;
   AObject: TObject);
 begin
   if AObject is ISerializeNotify then
@@ -893,8 +870,12 @@ begin
   begin
     (AObject as TJSONObject).Assign(Json);
   end
+  else if AObject is ISerializeSpecial then
+  begin
+    (AObject as ISerializeSpecial).Deserialize(Self, JSON);
+  end
   else begin
-    inherited JSONToObject(JSON, AObject);
+    JSONToObject(JSON, AObject);
   end;
 
   if AObject is ISerializeNotify then

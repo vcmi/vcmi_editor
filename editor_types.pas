@@ -51,6 +51,10 @@ type
 {$pop}
 
 type
+
+  TPlayableBy = (PlayerOrAI=0, PlayerOnly=1, AIOnly=2);
+
+type
   TScholarBonus = (primSkill, skill, spell, random);
 
   TPlayerColor = TPlayer.RED..TPlayer.PINK;

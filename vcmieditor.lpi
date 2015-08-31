@@ -501,6 +501,7 @@
         <Filename Value="forms\player_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerOptionsFrame"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit70>
       <Unit71>

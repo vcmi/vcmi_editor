@@ -1044,8 +1044,8 @@ var
         Result := false;
         exit;
       end;
-      Result := true;
     end;
+    Result := true;
   end;
 
 var
@@ -1067,7 +1067,6 @@ begin
   ToResolve.Duplicates:=dupIgnore;
 
   try
-
     for i := 0 to FModMap.Count - 1 do
       Initial.Add(FModMap.Keys[i]);
 

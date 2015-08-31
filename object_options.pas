@@ -33,20 +33,25 @@ type
 
 {$push}
 {$m+}
-  { TObjectOptions }
   TObjectOptions      = class;
   TObjectOptionsClass = class of TObjectOptions;
   IObjectOptionsVisitor = interface;
 
+  { IMapObject }
+
   IMapObject = interface(IReferenceNotify)
     function GetID: AnsiString;
     function GetSubId: AnsiString;
+
+    procedure SetPlayer(AValue: TPlayer);
+    function GetPlayer: TPlayer;
   end;
 
+  { TObjectOptions }
   TObjectOptions = class(TObject, ISerializeNotify)
   private
     FObject: IMapObject;
-    FOwner: TPlayer;
+    function GetOwner: TPlayer;
     procedure SetOwner(AValue: TPlayer);
   public//ISerializeNotify
     procedure BeforeDeSerialize(Sender: TObject; AData: TJSONData); virtual;
@@ -60,7 +65,7 @@ type
 
     property MapObject: IMapObject read FObject;
   public
-    property Owner: TPlayer read FOwner write SetOwner;
+    property Owner: TPlayer read GetOwner write SetOwner;
   end;
 {$pop}
 
@@ -1822,7 +1827,6 @@ end;
 
 constructor TObjectOptions.Create(AObject: IMapObject);
 begin
-  FOwner := TPlayer.none;
   FObject := AObject;
 end;
 
@@ -1837,7 +1841,12 @@ begin
   begin
     raise Exception.CreateFmt('Invalid player color %d',[Integer(AValue)]);
   end;
-  FOwner := AValue;
+  FObject.SetPlayer(AValue);
+end;
+
+function TObjectOptions.GetOwner: TPlayer;
+begin
+  Result := FObject.GetPlayer;
 end;
 
 procedure TObjectOptions.BeforeDeSerialize(Sender: TObject; AData: TJSONData);

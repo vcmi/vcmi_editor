@@ -1304,32 +1304,42 @@ var
   faction_mask_size: integer;
   faction_count: Integer;
   heroes_count: DWord;
-  hero: TPlacedHero;
   h: Integer;
   Main_Hero: TCustomID;
   AllowedFactionsSet: Boolean;
   HasMainTown: Boolean;
 
   main_town_pos: TPosition;
+  CanHumanPlay: Boolean;
+  CanComputerPlay: Boolean;
 begin
-  Attr.CanHumanPlay := FSrc.ReadBoolean;
-  Attr.CanComputerPlay := FSrc.ReadBoolean;
+  CanHumanPlay := FSrc.ReadBoolean;
+  CanComputerPlay := FSrc.ReadBoolean;
 
-  if not (Attr.CanComputerPlay or Attr.CanHumanPlay) then
+  if not (CanComputerPlay or CanHumanPlay) then
   begin
     if FMapVersion >=MAP_VERSION_SOD then
     begin
       FSrc.Skip(13);
     end
     else begin
-     case FMapVersion of
-      MAP_VERSION_AB: FSrc.Skip(12);
-      MAP_VERSION_ROE: FSrc.Skip(6);
-    end;
+      case FMapVersion of
+        MAP_VERSION_AB: FSrc.Skip(12);
+        MAP_VERSION_ROE: FSrc.Skip(6);
+      else
+        Assert(false);
+      end;
     end;
 
     Exit;
   end;
+
+  Attr.CanPlay := TPlayableBy.PlayerOrAI;
+
+  if not CanHumanPlay then
+    Attr.CanPlay := TPlayableBy.AIOnly
+  else if not CanComputerPlay then
+    Attr.CanPlay := TPlayableBy.PlayerOnly;
 
   Attr.AITactics := TAITactics(FSrc.ReadByte);
 
@@ -1363,7 +1373,7 @@ begin
     Attr.AllowedFactions.Clear;
   end;
 
-  Attr.RandomFaction := FSrc.ReadBoolean;
+  FSrc.Skip(1);//RandomFaction
 
   HasMainTown := FSrc.ReadBoolean;
   if HasMainTown then
@@ -1390,19 +1400,19 @@ begin
   end; //main town
   with Attr,FSrc do
   begin
-    RandomHero := ReadBoolean; //TODO: check
+    Skip(1);// RandomHero
     Main_Hero := ReadIDByte;
 
     if Main_Hero <> ID_RANDOM then
     begin
       MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
 
-      FSrc.Skip(1); // MainHeroPortrait  unused
+      Skip(1); // MainHeroPortrait  unused
       ReadLocalizedString;// MainHeroName unused
     end;
   end;
 
-  //todo: ignore plased heroes and fill automatically
+  //plased heroes ignored
   if FMapVersion <> MAP_VERSION_ROE then
   begin
     FSrc.Skip(1); //unknown byte
@@ -1410,13 +1420,10 @@ begin
 
     for h := 0 to heroes_count - 1 do
     begin
-      hero := TPlacedHero(Attr.PlacedHeroes.Add);
-
-      hero.&type := ReadID(@FMapEnv.lm.HeroIndexToString,1);
-      hero.Name := FSrc.ReadLocalizedString;
+      FSrc.Skip(1); //type
+      FSrc.SkipString();//Name
     end;
   end;
-
 end;
 
 procedure TMapReaderH3m.ReadPlayerAttrs(Attrs: TPlayerAttrs);
@@ -1952,15 +1959,13 @@ begin
       FMap.Players.GetAttr(Integer(player)).Team := team;
     end;
   end
-  else begin
+  else
+  begin
     for player in TPlayerColor do
     begin
       attr :=FMap.Players.GetAttr(Integer(player));
-      if attr.CanComputerPlay or attr.CanHumanPlay then
-      begin
-        attr.Team := team_count;
-        Inc(team_count);
-      end;
+      attr.Team := team_count;
+      Inc(team_count);
     end;
   end;
 end;
