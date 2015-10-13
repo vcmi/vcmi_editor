@@ -1,9 +1,131 @@
 object PlayerOptionsFrame: TPlayerOptionsFrame
   Left = 0
-  Height = 415
+  Height = 372
   Top = 0
-  Width = 601
+  Width = 499
+  ChildSizing.LeftRightSpacing = 20
+  ChildSizing.TopBottomSpacing = 10
+  ChildSizing.HorizontalSpacing = 20
+  ChildSizing.VerticalSpacing = 10
+  ChildSizing.EnlargeHorizontal = crsScaleChilds
+  ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+  ChildSizing.ShrinkHorizontal = crsScaleChilds
+  ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+  ChildSizing.Layout = cclLeftToRightThenTopToBottom
+  ChildSizing.ControlsPerLine = 2
+  ClientHeight = 372
+  ClientWidth = 499
   TabOrder = 0
-  DesignLeft = 374
-  DesignTop = 159
+  DesignLeft = 438
+  DesignTop = 168
+  object lbCanPlay: TLabel
+    Left = 20
+    Height = 23
+    Top = 23
+    Width = 90
+    Caption = 'Can play:'
+    Constraints.MaxWidth = 90
+    ParentColor = False
+  end
+  object edCanPlay: TComboBox
+    Left = 248
+    Height = 23
+    Top = 23
+    Width = 231
+    ItemHeight = 15
+    Items.Strings = (
+      'Player or AI'
+      'Player only'
+      'AI only'
+    )
+    TabOrder = 0
+    Text = 'edCanPlay'
+  end
+  object lbAllowedFactions: TLabel
+    Left = 20
+    Height = 100
+    Top = 69
+    Width = 90
+    Caption = 'Allowed factions:'
+    Constraints.MaxWidth = 90
+    ParentColor = False
+  end
+  object edAllowedFactions: TCheckListBox
+    Left = 248
+    Height = 100
+    Top = 69
+    Width = 231
+    ItemHeight = 0
+    TabOrder = 1
+  end
+  object lbMainTown: TLabel
+    Left = 20
+    Height = 23
+    Top = 192
+    Width = 208
+    Caption = 'Main town:'
+    ParentColor = False
+  end
+  object edMainTown: TComboBox
+    Left = 248
+    Height = 23
+    Top = 192
+    Width = 231
+    ItemHeight = 15
+    TabOrder = 2
+    Text = 'edMainTown'
+  end
+  object Label1: TLabel
+    Left = 20
+    Height = 23
+    Top = 238
+    Width = 208
+    Caption = 'Generate hero:'
+    ParentColor = False
+  end
+  object edGenerateHero: TComboBox
+    Left = 248
+    Height = 23
+    Top = 238
+    Width = 231
+    ItemHeight = 15
+    Items.Strings = (
+      'Yes'
+      'No'
+    )
+    TabOrder = 3
+  end
+  object lbMainHero: TLabel
+    Left = 20
+    Height = 23
+    Top = 284
+    Width = 208
+    Caption = 'Main hero:'
+    ParentColor = False
+  end
+  object edMainHero: TComboBox
+    Left = 248
+    Height = 23
+    Top = 284
+    Width = 231
+    ItemHeight = 15
+    TabOrder = 4
+    Text = 'edMainHero'
+  end
+  object lbTeam: TLabel
+    Left = 20
+    Height = 23
+    Top = 330
+    Width = 208
+    Caption = 'Team:'
+    ParentColor = False
+  end
+  object edTeam: TComboBox
+    Left = 248
+    Height = 23
+    Top = 330
+    Width = 231
+    ItemHeight = 15
+    TabOrder = 5
+  end
 end

@@ -24,13 +24,26 @@ unit player_options_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, map;
+  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ExtCtrls, CheckLst,
+  map;
 
 type
 
   { TPlayerOptionsFrame }
 
   TPlayerOptionsFrame = class(TFrame)
+    edTeam: TComboBox;
+    edMainHero: TComboBox;
+    edGenerateHero: TComboBox;
+    edAllowedFactions: TCheckListBox;
+    edMainTown: TComboBox;
+    edCanPlay: TComboBox;
+    Label1: TLabel;
+    lbTeam: TLabel;
+    lbMainHero: TLabel;
+    lbMainTown: TLabel;
+    lbAllowedFactions: TLabel;
+    lbCanPlay: TLabel;
   private
     FMap: TVCMIMap;
     FObject: TPlayerAttr;

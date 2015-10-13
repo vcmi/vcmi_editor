@@ -1,6 +1,6 @@
 inherited HeroFrame: THeroFrame
   Height = 457
-  Width = 704
+  Width = 615
   ChildSizing.LeftRightSpacing = 5
   ChildSizing.TopBottomSpacing = 5
   ChildSizing.HorizontalSpacing = 5
@@ -12,7 +12,7 @@ inherited HeroFrame: THeroFrame
   ChildSizing.Layout = cclLeftToRightThenTopToBottom
   ChildSizing.ControlsPerLine = 3
   ClientHeight = 457
-  ClientWidth = 704
+  ClientWidth = 615
   Constraints.MinHeight = 410
   Constraints.MinWidth = 420
   object lbHeroClass: TLabel[0]
@@ -26,16 +26,16 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edHeroClass: TComboBox[1]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 18
-    Width = 408
+    Width = 355
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 11
   end
   object Placeholder1: TLabel[2]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 18
     Width = 90
@@ -55,17 +55,17 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edType: TComboBox[4]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 59
-    Width = 408
+    Width = 355
     Constraints.MinWidth = 150
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 0
   end
   object Placeholder2: TLabel[5]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 59
     Width = 90
@@ -85,16 +85,16 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edOwner: TComboBox[7]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 100
-    Width = 408
+    Width = 355
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 1
   end
   object Placeholder3: TLabel[8]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 100
     Width = 90
@@ -114,17 +114,17 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edPortrait: TComboBoxEx[10]
-    Left = 131
+    Left = 115
     Height = 22
     Top = 141
-    Width = 408
+    Width = 355
     ItemHeight = 16
     ItemsEx = <>
     ReadOnly = True
     TabOrder = 2
   end
   object cbPortrait: TCheckBox[11]
-    Left = 544
+    Left = 475
     Height = 22
     Top = 141
     Width = 90
@@ -144,15 +144,15 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edExperience: TEdit[13]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 181
-    Width = 408
+    Width = 355
     NumbersOnly = True
     TabOrder = 4
   end
   object cbExperience: TCheckBox[14]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 181
     Width = 90
@@ -172,15 +172,15 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edName: TEdit[16]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 222
-    Width = 408
+    Width = 355
     OnEditingDone = edNameEditingDone
     TabOrder = 6
   end
   object cbName: TCheckBox[17]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 222
     Width = 90
@@ -200,10 +200,10 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edSex: TComboBox[19]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 263
-    Width = 408
+    Width = 355
     ItemHeight = 15
     Items.Strings = (
       'Male'
@@ -214,7 +214,7 @@ inherited HeroFrame: THeroFrame
     TabOrder = 8
   end
   object cbSex: TCheckBox[20]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 263
     Width = 90
@@ -234,17 +234,17 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edBiography: TMemo[22]
-    Left = 131
+    Left = 115
     Height = 100
     Top = 304
-    Width = 408
+    Width = 355
     Constraints.MinHeight = 100
     Constraints.MinWidth = 200
     ScrollBars = ssAutoBoth
     TabOrder = 13
   end
   object cbBiography: TCheckBox[23]
-    Left = 544
+    Left = 475
     Height = 100
     Top = 304
     Width = 90
@@ -264,10 +264,10 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edPatrol: TComboBox[25]
-    Left = 131
+    Left = 115
     Height = 23
     Top = 422
-    Width = 408
+    Width = 355
     ItemHeight = 15
     Items.Strings = (
       'Disabled'
@@ -277,7 +277,7 @@ inherited HeroFrame: THeroFrame
     TabOrder = 10
   end
   object Placeholder5: TLabel[26]
-    Left = 544
+    Left = 475
     Height = 23
     Top = 422
     Width = 90
