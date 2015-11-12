@@ -50,8 +50,8 @@ type
     Levels: Integer;
   end;
 
-  {$push}
-  {$m+}
+{$push}
+{$m+}
 
   { TPlayerHero }
 
@@ -173,6 +173,30 @@ type
     property Pink:TPlayerAttr index Integer(TPlayerColor.Pink) read GetAttr;
   end;
 
+  { TTeam }
+
+  TTeam = class(TCollectionItem, ISerializeSpecial)
+  private
+    FMembers: TPlayers;
+  public
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+
+    procedure Include(APlayer: TPlayerColor);
+    procedure Exclude(APlayer: TPlayerColor);
+  published
+    property Members: TPlayers read FMembers;
+  end;
+
+  TTeamCollection = specialize TGArrayCollection<TTeam>;
+
+  { TTeamSettings }
+
+  TTeamSettings = class (TTeamCollection)
+  public
+    constructor Create;
+  end;
+
   { TRumor }
 
   TRumor = class(TCollectionItem)
@@ -192,6 +216,8 @@ type
   public
     constructor Create;
   end;
+
+{$pop}
 
   { TMapTile }
 
@@ -232,8 +258,8 @@ type
     property Flags:UInt8 read FFlags write SetFlags;
   end;
 
-  {$push}
-  {$m+}
+{$push}
+{$m+}
   { TMapObjectTemplate }
 
   TMapObjectTemplate = class(TObject, ISerializeNotify)
@@ -269,7 +295,6 @@ type
     property Mask: TStrings read FMask;
     property ZIndex: Integer read FzIndex write SetzIndex default 0;
   end;
-  {$pop}
 
   { TMapObject }
 
@@ -627,12 +652,62 @@ type
     property ModUsage:TModUsage read FModUsage;
   end;
 
-  {$pop}
+{$pop}
 
 implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
-  strutils;
+  strutils, typinfo;
+
+{ TTeam }
+
+function TTeam.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+var
+  Player: TPlayer;
+begin
+  Result := CreateJSONArray([]);
+  for Player in FMembers do
+  begin
+    TJSONArray(Result).Add(GetEnumName(TypeInfo(Player), Integer(Player)));
+  end;
+end;
+
+procedure TTeam.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+var
+  ASrcArray: TJSONArray;
+  i: Integer;
+  s: TJSONStringType;
+  v: Integer;
+begin
+  ASrcArray := ASrc as TJSONArray;
+
+  for i := 0 to ASrcArray.Count - 1 do
+  begin
+    s := ASrcArray.Strings[i];
+    v := GetEnumValue(TypeInfo(TPlayer), s);
+
+    if (i >=Integer(TPlayer.red)) and (i < Integer(TPlayer.pink)) then
+      Include(TPlayerColor(v));
+
+  end;
+end;
+
+procedure TTeam.Include(APlayer: TPlayerColor);
+begin
+  FMembers += [APlayer];
+end;
+
+procedure TTeam.Exclude(APlayer: TPlayerColor);
+begin
+  FMembers -= [APlayer];
+end;
+
+{ TTeamSettings }
+
+constructor TTeamSettings.Create;
+begin
+  inherited Create;
+end;
 
 { TPlayerTown }
 

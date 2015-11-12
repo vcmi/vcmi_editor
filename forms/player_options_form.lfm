@@ -3,7 +3,7 @@ object PlayerOptionsForm: TPlayerOptionsForm
   Height = 528
   Top = 143
   Width = 636
-  Caption = 'PlayerOptionsForm'
+  Caption = 'Player options'
   ClientHeight = 528
   ClientWidth = 636
   LCLVersion = '1.4.1.0'
