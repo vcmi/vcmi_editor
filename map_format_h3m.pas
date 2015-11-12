@@ -1947,25 +1947,22 @@ var
   team_count: Byte;
   player: TPlayerColor;
   team: Byte;
-  attr: TPlayerAttr;
+  i: Integer;
 begin
   team_count := FSrc.ReadByte;
+
+  FMap.Teams.Clear;
+  for i := 0 to team_count - 1 do
+  begin
+    FMap.Teams.Add;
+  end;
 
   if team_count > 0 then
   begin
     for player in TPlayerColor do
     begin
       team := FSrc.ReadByte;
-      FMap.Players.GetAttr(Integer(player)).Team := team;
-    end;
-  end
-  else
-  begin
-    for player in TPlayerColor do
-    begin
-      attr :=FMap.Players.GetAttr(Integer(player));
-      attr.Team := team_count;
-      Inc(team_count);
+      FMap.Teams.Items[team].Include(player);
     end;
   end;
 end;

@@ -49,6 +49,7 @@ type
     FObject: TPlayerAttr;
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
+    procedure FillTeams;
   public
     property Map: TVCMIMap read FMap write SetMap;
     procedure EditObject(AObject: TPlayerAttr);
@@ -68,6 +69,11 @@ begin
 end;
 
 procedure TPlayerOptionsFrame.ReadData;
+begin
+
+end;
+
+procedure TPlayerOptionsFrame.FillTeams;
 begin
 
 end;

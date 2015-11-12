@@ -112,7 +112,6 @@ type
     FMainTown: string;
     FRandomHero: Boolean;
     FMainHero: String;
-    FTeam: Integer;
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
@@ -121,7 +120,6 @@ type
     procedure SetGenerateHeroAtMainTown(AValue: boolean);
     procedure SetRandomFaction(AValue: boolean);
     procedure SetRandomHero(AValue: Boolean);
-    procedure SetTeam(AValue: Integer);
 
   public
     constructor Create(AOwner: IReferenceNotify);
@@ -140,8 +138,6 @@ type
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
     property MainHero: String read FMainHero write FMainHero;
-
-    property Team: Integer read FTeam write SetTeam nodefault;//todo: remove
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   public //special streaming
@@ -175,13 +171,10 @@ type
 
   { TTeam }
 
-  TTeam = class(TCollectionItem, ISerializeSpecial)
+  TTeam = class(TCollectionItem, IEmbeddedValue)
   private
     FMembers: TPlayers;
   public
-    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
-    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
-
     procedure Include(APlayer: TPlayerColor);
     procedure Exclude(APlayer: TPlayerColor);
   published
@@ -555,6 +548,7 @@ type
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set terrain with random subtype
 
   private
+    FTeams: TTeamSettings;
     type
       { TModRefCountInfo }
 
@@ -630,6 +624,7 @@ type
     property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
 
     property Players: TPlayerAttrs read FPlayers;
+    property Teams:TTeamSettings read FTeams;
 
     property Rumors: TRumors read FRumors;
 
@@ -661,39 +656,16 @@ uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
 
 { TTeam }
 
-function TTeam.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
-var
-  Player: TPlayer;
-begin
-  Result := CreateJSONArray([]);
-  for Player in FMembers do
-  begin
-    TJSONArray(Result).Add(GetEnumName(TypeInfo(Player), Integer(Player)));
-  end;
-end;
-
-procedure TTeam.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
-var
-  ASrcArray: TJSONArray;
-  i: Integer;
-  s: TJSONStringType;
-  v: Integer;
-begin
-  ASrcArray := ASrc as TJSONArray;
-
-  for i := 0 to ASrcArray.Count - 1 do
-  begin
-    s := ASrcArray.Strings[i];
-    v := GetEnumValue(TypeInfo(TPlayer), s);
-
-    if (i >=Integer(TPlayer.red)) and (i < Integer(TPlayer.pink)) then
-      Include(TPlayerColor(v));
-
-  end;
-end;
-
 procedure TTeam.Include(APlayer: TPlayerColor);
+var
+  item: TCollectionItem;
 begin
+
+  for item in Collection do
+  begin
+    (item as TTeam).Exclude(APlayer);
+  end;
+
   FMembers += [APlayer];
 end;
 
@@ -1479,12 +1451,6 @@ begin
   FRandomHero := AValue;
 end;
 
-procedure TPlayerAttr.SetTeam(AValue: Integer);
-begin
-  if FTeam = AValue then Exit;
-  FTeam := AValue;
-end;
-
 { TPlayerAttrs }
 
 constructor TPlayerAttrs.Create(AOwner: IReferenceNotify);
@@ -1763,6 +1729,7 @@ begin
   AttachTo(FAllowedHeroes);
 
   FPlayers := TPlayerAttrs.Create(Self);
+  FTeams := TTeamSettings.Create;
   FObjects := TMapObjects.Create(Self);
   AttachTo(FObjects);
 
@@ -1796,6 +1763,7 @@ begin
 
   FRumors.Free;
   FObjects.Free;
+  FTeams.Free;
   FPlayers.Free;
   FLevels.Free;
   inherited Destroy;
