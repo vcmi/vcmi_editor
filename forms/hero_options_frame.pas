@@ -374,7 +374,7 @@ begin
 
   if edType.Visible then
   begin
-    FOptions.&type := edType.GetValueWithEmptyOption();
+    FOptions.&type := edType.SelectedInfo.ID;
   end;
 
   if edOwner.Visible then
