@@ -184,6 +184,7 @@ type
     FID: TModId;
     FName: string;
     FPath: String;
+    FVersion: string;
 
     function GetConflicts: TStrings;
     function GetDepends: TStrings;
@@ -192,6 +193,7 @@ type
     procedure SetID(AValue: TModId);
     procedure SetName(AValue: string);
     procedure SetPath(AValue: String);
+    procedure SetVersion(AValue: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -201,6 +203,8 @@ type
     //realtive (to mod root) mod path
     property Path: String read FPath write SetPath;
     procedure MayBeSetDefaultFSConfig;
+
+    procedure Assign (AOther: TModConfig);
   published
     //short decription
     property Name: string read FName write SetName;
@@ -212,6 +216,8 @@ type
     property Conflicts: TStrings read GetConflicts;
 
     property Filesystem: TFilesystemConfig read FFilesystem;
+
+    property Version:string read FVersion write SetVersion;
 
   end;
 {$pop}
@@ -604,6 +610,11 @@ begin
   end;
 end;
 
+procedure TModConfig.Assign(AOther: TModConfig);
+begin
+  //TODO: TModConfig.Assign
+end;
+
 procedure TModConfig.SetDescription(AValue: string);
 begin
   if FDescription = AValue then Exit;
@@ -632,6 +643,12 @@ procedure TModConfig.SetPath(AValue: String);
 begin
   if FPath = AValue then Exit;
   FPath := AValue;
+end;
+
+procedure TModConfig.SetVersion(AValue: string);
+begin
+  if FVersion=AValue then Exit;
+  FVersion:=AValue;
 end;
 
 
@@ -699,6 +716,7 @@ var
   destreamer: TVCMIJSONDestreamer;
   mod_path: String;
   mod_config: TModConfig;
+  duplicate: TModConfig;
 begin
   //APath points to mod.json
 
@@ -727,9 +745,21 @@ begin
       mod_config.Depends.Add(AParentModID);
     end;
 
-    FMods.Add(mod_config);
-    FModMap.Add(mod_config.ID,mod_config);
-    FConfigMap.Add(mod_config.ID,mod_config);
+    //mod configs may be duplicated, keep one with higher version
+
+    if FModMap.IndexOf(mod_config.ID) >=0 then
+    begin
+      duplicate := FModMap.KeyData[mod_config.ID];
+      duplicate.Assign(mod_config);
+      mod_config.Free;
+    end
+    else
+    begin
+      FMods.Add(mod_config);
+      FModMap.Add(mod_config.ID,mod_config);
+      FConfigMap.Add(mod_config.ID,mod_config);
+    end;
+
   finally
     stm.Free;
     destreamer.Free;
