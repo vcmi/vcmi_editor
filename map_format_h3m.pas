@@ -398,13 +398,13 @@ begin
 
   FMap := TVCMIMap.CreateEmpty(FMapEnv);
 
-  lvl := FMap.Levels.Add;
+  lvl := FMap.MapLevels.Add;
   lvl.Width:=cr_params.Width;
   lvl.Height:=cr_params.Height;
   lvl.DisplayName := 'surface';
   if cr_params.Levels>1 then
   begin
-    lvl := FMap.Levels.Add;
+    lvl := FMap.MapLevels.Add;
     lvl.Width:=cr_params.Width;
     lvl.Height:=cr_params.Height;
     lvl.DisplayName := 'underground';
@@ -1998,7 +1998,7 @@ procedure TMapReaderH3m.ReadTerrain;
 var
   i: Integer;
 begin
-  for i := 0 to FMap.Levels.Count - 1 do
+  for i := 0 to FMap.MapLevels.Count - 1 do
   begin
     ReadLevel(i);
   end;

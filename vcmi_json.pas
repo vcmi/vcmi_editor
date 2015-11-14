@@ -86,8 +86,10 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    Procedure DoDeStreamCollection(Const JSON : TJSONData; ACollection : TCollection);
+
     Procedure JSONToCollection(Const JSON : TJSONData; ACollection : TCollection); override;
-    procedure JSONToObjectEx(const JSON: TJSONObject; AObject: TObject); override;
+    procedure JSONToObjectEx(const JSON: TJSONData; AObject: TObject); override;
 
     procedure JSONStreamToObject(AStream: TStream; AObject: TObject; AName: string);
 
@@ -115,6 +117,7 @@ type
     function StreamCollection(const ACollection: TCollection): TJSONData;
       override;
 
+    function DoStreamCollection(const ACollection: TCollection): TJSONData;
   end;
 
   ISerializeSpecial = interface ['ISerializeSpecial']
@@ -524,7 +527,7 @@ begin
   end;
 end;
 
-function TVCMIJSONStreamer.EmbeddedValueToJson(AObject: TObject): TJSONData;
+function TVCMIJSONStreamer.EmbeddedValueToJson(Aobject: TObject): TJSONData;
 var
   PIL: TPropInfoList;
   saved: Boolean;
@@ -574,6 +577,27 @@ begin
 end;
 
 function TVCMIJSONStreamer.StreamCollection(const ACollection: TCollection
+  ): TJSONData;
+begin
+  if ACollection is ISerializeNotify then
+  begin
+    (ACollection as ISerializeNotify).BeforeSerialize(Self);
+  end;
+
+  if ACollection is ISerializeSpecial then
+  begin
+    result := (ACollection as ISerializeSpecial).Serialize(Self);
+  end
+  else
+    Result := DoStreamCollection(ACollection);
+
+  if ACollection is ISerializeNotify then
+  begin
+    (ACollection as ISerializeNotify).AfterSerialize(Self, Result);
+  end;
+end;
+
+function TVCMIJSONStreamer.DoStreamCollection(const ACollection: TCollection
   ): TJSONData;
 var
   O: TJSONObject;
@@ -709,6 +733,32 @@ begin
   inherited Destroy;
 end;
 
+procedure TVCMIJSONDestreamer.DoDeStreamCollection(const JSON: TJSONData;
+  ACollection: TCollection);
+var
+  O : TJSONObject;
+  A: TJSONArray;
+begin
+  if (JSON.JSONType = jtObject) and (ACollection is INamedCollection) then
+  begin
+    ACollection.Clear;
+
+    O := JSON as TJSONObject;
+    O.Iterate(@CollectionObjCallback,ACollection);
+  end
+  else if (JSON.JSONType = jtArray) and (ACollection is IArrayCollection) then
+  begin
+    ACollection.Clear;
+    A := JSON as TJSONArray;
+
+    A.Iterate(@CollectionArrayCallback,ACollection);
+  end
+  else
+  begin
+    inherited JSONToCollection(JSON, ACollection);
+  end;
+end;
+
 procedure TVCMIJSONDestreamer.DoPreparePropName(var PropName: AnsiString);
 begin
   MakeCamelCase(PropName);
@@ -830,31 +880,26 @@ end;
 
 procedure TVCMIJSONDestreamer.JSONToCollection(const JSON: TJSONData;
   ACollection: TCollection);
-var
-  O : TJSONObject;
-  A: TJSONArray;
 begin
-  if (JSON.JSONType = jtObject) and (ACollection is INamedCollection) then
+  if ACollection is ISerializeNotify then
   begin
-    ACollection.Clear;
+    (ACollection as ISerializeNotify).BeforeDeSerialize(Self, JSON);
+  end;
 
-    O := JSON as TJSONObject;
-    O.Iterate(@CollectionObjCallback,ACollection);
-  end
-  else if (JSON.JSONType = jtArray) and (ACollection is IArrayCollection) then
+  if ACollection is ISerializeSpecial then
   begin
-    ACollection.Clear;
-    A := JSON as TJSONArray;
-
-    A.Iterate(@CollectionArrayCallback,ACollection);
+    (ACollection as ISerializeSpecial).Deserialize(Self, Json);
   end
   else
+    DoDeStreamCollection(JSON, ACollection);
+
+  if ACollection is ISerializeNotify then
   begin
-    inherited JSONToCollection(JSON, ACollection);
+    (ACollection as ISerializeNotify).AfterDeSerialize(Self, JSON);
   end;
 end;
 
-procedure TVCMIJSONDestreamer.JSONToObjectEx(const JSON: TJSONObject;
+procedure TVCMIJSONDestreamer.JSONToObjectEx(const JSON: TJSONData;
   AObject: TObject);
 begin
   if AObject is ISerializeNotify then
@@ -868,14 +913,14 @@ begin
   end
   else if AObject is TJSONObject then
   begin
-    (AObject as TJSONObject).Assign(Json);
+    (AObject as TJSONObject).Assign(Json as TJSONObject);
   end
   else if AObject is ISerializeSpecial then
   begin
     (AObject as ISerializeSpecial).Deserialize(Self, JSON);
   end
   else begin
-    JSONToObject(JSON, AObject);
+    JSONToObject(JSON as TJSONObject, AObject);
   end;
 
   if AObject is ISerializeNotify then

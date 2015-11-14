@@ -33,6 +33,7 @@ type
 type
 
   TLogicalExpression = class;
+  TLogicalExpressionClass = class of TLogicalExpression;
 
   { TLogicalExpressionItem }
 
@@ -42,23 +43,51 @@ type
     FLogicalOperator: TLogicalOperator;
 
     procedure SetLogicalOperator(AValue: TLogicalOperator);
+  protected
+    class function GetSubExpressionsClass():TLogicalExpressionClass; virtual;
   public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
     property LogicalOperator: TLogicalOperator read FLogicalOperator write SetLogicalOperator;
     property SubExpressions:TLogicalExpression read FSubExpressions;
   end;
 
   TLogicalExpression = class (TCollection, IArrayCollection)
   public
-
+    constructor Create(AItemClass: TCollectionItemClass); virtual;
   end;
 
 implementation
+
+{ TLogicalExpression }
+
+constructor TLogicalExpression.Create(AItemClass: TCollectionItemClass);
+begin
+  Inherited Create(AItemClass);
+end;
 
 { TLogicalExpressionItem }
 
 procedure TLogicalExpressionItem.SetLogicalOperator(AValue: TLogicalOperator);
 begin
   FLogicalOperator:=AValue;
+end;
+
+class function TLogicalExpressionItem.GetSubExpressionsClass: TLogicalExpressionClass;
+begin
+  Result := TLogicalExpression;
+end;
+
+constructor TLogicalExpressionItem.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FSubExpressions := GetSubExpressionsClass().Create(TCollectionItemClass(ClassType));
+end;
+
+destructor TLogicalExpressionItem.Destroy;
+begin
+  FSubExpressions.Free;
+  inherited Destroy;
 end;
 
 end.

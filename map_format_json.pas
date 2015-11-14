@@ -137,7 +137,7 @@ var
   ARowArray: TJSONArray;
   map_level: TMapLevel;
 begin
-  map_level := AMap.Levels[Level];
+  map_level := AMap.MapLevels[Level];
   for row := 0 to map_level.Height - 1 do
   begin
     ARowArray := TJSONArray.Create;
@@ -156,7 +156,7 @@ var
 begin
   result := TJSONArray.Create;
 
-  for i := 0 to AMap.Levels.Count - 1 do
+  for i := 0 to AMap.MapLevels.Count - 1 do
   begin
     level_array := TJSONArray.Create;
     StreamTilesLevel(level_array,AMap,i);
@@ -270,7 +270,7 @@ var
   ARow:TJSONArray;
   map_level: TMapLevel;
 begin
-  map_level := AMap.Levels[Level];
+  map_level := AMap.MapLevels[Level];
   for row := 0 to map_level.Height - 1 do
   begin
     //todo: more error checking
@@ -297,7 +297,7 @@ var
   level_array: TJSONArray;
   i: Integer;
 begin
-  for i := 0 to AMap.Levels.Count - 1 do
+  for i := 0 to AMap.MapLevels.Count - 1 do
   begin
     level_array := AJson.Arrays[i];
     DeStreamTilesLevel(level_array,AMap,i);

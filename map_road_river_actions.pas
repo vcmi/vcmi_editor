@@ -567,7 +567,7 @@ var
   map_level: TMapLevel;
   i: SizeInt;
 begin
-  map_level := FMap.Levels[Level];
+  map_level := FMap.MapLevels[Level];
 
   for i := 0 to SizeInt(ASrc.Size) - 1 do
   begin
@@ -641,7 +641,7 @@ var
   map_level: TMapLevel;
   i: SizeInt;
 begin
-  map_level := FMap.Levels[Level];
+  map_level := FMap.MapLevels[Level];
 
   for i := 0 to SizeInt(ASrc.Size) - 1 do
   begin

@@ -223,9 +223,9 @@ begin
 
   FDestreamer.JSONToCollection(FObjectsJson,Result.Objects);
 
-  for i := 0 to Result.Levels.Count - 1 do
+  for i := 0 to Result.MapLevels.Count - 1 do
   begin
-    level := Result.Levels[i];
+    level := Result.MapLevels[i];
 
     terrain_file_name := Trim(LowerCase(level.DisplayName+'_terrain.json'));
 
@@ -264,13 +264,13 @@ var
 
   buffer: TJSONArray;
 begin
-  for i := 0 to AMap.Levels.Count - 1 do
+  for i := 0 to AMap.MapLevels.Count - 1 do
   begin
     buffer := CreateJSONArray([]);
 
     StreamTilesLevel(buffer, AMap, i);
 
-    AddArchiveEntry(buffer, AMap.Levels[i].DisplayName + '_terrain.json');
+    AddArchiveEntry(buffer, AMap.MapLevels[i].DisplayName + '_terrain.json');
   end;
 end;
 

@@ -168,7 +168,7 @@ Type
     Procedure JSONToObject(Const JSON : TJSONStringType; AObject : TObject);
     Procedure JSONToObject(Const JSON : TJSONObject; AObject : TObject); virtual;
 
-    Procedure JSONToObjectEx(Const JSON : TJSONObject; AObject : TObject); virtual;
+    Procedure JSONToObjectEx(Const JSON : TJSONData; AObject : TObject); virtual;
     // Convert JSON object/array to collection.
     Procedure JSONToCollection(Const JSON : TJSONStringType; ACollection : TCollection);
     Procedure JSONToCollection(Const JSON : TJSONData; ACollection : TCollection); virtual;
@@ -516,10 +516,10 @@ begin
     FAfterReadObject(Self,AObject,JSON)
 end;
 
-procedure TJSONDeStreamer.JSONToObjectEx(const JSON: TJSONObject;
-  AObject: TObject);
+procedure TJSONDeStreamer.JSONToObjectEx(const JSON: TJSONData; AObject: TObject
+  );
 begin
-  JSONToObject(JSON, AObject);
+  JSONToObject(JSON as TJSONObject, AObject);
 end;
 
 procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONStringType;

@@ -46,13 +46,13 @@ type
     procedure Settype(AValue: AnsiString);
     procedure SetValue(AValue: Int32);
   public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  public
     //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   public
-    constructor Create(ACollection: TCollection); override;
-    destructor Destroy; override;
-
     property ConditionType: TWinLossCondition read FEventType write SetEventType;
   published
     property Value:Int32 read FValue write SetValue;
@@ -66,10 +66,17 @@ type
 
   { TLogicalEventCondition }
 
-  TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify)
+  TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify, ISerializeSpecial)
+  private
+    FIsRoot: Boolean;
   public
+    constructor Create(AItemClass: TCollectionItemClass); override;
     constructor Create();
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+  public
+    //ISerializeSpecial
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   end;
 
   { TTriggeredEventEffect }
@@ -131,15 +138,58 @@ end;
 
 { TLogicalEventCondition }
 
+constructor TLogicalEventCondition.Create(AItemClass: TCollectionItemClass);
+begin
+  inherited Create(AItemClass);
+  FIsRoot:=false;
+end;
+
 constructor TLogicalEventCondition.Create;
 begin
   inherited Create(TLogicalEventConditionItem);
+  FIsRoot:=True;
 end;
 
 procedure TLogicalEventCondition.NotifyReferenced(AOldIdentifier,
   ANewIdentifier: AnsiString);
 begin
 
+end;
+
+function TLogicalEventCondition.Serialize(AHandler: TVCMIJSONStreamer
+  ): TJSONData;
+begin
+  if FIsRoot then
+  begin
+    if Count = 1 then
+    begin
+      Result := AHandler.ObjectToJsonEx(Items[0]);
+    end
+    else begin
+      Result := CreateJSONArray([]);
+    end;
+  end
+  else begin
+    Result := AHandler.DoStreamCollection(Self); //use default
+  end;
+end;
+
+procedure TLogicalEventCondition.Deserialize(AHandler: TVCMIJSONDestreamer;
+  ASrc: TJSONData);
+var
+  Item: TCollectionItem;
+begin
+  if FIsRoot then
+  begin
+    If ASrc.JSONType = TJSONtype.jtArray then
+    begin
+      Item := Add;
+      AHandler.JSONToObjectEx(ASrc, Item);
+    end;
+  end
+  else begin
+    AHandler.DoDeStreamCollection(ASrc,Self); //use default
+  end;
 end;
 
 { TLogicalEventConditionItem }
@@ -243,9 +293,11 @@ begin
     end;
 
     ConditionType := TWinLossCondition(raw_instruction);
-    o := ASrcArray.Objects[1];
-
-    AHandler.JSONToObject(o,Self);
+    if(ASrcArray.Count > 1) and (ASrcArray.Types[1] = jtObject) then
+    begin
+      o := ASrcArray.Objects[1];
+      AHandler.JSONToObject(o,Self);
+    end;
   end;
 end;
 

@@ -633,7 +633,7 @@ type
     property AllowedArtifacts: TLogicalIDCondition read FAllowedArtifacts;
     property AllowedHeroes: TLogicalIDCondition read FAllowedHeroes;
 
-    property Levels: TMapLevels read FLevels;
+    property MapLevels: TMapLevels read FLevels;
 
     property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
 
@@ -1667,14 +1667,14 @@ var
 begin
   CreateEmpty(env);
 
-  lvl := Levels.Add;
+  lvl := MapLevels.Add;
   lvl.Width:=Params.Width;
   lvl.Height:=Params.Height;
   lvl.DisplayName := 'surface';
 
   if Params.Levels>1 then
   begin
-    lvl := Levels.Add;
+    lvl := MapLevels.Add;
     lvl.Width:=Params.Width;
     lvl.Height:=Params.Height;
     lvl.DisplayName := 'underground';
@@ -1807,8 +1807,8 @@ function TVCMIMap.IsOnMap(Level, X, Y: Integer): boolean;
 begin
   Result := (Level >=0)
   and (Level < FLevels.Count)
-  and (x>=0) and (x<Levels[Level].Width)
-  and (y>=0) and (y<Levels[Level].Height);
+  and (x>=0) and (x<MapLevels[Level].Width)
+  and (y>=0) and (y<MapLevels[Level].Height);
 end;
 
 procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);

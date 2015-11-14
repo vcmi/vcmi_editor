@@ -1850,7 +1850,7 @@ var
 begin
   menuLevel.Clear;
 
-  for iter in FMap.Levels do
+  for iter in FMap.MapLevels do
   begin
     l := iter as TMapLevel;
     m := TMenuItem.Create(menuLevel);
