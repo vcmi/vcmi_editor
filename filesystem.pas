@@ -345,6 +345,8 @@ type
 
     procedure LoadGameConfig;
 
+    function SelectResource(AResType: TResourceType; AName: string):TResIDToLcationMap.TIterator;
+    procedure LoadSelected(var it: TResIDToLcationMap.TIterator; AResource: IResource);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -353,6 +355,11 @@ type
 
     procedure LoadResource(AResource: IResource; AResType: TResourceType;
       AName: string);
+
+    function TryLoadResource(AResource: IResource; AResType: TResourceType;
+      AName: string): boolean;
+
+    function ExistsResource(AResType: TResourceType; AName: string): boolean;
   public
     property GameConfig: TGameConfig read FGameConfig; deprecated;
     property Configs:TIdToConfigMap read FConfigMap;
@@ -920,12 +927,10 @@ begin
   FConfigMap.Add(MODID_CORE,FGameConfig);
 end;
 
-procedure TFSManager.LoadResource(AResource: IResource;
-  AResType: TResourceType; AName: string);
+function TFSManager.SelectResource(AResType: TResourceType; AName: string
+  ): TResIDToLcationMap.TIterator;
 var
   res_id: TResId;
-  res_loc: TResLocation;
-  it : TResIDToLcationMap.TIterator;
 begin
   AName := NormalizeResourceName(AName);
 
@@ -937,21 +942,61 @@ begin
   res_id.VFSPath := AName;
   res_id.Typ := AResType;
 
-  it := FResMap.Find(res_id);
+  Result :=FResMap.Find(res_id);
+end;
 
-  if not Assigned(it) then
-  begin
-    raise Exception.Create('Res not found '+AName);
-  end;
-
+procedure TFSManager.LoadSelected(var it: TResIDToLcationMap.TIterator;
+  AResource: IResource);
+var
+  res_loc: TResLocation;
+begin
   res_loc := it.Value;
-  it.Free;
+  FreeAndNil(it);
 
   case res_loc.lt of
     TLocationType.InLod: res_loc.lod.LoadResource(AResource,res_loc.FileHeader) ;
     TLocationType.InFile: LoadFileResource(AResource,res_loc.path);
     TLocationType.InArchive: LoadArchiveResource(AResource, res_loc.archive, res_loc.path);
   end;
+end;
+
+procedure TFSManager.LoadResource(AResource: IResource;
+  AResType: TResourceType; AName: string);
+var
+  it : TResIDToLcationMap.TIterator;
+begin
+  it := SelectResource(AResType, AName);
+
+  if not Assigned(it) then
+  begin
+    raise Exception.Create('Res not found '+AName);
+  end;
+
+  LoadSelected(it, AResource);
+end;
+
+function TFSManager.TryLoadResource(AResource: IResource;
+  AResType: TResourceType; AName: string): boolean;
+var
+  it : TResIDToLcationMap.TIterator;
+begin
+  it := SelectResource(AResType, AName);
+
+  Result := Assigned(it);
+  if Result then
+  begin
+    LoadSelected(it, AResource);
+  end;
+end;
+
+function TFSManager.ExistsResource(AResType: TResourceType; AName: string
+  ): boolean;
+var
+  it : TResIDToLcationMap.TIterator;
+begin
+  it := SelectResource(AResType, AName);
+  Result := Assigned(it);
+  FreeAndNil(it);
 end;
 
 procedure TFSManager.ScanLod(LodRelPath: string; ARootPath: TStrings);

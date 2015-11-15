@@ -29,7 +29,7 @@ uses
 
 type
 
-  TResourceType = (Text,Json,Animation, Mask);
+  TResourceType = (Text, Json, Animation, Mask);
 
   TResourceTypes = set of TResourceType;
 
@@ -46,6 +46,10 @@ type
        AName - relative path + filename .w\o ext
     *)
     procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
+
+    function ExistsResource(AResType: TResourceType; AName: string): boolean;
+
+    function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string):boolean;
   end;
 
   { TBaseResource }

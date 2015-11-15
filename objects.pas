@@ -59,6 +59,23 @@ type
 
   end;
 
+  { TMaskResource }
+
+  TMaskResource = class (TBaseResource, IResource)
+  private
+    FHeight: Byte;
+    FWidth: Byte;
+    procedure Clear;
+    procedure SetHeight(AValue: Byte);
+    procedure SetWidth(AValue: Byte);
+  public
+    constructor Create(APath: AnsiString);
+    procedure LoadFromStream(AStream: TStream); override;
+
+    property Width: Byte read FWidth write SetWidth;
+    property Height: Byte read FHeight write SetHeight;
+  end;
+
   TLegacyObjConfigList = specialize TFPGObjectList<TJSONObject>;
   TLegacyObjConfigFullIdMap = specialize TObjectMap<TLegacyTemplateId, TLegacyObjConfigList>;
 
@@ -245,6 +262,38 @@ uses
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
+
+{ TMaskResource }
+
+procedure TMaskResource.Clear;
+begin
+  Width := 0;
+  Height := 0;
+end;
+
+procedure TMaskResource.SetHeight(AValue: Byte);
+begin
+  if FHeight=AValue then Exit;
+  FHeight:=AValue;
+end;
+
+procedure TMaskResource.SetWidth(AValue: Byte);
+begin
+  if FWidth=AValue then Exit;
+  FWidth:=AValue;
+end;
+
+constructor TMaskResource.Create(APath: AnsiString);
+begin
+  inherited Create(TResourceType.Mask, APath);
+end;
+
+procedure TMaskResource.LoadFromStream(AStream: TStream);
+begin
+  Clear;
+  AStream.Read(FWidth,1);
+  AStream.Read(FHeight,1);
+end;
 
 { TObjSubTypes }
 
@@ -623,9 +672,11 @@ procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
 
     passable, active: Boolean;
     mask_conf: TJSONArray;
-    anim: TDef;
+    //anim: TDef;
     width_tiles: Integer;
     height_tiles: Integer;
+
+    msk: TMaskResource;
 begin
   objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
@@ -656,15 +707,20 @@ begin
       def.FGroup := CellToInt;
       def.FIsOverlay := CellToInt;
 
-      anim := GraphicsManager.GetPreloadedGraphics(def.FFilename);
+      //todo: read full mask
 
-      //todo: use .msk
+      msk := TMaskResource.Create(def.FFilename);
 
-      width_tiles := (anim.Width div TILE_SIZE);
-      height_tiles := (anim.Height div TILE_SIZE);
-
-      width_tiles := min(width_tiles, 8);
-      height_tiles:= min(height_tiles, 6);
+      if ResourceLoader.TryLoadResource(msk, msk.Typ, msk.Path) then
+      begin
+        width_tiles := msk.Width;
+        height_tiles := msk.Height;
+      end
+      else begin
+        width_tiles := 8;
+        height_tiles:= 6;
+      end;
+      msk.Free;
 
       legacy_config := TJSONObject.Create;
 
@@ -683,19 +739,14 @@ begin
 
           active:=(def.FActions[byte_idx] and (1 shl bit_idx))>0;
 
-          if active then
-          begin
-            str += 'A';
-          end
-          else begin
-            if passable then
-            begin
-              str += 'V';
-            end
-            else begin
+          if passable then
+            str += 'V'
+          else
+            if active then
+              str += 'A'
+            else
               str += 'B';
-            end;
-          end;
+
         end;
         UniqueString(str);
         mask_conf.Add(str);
