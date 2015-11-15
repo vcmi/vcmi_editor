@@ -64,6 +64,8 @@ type
   TMaskResource = class (TBaseResource, IResource)
   private
     FHeight: Byte;
+    FMask1: TDefBitmask;
+    FMask2: TDefBitmask;
     FWidth: Byte;
     procedure Clear;
     procedure SetHeight(AValue: Byte);
@@ -74,6 +76,9 @@ type
 
     property Width: Byte read FWidth write SetWidth;
     property Height: Byte read FHeight write SetHeight;
+
+    property Mask1:TDefBitmask read FMask1;//todo: rename and use
+    property Mask2:TDefBitmask read FMask2;
   end;
 
   TLegacyObjConfigList = specialize TFPGObjectList<TJSONObject>;
@@ -293,6 +298,10 @@ begin
   Clear;
   AStream.Read(FWidth,1);
   AStream.Read(FHeight,1);
+
+  AStream.Read(FMask1,6);
+  AStream.Read(FMask2,6);
+
 end;
 
 { TObjSubTypes }
