@@ -44,6 +44,7 @@ type
     FLandscape,FLandEditGroups: uint16;
     FTyp,FSubType: uint32;
     FGroup,FIsOverlay: uint8;
+    function IsVisitableFromTop(): Boolean;
   public
     constructor Create;
 
@@ -57,6 +58,7 @@ type
 
     property IsOverlay: uint8 read FIsOverlay;
 
+    property VisitableFromTop: Boolean read IsVisitableFromTop;
   end;
 
   { TMaskResource }
@@ -460,6 +462,33 @@ end;
 
 { TLegacyObjTemplate }
 
+function TLegacyObjTemplate.IsVisitableFromTop: Boolean;
+begin
+  if (FGroup=2) or (FGroup=3) or (FGroup=4) or (FGroup=5) then
+    Result := true
+  else
+    case TObj(FTyp) of
+      TObj.FLOTSAM,
+      TObj.SEA_CHEST,
+      Tobj.SHIPWRECK_SURVIVOR,
+      Tobj.BUOY,
+      Tobj.OCEAN_BOTTLE,
+      TObj.BOAT,
+      TObj.WHIRLPOOL,
+      Tobj.GARRISON,
+      Tobj.GARRISON2,
+      Tobj.SCHOLAR,
+      Tobj.CAMPFIRE,
+      Tobj.BORDERGUARD,
+      Tobj.BORDER_GATE,
+      Tobj.QUEST_GUARD,
+      Tobj.CORPSE: Result:= true;
+    else
+      Result := false;
+    end;
+
+end;
+
 constructor TLegacyObjTemplate.Create;
 begin
   inherited;
@@ -680,7 +709,7 @@ procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
     str: String;
 
     passable, active: Boolean;
-    mask_conf: TJSONArray;
+    mask_conf, visit_conf: TJSONArray;
     //anim: TDef;
     width_tiles: Integer;
     height_tiles: Integer;
@@ -731,12 +760,12 @@ begin
       end;
       msk.Free;
 
-      legacy_config := TJSONObject.Create;
+      legacy_config := CreateJSONObject([]);
 
       legacy_config.Strings['animation'] := def.Filename;
       legacy_config.Integers['zIndex'] := def.IsOverlay * Z_INDEX_OVERLAY;
 
-      mask_conf := TJSONArray.Create;
+      mask_conf := CreateJSONArray([]);
 
       for byte_idx := height_tiles-1 downto 0 do
       begin
@@ -763,7 +792,28 @@ begin
 
       legacy_config.Add('mask', mask_conf);
 
-      //TODO: visitableFrom, allowedTerrains, mask
+      //TODO: allowedTerrains
+
+      visit_conf := CreateJSONArray([]);
+      //top line
+      if def.IsVisitableFromTop then
+        str := '---'
+      else
+        str := '+++';
+      UniqueString(str);
+      visit_conf.Add(str);
+
+      //middle line
+      str := '+-+';
+      UniqueString(str);
+      visit_conf.Add(str);
+
+      //bollom line
+      str := '+++';
+      UniqueString(str);
+      visit_conf.Add(str);
+
+      legacy_config.Add('visitableFrom', visit_conf);
 
       full_id := TypToId(def.FTyp, def.FSubType);
       idx := AFullIdToDefMap.IndexOf(full_id);
