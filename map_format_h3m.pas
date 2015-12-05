@@ -159,8 +159,8 @@ type
 
      procedure ReadPosition(APosition: TPosition);
    strict private
-     procedure ReadPlayerAttrs(Attrs: TPlayerAttrs);//+
-     procedure ReadPlayerAttr(Attr: TPlayerAttr);//+?
+     procedure ReadPlayerInfos(Attrs: TPlayerInfos);//+
+     procedure ReadPlayerInfo(Attr: TPlayerInfo);//+?
      procedure ReadSVLC();
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();//+
@@ -431,7 +431,7 @@ begin
       end;
     end;
 
-    ReadPlayerAttrs(FMap.Players);
+    ReadPlayerInfos(FMap.Players);
     ReadSVLC();
     ReadTeams();
     ReadAllowedHeros();
@@ -1299,7 +1299,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadPlayerAttr(Attr: TPlayerAttr);
+procedure TMapReaderH3m.ReadPlayerInfo(Attr: TPlayerInfo);
 var
   faction_mask_size: integer;
   faction_count: Integer;
@@ -1330,7 +1330,7 @@ begin
         Assert(false);
       end;
     end;
-
+    Attr.CanPlay := TPlayableBy.None;
     Exit;
   end;
 
@@ -1426,13 +1426,13 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadPlayerAttrs(Attrs: TPlayerAttrs);
+procedure TMapReaderH3m.ReadPlayerInfos(Attrs: TPlayerInfos);
 var
   player_color: TPlayerColor;
 begin
   for player_color in TPlayerColor do
   begin
-    ReadPlayerAttr(Attrs.GetAttr(Integer(player_color)));
+    ReadPlayerInfo(Attrs.GetPlayerInfo(Integer(player_color)));
   end;
 end;
 

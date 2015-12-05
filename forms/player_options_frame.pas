@@ -24,8 +24,8 @@ unit player_options_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ExtCtrls, CheckLst,
-  map;
+  Classes, SysUtils, math, FileUtil, Forms, Controls, StdCtrls, ExtCtrls,
+  CheckLst, map, lists_manager, editor_types, gui_helpers;
 
 type
 
@@ -46,13 +46,13 @@ type
     lbCanPlay: TLabel;
   private
     FMap: TVCMIMap;
-    FObject: TPlayerAttr;
+    FObject: TPlayerInfo;
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
     procedure FillTeams;
   public
     property Map: TVCMIMap read FMap write SetMap;
-    procedure EditObject(AObject: TPlayerAttr);
+    procedure EditObject(AObject: TPlayerInfo);
     procedure Commit;
   end;
 
@@ -70,7 +70,20 @@ end;
 
 procedure TPlayerOptionsFrame.ReadData;
 begin
+  //player is playable if it has at least one town or hero
 
+  if (FObject.Heroes.Count = 0) and (FObject.Towns.Count = 0) then
+  begin
+    edCanPlay.ItemIndex := -1;
+    edCanPlay.Text := 'Not playable';
+    Enabled:=false;
+  end
+  else begin
+    edCanPlay.ItemIndex := Integer(FObject.CanPlay)-1;
+    Enabled:=true;
+  end;
+
+  edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions);
 end;
 
 procedure TPlayerOptionsFrame.FillTeams;
@@ -78,7 +91,7 @@ begin
 
 end;
 
-procedure TPlayerOptionsFrame.EditObject(AObject: TPlayerAttr);
+procedure TPlayerOptionsFrame.EditObject(AObject: TPlayerInfo);
 begin
   FObject := AObject;
   ReadData;
@@ -86,7 +99,12 @@ end;
 
 procedure TPlayerOptionsFrame.Commit;
 begin
+  if edCanPlay.ItemIndex < 0 then
+     FObject.CanPlay := TPlayableBy.None
+  else
+     FObject.CanPlay := TPlayableBy(edCanPlay.ItemIndex+1);
 
+  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions, true);
 end;
 
 end.

@@ -97,9 +97,9 @@ type
 
   end;
 
-  { TPlayerAttr }
+  { TPlayerInfo }
 
-  TPlayerAttr = class(TObject, ISerializeSpecial)
+  TPlayerInfo = class(TObject, ISerializeSpecial, IFPObserver)
   private
     FCanPlay: TPlayableBy;
     FOwner: IReferenceNotify;
@@ -125,13 +125,18 @@ type
     constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
+  public // ISerializeSpecial
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+
+  public//IFPObserver
+    procedure FPOObservedChanged(ASender: TObject;
+      Operation: TFPObservedOperation; Data: Pointer);
 
   published
     property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
 
-    property CanPlay: TPlayableBy read FCanPlay write SetCanPlay default TPlayableBy.PlayerOrAI;
+    property CanPlay: TPlayableBy read FCanPlay write SetCanPlay default TPlayableBy.None;
 
     property MainTown: String read FMainTown write FMainTown stored HasMainTown;
 
@@ -145,28 +150,29 @@ type
     property Heroes: TPlayerHeroes read FHeroes;
   end;
 
-  { TPlayerAttrs }
+  { TPlayerInfos }
 
-  TPlayerAttrs = class
+  TPlayerInfos = class
   private
     Fowner:IReferenceNotify;
-    FColors : array[TPlayerColor] of TPlayerAttr;
+    FColors : array[TPlayerColor] of TPlayerInfo;
+    function IsPlayable(AIndex: Integer): Boolean;
   public
     constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
-    function GetAttr(color: Integer): TPlayerAttr;
+    function GetPlayerInfo(color: Integer): TPlayerInfo;
 
   published
-    property Red:TPlayerAttr index Integer(TPlayerColor.Red) read GetAttr;
-    property Blue:TPlayerAttr index Integer(TPlayerColor.Blue) read GetAttr;
-    property Tan:TPlayerAttr index Integer(TPlayerColor.Tan) read GetAttr;
-    property Green:TPlayerAttr index Integer(TPlayerColor.Green) read GetAttr;
+    property Red:TPlayerInfo index Integer(TPlayerColor.Red) read GetPlayerInfo stored IsPlayable;
+    property Blue:TPlayerInfo index Integer(TPlayerColor.Blue) read GetPlayerInfo stored IsPlayable;
+    property Tan:TPlayerInfo index Integer(TPlayerColor.Tan) read GetPlayerInfo stored IsPlayable;
+    property Green:TPlayerInfo index Integer(TPlayerColor.Green) read GetPlayerInfo stored IsPlayable;
 
-    property Orange:TPlayerAttr index Integer(TPlayerColor.Orange) read GetAttr;
-    property Purple:TPlayerAttr index Integer(TPlayerColor.Purple) read GetAttr;
-    property Teal:TPlayerAttr index Integer(TPlayerColor.Teal) read GetAttr;
-    property Pink:TPlayerAttr index Integer(TPlayerColor.Pink) read GetAttr;
+    property Orange:TPlayerInfo index Integer(TPlayerColor.Orange) read GetPlayerInfo stored IsPlayable;
+    property Purple:TPlayerInfo index Integer(TPlayerColor.Purple) read GetPlayerInfo stored IsPlayable;
+    property Teal:TPlayerInfo index Integer(TPlayerColor.Teal) read GetPlayerInfo stored IsPlayable;
+    property Pink:TPlayerInfo index Integer(TPlayerColor.Pink) read GetPlayerInfo stored IsPlayable;
   end;
 
   { TTeam }
@@ -521,7 +527,7 @@ type
     FLevelLimit: Integer;
     FName: TLocalizedString;
     FObjects: TMapObjects;
-    FPlayers: TPlayerAttrs;
+    FPlayers: TPlayerInfos;
     FPredefinedHeroes: THeroDefinitions;
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
@@ -623,7 +629,7 @@ type
     property Difficulty: TDifficulty read FDifficulty write SetDifficulty nodefault; //?
     property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
 
-    property Players: TPlayerAttrs read FPlayers;
+    property Players: TPlayerInfos read FPlayers;
     property Teams:TTeamSettings read FTeams;
 
     property Rumors: TRumors read FRumors;
@@ -1385,16 +1391,18 @@ begin
   DisplayName:=AValue.DisplayName;
 end;
 
-constructor TPlayerAttr.Create(AOwner: IReferenceNotify);
+constructor TPlayerInfo.Create(AOwner: IReferenceNotify);
 begin
   FOwner:= AOwner;
-  FAllowedFactions := TLogicalIDCondition.Create;
+  FAllowedFactions := TLogicalIDCondition.Create(AOwner);
 
   FHeroes := TPlayerHeroes.Create;
+  FHeroes.FPOAttachObserver(Self);
   FTowns := TPlayerTowns.Create;
+  FTowns.FPOAttachObserver(Self);
 end;
 
-destructor TPlayerAttr.Destroy;
+destructor TPlayerInfo.Destroy;
 begin
   FTowns.Free;
   FHeroes.Free;
@@ -1402,13 +1410,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TPlayerAttr.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+procedure TPlayerInfo.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 begin
   AHandler.JSONToObject(ASrc as TJSONObject, Self);
   // heroes and towns are ignored, they will be refilled later
 end;
 
-function TPlayerAttr.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+function TPlayerInfo.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
 begin
   Result := AHandler.ObjectToJSON(Self);
 
@@ -1416,53 +1424,74 @@ begin
   TJSONObject(Result).Add('towns', AHandler.StreamCollection(Towns));
 end;
 
-procedure TPlayerAttr.SetAITactics(AValue: TAITactics);
+procedure TPlayerInfo.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+
+end;
+
+procedure TPlayerInfo.SetAITactics(AValue: TAITactics);
 begin
   if FAITactics = AValue then Exit;
   FAITactics := AValue;
 end;
 
-function TPlayerAttr.HasMainTown: boolean;
+function TPlayerInfo.HasMainTown: boolean;
 begin
   Result := FMainTown <> '';
 end;
 
-procedure TPlayerAttr.SetCanPlay(AValue: TPlayableBy);
+procedure TPlayerInfo.SetCanPlay(AValue: TPlayableBy);
 begin
   if FCanPlay=AValue then Exit;
   FCanPlay:=AValue;
 end;
 
-procedure TPlayerAttr.SetGenerateHeroAtMainTown(AValue: boolean);
+procedure TPlayerInfo.SetGenerateHeroAtMainTown(AValue: boolean);
 begin
   if FGenerateHeroAtMainTown = AValue then Exit;
   FGenerateHeroAtMainTown := AValue;
 end;
 
-procedure TPlayerAttr.SetRandomFaction(AValue: boolean);
+procedure TPlayerInfo.SetRandomFaction(AValue: boolean);
 begin
   if FRandomFaction = AValue then Exit;
   FRandomFaction := AValue;
 end;
 
-procedure TPlayerAttr.SetRandomHero(AValue: Boolean);
+procedure TPlayerInfo.SetRandomHero(AValue: Boolean);
 begin
   if FRandomHero = AValue then Exit;
   FRandomHero := AValue;
 end;
 
-{ TPlayerAttrs }
+{ TPlayerInfos }
 
-constructor TPlayerAttrs.Create(AOwner: IReferenceNotify);
+function TPlayerInfos.IsPlayable(AIndex: Integer): Boolean;
+var
+  info: TPlayerInfo;
+begin
+  info := FColors[TPlayerColor(AIndex)];
+
+  if (info.Heroes.Count = 0) and (info.Towns.Count = 0) then
+  begin
+    Result := false;
+  end
+  else begin
+    Result := FColors[TPlayerColor(AIndex)].CanPlay <> TPlayableBy.None;
+  end;
+end;
+
+constructor TPlayerInfos.Create(AOwner: IReferenceNotify);
 var
   color: TPlayerColor;
 begin
   Fowner := AOwner;
   for color in TPlayerColor do
-    FColors[color] := TPlayerAttr.Create(Fowner);
+    FColors[color] := TPlayerInfo.Create(Fowner);
 end;
 
-destructor TPlayerAttrs.Destroy;
+destructor TPlayerInfos.Destroy;
 var
   color: TPlayerColor;
 begin
@@ -1471,7 +1500,7 @@ begin
   inherited Destroy;
 end;
 
-function TPlayerAttrs.GetAttr(color: Integer): TPlayerAttr;
+function TPlayerInfos.GetPlayerInfo(color: Integer): TPlayerInfo;
 begin
   Result := FColors[TPlayerColor(color)];
 end;
@@ -1716,19 +1745,19 @@ begin
 
   FIsDirty := False;
 
-  FAllowedAbilities := TLogicalIDCondition.Create;
+  FAllowedAbilities := TLogicalIDCondition.Create(Self);
   AttachTo(FAllowedAbilities);
 
-  FAllowedSpells := TLogicalIDCondition.Create;
+  FAllowedSpells := TLogicalIDCondition.Create(Self);
   AttachTo(FAllowedSpells);
 
-  FAllowedArtifacts := TLogicalIDCondition.Create;
+  FAllowedArtifacts := TLogicalIDCondition.Create(Self);
   AttachTo(FAllowedArtifacts);
 
-  FAllowedHeroes := TLogicalIDCondition.Create;
+  FAllowedHeroes := TLogicalIDCondition.Create(Self);
   AttachTo(FAllowedHeroes);
 
-  FPlayers := TPlayerAttrs.Create(Self);
+  FPlayers := TPlayerInfos.Create(Self);
   FTeams := TTeamSettings.Create;
   FObjects := TMapObjects.Create(Self);
   AttachTo(FObjects);
@@ -1743,7 +1772,7 @@ begin
   FTriggeredEvents := TTriggeredEvents.Create;
   AttachTo(FTriggeredEvents);
 
-  FMods := TLogicalIDCondition.Create;
+  FMods := TLogicalIDCondition.Create(nil);//pass nil owner to avoid circular reference notification
 
   FModUsage := TModUsage.Create(FMods);
 end;
@@ -1951,7 +1980,7 @@ procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner,
   end;
 
 var
-  opt: TPlayerAttr;
+  opt: TPlayerInfo;
   player_hero: TPlayerHero;
   player_town: TPlayerTown;
 begin
@@ -1959,7 +1988,7 @@ begin
   begin
     if AOldOwner in [TPlayer.red..TPlayer.pink] then
     begin
-      opt := FPlayers.GetAttr(Integer(AOldOwner));
+      opt := FPlayers.GetPlayerInfo(Integer(AOldOwner));
 
       case AObject.&Type of
         TYPE_HERO, TYPE_RANDOMHERO:
@@ -1978,7 +2007,7 @@ begin
   begin
     if ANewOwner in [TPlayer.red..TPlayer.pink] then
     begin
-      opt := FPlayers.GetAttr(Integer(ANewOwner));
+      opt := FPlayers.GetPlayerInfo(Integer(ANewOwner));
 
       case AObject.&Type of
         TYPE_HERO, TYPE_RANDOMHERO:

@@ -52,7 +52,7 @@ type
 
 type
 
-  TPlayableBy = (PlayerOrAI=0, PlayerOnly=1, AIOnly=2);
+  TPlayableBy = (None=0, PlayerOrAI=1, PlayerOnly=2, AIOnly=3);
 
 type
   TScholarBonus = (primSkill, skill, spell, random);

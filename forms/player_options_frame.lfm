@@ -39,7 +39,6 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
       'AI only'
     )
     TabOrder = 0
-    Text = 'edCanPlay'
   end
   object lbAllowedFactions: TLabel
     Left = 20

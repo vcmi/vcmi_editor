@@ -76,7 +76,7 @@ begin
     page.Caption:=FMap.ListsManager.PlayerName[Player];
 
     FEditors[Player].Map := FMap;
-    FEditors[Player].EditObject(FMap.Players.GetAttr(Integer(Player)));
+    FEditors[Player].EditObject(FMap.Players.GetPlayerInfo(Integer(Player)));
   end;
 end;
 

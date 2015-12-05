@@ -200,8 +200,49 @@ type
     function GetName: TLocalizedString;
   end;
 
+  { TIdentifierList }
+
+  TIdentifierList = class(TStringList)
+  private
+    FOwner: IReferenceNotify;
+  protected
+    procedure InsertItem(Index: Integer; const S: string; O: TObject); override;
+    procedure Put(Index: Integer; const S: string); override;
+  public
+    constructor Create(AOwner:  IReferenceNotify);
+    procedure Delete(Index: Integer); override;
+  end;
 
 implementation
+
+{ TIdentifierList }
+
+procedure TIdentifierList.InsertItem(Index: Integer; const S: string; O: TObject
+  );
+begin
+  FOwner.NotifyReferenced('', s);
+  inherited InsertItem(Index, S, O);
+end;
+
+procedure TIdentifierList.Put(Index: Integer; const S: string);
+begin
+  FOwner.NotifyReferenced(Strings[Index], s);
+  inherited Put(Index, S);
+end;
+
+constructor TIdentifierList.Create(AOwner: IReferenceNotify);
+begin
+  inherited Create;
+  FOwner :=  AOwner;
+  Sorted:=true;
+  Duplicates:=dupIgnore;
+end;
+
+procedure TIdentifierList.Delete(Index: Integer);
+begin
+  FOwner.NotifyReferenced(Strings[Index], '');
+  inherited Delete(Index);
+end;
 
 { TGNamedCollection }
 

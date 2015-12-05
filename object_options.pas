@@ -1409,8 +1409,8 @@ constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FArmy := TCreatureSet.Create(AObject);
-  FSpells := TLogicalIDCondition.Create;
-  FBuildings := TLogicalIDCondition.Create;
+  FSpells := TLogicalIDCondition.Create(AObject);
+  FBuildings := TLogicalIDCondition.Create(AObject);
 end;
 
 destructor TTownOptions.Destroy;

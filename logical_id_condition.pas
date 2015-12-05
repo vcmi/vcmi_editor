@@ -30,8 +30,9 @@ uses
 type
   { TLogicalIDCondition }
 
-  TLogicalIDCondition = class(TPersistent, ISerializeNotify, IFPObserver)
+  TLogicalIDCondition = class(TPersistent, ISerializeNotify, IReferenceNotify, IFPObserver)
   private
+    FOwner: IReferenceNotify;
     FAllOf: TStrings;
     FAnyOf: TStrings;
     FNoneOf: TStrings;
@@ -42,7 +43,7 @@ type
     procedure SetAnyOf(AValue: TStrings);
     procedure SetNoneOf(AValue: TStrings);
   public
-    constructor Create;
+    constructor Create(AOwner:  IReferenceNotify);
     destructor Destroy; override;
 
     procedure Minimize;
@@ -58,9 +59,11 @@ type
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
 
-  public
+  public //IFPObserver
     procedure FPOObservedChanged(ASender: TObject;
       Operation: TFPObservedOperation; Data: Pointer);
+  public
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
     property AnyOf: TStrings read FAnyOf write SetAnyOf stored isAnyOfStored;
     property AllOf: TStrings read FAllOf write SetAllOf stored isAllOfStored;
@@ -105,15 +108,16 @@ begin
   FNoneOf:=AValue;
 end;
 
-constructor TLogicalIDCondition.Create;
+constructor TLogicalIDCondition.Create(AOwner: IReferenceNotify);
 begin
-  FAllOf := CrStrList;
+  FOwner := AOwner;
+  FAllOf := TIdentifierList.Create(Self);
   FAllOf.FPOAttachObserver(Self);
 
-  FAnyOf := CrStrList;
+  FAnyOf := TIdentifierList.Create(Self);
   FAnyOf.FPOAttachObserver(Self);
 
-  FNoneOf := CrStrList;
+  FNoneOf := TIdentifierList.Create(Self);
   FNoneOf.FPOAttachObserver(Self);
 end;
 
@@ -200,6 +204,13 @@ procedure TLogicalIDCondition.FPOObservedChanged(ASender: TObject;
   Operation: TFPObservedOperation; Data: Pointer);
 begin
   FPONotifyObservers(Self, Operation, Data);
+end;
+
+procedure TLogicalIDCondition.NotifyReferenced(AOldIdentifier,
+  ANewIdentifier: AnsiString);
+begin
+  if Assigned(FOwner) then
+    FOwner.NotifyReferenced(AOldIdentifier, ANewIdentifier);
 end;
 
 end.
