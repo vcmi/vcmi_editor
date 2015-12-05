@@ -34,7 +34,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl;forms\subframes"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\release"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\release"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -69,7 +69,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\debug"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
           </SearchPaths>
           <CodeGeneration>
             <Optimizations>
@@ -519,7 +519,7 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl;forms\subframes"/>
-      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)\debug"/>
+      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

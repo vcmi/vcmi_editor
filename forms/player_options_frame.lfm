@@ -72,7 +72,6 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Width = 231
     ItemHeight = 15
     TabOrder = 2
-    Text = 'edMainTown'
   end
   object Label1: TLabel
     Left = 20
@@ -109,7 +108,6 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Width = 231
     ItemHeight = 15
     TabOrder = 4
-    Text = 'edMainHero'
   end
   object lbTeam: TLabel
     Left = 20

@@ -84,6 +84,7 @@ begin
   end;
 
   edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions);
+
 end;
 
 procedure TPlayerOptionsFrame.FillTeams;
