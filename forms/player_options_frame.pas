@@ -30,6 +30,9 @@ uses
 
 type
 
+  TOnGetVirtualTeam = procedure (APlayer: TPlayerColor; var ATeam: TTeam) of object;
+  TOnTeamChanged = procedure (Sender: TObject; APlayer: TPlayerColor; ATeam: TTeam) of object;
+
   { TPlayerOptionsFrame }
 
   TPlayerOptionsFrame = class(TFrame)
@@ -52,17 +55,23 @@ type
   private
     FMap: TVCMIMap;
     FObject: TPlayerInfo;
-    FOnAlliesChanged: TNotifyEvent;
+    FOnAlliesChanged: TOnTeamChanged;
+    FOnGetVirtualTeam: TOnGetVirtualTeam;
+    FTeamCache: TTeamSettings;
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
-    procedure FillTeams;
-    procedure SetOnAlliesChanged(AValue: TNotifyEvent);
+
+    procedure SetTeamCache(AValue: TTeamSettings);
   public
     property Map: TVCMIMap read FMap write SetMap;
     procedure EditObject(AObject: TPlayerInfo);
     procedure Commit;
 
-    property OnAlliesChanged: TNotifyEvent read FOnAlliesChanged write SetOnAlliesChanged;
+    procedure FillTeams;
+
+    property OnAlliesChanged: TOnTeamChanged read FOnAlliesChanged write FOnAlliesChanged;
+    property OnGetVirtualTeam: TOnGetVirtualTeam read FOnGetVirtualTeam write FOnGetVirtualTeam;
+    property TeamCache: TTeamSettings read FTeamCache write SetTeamCache;
   end;
 
 implementation
@@ -75,7 +84,7 @@ procedure TPlayerOptionsFrame.edTeamChange(Sender: TObject);
 begin
   if Assigned(FOnAlliesChanged) then
   begin
-    FOnAlliesChanged(Self);
+    FOnAlliesChanged(Self, FObject.Color, TTeam(edTeam.Items.Objects[edTeam.ItemIndex]));
   end;
 end;
 
@@ -89,7 +98,6 @@ procedure TPlayerOptionsFrame.ReadData;
 var
   i: Integer;
   selected_idx: Integer;
-  team: TTeam;
 begin
   //player is playable if it has at least one town or hero
 
@@ -133,34 +141,56 @@ begin
   end;
 
   edMainHero.ItemIndex := selected_idx;
+  FillTeams;
+end;
 
+procedure TPlayerOptionsFrame.FillTeams;
+var
+  i: Integer;
+  selected_idx: Integer;
+  team: TTeam;
+
+  AllPlayers: TPlayers;
+  player_iter: TPlayerColor;
+begin
+  edTeam.Items.Clear;
   selected_idx := 0;
   edTeam.AddItem(rsNone, nil);
+  AllPlayers := ALL_PLAYERS;
+  Exclude(AllPlayers, FObject.Color);
 
-  for i := 0 to FMap.Teams.Count - 1 do
+  for i := 0 to TeamCache.Count - 1 do
   begin
-    team := FMap.Teams[i];
+    team := TeamCache[i];
 
     edTeam.AddItem(team.FormatDescription(FObject.Color), team);
+    AllPlayers -= team.Members;
+    if team.has(FObject.Color) then
+    begin
+      selected_idx := i+1;
+    end;
+  end;
+
+  for player_iter in AllPlayers do
+  begin
+    FOnGetVirtualTeam(player_iter, team);
+    edTeam.AddItem(team.FormatDescription(FObject.Color), team)
   end;
 
   edTeam.ItemIndex := selected_idx;
 end;
 
-procedure TPlayerOptionsFrame.FillTeams;
+procedure TPlayerOptionsFrame.SetTeamCache(AValue: TTeamSettings);
 begin
-
-end;
-
-procedure TPlayerOptionsFrame.SetOnAlliesChanged(AValue: TNotifyEvent);
-begin
-  FOnAlliesChanged:=AValue;
+  if FTeamCache=AValue then Exit;
+  FTeamCache:=AValue;
 end;
 
 procedure TPlayerOptionsFrame.EditObject(AObject: TPlayerInfo);
 begin
   FObject := AObject;
   ReadData;
+  edTeam.OnChange := @edTeamChange;
 end;
 
 procedure TPlayerOptionsFrame.Commit;

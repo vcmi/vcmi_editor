@@ -43,14 +43,18 @@ type
     procedure btOkClick(Sender: TObject);
   private
     FEditors: array[TPlayerColor] of TPlayerOptionsFrame;
+    FVirtualTeams: array[TPlayerColor] of TTeam;
+    FTeamCache: TTeamSettings;
     FMap: TVCMIMap;
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
     procedure Commit;
 
-    procedure UpdateTeams(Sender: TObject);
+    procedure UpdateTeams(Sender: TObject; APlayer: TPlayerColor; ATeam: TTeam);
+    procedure GetVirtualTeam(APlayer: TPlayerColor; var ATeam: TTeam);
   public
     constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
     property Map: TVCMIMap read FMap write SetMap;
   end;
 
@@ -88,6 +92,8 @@ var
   Player: TPlayer;
   page: TTabSheet;
 begin
+  FTeamCache.Clear;
+  FTeamCache.Assign(FMap.Teams);
   for Player in TPlayerColor do
   begin
     page := FEditors[Player].Parent as TTabSheet;
@@ -106,11 +112,52 @@ begin
   begin
     FEditors[Player].Commit;
   end;
+  FMap.Teams.Assign(FTeamCache);
 end;
 
-procedure TPlayerOptionsForm.UpdateTeams(Sender: TObject);
+procedure TPlayerOptionsForm.UpdateTeams(Sender: TObject;
+  APlayer: TPlayerColor; ATeam: TTeam);
+var
+  Player: TPlayer;
+  team: TCollectionItem;
+  new_team: TTeam;
 begin
+  if not Assigned(ATeam) then
+  begin
+    //team set to none
+    for team in FTeamCache do
+    begin
+      TTeam(team).Exclude(APlayer);
+    end;
+  end
+  else
+  if not Assigned(ATeam.Collection) then
+  begin
+    //team set to virtual team
+    new_team := FTeamCache.Add;
+    new_team.Assign(ATeam);
+    new_team.Include(APlayer);
+  end
+  else
+  begin
+    //existing team
+    ATeam.Include(APlayer);
+  end;
 
+  for team in FTeamCache do
+  begin
+    if TTeam(team).IsEmpty then team.Free;
+  end;
+
+  for Player in TPlayerColor do
+  begin
+    FEditors[Player].FillTeams;
+  end;
+end;
+
+procedure TPlayerOptionsForm.GetVirtualTeam(APlayer: TPlayerColor; var ATeam: TTeam);
+begin
+  ATeam := FVirtualTeams[APlayer];
 end;
 
 constructor TPlayerOptionsForm.Create(TheOwner: TComponent);
@@ -120,6 +167,8 @@ var
   page: TTabSheet;
 begin
   inherited Create(TheOwner);
+
+  FTeamCache := TTeamSettings.Create;
 
   for Player in TPlayerColor do
   begin
@@ -131,9 +180,29 @@ begin
     editor.Visible:=true;
     editor.Parent:=page;
     editor.Align:=alClient;
+    editor.OnGetVirtualTeam := @GetVirtualTeam;
+    editor.OnAlliesChanged := @UpdateTeams;
+    editor.TeamCache := FTeamCache;
 
     FEditors[Player] := editor;
+
+    FVirtualTeams[Player] := TTeam.Create(nil);
+    FVirtualTeams[Player].Include(Player);
   end;
+end;
+
+destructor TPlayerOptionsForm.Destroy;
+var
+  Player: TPlayer;
+begin
+  inherited Destroy;
+
+  for Player in TPlayerColor do
+  begin
+    FVirtualTeams[Player].Free;
+  end;
+
+  FTeamCache.Free;
 end;
 
 end.

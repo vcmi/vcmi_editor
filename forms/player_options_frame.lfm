@@ -142,7 +142,6 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Top = 314
     Width = 244
     ItemHeight = 15
-    OnChange = edTeamChange
     Style = csDropDownList
     TabOrder = 4
   end

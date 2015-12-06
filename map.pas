@@ -185,11 +185,15 @@ type
   TTeam = class(TCollectionItem, IEmbeddedValue)
   private
     FMembers: TPlayers;
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   public
     procedure Include(APlayer: TPlayerColor);
     procedure Exclude(APlayer: TPlayerColor);
+    function Has(APlayer: TPlayerColor): Boolean;
 
     function FormatDescription(PoV: TPlayer): TLocalizedString;
+    function IsEmpty: Boolean;
   published
     property Members: TPlayers read FMembers;
   end;
@@ -675,15 +679,26 @@ uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
 
 { TTeam }
 
+procedure TTeam.AssignTo(Dest: TPersistent);
+begin
+  if Dest is TTeam then
+  begin
+    TTeam(dest).FMembers := Members;
+  end
+  else begin
+    inherited AssignTo(Dest);
+  end;
+end;
+
 procedure TTeam.Include(APlayer: TPlayerColor);
 var
   item: TCollectionItem;
 begin
-
-  for item in Collection do
-  begin
-    (item as TTeam).Exclude(APlayer);
-  end;
+  if Assigned(Collection) then
+    for item in Collection do
+    begin
+      (item as TTeam).Exclude(APlayer);
+    end;
 
   FMembers += [APlayer];
 end;
@@ -691,6 +706,11 @@ end;
 procedure TTeam.Exclude(APlayer: TPlayerColor);
 begin
   FMembers -= [APlayer];
+end;
+
+function TTeam.Has(APlayer: TPlayerColor): Boolean;
+begin
+  result := FMembers * [APlayer] <> [];
 end;
 
 function TTeam.FormatDescription(PoV: TPlayer): TLocalizedString;
@@ -722,6 +742,11 @@ begin
       Result := Result + ', ' + RootManager.ListsManager.PlayerName[iter];
     end;
   end;
+end;
+
+function TTeam.IsEmpty: Boolean;
+begin
+  Result := FMembers = [];
 end;
 
 { TTeamSettings }
