@@ -86,7 +86,7 @@ const
   MASK_ACTIVABLE   = 'A'; //visible, activable
   MASK_TRIGGER     = 'T'; //not visible, activable
 
-  Z_INDEX_OVERLAY = -1000000;
+  Z_INDEX_OVERLAY = -100;
 const
   ALL_TERRAINS =
  [TTerrainType.dirt,

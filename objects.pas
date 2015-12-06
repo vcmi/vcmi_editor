@@ -44,7 +44,6 @@ type
     FLandscape,FLandEditGroups: uint16;
     FTyp,FSubType: uint32;
     FGroup,FIsOverlay: uint8;
-    function IsVisitableFromTop(): Boolean;
   public
     constructor Create;
 
@@ -58,7 +57,7 @@ type
 
     property IsOverlay: uint8 read FIsOverlay;
 
-    property VisitableFromTop: Boolean read IsVisitableFromTop;
+
   end;
 
   { TMaskResource }
@@ -158,7 +157,7 @@ type
 
     property ObjType: TObjType read FObjType;
   published
-    property Index: TCustomID read GetIndexAsID write SetIndexAsID default -1;
+    property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
     property Templates:TObjTemplates read FTemplates;
     property Name: TLocalizedString read FName write FName;
   end;
@@ -382,6 +381,7 @@ end;
 constructor TObjSubType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
+  index := ID_INVALID;
   FTemplates := TObjTemplates.Create(Self);
 
   FObjType :=  (ACollection as TObjSubTypes).Owner;
@@ -462,32 +462,6 @@ end;
 
 { TLegacyObjTemplate }
 
-function TLegacyObjTemplate.IsVisitableFromTop: Boolean;
-begin
-  if (FGroup=2) or (FGroup=3) or (FGroup=4) or (FGroup=5) then
-    Result := true
-  else
-    case TObj(FTyp) of
-      TObj.FLOTSAM,
-      TObj.SEA_CHEST,
-      Tobj.SHIPWRECK_SURVIVOR,
-      Tobj.BUOY,
-      Tobj.OCEAN_BOTTLE,
-      TObj.BOAT,
-      TObj.WHIRLPOOL,
-      Tobj.GARRISON,
-      Tobj.GARRISON2,
-      Tobj.SCHOLAR,
-      Tobj.CAMPFIRE,
-      Tobj.BORDERGUARD,
-      Tobj.BORDER_GATE,
-      Tobj.QUEST_GUARD,
-      Tobj.CORPSE: Result:= true;
-    else
-      Result := false;
-    end;
-
-end;
 
 constructor TLegacyObjTemplate.Create;
 begin
@@ -795,24 +769,7 @@ begin
       //TODO: allowedTerrains
 
       visit_conf := CreateJSONArray([]);
-      //top line
-      if def.IsVisitableFromTop then
-        str := '---'
-      else
-        str := '+++';
-      UniqueString(str);
-      visit_conf.Add(str);
-
-      //middle line
-      str := '+-+';
-      UniqueString(str);
-      visit_conf.Add(str);
-
-      //bollom line
-      str := '+++';
-      UniqueString(str);
-      visit_conf.Add(str);
-
+      GenerateDefaultVisitableFrom(visit_conf, def.FGroup, TObj(def.Typ) );
       legacy_config.Add('visitableFrom', visit_conf);
 
       full_id := TypToId(def.FTyp, def.FSubType);
@@ -906,14 +863,18 @@ begin
 
       templates_obj :=  subTypeObj.GetOrCreateObject('templates');
 
-      for k := legacy_data.Count - 1 downto 0 do
+      if templates_obj.Count = 0 then
       begin
+        //add legacy templates only if there are no normal templates
+        for k := legacy_data.Count - 1 downto 0 do
+        begin
 
-        t := legacy_data.Items[k];
+          t := legacy_data.Items[k];
 
-        legacy_data.Extract(t);
+          legacy_data.Extract(t);
 
-        templates_obj.Add('legacy_'+IntToStr(k), t);
+          templates_obj.Add('legacy_'+IntToStr(k), t);
+        end;
       end;
 
       AFullIdToDefMap.Remove(full_id); //delete merged data
@@ -930,8 +891,6 @@ var
 begin
   DebugLn([#9,#9,AName]);
   obj_template := Item as TJSONObject;
-
-  base := nil;
 
   if Assigned(data) then
   begin
@@ -952,14 +911,18 @@ begin
   DebugLn([#9,AName]);
   obj_subtype := Item as TJSONObject;
 
-  base := nil;
-
   if Assigned(data) then
   begin
-    base := data as TJSONObject;
+    obj_subtype.InheritFrom(data as TJSONObject);
+  end;
 
-    obj_subtype.InheritFrom(base);
+  base := nil;
 
+  idx := obj_subtype.IndexOfName('base');
+
+  if idx>=0 then
+  begin
+    base := obj_subtype.Objects['base'];
   end;
 
   //now handle base for templates
@@ -1038,7 +1001,8 @@ begin
       Continue;
 
     town_type := TJSONObject.Create;
-    town_type.Add('index', faction.Index);
+    if(faction.Index >= 0) then
+      town_type.Add('index', faction.Index);
 
     MergeJson(faction.Town.MapObject, town_type);
 
@@ -1060,7 +1024,8 @@ begin
   begin
     hcinfo := ListsManager.HeroClassInfos[i];
     hc := TJSONObject.Create;
-    hc.Add('index', hcinfo.Index);
+    if hcinfo.Index >=0 then
+      hc.Add('index', hcinfo.Index);
 
     MergeJson(hcinfo.MapObject, hc);
 
@@ -1082,7 +1047,8 @@ begin
     cr_info := ListsManager.CreatureInfos[i];
 
     cr := TJSONObject.Create;
-    cr.Add('index', cr_info.Index);
+    if cr_info.Index >= 0 then
+      cr.Add('index', cr_info.Index);
     cr_info.Graphics.AddTemplates(cr);
 
     creatures.Add(cr_info.ID, cr);
@@ -1102,7 +1068,8 @@ begin
   begin
     info := ListsManager.ArtifactInfos[i];
     ar := TJSONObject.Create;
-    ar.Add('index', info.Index);
+    if info.Index >= 0 then
+      ar.Add('index', info.Index);
 
     info.Graphics.AddTemplates(ar);
     artifacts.Add(info.ID, ar);

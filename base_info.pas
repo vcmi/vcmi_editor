@@ -38,7 +38,6 @@ type
     FName: TLocalizedString;
     FIndex: TCustomID;
 
-
     procedure SetID(AValue: AnsiString);
 
     procedure SetIndex(AValue: TCustomID);

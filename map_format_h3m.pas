@@ -856,6 +856,7 @@ var
   obj_type: TObjSubType;
   ID: DWord;
   sub_id: DWord;
+  group: Byte;
 
 begin
   cnt := FSrc.ReadDWord;
@@ -884,10 +885,13 @@ begin
       DebugLn(['Unknown object:  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
     end;
 
-    b := FSrc.ReadByte;  //todo: read type
+    group := FSrc.ReadByte;
+
     b := FSrc.ReadByte;
     obj.ZIndex := b * Z_INDEX_OVERLAY;
     FSrc.Skip(16); //junk
+
+    GenerateDefaultVisitableFrom(obj.VisitableFrom,group, TObj(ID));
 
     //DebugLn(['Read  TID ', i, ' ID ', ID, ' subid ',  sub_id]);
   end;

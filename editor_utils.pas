@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, Classes, types, editor_types, gmap, gutil;
+  sysutils, Classes, types, editor_types, editor_consts, fpjson, gmap, gutil;
 
 type
 
@@ -52,6 +52,9 @@ type
   function NormalizeResourceName(const AName: string): string;
 
   function StripScope(const AIdentifier: string): string;
+
+  procedure GenerateDefaultVisitableFrom(ADest: TStrings; AGroup: UInt8; Atyp: Tobj);
+  procedure GenerateDefaultVisitableFrom(ADest: TJSONArray; AGroup: UInt8; Atyp: Tobj);
 
 implementation
 
@@ -108,6 +111,74 @@ begin
   else
   begin
     Result := copy(AIdentifier, colon_position+1, MaxInt);
+  end;
+end;
+
+procedure GenerateDefaultVisitableFrom(ADest: TStrings; AGroup: UInt8;
+  Atyp: Tobj);
+var
+  from_top: Boolean;
+  str: String;
+begin
+  if (AGroup=2) or (AGroup=3) or (AGroup=4) or (AGroup=5) then
+    from_top := true
+  else
+    case TObj(Atyp) of
+      TObj.FLOTSAM,
+      TObj.SEA_CHEST,
+      Tobj.SHIPWRECK_SURVIVOR,
+      Tobj.BUOY,
+      Tobj.OCEAN_BOTTLE,
+      TObj.BOAT,
+      TObj.WHIRLPOOL,
+      Tobj.GARRISON,
+      Tobj.GARRISON2,
+      Tobj.SCHOLAR,
+      Tobj.CAMPFIRE,
+      Tobj.BORDERGUARD,
+      Tobj.BORDER_GATE,
+      Tobj.QUEST_GUARD,
+      Tobj.CORPSE: from_top:= true;
+    else
+      from_top := false;
+    end;
+
+  //top line
+  if from_top then
+    str := '+++'
+  else
+    str := '---';
+  UniqueString(str);
+  ADest.Add(str);
+
+  //middle line
+  str := '+-+';
+  UniqueString(str);
+  ADest.Add(str);
+
+  //bollom line
+  str := '+++';
+  UniqueString(str);
+  ADest.Add(str)
+end;
+
+procedure GenerateDefaultVisitableFrom(ADest: TJSONArray; AGroup: UInt8;
+  Atyp: Tobj);
+var
+  tmp: TStringList;
+  s: String;
+begin
+  tmp := TStringList.Create;
+  try
+    GenerateDefaultVisitableFrom(tmp, AGroup, Atyp);
+
+    ADest.Clear;
+    for s in tmp do
+    begin
+      ADest.Add(s);
+    end;
+  finally
+    tmp.Free;
   end;
 end;
 

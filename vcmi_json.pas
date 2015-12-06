@@ -304,6 +304,9 @@ procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
 var
   iter: TJSONEnum;
 begin
+  if ASrc.Count = 0 then
+    exit;
+
   ADest.Clear;
   for iter in Asrc do
   begin
