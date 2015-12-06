@@ -213,6 +213,7 @@ type
   public
     constructor Create(AOwner:  IReferenceNotify);
     procedure Delete(Index: Integer); override;
+    procedure Clear; override;
   end;
 
 implementation
@@ -246,6 +247,16 @@ begin
   inherited Delete(Index);
 end;
 
+procedure TIdentifierList.Clear;
+var
+  s: String;
+begin
+  for s in self do
+    FOwner.NotifyReferenced(s, '');
+
+  inherited Clear;
+end;
+
 { TGNamedCollection }
 
 function TGNamedCollection.GetItems(const Idx: Integer): TItem;
@@ -270,7 +281,10 @@ end;
 
 function TGNamedCollection.FindItem(const AName: String): TItemType;
 begin
-  Result := TItemType(inherited FindItem(AName));
+  if AName = '' then
+    Result := nil
+  else
+    Result := TItemType(inherited FindItem(AName));
 end;
 
 { THashedCollection }

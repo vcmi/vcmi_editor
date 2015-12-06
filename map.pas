@@ -61,6 +61,8 @@ type
     function GetName: TLocalizedString;
     function GetType: AnsiString;
     procedure SetMapObject(AValue: TMapObject);
+  protected
+    function GetDisplayName: string; override;
   public
     property MapObject: TMapObject read FMapObject write SetMapObject;
   published
@@ -102,6 +104,7 @@ type
   TPlayerInfo = class(TObject, ISerializeSpecial, IFPObserver)
   private
     FCanPlay: TPlayableBy;
+    FColor: TPlayerColor;
     FOwner: IReferenceNotify;
     FAITactics: TAITactics;
     FAllowedFactions: TLogicalIDCondition;
@@ -122,8 +125,10 @@ type
     procedure SetRandomHero(AValue: Boolean);
 
   public
-    constructor Create(AOwner: IReferenceNotify);
+    constructor Create(AColor: TPlayerColor; AOwner: IReferenceNotify);
     destructor Destroy; override;
+
+    property Color: TPlayerColor read FColor;
 
   public // ISerializeSpecial
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -183,6 +188,8 @@ type
   public
     procedure Include(APlayer: TPlayerColor);
     procedure Exclude(APlayer: TPlayerColor);
+
+    function FormatDescription(PoV: TPlayer): TLocalizedString;
   published
     property Members: TPlayers read FMembers;
   end;
@@ -338,6 +345,7 @@ type
 
     procedure AssignTemplate(ATemplate: TObjTemplate);
 
+    function FormatDisplayName(ACustomName: TLocalizedString): TLocalizedString;
   public //IMapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
@@ -623,6 +631,10 @@ type
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
+
+    //actual hero Name
+    function GetHeroName(AObject: TMapObject): TLocalizedString;
+
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -679,6 +691,37 @@ end;
 procedure TTeam.Exclude(APlayer: TPlayerColor);
 begin
   FMembers -= [APlayer];
+end;
+
+function TTeam.FormatDescription(PoV: TPlayer): TLocalizedString;
+var
+  iter: TPlayer;
+  first: Boolean;
+
+  tmp : TPlayers;
+begin
+  Result := '';
+
+  tmp := FMembers;
+
+  tmp -= [PoV];
+
+  first := True;
+
+  for iter in tmp do
+  begin
+
+    if first then
+    begin
+      first:=false;
+
+      Result := RootManager.ListsManager.PlayerName[iter];
+    end
+    else
+    begin
+      Result := Result + ', ' + RootManager.ListsManager.PlayerName[iter];
+    end;
+  end;
 end;
 
 { TTeamSettings }
@@ -1264,9 +1307,7 @@ end;
 
 function TMapObject.GetDisplayName: string;
 begin
-  Result:=inherited GetDisplayName;
-
-  Result:=Format('%s::%s @ %d %d %d',[&type, subtype,X,Y,L]);
+  Result:=FormatDisplayName('');
 end;
 
 function TMapObject.GetMap: TVCMIMap;
@@ -1279,6 +1320,15 @@ begin
   Template.Assign(ATemplate);
   &Type:=ATemplate.ObjType.Identifier;
   Subtype := ATemplate.ObjSubType.Identifier;
+end;
+
+function TMapObject.FormatDisplayName(ACustomName: TLocalizedString
+  ): TLocalizedString;
+begin
+  if ACustomName = '' then
+    Result:=Format('%s::%s @ %d %d %d',[&type, subtype,X,Y,L])
+  else
+    Result:=Format('%s @ %d %d %d',[ACustomName,X,Y,L]);
 end;
 
 procedure TMapObject.SetPlayer(AValue: TPlayer);
@@ -1399,8 +1449,18 @@ begin
   Identifier:=AValue.Identifier;
 end;
 
-constructor TPlayerInfo.Create(AOwner: IReferenceNotify);
+function TPlayerHero.GetDisplayName: string;
 begin
+  if not Assigned(FMapObject) then
+  begin
+    Exit('');
+  end;
+  Result := Format('%s @ %d %d %d',[(MapObject.Options as THeroOptions).Name, MapObject.X, MapObject.Y, MapObject.L]);
+end;
+
+constructor TPlayerInfo.Create(AColor: TPlayerColor; AOwner: IReferenceNotify);
+begin
+  FColor := AColor;
   FOwner:= AOwner;
   FAllowedFactions := TLogicalIDCondition.Create(AOwner);
 
@@ -1496,7 +1556,7 @@ var
 begin
   Fowner := AOwner;
   for color in TPlayerColor do
-    FColors[color] := TPlayerInfo.Create(Fowner);
+    FColors[color] := TPlayerInfo.Create(color, Fowner);
 end;
 
 destructor TPlayerInfos.Destroy;
@@ -2036,6 +2096,39 @@ begin
   end;
 
 
+end;
+
+function TVCMIMap.GetHeroName(AObject: TMapObject): TLocalizedString;
+var
+  opt: THeroOptions;
+  definition: THeroDefinition;
+  info: THeroInfo;
+begin
+  Result := '[Unknown]';
+
+  if AObject.&type = TYPE_RANDOMHERO then
+  begin
+    Result := 'Random hero';
+  end;
+
+  opt := AObject.Options as THeroOptions;
+
+  if opt.Name <> '' then
+  begin
+    Result := opt.Name;
+    exit;
+  end;
+
+  definition := PredefinedHeroes.FindItem(opt.&type);
+
+  if Assigned(definition) and (definition.Name <> '') then
+  begin
+    exit(definition.Name);
+  end;
+
+  info := ListsManager.Heroes[opt.&type];
+  if Assigned(info) then
+    Result := info.Name;
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

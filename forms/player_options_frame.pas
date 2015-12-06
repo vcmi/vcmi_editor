@@ -25,14 +25,15 @@ interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, StdCtrls, ExtCtrls,
-  CheckLst, map, lists_manager, editor_types, gui_helpers;
+  CheckLst, map, lists_manager, editor_types, editor_str_consts, editor_classes,
+  gui_helpers;
 
 type
 
   { TPlayerOptionsFrame }
 
   TPlayerOptionsFrame = class(TFrame)
-    cbAllowedFactions: TCheckBox;
+    AllowedFactionsPermissive: TCheckBox;
     edGenerateHero: TCheckBox;
     edTeam: TComboBox;
     edMainHero: TComboBox;
@@ -47,16 +48,21 @@ type
     lbMainTown: TLabel;
     lbAllowedFactions: TLabel;
     lbCanPlay: TLabel;
+    procedure edTeamChange(Sender: TObject);
   private
     FMap: TVCMIMap;
     FObject: TPlayerInfo;
+    FOnAlliesChanged: TNotifyEvent;
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
     procedure FillTeams;
+    procedure SetOnAlliesChanged(AValue: TNotifyEvent);
   public
     property Map: TVCMIMap read FMap write SetMap;
     procedure EditObject(AObject: TPlayerInfo);
     procedure Commit;
+
+    property OnAlliesChanged: TNotifyEvent read FOnAlliesChanged write SetOnAlliesChanged;
   end;
 
 implementation
@@ -65,6 +71,14 @@ implementation
 
 { TPlayerOptionsFrame }
 
+procedure TPlayerOptionsFrame.edTeamChange(Sender: TObject);
+begin
+  if Assigned(FOnAlliesChanged) then
+  begin
+    FOnAlliesChanged(Self);
+  end;
+end;
+
 procedure TPlayerOptionsFrame.SetMap(AValue: TVCMIMap);
 begin
   if FMap=AValue then Exit;
@@ -72,6 +86,10 @@ begin
 end;
 
 procedure TPlayerOptionsFrame.ReadData;
+var
+  i: Integer;
+  selected_idx: Integer;
+  team: TTeam;
 begin
   //player is playable if it has at least one town or hero
 
@@ -86,16 +104,57 @@ begin
     Enabled:=true;
   end;
 
-  edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions);
+  edAllowedFactions.FillFromCondition(FMap.ListsManager.TownMap, FObject.AllowedFactions);
+  AllowedFactionsPermissive.Checked:=FObject.AllowedFactions.IsPermissive;
 
+  selected_idx := 0;
+  edMainTown.AddItem(rsNone, nil);
 
+  for i := 0 to FObject.Towns.Count - 1 do
+  begin
+    edMainTown.AddItem(FObject.Towns[i].MapObject.DisplayName, FObject.Towns[i]);
+
+    if(FObject.MainTown = FObject.Towns[i].Identifier) then
+      selected_idx := i+1;
+  end;
+  edMainTown.ItemIndex := selected_idx;
 
   edGenerateHero.Checked := FObject.GenerateHeroAtMainTown;
+
+  selected_idx := 0;
+  edMainHero.AddItem(rsNone, nil);
+
+  for i := 0 to FObject.Heroes.Count - 1 do
+  begin
+    edMainHero.AddItem(FObject.Heroes[i].MapObject.FormatDisplayName(FMap.GetHeroName(FObject.Heroes[i].MapObject)), FObject.Heroes[i]);
+
+    if(FObject.MainHero = FObject.Heroes[i].Identifier) then
+      selected_idx := i+1;
+  end;
+
+  edMainHero.ItemIndex := selected_idx;
+
+  selected_idx := 0;
+  edTeam.AddItem(rsNone, nil);
+
+  for i := 0 to FMap.Teams.Count - 1 do
+  begin
+    team := FMap.Teams[i];
+
+    edTeam.AddItem(team.FormatDescription(FObject.Color), team);
+  end;
+
+  edTeam.ItemIndex := selected_idx;
 end;
 
 procedure TPlayerOptionsFrame.FillTeams;
 begin
 
+end;
+
+procedure TPlayerOptionsFrame.SetOnAlliesChanged(AValue: TNotifyEvent);
+begin
+  FOnAlliesChanged:=AValue;
 end;
 
 procedure TPlayerOptionsFrame.EditObject(AObject: TPlayerInfo);
@@ -111,7 +170,19 @@ begin
   else
      FObject.CanPlay := TPlayableBy(edCanPlay.ItemIndex+1);
 
-  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions, true);
+  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
+
+  if Assigned(edMainTown.Items.Objects[edMainTown.ItemIndex]) then
+    FObject.MainTown:=(edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).Identifier
+  else
+    FObject.MainTown := '';
+
+  FObject.GenerateHeroAtMainTown := edGenerateHero.Checked;
+
+  if Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
+    FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TPlayerHero).Identifier
+  else
+    FObject.MainHero := '';
 end;
 
 end.

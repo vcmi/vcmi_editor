@@ -449,6 +449,7 @@ type
   strict private
 
     FTextDataConfig: TTextDataConfig;
+    FTownMap: TStrings;
 
     function GetArtifactSlotMap(ASlot: Integer): TStrings;
     function GetHeroClasses(AId: AnsiString): THeroClassInfo;
@@ -493,6 +494,7 @@ type
     //Factions
     property FactionInfos:TFactionInfos read FFactionInfos;
     property FactionMap: TStrings read FFactionMap;
+    property TownMap: TStrings read FTownMap;
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
     function GetFaction(const AID: AnsiString): TFactionInfo;
 
@@ -887,7 +889,7 @@ begin
   AList.Clear;
   for faction in Self do
   begin
-    AList.Add(faction.ID);
+    AList.AddObject(faction.ID, faction);
   end;
 end;
 
@@ -899,7 +901,7 @@ begin
   for faction in Self do
   begin
     if faction.HasTown then
-      AList.Add(faction.ID);
+      AList.AddObject(faction.ID, faction);
   end;
 end;
 
@@ -975,6 +977,7 @@ begin
 
   FFactionInfos := TFactionInfos.Create(True);
   FFactionMap := CrStrList;
+  FTownMap := CrStrList;
 
   FHeroClassInfos := THeroClassInfos.Create(True);
   FHeroClassMap := CrStrList;
@@ -1018,7 +1021,7 @@ begin
 
   FHeroClassMap.Free;
   FHeroClassInfos.Free;
-
+  FTownMap.Free;
   FFactionMap.Free;
   FFactionInfos.Free;
 
@@ -1071,8 +1074,15 @@ begin
 end;
 
 function TListsManager.GetHeroes(AId: AnsiString): THeroInfo;
+var
+  idx: Integer;
 begin
-  Result := FHeroMap.Objects[FHeroMap.IndexOf(AId)] as THeroInfo;
+  idx := FHeroMap.IndexOf(AId);
+
+  if idx = -1 then
+    Result := nil
+  else
+    Result := FHeroMap.Objects[idx] as THeroInfo;
 end;
 
 function TListsManager.GetHeroClasses(AId: AnsiString): THeroClassInfo;
@@ -1279,6 +1289,7 @@ var
   o: TJSONObject;
   info: TFactionInfo;
   iter: TJSONEnum;
+  i: Integer;
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
@@ -1319,6 +1330,9 @@ begin
 
       DebugLn([info.ID, ' ', info.Name]);
     end;
+
+    FFactionInfos.FillWithTownIds(FTownMap);
+
   finally
     faction_names.Free;
     legacy_data.Free;

@@ -35,6 +35,7 @@ resourcestring
   rsEditRiverDescription = 'Edit rivers';
 
   rsEmpty = '(Empty)';
+  rsNone  = '(None)';
 
   rsArmy = 'Army';
   rsGuards = 'Guards';

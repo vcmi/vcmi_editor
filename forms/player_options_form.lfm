@@ -15,12 +15,10 @@ object PlayerOptionsForm: TPlayerOptionsForm
     Height = 26
     Top = 492
     Width = 81
+    Action = actOK
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
-    Caption = 'Ok'
-    ModalResult = 1
-    OnClick = btOkClick
     TabOrder = 0
   end
   object btCancel: TButton
@@ -32,11 +30,10 @@ object PlayerOptionsForm: TPlayerOptionsForm
     Height = 26
     Top = 492
     Width = 75
+    Action = actCancel
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
-    Caption = 'Cancel'
-    ModalResult = 2
     TabOrder = 1
   end
   object pcMain: TPageControl
@@ -56,5 +53,19 @@ object PlayerOptionsForm: TPlayerOptionsForm
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
     TabOrder = 2
+  end
+  object act: TActionList
+    left = 16
+    top = 16
+    object actOK: TAction
+      Caption = 'OK'
+      OnExecute = actOKExecute
+      ShortCut = 16397
+    end
+    object actCancel: TAction
+      Caption = 'Cancel'
+      OnExecute = actCancelExecute
+      ShortCut = 27
+    end
   end
 end

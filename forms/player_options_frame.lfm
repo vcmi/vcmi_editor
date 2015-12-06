@@ -65,12 +65,12 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     ItemHeight = 0
     TabOrder = 1
   end
-  object cbAllowedFactions: TCheckBox
+  object AllowedFactionsPermissive: TCheckBox
     Left = 414
     Height = 100
     Top = 81
     Width = 114
-    Caption = 'Customise'
+    Caption = 'Allow others'
     TabOrder = 5
   end
   object lbMainTown: TLabel
@@ -89,6 +89,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Top = 210
     Width = 244
     ItemHeight = 15
+    Style = csDropDownList
     TabOrder = 2
   end
   object edGenerateHero: TCheckBox
@@ -115,6 +116,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Top = 262
     Width = 244
     ItemHeight = 15
+    Style = csDropDownList
     TabOrder = 3
   end
   object Label1: TLabel
@@ -130,7 +132,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Top = 314
     Width = 90
     AutoSize = False
-    Caption = 'Team:'
+    Caption = 'Allies:'
     Constraints.MaxWidth = 90
     ParentColor = False
   end
@@ -140,6 +142,8 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
     Top = 314
     Width = 244
     ItemHeight = 15
+    OnChange = edTeamChange
+    Style = csDropDownList
     TabOrder = 4
   end
   object Label2: TLabel

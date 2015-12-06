@@ -25,16 +25,21 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, map, editor_types, player_options_frame;
+  ComCtrls, ExtCtrls, ActnList, map, editor_types, player_options_frame;
 
 type
 
   { TPlayerOptionsForm }
 
   TPlayerOptionsForm = class(TForm)
+    act: TActionList;
+    actCancel: TAction;
+    actOK: TAction;
     btCancel: TButton;
     btOk: TButton;
     pcMain: TPageControl;
+    procedure actCancelExecute(Sender: TObject);
+    procedure actOKExecute(Sender: TObject);
     procedure btOkClick(Sender: TObject);
   private
     FEditors: array[TPlayerColor] of TPlayerOptionsFrame;
@@ -42,6 +47,8 @@ type
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
     procedure Commit;
+
+    procedure UpdateTeams(Sender: TObject);
   public
     constructor Create(TheOwner: TComponent); override;
     property Map: TVCMIMap read FMap write SetMap;
@@ -55,7 +62,18 @@ implementation
 
 procedure TPlayerOptionsForm.btOkClick(Sender: TObject);
 begin
+
+end;
+
+procedure TPlayerOptionsForm.actOKExecute(Sender: TObject);
+begin
   Commit;
+  ModalResult:=mrOK;
+end;
+
+procedure TPlayerOptionsForm.actCancelExecute(Sender: TObject);
+begin
+  ModalResult:=mrCancel;
 end;
 
 procedure TPlayerOptionsForm.SetMap(AValue: TVCMIMap);
@@ -88,6 +106,11 @@ begin
   begin
     FEditors[Player].Commit;
   end;
+end;
+
+procedure TPlayerOptionsForm.UpdateTeams(Sender: TObject);
+begin
+
 end;
 
 constructor TPlayerOptionsForm.Create(TheOwner: TComponent);
