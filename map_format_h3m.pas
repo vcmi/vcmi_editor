@@ -401,13 +401,13 @@ begin
   lvl := FMap.MapLevels.Add;
   lvl.Width:=cr_params.Width;
   lvl.Height:=cr_params.Height;
-  lvl.DisplayName := 'surface';
+  lvl.Identifier := 'surface';
   if cr_params.Levels>1 then
   begin
     lvl := FMap.MapLevels.Add;
     lvl.Width:=cr_params.Width;
     lvl.Height:=cr_params.Height;
-    lvl.DisplayName := 'underground';
+    lvl.Identifier := 'underground';
   end;
 
   FMap.CurrentLevelIndex := 0;
@@ -792,7 +792,7 @@ begin
     for i := 0 to cnt - 1 do
     begin
       secSkill := ASkills.Add;
-      secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+      secSkill.Identifier :=ReadID(@FMapEnv.lm.SkillNidToString,1);
       secSkill.Level:=ReadByte;
     end;
   end;
@@ -810,7 +810,7 @@ begin
     for i := 0 to cnt - 1 do
     begin
       secSkill := ASkills.Add;
-      secSkill.DisplayName :=ReadID(@FMapEnv.lm.SkillNidToString,1);
+      secSkill.Identifier :=ReadID(@FMapEnv.lm.SkillNidToString,1);
       secSkill.Level:=ReadByte;
     end;
   end;
@@ -876,8 +876,8 @@ begin
 
     if Assigned(obj_type) then
     begin
-      obj.&type := obj_type.ObjType.DisplayName;
-      obj.subtype:=obj_type.DisplayName;
+      obj.&type := obj_type.ObjType.Identifier;
+      obj.subtype:=obj_type.Identifier;
     end
     else
     begin
@@ -1451,7 +1451,7 @@ begin
     if not custom then Continue;
 
     definition := FMap.PredefinedHeroes.Add;
-    definition.DisplayName := FMapEnv.lm.HeroIndexToString(i);
+    definition.Identifier := FMapEnv.lm.HeroIndexToString(i);
 
     if FSrc.ReadBoolean then
     begin
@@ -1819,7 +1819,7 @@ begin
 
     special_victory := FMap.TriggeredEvents.Add;
     special_victory.Effect.&type:='victory';
-    special_victory.DisplayName := 'specialVictory';
+    special_victory.Identifier := 'specialVictory';
 
     special_condition := special_victory.Condition.Add as TLogicalEventConditionItem;
 
@@ -2134,7 +2134,7 @@ begin
 
     o := FQuestIdentifierMap.KeyData[req.Identifier];
 
-    req.ResolveProc(o.DisplayName);
+    req.ResolveProc(o.Identifier);
 
     FLinksToResolve.Delete(0);
   end;

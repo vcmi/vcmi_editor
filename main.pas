@@ -1132,54 +1132,55 @@ var
    end;
 begin
   SetMapViewMouse(x,y);
-  if FActiveBrush=FIdleBrush then
+
+  if Button = TMouseButton.mbLeft then
   begin
-
-    DragStarted:=False;
-
-    PerformStartDrag();
-
-    q := TMapObjectQueue.Create;
-    try
-      FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
-
-      if Assigned(FSelectedObject)
-        and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
-        then
-      begin
-        //select next object
-        o := nil;
-        while not q.IsEmpty do
-        begin
-          o := q.Top;
-          q.Pop;
-
-          if (q.IsEmpty) or (q.Top = FSelectedObject) then
-          begin
-            break;
-          end;
-
-        end;
-        FSelectedObject := o;
-      end
-      else
-      begin
-        if q.IsEmpty then
-          FSelectedObject := nil
-        else
-          FSelectedObject := q.Top;
-      end;
-      PerformStartDrag();
-    finally
-      q.Free;
-    end;
-  end
-  else
-  begin
-    if (Button = TMouseButton.mbLeft) then
+    if FActiveBrush=FIdleBrush then
     begin
-      FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
+      DragStarted:=False;
+
+      PerformStartDrag();
+
+      q := TMapObjectQueue.Create;
+      try
+        FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+
+        if Assigned(FSelectedObject)
+          and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
+          then
+        begin
+          //select next object
+          o := nil;
+          while not q.IsEmpty do
+          begin
+            o := q.Top;
+            q.Pop;
+
+            if (q.IsEmpty) or (q.Top = FSelectedObject) then
+            begin
+              break;
+            end;
+
+          end;
+          FSelectedObject := o;
+        end
+        else
+        begin
+          if q.IsEmpty then
+            FSelectedObject := nil
+          else
+            FSelectedObject := q.Top;
+        end;
+        PerformStartDrag();
+      finally
+        q.Free;
+      end;
+    end
+    else
+    begin
+        FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
     end;
+
   end;
 end;
 

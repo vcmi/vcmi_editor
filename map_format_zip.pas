@@ -227,7 +227,7 @@ begin
   begin
     level := Result.MapLevels[i];
 
-    terrain_file_name := Trim(LowerCase(level.DisplayName+'_terrain.json'));
+    terrain_file_name := Trim(LowerCase(level.Identifier+'_terrain.json'));
 
     if(terrain_file_name = '') then
       raise Exception.CreateFmt('Level %d: terrain filename empty',[i]);
@@ -270,7 +270,7 @@ begin
 
     StreamTilesLevel(buffer, AMap, i);
 
-    AddArchiveEntry(buffer, AMap.MapLevels[i].DisplayName + '_terrain.json');
+    AddArchiveEntry(buffer, AMap.MapLevels[i].Identifier + '_terrain.json');
   end;
 end;
 

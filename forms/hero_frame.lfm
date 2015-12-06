@@ -1,6 +1,6 @@
 inherited HeroFrame: THeroFrame
-  Height = 457
-  Width = 615
+  Height = 452
+  Width = 537
   ChildSizing.LeftRightSpacing = 5
   ChildSizing.TopBottomSpacing = 5
   ChildSizing.HorizontalSpacing = 5
@@ -11,14 +11,14 @@ inherited HeroFrame: THeroFrame
   ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
   ChildSizing.Layout = cclLeftToRightThenTopToBottom
   ChildSizing.ControlsPerLine = 3
-  ClientHeight = 457
-  ClientWidth = 615
+  ClientHeight = 452
+  ClientWidth = 537
   Constraints.MinHeight = 410
   Constraints.MinWidth = 420
   object lbHeroClass: TLabel[0]
     Left = 5
     Height = 23
-    Top = 18
+    Top = 17
     Width = 90
     Caption = 'Hero class:'
     Constraints.MaxWidth = 90
@@ -26,18 +26,18 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edHeroClass: TComboBox[1]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 18
-    Width = 355
+    Top = 17
+    Width = 309
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 11
   end
   object Placeholder1: TLabel[2]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 18
+    Top = 17
     Width = 90
     Constraints.MaxWidth = 90
     Constraints.MinHeight = 10
@@ -47,7 +47,7 @@ inherited HeroFrame: THeroFrame
   object lbType: TLabel[3]
     Left = 5
     Height = 23
-    Top = 59
+    Top = 57
     Width = 90
     Caption = 'Type:'
     Constraints.MaxWidth = 90
@@ -55,19 +55,19 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edType: TComboBox[4]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 59
-    Width = 355
+    Top = 57
+    Width = 309
     Constraints.MinWidth = 150
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 0
   end
   object Placeholder2: TLabel[5]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 59
+    Top = 57
     Width = 90
     Constraints.MaxWidth = 90
     Constraints.MinHeight = 10
@@ -77,7 +77,7 @@ inherited HeroFrame: THeroFrame
   object lbOwner: TLabel[6]
     Left = 5
     Height = 23
-    Top = 100
+    Top = 97
     Width = 90
     Caption = 'Owner:'
     Constraints.MaxWidth = 90
@@ -85,18 +85,18 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edOwner: TComboBox[7]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 100
-    Width = 355
+    Top = 97
+    Width = 309
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 1
   end
   object Placeholder3: TLabel[8]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 100
+    Top = 97
     Width = 90
     Constraints.MaxWidth = 90
     Constraints.MinHeight = 10
@@ -106,7 +106,7 @@ inherited HeroFrame: THeroFrame
   object lbPortrait: TLabel[9]
     Left = 5
     Height = 22
-    Top = 141
+    Top = 137
     Width = 90
     Caption = 'Portrait:'
     Constraints.MaxWidth = 90
@@ -114,19 +114,19 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edPortrait: TComboBoxEx[10]
-    Left = 115
+    Left = 101
     Height = 22
-    Top = 141
-    Width = 355
+    Top = 137
+    Width = 309
     ItemHeight = 16
     ItemsEx = <>
     ReadOnly = True
     TabOrder = 2
   end
   object cbPortrait: TCheckBox[11]
-    Left = 475
+    Left = 415
     Height = 22
-    Top = 141
+    Top = 137
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
@@ -136,7 +136,7 @@ inherited HeroFrame: THeroFrame
   object lbExperience: TLabel[12]
     Left = 5
     Height = 23
-    Top = 181
+    Top = 176
     Width = 90
     Caption = 'Experience:'
     Constraints.MaxWidth = 90
@@ -144,17 +144,17 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edExperience: TEdit[13]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 181
-    Width = 355
+    Top = 176
+    Width = 309
     NumbersOnly = True
     TabOrder = 4
   end
   object cbExperience: TCheckBox[14]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 181
+    Top = 176
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
@@ -164,7 +164,7 @@ inherited HeroFrame: THeroFrame
   object lbName: TLabel[15]
     Left = 5
     Height = 23
-    Top = 222
+    Top = 216
     Width = 90
     Caption = 'Name:'
     Constraints.MaxWidth = 90
@@ -172,17 +172,17 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edName: TEdit[16]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 222
-    Width = 355
+    Top = 216
+    Width = 309
     OnEditingDone = edNameEditingDone
     TabOrder = 6
   end
   object cbName: TCheckBox[17]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 222
+    Top = 216
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
@@ -192,7 +192,7 @@ inherited HeroFrame: THeroFrame
   object lbSex: TLabel[18]
     Left = 5
     Height = 23
-    Top = 263
+    Top = 256
     Width = 90
     Caption = 'Sex:'
     Constraints.MaxWidth = 90
@@ -200,10 +200,10 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edSex: TComboBox[19]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 263
-    Width = 355
+    Top = 256
+    Width = 309
     ItemHeight = 15
     Items.Strings = (
       'Male'
@@ -214,9 +214,9 @@ inherited HeroFrame: THeroFrame
     TabOrder = 8
   end
   object cbSex: TCheckBox[20]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 263
+    Top = 256
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
@@ -226,7 +226,7 @@ inherited HeroFrame: THeroFrame
   object lbBiography: TLabel[21]
     Left = 5
     Height = 100
-    Top = 304
+    Top = 296
     Width = 90
     Caption = 'Biography:'
     Constraints.MaxWidth = 90
@@ -234,19 +234,19 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edBiography: TMemo[22]
-    Left = 115
+    Left = 101
     Height = 100
-    Top = 304
-    Width = 355
+    Top = 296
+    Width = 309
     Constraints.MinHeight = 100
     Constraints.MinWidth = 200
     ScrollBars = ssAutoBoth
     TabOrder = 13
   end
   object cbBiography: TCheckBox[23]
-    Left = 475
+    Left = 415
     Height = 100
-    Top = 304
+    Top = 296
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
@@ -256,7 +256,7 @@ inherited HeroFrame: THeroFrame
   object lbPatrol: TLabel[24]
     Left = 5
     Height = 23
-    Top = 422
+    Top = 413
     Width = 90
     Caption = 'Patrol:'
     Constraints.MaxWidth = 90
@@ -264,10 +264,10 @@ inherited HeroFrame: THeroFrame
     ParentColor = False
   end
   object edPatrol: TComboBox[25]
-    Left = 115
+    Left = 101
     Height = 23
-    Top = 422
-    Width = 355
+    Top = 413
+    Width = 309
     ItemHeight = 15
     Items.Strings = (
       'Disabled'
@@ -277,9 +277,9 @@ inherited HeroFrame: THeroFrame
     TabOrder = 10
   end
   object Placeholder5: TLabel[26]
-    Left = 475
+    Left = 415
     Height = 23
-    Top = 422
+    Top = 413
     Width = 90
     Constraints.MaxWidth = 90
     Constraints.MinHeight = 10

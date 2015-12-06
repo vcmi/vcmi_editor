@@ -32,13 +32,16 @@ type
   { TPlayerOptionsFrame }
 
   TPlayerOptionsFrame = class(TFrame)
+    cbAllowedFactions: TCheckBox;
+    edGenerateHero: TCheckBox;
     edTeam: TComboBox;
     edMainHero: TComboBox;
-    edGenerateHero: TComboBox;
     edAllowedFactions: TCheckListBox;
     edMainTown: TComboBox;
     edCanPlay: TComboBox;
+    CanPlayDescription: TLabel;
     Label1: TLabel;
+    Label2: TLabel;
     lbTeam: TLabel;
     lbMainHero: TLabel;
     lbMainTown: TLabel;
@@ -85,6 +88,9 @@ begin
 
   edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions);
 
+
+
+  edGenerateHero.Checked := FObject.GenerateHeroAtMainTown;
 end;
 
 procedure TPlayerOptionsFrame.FillTeams;

@@ -322,6 +322,7 @@ type
   protected
     procedure TypeChanged;
     procedure SetCollection(Value: TCollection); override;
+    function GetDisplayName: string; override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -381,7 +382,7 @@ type
     function GetOwner: TPersistent; override;
     procedure ItemAdded(Item: TCollectionItem); override;
     procedure ItemRemoved(Item: TCollectionItem); override;
-    procedure ItemNameChanged(Item: TCollectionItem; AOldName: String;
+    procedure ItemIdentifierChanged(Item: TCollectionItem; AOldName: String;
       ANewName: String); override;
   public
     constructor Create(AOwner: TVCMIMap);
@@ -703,7 +704,7 @@ procedure TPlayerTown.SetMapObject(AValue: TMapObject);
 begin
   if FMapObject=AValue then Exit;
   FMapObject:=AValue;
-  DisplayName:=AValue.DisplayName;
+  Identifier:=AValue.Identifier;
 end;
 
 { TVCMIMap.TModRefCountInfo }
@@ -728,7 +729,7 @@ begin
   if not Assigned(Result) then
   begin
     Result := TModRefCountInfo(ItemClass.Create(nil));
-    Result.DisplayName := AIdentifier;
+    Result.Identifier := AIdentifier;
     Result.Collection := self;
   end;
 end;
@@ -1225,9 +1226,9 @@ end;
 
 procedure TMapObject.UpdateIdentifier;
 begin
-  if(FType <> '') and (DisplayName = '') and (Assigned(Collection)) then
+  if(FType <> '') and (Identifier = '') and (Assigned(Collection)) then
   begin
-    DisplayName := StripScope(FType)+'_'+IntToStr((Collection as TMapObjects).GenerateIdentifier());
+    Identifier := StripScope(FType)+'_'+IntToStr((Collection as TMapObjects).GenerateIdentifier());
   end;
 end;
 
@@ -1261,6 +1262,13 @@ begin
   end;
 end;
 
+function TMapObject.GetDisplayName: string;
+begin
+  Result:=inherited GetDisplayName;
+
+  Result:=Format('%s::%s @ %d %d %d',[&type, subtype,X,Y,L]);
+end;
+
 function TMapObject.GetMap: TVCMIMap;
 begin
   Result := (Collection as TMapObjects).Map;
@@ -1269,8 +1277,8 @@ end;
 procedure TMapObject.AssignTemplate(ATemplate: TObjTemplate);
 begin
   Template.Assign(ATemplate);
-  &Type:=ATemplate.ObjType.DisplayName;
-  Subtype := ATemplate.ObjSubType.DisplayName;
+  &Type:=ATemplate.ObjType.Identifier;
+  Subtype := ATemplate.ObjSubType.Identifier;
 end;
 
 procedure TMapObject.SetPlayer(AValue: TPlayer);
@@ -1345,7 +1353,7 @@ procedure TMapObjects.ItemAdded(Item: TCollectionItem);
 begin
   inherited ItemAdded(Item);
 
-  ProcessItemIdentifier(Item.DisplayName);
+  ProcessItemIdentifier(TNamedCollectionItem(Item).Identifier);
   FMap.NotifyOwnerChanged(TMapObject(Item), TPlayer.none, TMapObject(Item).GetPlayer());
 end;
 
@@ -1355,10 +1363,10 @@ begin
   FMap.NotifyOwnerChanged(TMapObject(Item),TMapObject(Item).GetPlayer(), TPlayer.none);
 end;
 
-procedure TMapObjects.ItemNameChanged(Item: TCollectionItem; AOldName: String;
-  ANewName: String);
+procedure TMapObjects.ItemIdentifierChanged(Item: TCollectionItem;
+  AOldName: String; ANewName: String);
 begin
-  inherited ItemNameChanged(Item, AOldName, ANewName);
+  inherited ItemIdentifierChanged(Item, AOldName, ANewName);
 
   ProcessItemIdentifier(ANewName);
 end;
@@ -1388,7 +1396,7 @@ begin
   if FMapObject=AValue then Exit;
   FMapObject:=AValue;
 
-  DisplayName:=AValue.DisplayName;
+  Identifier:=AValue.Identifier;
 end;
 
 constructor TPlayerInfo.Create(AOwner: IReferenceNotify);
@@ -1699,14 +1707,14 @@ begin
   lvl := MapLevels.Add;
   lvl.Width:=Params.Width;
   lvl.Height:=Params.Height;
-  lvl.DisplayName := 'surface';
+  lvl.Identifier := 'surface';
 
   if Params.Levels>1 then
   begin
     lvl := MapLevels.Add;
     lvl.Width:=Params.Width;
     lvl.Height:=Params.Height;
-    lvl.DisplayName := 'underground';
+    lvl.Identifier := 'underground';
   end;
 
   CurrentLevelIndex := 0;
@@ -1992,9 +2000,9 @@ begin
 
       case AObject.&Type of
         TYPE_HERO, TYPE_RANDOMHERO:
-            Remove(opt.Heroes, AObject.DisplayName);
+            Remove(opt.Heroes, AObject.Identifier);
         TYPE_TOWN, TYPE_RANDOMTOWN:
-            Remove(opt.Towns, AObject.DisplayName);
+            Remove(opt.Towns, AObject.Identifier);
       end;
     end
     else begin

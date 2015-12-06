@@ -94,7 +94,7 @@ begin
     else
       Continue;
 
-    if map_object.DisplayName = AIdentifier then
+    if map_object.Identifier = AIdentifier then
     begin
       ObjectList.ItemIndex := ObjectList.Count-1; //select recently added object
     end;

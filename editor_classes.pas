@@ -52,7 +52,7 @@ type
 
   { INamedCollection
     Stored as object in JSON
-    uses DisplayName as a name of field }
+    uses TNamedCollectionItem.Identifier as a name of field }
 
   INamedCollection = interface ['INamedCollection']
 
@@ -89,11 +89,13 @@ type
 
   TNamedCollectionItem = class(TCollectionItem)
   private
-    FDisplayName: string;
+    FIdentifier: AnsiString;
+    procedure SetIdentifier(AValue: AnsiString);
   protected
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;
-
+  public
+    property Identifier: AnsiString read FIdentifier write SetIdentifier;
   end;
 
   TNamedCollectionItemClass = class of TNamedCollectionItem;
@@ -105,7 +107,7 @@ type
     FHash: TFPHashObjectList;
 
   protected
-    procedure ItemNameChanged(Item: TCollectionItem; AOldName: String; ANewName: String); virtual;
+    procedure ItemIdentifierChanged(Item: TCollectionItem; AOldName: String; ANewName: String); virtual;
     procedure ItemAdded(Item: TCollectionItem); virtual;
     procedure ItemRemoved(Item: TCollectionItem); virtual;
     procedure Notify(Item: TCollectionItem; Action: TCollectionNotification);
@@ -275,7 +277,7 @@ end;
 
 procedure THashedCollection.ItemAdded(Item: TCollectionItem);
 begin
-  ItemNameChanged( Item, '', Item.DisplayName);
+  ItemIdentifierChanged( Item, '', TNamedCollectionItem(Item).Identifier);
 end;
 
 procedure THashedCollection.ItemRemoved(Item: TCollectionItem);
@@ -283,7 +285,7 @@ begin
   FHash.Remove(Item);
 end;
 
-procedure THashedCollection.ItemNameChanged(Item: TCollectionItem;
+procedure THashedCollection.ItemIdentifierChanged(Item: TCollectionItem;
   AOldName: String; ANewName: String);
 begin
   if(AOldName <> '') and (ANewName <> '') then
@@ -360,17 +362,22 @@ end;
 
 { TNamedCollectionItem }
 
+procedure TNamedCollectionItem.SetIdentifier(AValue: AnsiString);
+begin
+  Changed(false);
+  if Assigned(Collection) then
+    (Collection as THashedCollection).ItemIdentifierChanged(Self, FIdentifier, AValue);
+  FIdentifier:=AValue;
+end;
+
 function TNamedCollectionItem.GetDisplayName: string;
 begin
-  Result := FDisplayName;
+  Result := FIdentifier;
 end;
 
 procedure TNamedCollectionItem.SetDisplayName(const Value: string);
 begin
-  inherited SetDisplayName(Value);
-  if Assigned(Collection) then
-    (Collection as THashedCollection).ItemNameChanged(Self, FDisplayName, Value);
-  FDisplayName := Value;
+//do nothing here
 end;
 
 { TGCollection }

@@ -618,7 +618,7 @@ begin
           pattern.Mappings.PushBack(m);
         end;
         PreparePattern(pattern);
-        FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].DisplayName)].Add(pattern);
+        FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].Identifier)].Add(pattern);
       end;
     end;
   finally

@@ -93,7 +93,7 @@ begin
 
   inherited VisitHeroDefinition(AOptions);
 
-  h_info := ListsManager.Heroes[AOptions.DisplayName];
+  h_info := ListsManager.Heroes[AOptions.Identifier];
   FCurrentHero := h_info;
   edHeroClass.FillFromList(ListsManager.HeroClassMap, h_info.&Class);
   edType.FillFromList(ListsManager.HeroMap, h_info.ID);

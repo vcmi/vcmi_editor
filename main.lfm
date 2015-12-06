@@ -1,5 +1,5 @@
 object fMain: TfMain
-  Left = 257
+  Left = 426
   Height = 838
   Top = 81
   Width = 1254
@@ -1018,7 +1018,7 @@ object fMain: TfMain
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   Position = poDefault
-  LCLVersion = '1.4.1.0'
+  LCLVersion = '1.4.5.0'
   object pnMap: TPanel
     Left = 202
     Height = 761

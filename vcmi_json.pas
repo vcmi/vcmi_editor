@@ -609,7 +609,7 @@ begin
     o := TJSONObject.Create;
     for elem in ACollection do
     begin
-      o.Add(Elem.DisplayName, ObjectToJsonEx(elem));
+      o.Add(TNamedCollectionItem(Elem).Identifier, ObjectToJsonEx(elem));
     end;
     result := o;
   end
@@ -707,15 +707,15 @@ end;
 procedure TVCMIJSONDestreamer.CollectionObjCallback(const AName: TJSONStringType;
   Item: TJSONData; Data: TObject; var Continue: Boolean);
 var
-  ACollection: TCollection;
-  new_item: TCollectionItem;
+  ACollection: THashedCollection;
+  new_item: TNamedCollectionItem;
 begin
-  ACollection:=TCollection(Data);
+  ACollection:=THashedCollection(Data);
 
   if item.JSONType <> jtNull then
   begin
-    new_item := ACollection.Add;
-    new_item.DisplayName := AName;
+    new_item := TNamedCollectionItem(ACollection.Add);
+    new_item.Identifier := AName;
 
     DestreamCollectionItem(ACollection, Item, new_item);
   end;

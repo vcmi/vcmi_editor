@@ -609,7 +609,7 @@ begin
   if Filesystem.Count = 0 then
   begin
     cur_path := Filesystem.Add;
-    cur_path.DisplayName := '';
+    cur_path.Identifier := '';
 
     item :=  cur_path.Items.Add;
     item.&Type := 'dir';
@@ -1320,7 +1320,7 @@ var
   rel_path: String;
   i: Integer;
 begin
-  vfs_path := APath.DisplayName;
+  vfs_path := APath.Identifier;
 
   SetCurrentVFSPath(vfs_path);
 

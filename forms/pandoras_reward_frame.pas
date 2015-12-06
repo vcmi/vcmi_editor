@@ -200,7 +200,7 @@ begin
     row := edSecondarySkills.RowCount;
     edSecondarySkills.InsertColRow(false, row);
 
-    info := (ListsManager.SkillMap.Objects[ListsManager.SkillMap.IndexOf(option.DisplayName)] as TBaseInfo);
+    info := (ListsManager.SkillMap.Objects[ListsManager.SkillMap.IndexOf(option.Identifier)] as TBaseInfo);
 
     edSecondarySkills.Cells[0, row] := info.Name;
     edSecondarySkills.Objects[0, row] := info;
@@ -266,7 +266,7 @@ begin
     info := edSecondarySkills.Objects[0, i] as TBaseInfo;
 
     option := AOptions.Add;
-    option.DisplayName := info.ID;
+    option.Identifier := info.ID;
     option.Level:=Integer(PtrUint(edSecondarySkills.Objects[1, i]));
   end;
 

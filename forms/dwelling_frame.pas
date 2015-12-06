@@ -154,7 +154,7 @@ end;
 
 procedure TDwellingFrame.SaveLink;
 begin
-  FOptions.SameAsTown := FLinkFrame.SelectedObject.DisplayName;
+  FOptions.SameAsTown := FLinkFrame.SelectedObject.Identifier;
 end;
 
 procedure TDwellingFrame.NormalizeLevels;

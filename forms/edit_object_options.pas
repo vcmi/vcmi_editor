@@ -126,7 +126,7 @@ begin
 
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
-  Caption:=Format('Object %s::%s at %d %d %d',[Obj.&type, Obj.subtype,Obj.X,Obj.Y,Obj.L]);
+  Caption:=Obj.DisplayName;
   ShowModal;
 end;
 

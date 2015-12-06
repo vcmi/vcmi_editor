@@ -136,7 +136,7 @@ begin
   if not Assigned(option) then
   begin
     option := Map.PredefinedHeroes.Add;
-    option.DisplayName := info.ID;
+    option.Identifier := info.ID;
   end;
 
   frm.EditObject(option);
