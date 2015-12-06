@@ -190,7 +190,7 @@ end;
 procedure TMapReaderJson.AfterReadObject(Sender: TObject; AObject: TObject;
   JSON: TJSONObject);
 begin
-  if (AObject is TMapObject) and (JSON.IndexOfName('options') >= 0) then
+  if (AObject is TMapObject) and (JSON.IndexOfName('options') >= 0) and (JSON.Types['options']=jtObject) then
   begin
     //manual destreaming of Options
 

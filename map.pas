@@ -1847,8 +1847,6 @@ end;
 
 destructor TVCMIMap.Destroy;
 begin
-  FModUsage.Free;
-  FMods.Free;
   FTriggeredEvents.Free;
 
   FPredefinedHeroes.Free;
@@ -1863,6 +1861,10 @@ begin
   FTeams.Free;
   FPlayers.Free;
   FLevels.Free;
+
+  FModUsage.Free;
+  FMods.Free;
+
   inherited Destroy;
 end;
 
