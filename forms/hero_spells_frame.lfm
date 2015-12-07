@@ -1,0 +1,38 @@
+inherited HeroSpellsFrame: THeroSpellsFrame
+  Height = 288
+  Width = 408
+  ClientHeight = 288
+  ClientWidth = 408
+  DesignLeft = 569
+  DesignTop = 213
+  object Spellbook: TCheckListBox[0]
+    Left = 0
+    Height = 267
+    Top = 21
+    Width = 408
+    Align = alClient
+    Columns = 2
+    ItemHeight = 0
+    TabOrder = 0
+  end
+  object Panel1: TPanel[1]
+    Left = 0
+    Height = 21
+    Top = 0
+    Width = 408
+    Align = alTop
+    AutoSize = True
+    ClientHeight = 21
+    ClientWidth = 408
+    TabOrder = 1
+    object cbCustomise: TCheckBox
+      Left = 1
+      Height = 19
+      Top = 1
+      Width = 406
+      Align = alTop
+      Caption = 'Customise'
+      TabOrder = 0
+    end
+  end
+end

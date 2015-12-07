@@ -1044,8 +1044,8 @@ constructor THeroDefinition.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FSkills := THeroSecondarySkills.Create;
-  FArtifacts := THeroArtifacts.Create;
-  FSpellBook := TStringList.Create;
+  FArtifacts := THeroArtifacts.Create((ACollection as THeroDefinitions).FOwner);
+  FSpellBook := TIdentifierSet.Create((ACollection as THeroDefinitions).FOwner);
   FPrimarySkills := THeroPrimarySkills.Create;
 
   FSex:=THeroSex.default;

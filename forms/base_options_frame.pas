@@ -364,50 +364,50 @@ end;
 
 procedure TBaseOptionsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitQuestGuard(AOptions: TQuestGuardOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitRandomDwelling(
   AOptions: TRandomDwellingOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitRandomDwellingTown(
   AOptions: TRandomDwellingTownOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitResource(AOptions: TResourceOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitScholar(AOptions: TScholarOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitShrine(AOptions: TShrineOptions);
@@ -417,7 +417,7 @@ end;
 
 procedure TBaseOptionsFrame.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
@@ -427,12 +427,12 @@ end;
 
 procedure TBaseOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 end.

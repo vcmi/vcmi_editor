@@ -202,52 +202,82 @@ type
     function GetName: TLocalizedString;
   end;
 
-  { TIdentifierList }
+  { TBaseIdentifierList }
 
-  TIdentifierList = class(TStringList)
+  TBaseIdentifierList = class abstract (TStringList)
   private
     FOwner: IReferenceNotify;
   protected
     procedure InsertItem(Index: Integer; const S: string; O: TObject); override;
     procedure Put(Index: Integer; const S: string); override;
   public
-    constructor Create(AOwner:  IReferenceNotify);
+    constructor Create(AOwner: IReferenceNotify); virtual;
     procedure Delete(Index: Integer); override;
     procedure Clear; override;
   end;
 
+  { TIdentifierList }
+
+  TIdentifierList = class(TBaseIdentifierList)
+  public
+    constructor Create(AOwner: IReferenceNotify); override;
+  end;
+
+  { TIdentifierSet }
+
+  TIdentifierSet = class(TBaseIdentifierList)
+  public
+    constructor Create(AOwner: IReferenceNotify); override;
+  end;
+
 implementation
+
+{ TIdentifierSet }
+
+constructor TIdentifierSet.Create(AOwner: IReferenceNotify);
+begin
+  inherited Create(AOwner);
+  Sorted:=true;
+  Duplicates:=dupIgnore;
+end;
 
 { TIdentifierList }
 
-procedure TIdentifierList.InsertItem(Index: Integer; const S: string; O: TObject
+constructor TIdentifierList.Create(AOwner: IReferenceNotify);
+begin
+  inherited Create(AOwner);
+  Sorted:=false;
+  Duplicates:=dupAccept;
+end;
+
+{ TBaseIdentifierList }
+
+procedure TBaseIdentifierList.InsertItem(Index: Integer; const S: string; O: TObject
   );
 begin
   FOwner.NotifyReferenced('', s);
   inherited InsertItem(Index, S, O);
 end;
 
-procedure TIdentifierList.Put(Index: Integer; const S: string);
+procedure TBaseIdentifierList.Put(Index: Integer; const S: string);
 begin
   FOwner.NotifyReferenced(Strings[Index], s);
   inherited Put(Index, S);
 end;
 
-constructor TIdentifierList.Create(AOwner: IReferenceNotify);
+constructor TBaseIdentifierList.Create(AOwner: IReferenceNotify);
 begin
   inherited Create;
   FOwner :=  AOwner;
-  Sorted:=true;
-  Duplicates:=dupIgnore;
 end;
 
-procedure TIdentifierList.Delete(Index: Integer);
+procedure TBaseIdentifierList.Delete(Index: Integer);
 begin
   FOwner.NotifyReferenced(Strings[Index], '');
   inherited Delete(Index);
 end;
 
-procedure TIdentifierList.Clear;
+procedure TBaseIdentifierList.Clear;
 var
   s: String;
 begin

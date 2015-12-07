@@ -28,7 +28,7 @@ uses
   StdCtrls, object_options, map, editor_str_consts, base_options_frame,
   monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
-  hero_artifacts_frame, message_frame, hero_options_frame;
+  hero_artifacts_frame, message_frame, hero_options_frame, hero_spells_frame;
 
 type
 
@@ -39,6 +39,7 @@ type
     btCancel: TButton;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
+    tsSpells: TTabSheet;
     tsArtifacts: TTabSheet;
     tsArmy: TTabSheet;
     tsObject: TTabSheet;
@@ -191,9 +192,10 @@ end;
 
 procedure TEditObjectOptions.VisitHero(AOptions: THeroOptions);
 begin
-  FActiveEditors.AddFrame(THeroOptionsFrame, AOptions,tsCommon);
+  FActiveEditors.AddFrame(THeroOptionsFrame, AOptions, tsCommon);
   VisitArmedObject(AOptions);
-  FActiveEditors.AddFrame(THeroArtifactsFrame,AOptions,tsArtifacts);
+  FActiveEditors.AddFrame(THeroArtifactsFrame,AOptions, tsArtifacts);
+  FActiveEditors.AddFrame(THeroSpellsFrame, AOptions, tsSpells);
 end;
 
 procedure TEditObjectOptions.VisitHeroPlaseholder(

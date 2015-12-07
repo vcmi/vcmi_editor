@@ -142,8 +142,7 @@ type
     FPrimarySkills: THeroPrimarySkills;
     FResources: TResourceSet;
     FTimeLimit: Integer;
-    FArtifacts:TStringList;
-    function GetArtifacts: TStrings;
+    FArtifacts:TStrings;
     function IsArmyStored: Boolean;
     function IsArtifactsStored: Boolean;
     function IsHeroIDStored: Boolean;
@@ -173,7 +172,7 @@ type
     property MissionType: TQuestMission read FMissionType write SetMissionType default TQuestMission.None;
     property TimeLimit: Integer read FTimeLimit write SetTimeLimit default -1;
 
-    property Artifacts: TStrings read GetArtifacts stored IsArtifactsStored;
+    property Artifacts: TStrings read FArtifacts stored IsArtifactsStored;
     property Army: TCreatureSet read FArmy stored IsArmyStored;
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
@@ -188,14 +187,15 @@ type
 
   THeroArtifacts = class
   private
+    FOwner: IReferenceNotify;
     FSlots: array[0..ARTIFACT_SLOT_COUNT-1] of AnsiString;
-    FBackpack: TStringList;
+    FBackpack: TStrings;
     function GetBackpack: TStrings;
     function GetBySlotNumber(ASlotID: Integer): AnsiString;
     procedure SetBySlotNumber(ASlotID: Integer; AValue: AnsiString);
 
   public
-    constructor Create;
+    constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
     property BySlotNumber[ASlotID: Integer]: AnsiString read GetBySlotNumber write SetBySlotNumber;
@@ -621,12 +621,11 @@ type
 
   TBaseRandomDwellingOptions = class abstract (TObjectOptions)
   private
-    FAllowedFactions: TStringList;
+    FAllowedFactions: TStrings;
     FLinked: boolean;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
     FSameAsTown: String;
-    function GetAllowedFactions: TStrings;
     function IsSameAsTownStored: Boolean;
     procedure SetLinked(AValue: boolean);
     procedure SetMaxLevel(AValue: UInt8);
@@ -639,7 +638,7 @@ type
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
 
-    property AllowedFactions: TStrings read GetAllowedFactions stored IsAllowedFactionsStored;
+    property AllowedFactions: TStrings read FAllowedFactions stored IsAllowedFactionsStored;
 
     property Linked: boolean read FLinked write SetLinked;
 
@@ -875,6 +874,7 @@ begin
 
   if ASlotID <= High(FSlots) then
   begin
+    FOwner.NotifyReferenced(FSlots[ASlotID],AValue);
     FSlots[ASlotID] := AValue;
     Exit;
   end;
@@ -894,11 +894,10 @@ begin
   end;
 end;
 
-constructor THeroArtifacts.Create;
+constructor THeroArtifacts.Create(AOwner: IReferenceNotify);
 begin
-  FBackpack := TStringList.Create;
-  FBackpack.Sorted := false;
-  FBackpack.Duplicates:=dupAccept;
+  FOwner := AOwner;
+  FBackpack := TIdentifierList.Create(AOwner);
 end;
 
 destructor THeroArtifacts.Destroy;
@@ -978,11 +977,6 @@ end;
 procedure TQuest.SetCompletedText(AValue: TLocalizedString);
 begin
   FCompletedText := AValue;
-end;
-
-function TQuest.GetArtifacts: TStrings;
-begin
-  Result := FArtifacts;
 end;
 
 function TQuest.IsArmyStored: Boolean;
@@ -1076,7 +1070,8 @@ constructor TQuest.Create(AOwner: IMapObject);
 begin
   FOwner := AOwner;
   TimeLimit := -1;
-  FArtifacts := TStringList.Create;
+  FArtifacts := TIdentifierList.Create(AOwner);//todo: should we allow muiltiple same arctifacts for quest
+
   FArmy := TCreatureSet.Create(FOwner);
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
@@ -1144,11 +1139,6 @@ begin
   FMaxLevel:=AValue;
 end;
 
-function TBaseRandomDwellingOptions.GetAllowedFactions: TStrings;
-begin
-  Result := FAllowedFactions;
-end;
-
 function TBaseRandomDwellingOptions.IsSameAsTownStored: Boolean;
 begin
   Result := Linked;
@@ -1169,10 +1159,7 @@ end;
 constructor TBaseRandomDwellingOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FAllowedFactions := TStringList.Create;
-  FAllowedFactions.Sorted := True;
-  FAllowedFactions.Duplicates := dupIgnore;
-
+  FAllowedFactions := TIdentifierSet.Create(AObject);
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
 end;
 
@@ -1341,8 +1328,8 @@ begin
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FSecondarySkills := THeroSecondarySkills.Create;
-  FArtifacts := TStringList.Create;
-  FSpells := TStringList.Create;
+  FArtifacts := TIdentifierList.Create(AObject);
+  FSpells := TIdentifierList.Create(AObject);
 end;
 
 destructor TPandorasOptions.Destroy;
@@ -1760,12 +1747,12 @@ constructor THeroOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FArmy := TCreatureSet.Create(AObject);
-  FArtifacts := THeroArtifacts.Create;
+  FArtifacts := THeroArtifacts.Create(AObject);
   FExperience:=0;
   FSecondarySkills := THeroSecondarySkills.Create;
   FPatrolRadius := -1;
   FSex:=THeroSex.default;
-  FSpellBook := CrStrList;
+  FSpellBook := TIdentifierList.Create(AObject);
 
   FPrimarySkills := THeroPrimarySkills.Create;
 end;

@@ -111,13 +111,13 @@ end;
 constructor TLogicalIDCondition.Create(AOwner: IReferenceNotify);
 begin
   FOwner := AOwner;
-  FAllOf := TIdentifierList.Create(Self);
+  FAllOf := TIdentifierSet.Create(Self);
   FAllOf.FPOAttachObserver(Self);
 
-  FAnyOf := TIdentifierList.Create(Self);
+  FAnyOf := TIdentifierSet.Create(Self);
   FAnyOf.FPOAttachObserver(Self);
 
-  FNoneOf := TIdentifierList.Create(Self);
+  FNoneOf := TIdentifierSet.Create(Self);
   FNoneOf.FPOAttachObserver(Self);
 end;
 

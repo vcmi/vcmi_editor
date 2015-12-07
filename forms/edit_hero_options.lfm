@@ -7,7 +7,7 @@ object EditHeroOptions: TEditHeroOptions
   ClientHeight = 592
   ClientWidth = 569
   Position = poMainFormCenter
-  LCLVersion = '1.4.1.0'
+  LCLVersion = '1.4.5.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
@@ -61,6 +61,9 @@ object EditHeroOptions: TEditHeroOptions
     TabOrder = 2
     object tsMain: TTabSheet
       Caption = 'Main options'
+    end
+    object tsSpells: TTabSheet
+      Caption = 'Spells'
     end
   end
 end

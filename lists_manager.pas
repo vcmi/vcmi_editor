@@ -133,17 +133,24 @@ type
   TGuildSpells = class(specialize TGNamedCollection<TGuildSpell>)
   end;
 
+
+
   { TTownBuilding }
 
   TTownBuilding = class(TNamedCollectionItem)
   private
     FID: Integer;
+    FName: TLocalizedString;
     FUpgrades: AnsiString;
     procedure SetID(AValue: Integer);
+    procedure SetName(AValue: TLocalizedString);
     procedure SetUpgrades(AValue: AnsiString);
   published
     property ID:Integer read FID write SetID;
+    property Name: TLocalizedString read FName write SetName;
     property Upgrades: AnsiString read FUpgrades write SetUpgrades;
+
+//    property requires;
   end;
 
   { TTownBuildings }
@@ -562,6 +569,12 @@ procedure TTownBuilding.SetID(AValue: Integer);
 begin
   if FID=AValue then Exit;
   FID:=AValue;
+end;
+
+procedure TTownBuilding.SetName(AValue: TLocalizedString);
+begin
+  if FName=AValue then Exit;
+  FName:=AValue;
 end;
 
 procedure TTownBuilding.SetUpgrades(AValue: AnsiString);
