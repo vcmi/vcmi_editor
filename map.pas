@@ -475,7 +475,9 @@ type
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
     FSpellBook: TStrings;
+    function IsArtifactsStored: Boolean;
     function IsPrimarySkillsStored: Boolean;
+    function IsSkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
     procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
@@ -496,8 +498,8 @@ type
     function GetName: TLocalizedString;
   published
     property Experience: UInt64 read FExperience write SetExperience default 0;
-    property Skills: THeroSecondarySkills read FSkills;
-    property Artifacts: THeroArtifacts read FArtifacts;
+    property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
+    property Artifacts: THeroArtifacts read FArtifacts stored IsArtifactsStored;
 
     property Biography: TLocalizedString read FBiography write SetBiography;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
@@ -1020,6 +1022,16 @@ end;
 function THeroDefinition.IsPrimarySkillsStored: Boolean;
 begin
   Result := not FPrimarySkills.IsDefault;
+end;
+
+function THeroDefinition.IsSkillsStored: Boolean;
+begin
+  Result := FSkills.Count > 0;
+end;
+
+function THeroDefinition.IsArtifactsStored: Boolean;
+begin
+  Result := not FArtifacts.IsEmpty;
 end;
 
 function THeroDefinition.GetSex: THeroSex;

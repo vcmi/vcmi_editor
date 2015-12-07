@@ -65,8 +65,14 @@ type
     //assumes items filed from AFullList
     procedure SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
+    //assumes items filed from AFullList
+    procedure SetValue(AFullList: TStrings; ASelected: AnsiString);
+    procedure SetValue(AFullList: TStrings; ASelected: TBaseInfo);
+
     function SelectedInfo: TBaseInfo;
   end;
+
+  procedure FillItems(ATarget: TStrings; AFullList: TStrings);
 
 implementation
 
@@ -262,6 +268,26 @@ begin
   idx := AFullList.IndexOf(ASelected);
 
   itemindex := idx+1;
+end;
+
+procedure TComboBoxHelper.SetValue(AFullList: TStrings; ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  idx := AFullList.IndexOf(ASelected);
+
+  itemindex := idx;
+end;
+
+procedure TComboBoxHelper.SetValue(AFullList: TStrings; ASelected: TBaseInfo);
+var
+  ID: AnsiString;
+begin
+  if Assigned(ASelected) then
+    ID := ASelected.ID
+  else
+    ID := '';
+  SetValue(AFullList, ID);
 end;
 
 function TComboBoxHelper.SelectedInfo: TBaseInfo;

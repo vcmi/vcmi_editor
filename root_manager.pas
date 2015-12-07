@@ -121,20 +121,20 @@ begin
 
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
-  ProgressForm.StageCount := ifthen(Paramcount > 0, 4, 3);
 
   Application.ProcessMessages;
 
   GlobalContextState := TGlobalState.Create;
   GlobalContextState.Init;
 
-  //stage 1
-  ProgressForm.NextStage('Scanning filesystem.');
+  ProgressForm.NextStage('Scanning filesystem ...');
 
   FResourceManager := TFSManager.Create(self);
   FResourceManager.Load(FProgressForm);
 
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
+
+  ProgressForm.NextStage('Loading confiduration ...');
 
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.PreLoad;
@@ -148,7 +148,7 @@ begin
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
   //stage 2
-  ProgressForm.NextStage('Loading terrain graphics.');
+  ProgressForm.NextStage('Loading terrain graphics ...');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 
   FTerrianManager.LoadConfig;
@@ -156,7 +156,7 @@ begin
 
   //stage 3
 
-  ProgressForm.NextStage('Loading objects.');
+  ProgressForm.NextStage('Loading objects ... ');
   LoadObjects;
 
 end;

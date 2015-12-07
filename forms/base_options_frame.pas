@@ -286,16 +286,22 @@ end;
 
 procedure TBaseOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
+var
+  grid : TCustomStringGrid;
 begin
+  grid := Sender as TCustomStringGrid;
   if (key = VK_DELETE) and (Shift=[]) then
   begin
-    (Sender as TCustomStringGrid).DeleteRow((Sender as TCustomStringGrid).Row);
+    if (grid.RowCount > grid.FixedRows) then
+    begin
+      grid.DeleteRow(grid.Row);
+    end;
     Exit;
   end;
 
   if (key = VK_INSERT) and (Shift=[]) then
   begin
-    (Sender as TCustomStringGrid).InsertColRow(false, (Sender as TCustomStringGrid).Row+1);
+    grid.InsertColRow(false, grid.Row+1);
     Exit;
   end;
 end;

@@ -781,7 +781,7 @@ begin
   if Paramcount > 0 then
   begin
     //stage 4
-    RootManager.ProgressForm.NextStage('Loading map.');
+    RootManager.ProgressForm.NextStage('Loading map ...');
 
     try
       dir := GetCurrentDirUTF8();

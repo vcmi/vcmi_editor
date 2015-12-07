@@ -62,6 +62,9 @@ object EditHeroOptions: TEditHeroOptions
     object tsMain: TTabSheet
       Caption = 'Main options'
     end
+    object tsArtifacts: TTabSheet
+      Caption = 'Artifacts'
+    end
     object tsSpells: TTabSheet
       Caption = 'Spells'
     end

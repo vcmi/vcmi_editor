@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, Grids, base_options_frame, gui_helpers,
-  object_options, editor_types, editor_consts, base_info;
+  object_options, editor_types, editor_consts, base_info, Map;
 
 type
 
@@ -45,7 +45,10 @@ type
     procedure BackPackResize(Sender: TObject);
     procedure BackPackSelectEditor(Sender: TObject; aCol, aRow: Integer;
       var Editor: TWinControl);
+    procedure BackpackSelectorCloseUp(Sender: TObject);
     procedure BackpackSelectorEditingDone(Sender: TObject);
+    procedure BackpackSelectorKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure cbCustomiseChange(Sender: TObject);
   private
     FOptions: THeroArtifacts;
@@ -62,10 +65,12 @@ type
     procedure Clear;
 
     procedure UpdateControls;
+    procedure Load(AOptions: THeroArtifacts);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
     procedure VisitHero(AOptions: THeroOptions); override;
+    procedure VisitHeroDefinition(AOptions: THeroDefinition); override;
   end;
 
 implementation
@@ -95,10 +100,15 @@ begin
   grid := Sender as TCustomStringGrid;
   Editor := BackpackSelector;
 
-  BackpackSelector.FillFromList(ListsManager.ArtifactMap,TBaseInfo(grid.Objects[grid.Col, Grid.Row])) ;
+  BackpackSelector.SetValue(ListsManager.ArtifactMap,TBaseInfo(grid.Objects[grid.Col, Grid.Row])) ;
 
   Editor.BoundsRect := grid.CellRect(aCol,aRow);
 
+end;
+
+procedure THeroArtifactsFrame.BackpackSelectorCloseUp(Sender: TObject);
+begin
+  (Sender as TComboBox).EditingDone;
 end;
 
 procedure THeroArtifactsFrame.BackpackSelectorEditingDone(Sender: TObject);
@@ -118,6 +128,12 @@ begin
     BackPack.Objects[BackPack.Col,BackPack.Row] := nil;
   end;
 
+end;
+
+procedure THeroArtifactsFrame.BackpackSelectorKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  HandleStringGridKeyDown(BackPack, key, shift);
 end;
 
 procedure THeroArtifactsFrame.cbCustomiseChange(Sender: TObject);
@@ -265,6 +281,16 @@ begin
     Clear();
 end;
 
+procedure THeroArtifactsFrame.Load(AOptions: THeroArtifacts);
+begin
+  FillItems(BackpackSelector.Items, Map.ListsManager.ArtifactMap);
+  FOptions := AOptions;
+  cbCustomise.OnChange:=nil;
+  cbCustomise.Checked:=not FOptions.IsEmpty;
+  cbCustomise.OnChange:=@cbCustomiseChange;
+  UpdateControls;
+end;
+
 constructor THeroArtifactsFrame.Create(TheOwner: TComponent);
 begin
   FillSlotCaptions;
@@ -308,11 +334,14 @@ procedure THeroArtifactsFrame.VisitHero(AOptions: THeroOptions);
 begin
   PrepareSlots;
   inherited VisitHero(AOptions);
-  FOptions := AOptions.Artifacts;
-  cbCustomise.OnChange:=nil;
-  cbCustomise.Checked:=not FOptions.IsEmpty;
-  cbCustomise.OnChange:=@cbCustomiseChange;
-  UpdateControls;
+  Load(AOptions.Artifacts);
+end;
+
+procedure THeroArtifactsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
+begin
+  PrepareSlots;
+  inherited VisitHeroDefinition(AOptions);
+  Load(AOptions.Artifacts);
 end;
 
 end.

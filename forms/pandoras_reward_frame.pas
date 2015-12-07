@@ -82,7 +82,9 @@ type
     procedure edSecondarySkillsResize(Sender: TObject);
     procedure edSecondarySkillsSelectEditor(Sender: TObject; aCol,
       aRow: Integer; var Editor: TWinControl);
+    procedure MasterySelectorCloseUp(Sender: TObject);
     procedure MasterySelectorEditingDone(Sender: TObject);
+    procedure SecondarySkillSelectorCloseUp(Sender: TObject);
     procedure SecondarySkillSelectorEditingDone(Sender: TObject);
   private
     FOptions: TPandorasOptions;
@@ -133,6 +135,11 @@ begin
   Editor.BoundsRect := grid.CellRect(aCol,aRow);
 end;
 
+procedure TPandorasRewardFrame.MasterySelectorCloseUp(Sender: TObject);
+begin
+  (Sender as TComboBox).EditingDone;
+end;
+
 procedure TPandorasRewardFrame.edSecondarySkillsResize(Sender: TObject);
 begin
   HandleStringGridResize(Sender);
@@ -149,6 +156,11 @@ begin
   edSecondarySkills.Cells[edSecondarySkills.Col,edSecondarySkills.Row]:=(Sender as TCustomComboBox).Text;
 
   edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := TObject(PtrUint((Sender as TCustomComboBox).ItemIndex));
+end;
+
+procedure TPandorasRewardFrame.SecondarySkillSelectorCloseUp(Sender: TObject);
+begin
+  (Sender as TComboBox).EditingDone;
 end;
 
 procedure TPandorasRewardFrame.SecondarySkillSelectorEditingDone(Sender: TObject

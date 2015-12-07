@@ -13,17 +13,12 @@ type
   { TProgressForm }
 
   TProgressForm = class(TForm,IProgressCallback)
-    lbOverall: TLabel;
     lbDetail: TLabel;
     pbDetail: TProgressBar;
-    pbOverall: TProgressBar;
     procedure FormCreate(Sender: TObject);
   private
-    FStageCount: Integer;
-    procedure SetStageCount(AValue: Integer);
     { private declarations }
   public
-    property StageCount: Integer read FStageCount write SetStageCount;
 
     procedure Reset;
     procedure NextStage(const AStageLabel:string);
@@ -60,21 +55,14 @@ end;
 
 procedure TProgressForm.NextStage(const AStageLabel: string);
 begin
-  pbOverall.Position := pbOverall.Position+1;
-  lbOverall.Caption := AStageLabel;
-
   pbDetail.Position := pbDetail.Min;
-  lbDetail.Caption := '';
+  lbDetail.Caption := AStageLabel;
 
   Application.ProcessMessages;
 end;
 
 procedure TProgressForm.Reset;
 begin
-  pbOverall.Min := 0;
-
-  pbOverall.Position := pbOverall.Min;
-  lbOverall.Caption := '';
   pbDetail.Position := pbDetail.Min;
   lbDetail.Caption := '';
 end;
@@ -82,13 +70,6 @@ end;
 procedure TProgressForm.SetMax(AValue: Integer);
 begin
   pbDetail.Max := AValue;
-end;
-
-procedure TProgressForm.SetStageCount(AValue: Integer);
-begin
-  if FStageCount = AValue then Exit;
-  FStageCount := AValue;
-  pbOverall.Max := FStageCount;
 end;
 
 end.

@@ -1407,14 +1407,7 @@ begin
     end;
 
     main_town_pos := TPosition.Create;
-
-    with main_town_pos,FSrc do
-    begin
-      X := ReadByte;
-      Y := ReadByte;
-      L := ReadByte;
-    end;
-
+    ReadPosition(main_town_pos);
     main_town_pos.Free; //todo: push request
   end; //main town
   with Attr,FSrc do

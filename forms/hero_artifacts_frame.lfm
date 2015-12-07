@@ -60,7 +60,9 @@ inherited HeroArtifactsFrame: THeroArtifactsFrame
       Top = 32
       Width = 200
       ItemHeight = 15
+      OnCloseUp = BackpackSelectorCloseUp
       OnEditingDone = BackpackSelectorEditingDone
+      OnKeyDown = BackpackSelectorKeyDown
       Style = csDropDownList
       TabOrder = 1
       Visible = False

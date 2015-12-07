@@ -6,13 +6,15 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComboEx, hero_frame, gui_helpers, Map, lists_manager, editor_types;
+  ComboEx, ExtCtrls, hero_frame, gui_helpers, Map, lists_manager, editor_types;
 
 type
 
   { THeroDefinitionFrame }
 
   THeroDefinitionFrame = class(THeroFrame)
+    AvailableFor: TCheckGroup;
+    AvailableForLabel: TLabel;
     procedure cbBiographyChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
@@ -23,6 +25,9 @@ type
     procedure edSexChange(Sender: TObject);
   private
     FOptions: THeroDefinition;
+    procedure LoadPlayers;
+    procedure SavePlayers;
+
   public
     procedure VisitHeroDefinition(AOptions: THeroDefinition); override;
     procedure Commit; override;
@@ -74,6 +79,30 @@ begin
   inherited;
 end;
 
+procedure THeroDefinitionFrame.LoadPlayers;
+var
+  p: TPlayerColor;
+begin
+  for p in TPlayerColor do
+  begin
+    AvailableFor.Checked[Integer(p)] := FOptions.AvailableFor * [p] <> [];
+  end;
+end;
+
+procedure THeroDefinitionFrame.SavePlayers;
+var
+  p: TPlayerColor;
+  available_for: TPlayers;
+begin
+  available_for := [];
+  for p in TPlayerColor do
+  begin
+    if AvailableFor.Checked[Integer(p)] then
+      Include(available_for, p);
+  end;
+  FOptions.AvailableFor := available_for;
+end;
+
 procedure THeroDefinitionFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 var
   h_info: THeroInfo;
@@ -113,7 +142,6 @@ begin
   begin
     FCustomBiography := FOptions.Biography;
   end;
-
   cbBiographyChange(cbBiography);
 
   cbPortraitChange(cbPortrait);
@@ -123,18 +151,50 @@ begin
   begin
     FCustomFemale:=(FOptions.Sex = THeroSex.female);
   end;
-
   cbSexChange(cbSex);
 
-
   edExperience.Text := IntToStr(FOptions.Experience);
+
+  LoadPlayers;
 
   UpdateControls();
 end;
 
 procedure THeroDefinitionFrame.Commit;
 begin
+  if cbExperience.Checked then
+   begin
+     FOptions.Experience := StrToQWordDef(edExperience.Text, 0);
+   end
+   else begin
+     FOptions.Experience := 0;
+   end;
 
+   if cbName.Checked then
+   begin
+     FOptions.Name := edName.Text;
+   end
+   else begin
+     FOptions.Name := '';
+   end;
+
+   if cbSex.Checked then
+   begin
+     FOptions.Sex := THeroSex(Integer(FCustomFemale));
+   end
+   else begin
+     FOptions.Sex := THeroSex.default;
+   end;
+
+   if cbBiography.Checked then
+   begin
+     FOptions.Biography:=edBiography.Text;
+   end
+   else
+   begin
+     FOptions.Biography:='';
+   end;
+   SavePlayers;
 end;
 
 end.

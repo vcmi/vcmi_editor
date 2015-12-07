@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, map, lists_manager, base_options_frame, hero_frame,
-  hero_definition_frame, hero_spells_frame;
+  hero_definition_frame, hero_spells_frame, hero_artifacts_frame;
 
 type
 
@@ -37,6 +37,7 @@ type
     btCancel: TButton;
     btOk: TButton;
     pcMain: TPageControl;
+    tsArtifacts: TTabSheet;
     tsSpells: TTabSheet;
     tsMain: TTabSheet;
     procedure btOkClick(Sender: TObject);
@@ -90,11 +91,13 @@ constructor TEditHeroOptions.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   FEditors := TBaseOptionsFrameList.Create(Self);
+  pcMain.ActivePage := tsMain;
 end;
 
 procedure TEditHeroOptions.EditObject(AObject: THeroDefinition);
 begin
   FEditors.AddFrame(THeroDefinitionFrame, AObject, tsMain);
+  FEditors.AddFrame(THeroArtifactsFrame, AObject, tsArtifacts);
   FEditors.AddFrame(THeroSpellsFrame, AObject, tsSpells);
   ShowModal;
 end;
