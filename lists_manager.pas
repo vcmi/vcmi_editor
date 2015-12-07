@@ -372,6 +372,7 @@ type
     FFemale: Boolean;
     FHeroClass: TIdentifier;
     FSpecial: Boolean;
+    FSpellBook: TStrings;
     FTexts: THeroTexts;
     procedure SetFemale(AValue: Boolean);
     procedure SetHeroClass(AValue: TIdentifier);
@@ -392,6 +393,7 @@ type
     property Female: Boolean read FFemale write SetFemale nodefault;
     property Special: Boolean read FSpecial write SetSpecial default False;
     property &Class: TIdentifier read FHeroClass write SetHeroClass;
+    property Spellbook: TStrings read FSpellBook;
   end;
 
   THeroInfoList = specialize TFPGObjectList<THeroInfo>;
@@ -692,10 +694,12 @@ constructor THeroInfo.Create;
 begin
   inherited;
   FTexts := THeroTexts.Create;
+  FSpellBook := CrStrList;
 end;
 
 destructor THeroInfo.Destroy;
 begin
+  FSpellBook.Free;
   FTexts.Free;
   inherited Destroy;
 end;

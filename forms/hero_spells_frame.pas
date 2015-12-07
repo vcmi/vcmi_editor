@@ -24,9 +24,9 @@ unit hero_spells_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, CheckLst,
-  ExtCtrls, StdCtrls, base_options_frame, gui_helpers, object_options, Map,
-  editor_classes;
+  Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
+  CheckLst, ExtCtrls, StdCtrls, base_options_frame, gui_helpers, object_options,
+  Map, editor_classes, lists_manager;
 
 type
   //todo: use hero definition
@@ -37,6 +37,7 @@ type
     cbCustomise: TCheckBox;
     Panel1: TPanel;
     Spellbook: TCheckListBox;
+    procedure FrameResize(Sender: TObject);
   private
     FDefaults: TStrings;
     FCache: TStrings;
@@ -48,6 +49,8 @@ type
     procedure ReadData;
     procedure UpdateControls;
     procedure cbCustomiseChange(Sender: TObject);
+
+    procedure LoadTypeDefaults(AType: AnsiString);
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -75,6 +78,20 @@ begin
   UpdateControls;
 end;
 
+procedure THeroSpellsFrame.LoadTypeDefaults(AType: AnsiString);
+var
+  hero_info: THeroInfo;
+begin
+  FDefaults.Clear;
+
+  if AType = '' then
+    Exit;
+
+  hero_info := map.ListsManager.Heroes[AType];
+
+  FDefaults.Assign(hero_info.Spellbook);
+end;
+
 constructor THeroSpellsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
@@ -87,6 +104,11 @@ begin
   FDefaults.Free;
   FCache.Free;
   inherited Destroy;
+end;
+
+procedure THeroSpellsFrame.FrameResize(Sender: TObject);
+begin
+  Spellbook.Columns := Max(1, (Width div 300) +1);
 end;
 
 procedure THeroSpellsFrame.Load;
@@ -143,7 +165,7 @@ begin
   if Assigned(definition) then
     FDefaults.Assign(definition.SpellBook)
   else
-    FDefaults.Clear;  //todo: use type defaults
+     LoadTypeDefaults(AOptions.&type);
   ReadData;
 end;
 
@@ -152,7 +174,7 @@ begin
   inherited VisitHeroDefinition(AOptions);//continue dispatch
   FTarget := AOptions.SpellBook;
   FCache.Assign(FTarget);
-  FDefaults.Clear;//todo: use type defaults
+  LoadTypeDefaults(AOptions.Identifier);
   ReadData;
 end;
 

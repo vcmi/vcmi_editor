@@ -3,6 +3,7 @@ inherited HeroSpellsFrame: THeroSpellsFrame
   Width = 408
   ClientHeight = 288
   ClientWidth = 408
+  OnResize = FrameResize
   DesignLeft = 569
   DesignTop = 213
   object Spellbook: TCheckListBox[0]
