@@ -466,6 +466,7 @@ type
   THeroDefinition = class (TNamedCollectionItem, ISerializeNotify, IHeroInfo)
   private
     FArtifacts: THeroArtifacts;
+    FAvailableFor: TPlayers;
     FBiography: TLocalizedString;
     FExperience: UInt64;
     FName: TLocalizedString;
@@ -503,6 +504,7 @@ type
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property Name: TLocalizedString read FName write SetName;
     property Portrait: TIdentifier read FPortrait write SetPortrait;
+    property AvailableFor: TPlayers read FAvailableFor write FAvailableFor default ALL_PLAYERS;
   public //manual streaming
     property Sex:THeroSex read FSex write SetSex default THeroSex.default;
   end;
@@ -1049,6 +1051,7 @@ begin
   FPrimarySkills := THeroPrimarySkills.Create;
 
   FSex:=THeroSex.default;
+  FAvailableFor := ALL_PLAYERS;
 end;
 
 destructor THeroDefinition.Destroy;

@@ -154,6 +154,7 @@ type
     property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
 
     function FindItem(const AName: String): TItemType;
+    function EnsureItem(const AName: String): TItemType;
   end;
 
   { TObjectMap }
@@ -315,6 +316,16 @@ begin
     Result := nil
   else
     Result := TItemType(inherited FindItem(AName));
+end;
+
+function TGNamedCollection.EnsureItem(const AName: String): TItemType;
+begin
+  Result := FindItem(AName);
+  if Result = nil then
+  begin
+    Result := Add;
+    Result.Identifier := AName;
+  end;
 end;
 
 { THashedCollection }

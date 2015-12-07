@@ -164,7 +164,7 @@ type
      procedure ReadSVLC();
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();//+
-     procedure ReadDisposedHeros();
+     procedure ReadDisposedHeros();//+
      procedure ReadAllowedArtifacts();//+
      procedure ReadAllowedSpells();//+
      procedure ReadAllowedAbilities();//+
@@ -907,15 +907,16 @@ end;
 
 procedure TMapReaderH3m.ReadDisposedHeros;
 var
-  id: Byte;
-  portr: Byte;
-  name: TLocalizedString;
-  players: Byte;
+  players_raw: Byte;
   hero_count: Byte;
+  id: Byte;
   i: Integer;
+  defintion: THeroDefinition;
+  bit: Integer;
+  players: TPlayers;
 begin
 
-  //TODO: read disposed heroes
+  //ignoring all but availability
 
   if FMapVersion >= MAP_VERSION_SOD then
   begin
@@ -924,9 +925,23 @@ begin
     for i := 0 to hero_count - 1 do
     begin
       id := FSrc.ReadByte;
-      portr :=FSrc.ReadByte;
-      name := FSrc.ReadLocalizedString;
-      players := FSrc.ReadByte;
+      FSrc.Skip(1);//portr
+      FSrc.SkipString;//name
+
+      players_raw := FSrc.ReadByte;
+
+      if players_raw <> $FF then
+      begin
+        players := [];
+        defintion := FMap.PredefinedHeroes.EnsureItem(FMapEnv.lm.HeroClassIndexToString(id));
+
+        for bit := 0 to 8 - 1 do
+        begin
+          if (players_raw and (1 << bit)) > 0 then
+            players += [TPlayerColor(bit)];
+        end;
+        defintion.AvailableFor := players;
+      end;
     end;
   end;
 
