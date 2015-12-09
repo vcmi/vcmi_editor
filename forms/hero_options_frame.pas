@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ComboEx, EditBtn,
   ComCtrls, Graphics, Dialogs, hero_frame, gui_helpers, object_options,
-  editor_types, base_info, editor_consts, lists_manager, editor_classes;
+  editor_types, base_info, editor_consts, lists_manager, editor_classes, Map;
 
 type
 
@@ -38,6 +38,8 @@ type
     procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
     procedure cbSexChange(Sender: TObject);
+    procedure cbSkillsChange(Sender: TObject);
+    procedure CustomiseChange(Sender: TObject);
     procedure edHeroClassChange(Sender: TObject);
     procedure edNameChange(Sender: TObject);
     procedure edNameEditingDone(Sender: TObject);
@@ -101,15 +103,24 @@ begin
   inherited;
 end;
 
+procedure THeroOptionsFrame.cbSkillsChange(Sender: TObject);
+begin
+  Inherited;
+end;
+
+procedure THeroOptionsFrame.CustomiseChange(Sender: TObject);
+begin
+  Inherited;
+end;
+
 procedure THeroOptionsFrame.edHeroClassChange(Sender: TObject);
 var
-  base_class_info: TBaseInfo;
+  class_info: THeroClassInfo;
 
   editor: TCustomComboBox;
   idx: Integer;
   hero_type: String;
 begin
-
   if not edType.Visible then
     Exit;
 
@@ -126,9 +137,10 @@ begin
     edType.Enabled:=true;
     edType.ItemIndex := -1;
 
-    base_class_info := editor.Items.Objects[editor.ItemIndex] as TBaseInfo;
+    class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
+    FClassSkills.Assign(class_info.PrimarySkills);
 
-    ListsManager.FillWithHeroesOfClass(edType.Items, base_class_info.ID);
+    ListsManager.FillWithHeroesOfClass(edType.Items, class_info.ID);
 
     hero_type :=  FOptions.&type;
 
@@ -173,24 +185,44 @@ var
   editor: TCustomComboBox;
 
   info: TBaseInfo;
+
+  definition : THeroDefinition;
 begin
   FCurrentHero := nil;
 
   editor := Sender as TCustomComboBox;
 
   info := editor.SelectedInfo;
-
+  definition := nil;
   if Assigned(info) then
   begin
     FCurrentHero := info as THeroInfo;
 
-    FCurrentDefinition := Map.PredefinedHeroes.FindItem(info.ID);
+    definition := Map.PredefinedHeroes.FindItem(info.ID);
+    FCurrentDefinition := definition;
+  end;
+
+  if Assigned(definition) then
+  begin
+    FMapSkills.Assign(definition);
+  end
+  else begin
+    FMapSkills.Clear;
+  end;
+
+  if FMapSkills.IsDefault then
+  begin
+    FDefaultSkills.Assign(FClassSkills);
+  end
+  else begin
+    FDefaultSkills.Assign(FMapSkills);
   end;
 
   cbPortraitChange(cbPortrait);
   cbNameChange(cbName);
   cbSexChange(cbSex);
   cbBiographyChange(cbBiography);
+  cbSkillsChange(cbSkills);
   UpdateControls;
 
 end;
@@ -203,7 +235,7 @@ begin
     cbName.Checked:=FOptions.Name <> '';
     cbSex.Checked:=FOptions.Sex <> THeroSex.default;
     cbBiography.Checked:=FOptions.Biography <> '';
-
+    cbSkills.Checked := not FOptions.PrimarySkills.IsDefault;
 
     edHeroClass.FillFromList(ListsManager.HeroClassMap, GetHeroClass);
 
@@ -426,6 +458,14 @@ begin
     FOptions.PatrolRadius := StrToIntDef(edPatrol.Text, -1);
   end;
 
+  if cbSkills.Checked then
+  begin
+    FOptions.PrimarySkills.Assign(FCustomSkills);
+  end
+  else
+  begin
+    FOptions.PrimarySkills.Clear;
+  end;
 end;
 
 end.

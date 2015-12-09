@@ -172,9 +172,13 @@ type
     FDefence: Integer;
     FKnowledge: Integer;
     FSpellpower: Integer;
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create;
     function IsDefault: Boolean;
+    procedure Clear;
+    procedure SetZero;
   published
     property Attack: Integer read FAttack write FAttack default -1;
     property Defence: Integer read FDefence write FDefence default -1;
@@ -468,7 +472,31 @@ end;
 
 { THeroPrimarySkills }
 
+procedure THeroPrimarySkills.AssignTo(Dest: TPersistent);
+begin
+  if Dest is THeroPrimarySkills then
+  begin
+    THeroPrimarySkills(Dest).Attack:=Attack;
+    THeroPrimarySkills(Dest).Defence:=Defence;
+    THeroPrimarySkills(Dest).Spellpower:=Spellpower;
+    THeroPrimarySkills(Dest).Knowledge:=Knowledge;
+  end
+  else begin
+    inherited AssignTo(Dest);
+  end;
+end;
+
 constructor THeroPrimarySkills.Create;
+begin
+  Clear;
+end;
+
+function THeroPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
+end;
+
+procedure THeroPrimarySkills.Clear;
 begin
   Attack :=-1;
   Defence:=-1;
@@ -476,9 +504,12 @@ begin
   Knowledge:=-1;
 end;
 
-function THeroPrimarySkills.IsDefault: Boolean;
+procedure THeroPrimarySkills.SetZero;
 begin
-  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
+  Attack :=0;
+  Defence:=0;
+  Spellpower:=0;
+  Knowledge:=0;
 end;
 
 { THeroSecondarySkill }

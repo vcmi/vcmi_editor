@@ -27,7 +27,8 @@ uses
   Classes, SysUtils, FileUtil, strutils, typinfo, Forms, Controls, Graphics,
   Dialogs, StdCtrls, ComboEx, EditBtn, ComCtrls, base_options_frame,
   gui_helpers, object_options, editor_consts, editor_types, base_info,
-  lists_manager, editor_rtti, editor_classes, LCLType, rttiutils;
+  lists_manager, editor_rtti, editor_classes, LCLType, ExtCtrls, Spin,
+  rttiutils;
 
 type
 
@@ -39,6 +40,8 @@ type
     cbPortrait: TCheckBox;
     cbExperience: TCheckBox;
     cbBiography: TCheckBox;
+    cbSkills: TCheckBox;
+    AvailableFor: TCheckGroup;
     edBiography: TMemo;
     edSex: TComboBox;
     edPatrol: TComboBox;
@@ -48,6 +51,13 @@ type
     edPortrait: TComboBoxEx;
     edOwner: TComboBox;
     edType: TComboBox;
+    Label1: TLabel;
+    AvailableForLabel: TLabel;
+    AvailableForPlaceholder: TLabel;
+    lbAttack: TLabel;
+    lbDefence: TLabel;
+    lbSpellPower: TLabel;
+    lbKnowledge: TLabel;
     lbPatrol: TLabel;
     lbBiography: TLabel;
     lbSex: TLabel;
@@ -56,16 +66,22 @@ type
     lbPortrait: TLabel;
     lbHeroClass: TLabel;
     lbOwner: TLabel;
+    pnSkills: TPanel;
     Placeholder1: TLabel;
     lbType: TLabel;
     Placeholder2: TLabel;
     Placeholder3: TLabel;
     Placeholder5: TLabel;
+    Attack: TSpinEdit;
+    Defence: TSpinEdit;
+    SpellPower: TSpinEdit;
+    Knowledge: TSpinEdit;
     procedure cbBiographyChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
     procedure cbSexChange(Sender: TObject);
+    procedure cbSkillsChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
     procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
@@ -77,17 +93,27 @@ type
     FCustomFemale: Boolean;
     FCustomBiography: TLocalizedString;
 
-    FCurrentHero: IHeroInfo;//todo: use map specicfic defaults
+    FCustomSkills, FDefaultSkills, FClassSkills, FMapSkills:  THeroPrimarySkills;
+
+    FCurrentHero: IHeroInfo;
 
     function GetDefaultBiography: TLocalizedString; virtual;
     function GetDefaultName: TLocalizedString; virtual;
     function GetDefaultSex: THeroSex; virtual;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
-
     procedure UpdateControls(); virtual;
+
+    procedure SaveSkills;
+    procedure LoadSkills;
+    procedure ResetSkills;
+
   public
     constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Commit; override;
+
+    procedure VisitHero(AOptions: THeroOptions); override;
   end;
 
 implementation
@@ -174,6 +200,20 @@ begin
   end;
 end;
 
+procedure THeroFrame.cbSkillsChange(Sender: TObject);
+begin
+  CustomiseChange(Sender);
+  if (Sender as TCheckBox).Checked then
+  begin
+    LoadSkills;
+  end
+  else
+  begin
+    SaveSkills;
+    ResetSkills;
+  end;
+end;
+
 procedure THeroFrame.cbExperienceChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
@@ -198,6 +238,31 @@ begin
   edName.Enabled:=cbName.Checked;
   edBiography.Enabled:=cbBiography.Checked;
   edSex.Enabled:=cbSex.Checked;
+  pnSkills.Enabled := cbSkills.Checked;
+end;
+
+procedure THeroFrame.SaveSkills;
+begin
+  FCustomSkills.Attack := Attack.Value;
+  FCustomSkills.Defence := Defence.Value;
+  FCustomSkills.Spellpower := SpellPower.Value;
+  FCustomSkills.Knowledge := Knowledge.Value;
+end;
+
+procedure THeroFrame.LoadSkills;
+begin
+  Attack.Value     := FCustomSkills.Attack;
+  Defence.Value    := FCustomSkills.Defence;
+  SpellPower.Value := FCustomSkills.Spellpower;
+  Knowledge.Value  := FCustomSkills.Knowledge;
+end;
+
+procedure THeroFrame.ResetSkills;
+begin
+  Attack.Value     := FDefaultSkills.Attack;
+  Defence.Value    := FDefaultSkills.Defence;
+  SpellPower.Value := FDefaultSkills.Spellpower;
+  Knowledge.Value  := FDefaultSkills.Knowledge;
 end;
 
 procedure THeroFrame.UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox;
@@ -234,6 +299,34 @@ begin
   begin
     edOwner.Items.Add(ListsManager.PlayerName[p]);
   end;
+  FCustomSkills := THeroPrimarySkills.Create;
+  FDefaultSkills := THeroPrimarySkills.Create;
+  FClassSkills := THeroPrimarySkills.Create;
+  FMapSkills := THeroPrimarySkills.Create;
+end;
+
+destructor THeroFrame.Destroy;
+begin
+  FMapSkills.Free;
+  FClassSkills.Free;
+  FCustomSkills.Free;
+  FDefaultSkills.Free;
+  inherited Destroy;
+end;
+
+procedure THeroFrame.Commit;
+begin
+  inherited Commit;
+  if cbSkills.Checked then
+    SaveSkills;
+end;
+
+procedure THeroFrame.VisitHero(AOptions: THeroOptions);
+begin
+  AvailableForPlaceholder.Visible:=false;
+  AvailableFor.Visible := false;
+  AvailableForLabel.Visible:=False;
+  inherited VisitHero(AOptions);
 end;
 
 

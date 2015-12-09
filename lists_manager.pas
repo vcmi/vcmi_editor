@@ -605,6 +605,7 @@ constructor THeroClassInfo.Create;
 begin
   inherited Create;
   FPrimarySkills := THeroPrimarySkills.Create;
+  FPrimarySkills.SetZero;
 end;
 
 destructor THeroClassInfo.Destroy;
@@ -1366,12 +1367,12 @@ var
 
   legacy_data: TJsonObjectList;
   i: SizeInt;
-  o: TJSONObject;
+  o, p_skills: TJSONObject;
   iter: TJSONEnum;
   info: THeroClassInfo;
 begin
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
   hctraits := TTextResource.Create(HERO_CLASS_TRAITS);
   legacy_data := TJsonObjectList.Create(true);
   try
@@ -1379,10 +1380,18 @@ begin
 
     for i in [0..HEROCLASS_QUANTITY-1] do
     begin
-      o := TJSONObject.Create();
+      o := CreateJSONObject([]);
 
       o.Strings['name'] := hctraits.Value[0,i+2];
 
+
+      p_skills := CreateJSONObject([]);
+      p_skills.Integers['attack'] := StrToInt(hctraits.Value[2,i+2]);
+      p_skills.Integers['defence'] := StrToInt(hctraits.Value[3,i+2]);
+      p_skills.Integers['spellpower'] := StrToInt(hctraits.Value[4,i+2]);
+      p_skills.Integers['knowledge'] := StrToInt(hctraits.Value[5,i+2]);
+
+      o.Objects['primarySkills'] := p_skills;
       legacy_data.Add(o);
     end;
 
@@ -1397,6 +1406,8 @@ begin
       info.ID := iter.Key;
 
       FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+
+      DebugLn([(iter.Value as TJSONObject).FormatJSON()]);
 
       HeroClassInfos.Add(info);
       HeroClassMap.AddObject(info.ID, info);

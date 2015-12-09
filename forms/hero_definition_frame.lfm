@@ -1,166 +1,29 @@
 inherited HeroDefinitionFrame: THeroDefinitionFrame
-  inherited lbHeroClass: TLabel
-    Top = 6
-    Width = 89
-  end
-  inherited edHeroClass: TComboBox
-    Left = 99
-    Top = 6
-    Width = 322
-  end
-  inherited Placeholder1: TLabel
-    Left = 426
-    Top = 6
-  end
-  inherited lbType: TLabel
-    Top = 35
-    Width = 89
-  end
-  inherited edType: TComboBox
-    Left = 99
-    Top = 35
-    Width = 322
-  end
-  inherited Placeholder2: TLabel
-    Left = 426
-    Top = 35
-  end
-  inherited lbOwner: TLabel
-    Top = 64
-    Width = 89
-  end
-  inherited edOwner: TComboBox
-    Left = 99
-    Top = 64
-    Width = 322
-  end
-  inherited Placeholder3: TLabel
-    Left = 426
-    Top = 64
-  end
-  inherited lbPortrait: TLabel
-    Top = 93
-    Width = 89
-  end
-  inherited edPortrait: TComboBoxEx
-    Left = 99
-    Top = 93
-    Width = 322
-  end
   inherited cbPortrait: TCheckBox
-    Left = 426
-    Top = 93
     OnChange = cbPortraitChange
   end
-  inherited lbExperience: TLabel
-    Top = 121
-    Width = 89
-  end
-  inherited edExperience: TEdit
-    Left = 99
-    Top = 121
-    Width = 322
-  end
   inherited cbExperience: TCheckBox
-    Left = 426
-    Top = 121
     OnChange = cbExperienceChange
   end
-  inherited lbName: TLabel
-    Top = 150
-    Width = 89
-  end
   inherited edName: TEdit
-    Left = 99
-    Top = 150
-    Width = 322
     OnEditingDone = edNameEditingDone
   end
   inherited cbName: TCheckBox
-    Left = 426
-    Top = 150
     OnChange = cbNameChange
   end
-  inherited lbSex: TLabel
-    Top = 178
-    Width = 89
-  end
   inherited edSex: TComboBox
-    Left = 99
-    Top = 178
-    Width = 322
     OnChange = edSexChange
   end
   inherited cbSex: TCheckBox
-    Left = 426
-    Top = 178
     OnChange = cbSexChange
   end
-  inherited lbBiography: TLabel
-    Top = 206
-    Width = 89
-  end
-  inherited edBiography: TMemo
-    Left = 99
-    Top = 206
-    Width = 322
-  end
   inherited cbBiography: TCheckBox
-    Left = 426
-    Top = 206
     OnChange = cbBiographyChange
   end
-  inherited lbPatrol: TLabel
-    Top = 311
-    Width = 89
-  end
   inherited edPatrol: TComboBox
-    Left = 99
-    Top = 311
-    Width = 322
     OnKeyPress = edPatrolKeyPress
   end
-  inherited Placeholder5: TLabel
-    Left = 426
-    Top = 311
-  end
-  object AvailableForLabel: TLabel[27]
-    Left = 5
-    Height = 108
-    Top = 339
-    Width = 89
-    Caption = 'Avilable for:'
-    Layout = tlCenter
-    ParentColor = False
-  end
-  object AvailableFor: TCheckGroup[28]
-    Left = 99
-    Height = 108
-    Top = 339
-    Width = 322
-    AutoFill = True
-    ChildSizing.LeftRightSpacing = 6
-    ChildSizing.TopBottomSpacing = 6
-    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
-    ChildSizing.EnlargeVertical = crsHomogenousChildResize
-    ChildSizing.ShrinkHorizontal = crsScaleChilds
-    ChildSizing.ShrinkVertical = crsScaleChilds
-    ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 2
-    ClientHeight = 88
-    ClientWidth = 318
-    Columns = 2
-    Items.Strings = (
-      'Player 1 (red)'
-      'Player 2 (blue)'
-      'Player 3 (tan)'
-      'Player 4 (green)'
-      'Player 5 (orange)'
-      'Player 6 (purple)'
-      'Player 7 (teal)'
-      'Player 8 (pink)'
-    )
-    TabOrder = 14
+  inherited AvailableFor: TCheckGroup
     Data = {
       080000000202020202020202
     }

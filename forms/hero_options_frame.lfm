@@ -27,7 +27,15 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   inherited cbBiography: TCheckBox
     OnChange = cbBiographyChange
   end
+  inherited cbSkills: TCheckBox
+    OnChange = cbSkillsChange
+  end
   inherited edPatrol: TComboBox
     OnKeyPress = edPatrolKeyPress
+  end
+  inherited AvailableFor: TCheckGroup
+    Data = {
+      080000000202020202020202
+    }
   end
 end
