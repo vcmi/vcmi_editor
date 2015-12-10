@@ -1376,7 +1376,10 @@ begin
     pos.x := pos.x- (FViewTilesH div 2);
     pos.y := pos.y- (FViewTilesV div 2);
 
-    SetMapPosition(pos);;
+    pos.x := Max(pos.x, 0);
+    pos.y := Max(pos.y, 0);
+
+    SetMapPosition(pos);
 
   end;
 end;
