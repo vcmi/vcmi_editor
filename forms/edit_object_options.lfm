@@ -51,10 +51,9 @@ object EditObjectOptions: TEditObjectOptions
     Height = 25
     Top = 509
     Width = 75
+    Action = actSave
     Anchors = [akRight, akBottom]
-    Caption = 'Save'
     ModalResult = 1
-    OnClick = btOkClick
     TabOrder = 1
   end
   object btCancel: TButton
@@ -62,9 +61,23 @@ object EditObjectOptions: TEditObjectOptions
     Height = 25
     Top = 509
     Width = 75
+    Action = actDontSave
     Anchors = [akRight, akBottom]
-    Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
+  end
+  object act: TActionList
+    left = 16
+    top = 64
+    object actSave: TAction
+      Caption = 'Save'
+      OnExecute = actSaveExecute
+      ShortCut = 16397
+    end
+    object actDontSave: TAction
+      Caption = 'Don`t save'
+      OnExecute = actDontSaveExecute
+      ShortCut = 27
+    end
   end
 end

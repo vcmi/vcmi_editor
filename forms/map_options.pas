@@ -26,14 +26,17 @@ interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, gui_helpers, edit_hero_options, Map,
-  lists_manager, base_info, root_manager;
+  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, ActnList, gui_helpers,
+  edit_hero_options, Map, lists_manager, base_info, root_manager;
 
 type
 
   { TMapOptionsForm }
 
   TMapOptionsForm = class(TForm)
+    act: TActionList;
+    actDontSave: TAction;
+    actSave: TAction;
     btOk: TButton;
     btCancel: TButton;
     cbSpellsNegate: TComboBox;
@@ -65,7 +68,8 @@ type
     tsSpells: TTabSheet;
     tsAbilities: TTabSheet;
     tsMain: TTabSheet;
-    procedure btOkClick(Sender: TObject);
+    procedure actDontSaveExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
     procedure cbEnableLevelLimitChange(Sender: TObject);
     procedure edAllowedHeroesDblClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -89,7 +93,7 @@ uses editor_types;
 
 { TMapOptionsForm }
 
-procedure TMapOptionsForm.btOkClick(Sender: TObject);
+procedure TMapOptionsForm.actSaveExecute(Sender: TObject);
 begin
   //todo: validate
   //todo: save
@@ -102,13 +106,15 @@ begin
 
   edAbilities.SaveToCondition    (FMap.ListsManager.SkillMap,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
   edSpells.SaveToCondition       (FMap.ListsManager.SpellMap,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroMap,     FMap.AllowedHeroes, True);
   edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
-  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroMap,     FMap.AllowedHeroes, True);
-
   ModalResult := mrOK;
+end;
 
-  Close;
+procedure TMapOptionsForm.actDontSaveExecute(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 procedure TMapOptionsForm.cbEnableLevelLimitChange(Sender: TObject);

@@ -2,9 +2,9 @@ inherited HeroFrame: THeroFrame
   Height = 530
   Width = 572
   ChildSizing.LeftRightSpacing = 5
-  ChildSizing.TopBottomSpacing = 5
+  ChildSizing.TopBottomSpacing = 3
   ChildSizing.HorizontalSpacing = 5
-  ChildSizing.VerticalSpacing = 5
+  ChildSizing.VerticalSpacing = 3
   ChildSizing.EnlargeHorizontal = crsScaleChilds
   ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
   ChildSizing.ShrinkHorizontal = crsScaleChilds
@@ -351,7 +351,7 @@ inherited HeroFrame: THeroFrame
   object lbPatrol: TLabel[27]
     Left = 5
     Height = 23
-    Top = 427
+    Top = 430
     Width = 85
     Caption = 'Patrol:'
     Constraints.MaxWidth = 90
@@ -361,7 +361,7 @@ inherited HeroFrame: THeroFrame
   object edPatrol: TComboBox[28]
     Left = 95
     Height = 23
-    Top = 427
+    Top = 430
     Width = 379
     ItemHeight = 15
     Items.Strings = (
@@ -374,7 +374,7 @@ inherited HeroFrame: THeroFrame
   object Placeholder5: TLabel[29]
     Left = 479
     Height = 23
-    Top = 427
+    Top = 430
     Width = 88
     Constraints.MaxWidth = 90
     Constraints.MinHeight = 10
@@ -384,7 +384,7 @@ inherited HeroFrame: THeroFrame
   object AvailableForLabel: TLabel[30]
     Left = 5
     Height = 70
-    Top = 455
+    Top = 457
     Width = 85
     AutoSize = False
     Caption = 'Available for:'
@@ -394,7 +394,7 @@ inherited HeroFrame: THeroFrame
   object AvailableFor: TCheckGroup[31]
     Left = 95
     Height = 70
-    Top = 455
+    Top = 457
     Width = 379
     AutoFill = True
     ChildSizing.LeftRightSpacing = 6
@@ -427,7 +427,7 @@ inherited HeroFrame: THeroFrame
   object AvailableForPlaceholder: TLabel[32]
     Left = 479
     Height = 70
-    Top = 455
+    Top = 457
     Width = 88
     ParentColor = False
   end

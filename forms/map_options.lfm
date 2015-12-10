@@ -9,7 +9,7 @@ object MapOptionsForm: TMapOptionsForm
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
-  LCLVersion = '1.4.1.0'
+  LCLVersion = '1.4.5.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
@@ -18,12 +18,11 @@ object MapOptionsForm: TMapOptionsForm
     Height = 26
     Top = 337
     Width = 81
+    Action = actSave
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
-    Caption = 'Ok'
-    OnClick = btOkClick
-    TabOrder = 0
+    TabOrder = 1
   end
   object btCancel: TButton
     AnchorSideRight.Control = Owner
@@ -34,12 +33,12 @@ object MapOptionsForm: TMapOptionsForm
     Height = 26
     Top = 337
     Width = 75
+    Action = actDontSave
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 10
     BorderSpacing.Bottom = 10
-    Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 1
+    TabOrder = 2
   end
   object pcMain: TPageControl
     AnchorSideLeft.Control = Owner
@@ -52,18 +51,18 @@ object MapOptionsForm: TMapOptionsForm
     Height = 322
     Top = 3
     Width = 467
-    ActivePage = tsMods
+    ActivePage = tsMain
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 1
-    TabOrder = 2
+    TabIndex = 0
+    TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'
-      ClientHeight = 321
-      ClientWidth = 489
+      ClientHeight = 294
+      ClientWidth = 459
       object edDifficulty: TRadioGroup
         AnchorSideLeft.Control = tsMain
         AnchorSideTop.Control = tsMain
@@ -72,7 +71,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 97
         Top = 0
-        Width = 479
+        Width = 449
         Anchors = [akTop, akLeft, akRight]
         AutoFill = True
         BorderSpacing.Left = 5
@@ -87,7 +86,7 @@ object MapOptionsForm: TMapOptionsForm
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
         ClientHeight = 77
-        ClientWidth = 475
+        ClientWidth = 445
         Columns = 2
         Items.Strings = (
           'Easy'
@@ -117,7 +116,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 15
         Top = 143
-        Width = 479
+        Width = 449
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -131,7 +130,7 @@ object MapOptionsForm: TMapOptionsForm
         Left = 5
         Height = 23
         Top = 164
-        Width = 478
+        Width = 448
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 6
@@ -153,9 +152,9 @@ object MapOptionsForm: TMapOptionsForm
         AnchorSideBottom.Control = tsMain
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 109
+        Height = 82
         Top = 207
-        Width = 479
+        Width = 449
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Left = 5
         BorderSpacing.Right = 5
@@ -353,6 +352,20 @@ object MapOptionsForm: TMapOptionsForm
           TabOrder = 0
         end
       end
+    end
+  end
+  object act: TActionList
+    left = 328
+    top = 8
+    object actSave: TAction
+      Caption = 'Save'
+      OnExecute = actSaveExecute
+      ShortCut = 16397
+    end
+    object actDontSave: TAction
+      Caption = 'Don`t save'
+      OnExecute = actDontSaveExecute
+      ShortCut = 27
     end
   end
 end

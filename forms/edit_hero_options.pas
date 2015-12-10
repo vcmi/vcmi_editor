@@ -26,21 +26,25 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, map, lists_manager, base_options_frame, hero_frame,
-  hero_definition_frame, hero_spells_frame, hero_artifacts_frame;
+  ComCtrls, ExtCtrls, ActnList, map, lists_manager, base_options_frame,
+  hero_frame, hero_definition_frame, hero_spells_frame, hero_artifacts_frame;
 
 type
 
   { TEditHeroOptions }
 
   TEditHeroOptions = class(TForm)
+    act: TActionList;
+    actDontSave: TAction;
+    actSave: TAction;
     btCancel: TButton;
     btOk: TButton;
     pcMain: TPageControl;
     tsArtifacts: TTabSheet;
     tsSpells: TTabSheet;
     tsMain: TTabSheet;
-    procedure btOkClick(Sender: TObject);
+    procedure actDontSaveExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
   private
     FEditors: TBaseOptionsFrameList;
     function GetListsManager: TListsManager;
@@ -62,9 +66,15 @@ implementation
 
 { TEditHeroOptions }
 
-procedure TEditHeroOptions.btOkClick(Sender: TObject);
+procedure TEditHeroOptions.actSaveExecute(Sender: TObject);
 begin
   FEditors.Commit;
+  ModalResult:=mrOK;
+end;
+
+procedure TEditHeroOptions.actDontSaveExecute(Sender: TObject);
+begin
+  ModalResult:=mrCancel;
 end;
 
 procedure TEditHeroOptions.SetMap(AValue: TVCMIMap);

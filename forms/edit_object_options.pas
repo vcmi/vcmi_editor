@@ -25,16 +25,20 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, object_options, map, editor_str_consts, base_options_frame,
-  monster_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
-  hero_artifacts_frame, message_frame, hero_options_frame, hero_spells_frame;
+  StdCtrls, ActnList, object_options, map, editor_str_consts,
+  base_options_frame, monster_frame, abandoned_frame, scholar_frame,
+  creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
+  hero_frame, hero_artifacts_frame, message_frame, hero_options_frame,
+  hero_spells_frame;
 
 type
 
   { TEditObjectOptions }
 
   TEditObjectOptions = class(TForm, IObjectOptionsVisitor)
+    act: TActionList;
+    actDontSave: TAction;
+    actSave: TAction;
     btOk: TButton;
     btCancel: TButton;
     lbNothingToEdit: TLabel;
@@ -44,7 +48,8 @@ type
     tsArmy: TTabSheet;
     tsObject: TTabSheet;
     tsCommon: TTabSheet;
-    procedure btOkClick(Sender: TObject);
+    procedure actDontSaveExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
   strict private
     FMap: TVCMIMap;
 
@@ -100,9 +105,15 @@ uses
 
 { TEditObjectOptions }
 
-procedure TEditObjectOptions.btOkClick(Sender: TObject);
+procedure TEditObjectOptions.actSaveExecute(Sender: TObject);
 begin
   SaveChanges;
+  ModalResult:=mrOK;
+end;
+
+procedure TEditObjectOptions.actDontSaveExecute(Sender: TObject);
+begin
+  ModalResult:=mrCancel;
 end;
 
 constructor TEditObjectOptions.Create(TheOwner: TComponent);

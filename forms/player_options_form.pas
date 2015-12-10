@@ -33,14 +33,13 @@ type
 
   TPlayerOptionsForm = class(TForm)
     act: TActionList;
-    actCancel: TAction;
-    actOK: TAction;
+    actDontSave: TAction;
+    actSave: TAction;
     btCancel: TButton;
     btOk: TButton;
     pcMain: TPageControl;
-    procedure actCancelExecute(Sender: TObject);
-    procedure actOKExecute(Sender: TObject);
-    procedure btOkClick(Sender: TObject);
+    procedure actDontSaveExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
   private
     FEditors: array[TPlayerColor] of TPlayerOptionsFrame;
     FVirtualTeams: array[TPlayerColor] of TTeam;
@@ -64,18 +63,13 @@ implementation
 
 { TPlayerOptionsForm }
 
-procedure TPlayerOptionsForm.btOkClick(Sender: TObject);
-begin
-
-end;
-
-procedure TPlayerOptionsForm.actOKExecute(Sender: TObject);
+procedure TPlayerOptionsForm.actSaveExecute(Sender: TObject);
 begin
   Commit;
   ModalResult:=mrOK;
 end;
 
-procedure TPlayerOptionsForm.actCancelExecute(Sender: TObject);
+procedure TPlayerOptionsForm.actDontSaveExecute(Sender: TObject);
 begin
   ModalResult:=mrCancel;
 end;
