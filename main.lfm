@@ -1238,7 +1238,10 @@ object fMain: TfMain
     Height = 23
     Top = 795
     Width = 1254
-    Panels = <>
+    Panels = <    
+      item
+        Width = 50
+      end>
     SimplePanel = False
   end
   object pnLeft: TPanel

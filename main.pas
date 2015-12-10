@@ -332,7 +332,6 @@ type
     procedure SetupPlayerSelection;
     procedure SetupLevelSelection;
 
-
     procedure UpdateWidgets();
   protected
     procedure UpdateActions; override;
@@ -1778,6 +1777,15 @@ begin
   end
   else begin
 
+  end;
+
+  if Assigned(FSelectedObject) then
+  begin
+    StatusBar.Panels[0].Text:=FSelectedObject.FormatDisplayName('');
+  end
+  else
+  begin
+    StatusBar.Panels[0].Text := '';
   end;
 end;
 
