@@ -211,9 +211,9 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
         )
       end
       object SecondarySkillSelector: TComboBox
-        Left = 24
+        Left = 16
         Height = 23
-        Top = 72
+        Top = 40
         Width = 224
         ItemHeight = 15
         OnCloseUp = SecondarySkillSelectorCloseUp
@@ -223,9 +223,9 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
         Visible = False
       end
       object MasterySelector: TComboBox
-        Left = 272
+        Left = 280
         Height = 23
-        Top = 72
+        Top = 40
         Width = 200
         ItemHeight = 15
         Items.Strings = (

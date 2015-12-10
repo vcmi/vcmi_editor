@@ -192,13 +192,17 @@ type
   private
     FLevel: Integer;
     procedure SetLevel(AValue: Integer);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   published
     property Level: Integer read FLevel write SetLevel nodefault;
   end;
 
+  THeroSecondarySkillsCollection = specialize TGNamedCollection<THeroSecondarySkill>;
+
   { THeroSecondarySkills }
 
-  THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
+  THeroSecondarySkills = class(THeroSecondarySkillsCollection)
   end;
 
   IHeroInfo = interface
@@ -520,6 +524,17 @@ begin
   if AValue <=0 then
     raise Exception.CreateFmt('Skill level invalid %d',[AValue]);
   FLevel:=AValue;
+end;
+
+procedure THeroSecondarySkill.AssignTo(Dest: TPersistent);
+begin
+  if Dest is THeroSecondarySkill then
+  begin
+    THeroSecondarySkill(Dest).Level:=Level;
+  end
+  else begin
+    inherited AssignTo(Dest);
+  end;
 end;
 
 end.
