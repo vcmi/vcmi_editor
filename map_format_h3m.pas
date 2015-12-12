@@ -1079,7 +1079,8 @@ begin
     end
     else
     begin
-      AOptions.&Type := '';
+      AOptions.Power := 0;
+      AOptions.&Type := FMapEnv.lm.HeroIndexToString(htid);
     end;
   end;
 end;
