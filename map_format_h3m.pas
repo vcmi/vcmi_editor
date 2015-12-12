@@ -793,7 +793,7 @@ begin
     begin
       secSkill := ASkills.Add;
       secSkill.Identifier :=ReadID(@FMapEnv.lm.SkillNidToString,1);
-      secSkill.Level:=ReadByte;
+      secSkill.Level:=TSkillLevel(ReadByte);
     end;
   end;
 end;
@@ -811,7 +811,7 @@ begin
     begin
       secSkill := ASkills.Add;
       secSkill.Identifier :=ReadID(@FMapEnv.lm.SkillNidToString,1);
-      secSkill.Level:=ReadByte;
+      secSkill.Level:=TSkillLevel(ReadByte);
     end;
   end;
 

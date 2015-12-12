@@ -687,7 +687,7 @@ begin
   begin
     O := TJSONObject(ASrc);
 
-    JSONToObject(o,AItem);
+    JSONToObjectEx(o,AItem);
   end
   else if ASrc.JSONType in [jtArray] then
   begin

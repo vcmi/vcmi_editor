@@ -190,12 +190,11 @@ type
 
   THeroSecondarySkill = class(TNamedCollectionItem, IEmbeddedValue)
   private
-    FLevel: Integer;
-    procedure SetLevel(AValue: Integer);
+    FLevel: TSkillLevel;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   published
-    property Level: Integer read FLevel write SetLevel nodefault;
+    property Level: TSkillLevel read FLevel write FLevel nodefault;
   end;
 
   THeroSecondarySkillsCollection = specialize TGNamedCollection<THeroSecondarySkill>;
@@ -518,19 +517,12 @@ end;
 
 { THeroSecondarySkill }
 
-procedure THeroSecondarySkill.SetLevel(AValue: Integer);
-begin
-  if FLevel=AValue then Exit;
-  if AValue <=0 then
-    raise Exception.CreateFmt('Skill level invalid %d',[AValue]);
-  FLevel:=AValue;
-end;
-
 procedure THeroSecondarySkill.AssignTo(Dest: TPersistent);
 begin
   if Dest is THeroSecondarySkill then
   begin
     THeroSecondarySkill(Dest).Level:=Level;
+    THeroSecondarySkill(Dest).Identifier:=Identifier;
   end
   else begin
     inherited AssignTo(Dest);

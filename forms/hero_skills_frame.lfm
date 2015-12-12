@@ -85,7 +85,6 @@ inherited HeroSkillsFrame: THeroSkillsFrame
       Width = 503
       Align = alTop
       Caption = 'Customise'
-      OnChange = cbCustomiseChange
       TabOrder = 0
     end
   end

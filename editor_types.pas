@@ -70,6 +70,8 @@ type
 
   TInstanceID = type Int32;
 
+  TSkillLevel = (none, basic, advanced, expert);
+
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 

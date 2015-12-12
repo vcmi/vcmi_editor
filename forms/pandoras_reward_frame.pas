@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, Spin, Grids, CheckLst, base_options_frame,
-  gui_helpers, object_options, base_info, editor_classes;
+  gui_helpers, object_options, base_info, editor_classes, editor_types;
 
 type
 
@@ -217,7 +217,7 @@ begin
     edSecondarySkills.Cells[0, row] := info.Name;
     edSecondarySkills.Objects[0, row] := info;
 
-    edSecondarySkills.Cells[1, row] := MasterySelector.Items[option.Level];
+    edSecondarySkills.Cells[1, row] := MasterySelector.Items[Integer(option.Level)];
     edSecondarySkills.Objects[1, row] := TObject(PtrUint(option.Level));
   end;
 end;
@@ -279,7 +279,7 @@ begin
 
     option := AOptions.Add;
     option.Identifier := info.ID;
-    option.Level:=Integer(PtrUint(edSecondarySkills.Objects[1, i]));
+    option.Level:=TSkillLevel(Integer(PtrUint(edSecondarySkills.Objects[1, i])));
   end;
 
 end;

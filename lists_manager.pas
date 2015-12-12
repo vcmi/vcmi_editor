@@ -367,10 +367,11 @@ type
 
   { THeroInfo }
 
-  THeroInfo = class(TBaseInfo, IHeroInfo)
+  THeroInfo = class(TBaseInfo, IHeroInfo, ISerializeNotify)
   private
     FFemale: Boolean;
     FHeroClass: TIdentifier;
+    FSkills: THeroSecondarySkills;
     FSpecial: Boolean;
     FSpellBook: TStrings;
     FTexts: THeroTexts;
@@ -388,12 +389,22 @@ type
     function GetName: TLocalizedString; override;
     function GetSex: THeroSex;
     function GetBiography: TLocalizedString;
+
+  public// ISerializeNotify
+    procedure BeforeSerialize(Sender:TObject);
+    procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+
+    procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
+
   published
     property Texts: THeroTexts read FTexts;
     property Female: Boolean read FFemale write SetFemale nodefault;
     property Special: Boolean read FSpecial write SetSpecial default False;
     property &Class: TIdentifier read FHeroClass write SetHeroClass;
     property Spellbook: TStrings read FSpellBook;
+  public//not "standard" format
+    property Skills: THeroSecondarySkills read FSkills;
   end;
 
   THeroInfoList = specialize TFPGObjectList<THeroInfo>;
@@ -696,10 +707,12 @@ begin
   inherited;
   FTexts := THeroTexts.Create;
   FSpellBook := CrStrList;
+  FSkills := THeroSecondarySkills.Create;
 end;
 
 destructor THeroInfo.Destroy;
 begin
+  FSkills.Free;
   FSpellBook.Free;
   FTexts.Free;
   inherited Destroy;
@@ -716,6 +729,43 @@ end;
 function THeroInfo.GetBiography: TLocalizedString;
 begin
   Result := FTexts.Biography;
+end;
+
+procedure THeroInfo.BeforeSerialize(Sender: TObject);
+begin
+
+end;
+
+procedure THeroInfo.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure THeroInfo.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure THeroInfo.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+var
+  skill_src: TJSONArray;
+  src:TJSONObject;
+  iter: TJSONEnum;
+  item: THeroSecondarySkill;
+begin
+  Skills.Clear;
+  src := AData as TJSONObject;
+
+  skill_src := src.Arrays['skills'];
+
+  for iter in skill_src do
+  begin
+    item := Skills.Add;
+    item.Identifier:= (iter.Value as TJSONObject).Strings['skill'];
+
+    (Sender as TVCMIJSONDestreamer).JSONToObjectEx(iter.Value,item);
+  end;
+
 end;
 
 { THeroTexts }
@@ -1339,7 +1389,7 @@ begin
 
       o := iter.Value as TJSONObject;
 
-      FDestreamer.JSONToObject(o, info);
+      FDestreamer.JSONToObjectEx(o, info);
 
       info.HasTown:=o.IndexOfName('town')>=0;
 
@@ -1405,7 +1455,7 @@ begin
 
       info.ID := iter.Key;
 
-      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
       DebugLn([(iter.Value as TJSONObject).FormatJSON()]);
 
@@ -1481,7 +1531,7 @@ begin
 
       DebugLn(['Loading creature ',iter.Key]);
 
-      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
       DebugLn(['Index ',info.Index]);
 
@@ -1580,7 +1630,7 @@ begin
 
       o := iter.Value as TJSONObject;
 
-      FDestreamer.JSONToObject(o, info);
+      FDestreamer.JSONToObjectEx(o, info);
 
       ArtifactInfos.Add(info);
       ArtifactMap.AddObject(info.ID, info);
@@ -1817,7 +1867,7 @@ begin
 
       info.ID := iter.Key;
 
-      FDestreamer.JSONToObject(iter.Value as TJSONObject, info);
+      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
       FHeroInfos.Add(info);
       FHeroMap.AddObject(info.ID, info);

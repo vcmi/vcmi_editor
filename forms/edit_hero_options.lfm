@@ -50,16 +50,19 @@ object EditHeroOptions: TEditHeroOptions
     Height = 541
     Top = 3
     Width = 563
-    ActivePage = tsMain
+    ActivePage = tsSecondary
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main options'
+    end
+    object tsSecondary: TTabSheet
+      Caption = 'Secondary skills'
     end
     object tsArtifacts: TTabSheet
       Caption = 'Artifacts'
