@@ -735,7 +735,7 @@ type
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);
     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
-    procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+    procedure VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);
 
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
@@ -1092,7 +1092,7 @@ end;
 
 procedure THeroPlaceholderOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
-  AVisitor.VisitHeroPlaseholder(Self);
+  AVisitor.VisitHeroPlaceholder(Self);
 end;
 
 procedure THeroPlaceholderOptions.SetPower(AValue: UInt8);

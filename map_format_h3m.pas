@@ -212,7 +212,7 @@ type
      procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
      procedure VisitQuestGuard(AOptions: TQuestGuardOptions);//+
      procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
-     procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);//+
+     procedure VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);//+
    public
      constructor Create(AMapEnv: TMapEnvironment); override;
      destructor Destroy; override;
@@ -1064,7 +1064,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+procedure TMapReaderH3m.VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);
 var
   htid: Byte;
 begin

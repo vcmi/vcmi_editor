@@ -31,6 +31,8 @@ uses
 
 type
 
+   //todo: FIXME reload defaults of all frames (f.e. on type change)
+
   { TBaseOptionsFrame }
 
   TBaseOptionsFrame = class(TFrame,IObjectOptionsVisitor)
@@ -74,7 +76,7 @@ type
     procedure VisitRandomDwellingLVL({%H-}AOptions: TRandomDwellingLVLOptions);virtual;
     procedure VisitRandomDwellingTown({%H-}AOptions: TRandomDwellingTownOptions);virtual;
     procedure VisitQuestGuard({%H-}AOptions:TQuestGuardOptions);virtual;
-    procedure VisitHeroPlaseholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
+    procedure VisitHeroPlaceholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
 
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
   public //map options
@@ -346,7 +348,7 @@ begin
   end;
 end;
 
-procedure TBaseOptionsFrame.VisitHeroPlaseholder(
+procedure TBaseOptionsFrame.VisitHeroPlaceholder(
   AOptions: THeroPlaceholderOptions);
 begin
   //do nothig

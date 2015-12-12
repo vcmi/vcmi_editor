@@ -62,10 +62,10 @@ type
     procedure VisitDwelling(AOptions: TObjectOptions);
     procedure VisitGuardedObject(AOptions: TObjectOptions);
     procedure VisitArmedObject(AOptions: TObjectOptions);
-  strict private //IObjectOptionsVisitor
+  public//IObjectOptionsVisitor
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
-    procedure VisitHero(AOptions: THeroOptions);
+    procedure VisitHero(AOptions: THeroOptions);//+
     procedure VisitMonster(AOptions: TMonsterOptions);//+
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
@@ -83,7 +83,7 @@ type
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
     procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
-    procedure VisitHeroPlaseholder(AOptions: THeroPlaceholderOptions);
+    procedure VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);
 
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+
 
@@ -211,7 +211,7 @@ begin
   FActiveEditors.AddFrame(THeroSpellsFrame, AOptions, tsSpells);
 end;
 
-procedure TEditObjectOptions.VisitHeroPlaseholder(
+procedure TEditObjectOptions.VisitHeroPlaceholder(
   AOptions: THeroPlaceholderOptions);
 begin
   VisitArmedObject(AOptions);
