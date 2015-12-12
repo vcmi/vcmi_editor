@@ -24,7 +24,7 @@ unit logical_expression;
 interface
 
 uses
-  Classes, SysUtils, editor_classes;
+  Classes, SysUtils, editor_classes, fpjson, vcmi_json;
 
 type
 
@@ -52,18 +52,74 @@ type
     property SubExpressions:TLogicalExpression read FSubExpressions;
   end;
 
-  TLogicalExpression = class (TCollection, IArrayCollection)
+  TLogicalExpression = class (TCollection, IArrayCollection, ISerializeSpecial)
+  private
+    FIsRoot: Boolean;
+  protected
+    function IsRoot:Boolean;
   public
     constructor Create(AItemClass: TCollectionItemClass); virtual;
+    constructor CreateRoot(AItemClass: TCollectionItemClass);
+
+    //ISerializeSpecial
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   end;
 
 implementation
 
 { TLogicalExpression }
 
+function TLogicalExpression.IsRoot: Boolean;
+begin
+  Result := FIsRoot;
+end;
+
 constructor TLogicalExpression.Create(AItemClass: TCollectionItemClass);
 begin
   Inherited Create(AItemClass);
+  FIsRoot:=false;
+end;
+
+constructor TLogicalExpression.CreateRoot(AItemClass: TCollectionItemClass);
+begin
+  Create(AItemClass);
+  FIsRoot:=true;
+end;
+
+function TLogicalExpression.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+begin
+  if IsRoot then
+  begin
+    if Count = 1 then
+    begin
+      Result := AHandler.ObjectToJsonEx(Items[0]);
+    end
+    else begin
+      Result := CreateJSONArray([]);
+    end;
+  end
+  else begin
+    Result := AHandler.DoStreamCollection(Self); //use default
+  end;
+end;
+
+procedure TLogicalExpression.Deserialize(AHandler: TVCMIJSONDestreamer;
+  ASrc: TJSONData);
+var
+  Item: TCollectionItem;
+begin
+  if IsRoot then
+  begin
+    If ASrc.JSONType = TJSONtype.jtArray then
+    begin
+      Item := Add;
+      AHandler.JSONToObjectEx(ASrc, Item);
+    end;
+  end
+  else begin
+    AHandler.DoDeStreamCollection(ASrc,Self); //use default
+  end;
 end;
 
 { TLogicalExpressionItem }

@@ -25,11 +25,9 @@ unit lists_manager;
 interface
 
 uses
-  Classes, SysUtils,
-  gmap, fgl,
-  fpjson,
-  filesystem_base, editor_consts, editor_types, editor_utils,
-  vcmi_json,h3_txt, base_info, editor_classes, logical_id_condition;
+  Classes, SysUtils, gmap, fgl, fpjson, filesystem_base, editor_consts,
+  editor_types, editor_utils, vcmi_json, h3_txt, base_info, editor_classes,
+  logical_id_condition, logical_expression;
 
 type
 
@@ -133,7 +131,26 @@ type
   TGuildSpells = class(specialize TGNamedCollection<TGuildSpell>)
   end;
 
+  { TRequiredConditionItem }
 
+  TRequiredConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
+  private
+    FBuilding: AnsiString;
+    procedure SetBuilding(AValue: AnsiString);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  public
+    //ISerializeSpecial
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+  public
+    property Building: AnsiString read FBuilding write SetBuilding;
+  end;
+
+  TRequiredCondition = class(TLogicalExpression)
+
+  end;
 
   { TTownBuilding }
 
@@ -141,16 +158,20 @@ type
   private
     FID: Integer;
     FName: TLocalizedString;
+    FRequires: TRequiredCondition;
     FUpgrades: AnsiString;
     procedure SetID(AValue: Integer);
     procedure SetName(AValue: TLocalizedString);
     procedure SetUpgrades(AValue: AnsiString);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
   published
     property ID:Integer read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
     property Upgrades: AnsiString read FUpgrades write SetUpgrades;
 
-//    property requires;
+    property Requires: TRequiredCondition read FRequires;
   end;
 
   { TTownBuildings }
@@ -548,7 +569,7 @@ type
 
 implementation
 
-uses FileUtil, LazLoggerBase;
+uses FileUtil, LazLoggerBase, typinfo;
 
 const
   SEC_SKILL_TRAITS  = 'data\sstraits';
@@ -576,6 +597,84 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TRequiredConditionItem }
+
+procedure TRequiredConditionItem.SetBuilding(AValue: AnsiString);
+begin
+  if FBuilding=AValue then Exit;
+  FBuilding:=AValue;
+end;
+
+constructor TRequiredConditionItem.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+end;
+
+destructor TRequiredConditionItem.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TRequiredConditionItem.Serialize(AHandler: TVCMIJSONStreamer
+  ): TJSONData;
+var
+  item: TCollectionItem;
+begin
+  Result := CreateJSONArray([]);
+
+  if SubExpressions.Count > 0 then
+  begin
+     TJSONArray(Result).Add(GetEnumName( TypeInfo(TLogicalOperator), Integer(LogicalOperator)));
+
+     for item in SubExpressions do
+     begin
+       TJSONArray(Result).Add((item as TRequiredConditionItem).Serialize(AHandler));
+     end;
+  end
+  else
+  begin
+    TJSONArray(Result).Add(Building);
+  end;
+
+end;
+
+procedure TRequiredConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer;
+  ASrc: TJSONData);
+var
+  ASrcArray: TJSONArray;
+  instruction_name: TJSONStringType;
+  raw_instruction: Integer;
+  i: Integer;
+  SubExpression: TRequiredConditionItem;
+begin
+  if ASrc.JSONType <> jtArray then
+  begin
+    raise Exception.Create('invalid format for building condition, array required');
+  end;
+
+  ASrcArray :=  TJSONArray(ASrc);
+
+  instruction_name :=  ASrcArray.Strings[0];
+
+  raw_instruction := GetEnumValue(TypeInfo(TLogicalOperator), instruction_name);
+
+  if raw_instruction >=0 then
+  begin
+    LogicalOperator:=TLogicalOperator(raw_instruction);
+
+    for i := 1 to ASrcArray.Count - 1 do
+    begin
+      SubExpression := TRequiredConditionItem(SubExpressions.Add);
+
+      SubExpression.Deserialize(AHandler, ASrcArray.Items[i]);
+    end;
+  end
+  else
+  begin
+    Building:=instruction_name;
+  end;
+end;
+
 { TTownBuilding }
 
 procedure TTownBuilding.SetID(AValue: Integer);
@@ -594,6 +693,18 @@ procedure TTownBuilding.SetUpgrades(AValue: AnsiString);
 begin
   if FUpgrades=AValue then Exit;
   FUpgrades:=AValue;
+end;
+
+constructor TTownBuilding.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FRequires := TRequiredCondition.CreateRoot(TRequiredConditionItem);
+end;
+
+destructor TTownBuilding.Destroy;
+begin
+  FRequires.Free;
+  inherited Destroy;
 end;
 
 { TCreatureName }
@@ -1357,7 +1468,6 @@ var
   o: TJSONObject;
   info: TFactionInfo;
   iter: TJSONEnum;
-  i: Integer;
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;

@@ -66,17 +66,10 @@ type
 
   { TLogicalEventCondition }
 
-  TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify, ISerializeSpecial)
-  private
-    FIsRoot: Boolean;
-  public
-    constructor Create(AItemClass: TCollectionItemClass); override;
-    constructor Create();
+  TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify)
+  public //IReferenceNotify
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
-  public
-    //ISerializeSpecial
-    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
-    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+
   end;
 
   { TTriggeredEventEffect }
@@ -138,58 +131,10 @@ end;
 
 { TLogicalEventCondition }
 
-constructor TLogicalEventCondition.Create(AItemClass: TCollectionItemClass);
-begin
-  inherited Create(AItemClass);
-  FIsRoot:=false;
-end;
-
-constructor TLogicalEventCondition.Create;
-begin
-  inherited Create(TLogicalEventConditionItem);
-  FIsRoot:=True;
-end;
-
 procedure TLogicalEventCondition.NotifyReferenced(AOldIdentifier,
   ANewIdentifier: AnsiString);
 begin
 
-end;
-
-function TLogicalEventCondition.Serialize(AHandler: TVCMIJSONStreamer
-  ): TJSONData;
-begin
-  if FIsRoot then
-  begin
-    if Count = 1 then
-    begin
-      Result := AHandler.ObjectToJsonEx(Items[0]);
-    end
-    else begin
-      Result := CreateJSONArray([]);
-    end;
-  end
-  else begin
-    Result := AHandler.DoStreamCollection(Self); //use default
-  end;
-end;
-
-procedure TLogicalEventCondition.Deserialize(AHandler: TVCMIJSONDestreamer;
-  ASrc: TJSONData);
-var
-  Item: TCollectionItem;
-begin
-  if FIsRoot then
-  begin
-    If ASrc.JSONType = TJSONtype.jtArray then
-    begin
-      Item := Add;
-      AHandler.JSONToObjectEx(ASrc, Item);
-    end;
-  end
-  else begin
-    AHandler.DoDeStreamCollection(ASrc,Self); //use default
-  end;
 end;
 
 { TLogicalEventConditionItem }
@@ -339,7 +284,7 @@ end;
 constructor TTriggeredEvent.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FCondition := TLogicalEventCondition.Create();
+  FCondition := TLogicalEventCondition.CreateRoot(TLogicalEventConditionItem);
   FEffect := TTriggeredEventEffect.Create;
 end;
 
