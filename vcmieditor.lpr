@@ -43,7 +43,8 @@ uses
   resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
   editor_rtti, hero_artifacts_frame, message_frame, edit_hero_options,
   hero_options_frame, hero_definition_frame, player_options_form, 
-player_options_frame, position, hero_spells_frame, hero_skills_frame;
+player_options_frame, position, hero_spells_frame, hero_skills_frame, 
+town_frame, town_buildings_frame;
 
 {$R *.res}
 

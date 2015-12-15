@@ -29,7 +29,7 @@ uses
   base_options_frame, monster_frame, abandoned_frame, scholar_frame,
   creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
   hero_frame, hero_artifacts_frame, message_frame, hero_options_frame,
-  hero_spells_frame, hero_skills_frame;
+  hero_spells_frame, hero_skills_frame, town_frame;
 
 type
 
@@ -298,6 +298,7 @@ end;
 
 procedure TEditObjectOptions.VisitTown(AOptions: TTownOptions);
 begin
+  FActiveEditors.AddFrame(TTownOptionsFrame, AOptions,tsCommon);
   VisitArmedObject(AOptions);
 end;
 

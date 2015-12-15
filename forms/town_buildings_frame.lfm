@@ -1,0 +1,19 @@
+inherited TownBuildingsFrame: TTownBuildingsFrame
+  Height = 334
+  Width = 439
+  ClientHeight = 334
+  ClientWidth = 439
+  DesignLeft = 610
+  DesignTop = 179
+  object Buildings: TTreeView[0]
+    Left = 0
+    Height = 334
+    Top = 0
+    Width = 439
+    Align = alClient
+    DefaultItemHeight = 18
+    ShowRoot = False
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+  end
+end

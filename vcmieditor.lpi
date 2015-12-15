@@ -134,7 +134,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="74">
+    <Units Count="76">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -527,6 +527,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit73>
+      <Unit74>
+        <Filename Value="forms\town_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TownOptionsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="forms\town_buildings_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TownBuildingsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit75>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
