@@ -156,19 +156,24 @@ type
 
   TTownBuilding = class(TNamedCollectionItem)
   private
+    FDescription: TLocalizedString;
     FID: Integer;
     FName: TLocalizedString;
     FRequires: TRequiredCondition;
     FUpgrades: AnsiString;
+    procedure SetDescription(AValue: TLocalizedString);
     procedure SetID(AValue: Integer);
     procedure SetName(AValue: TLocalizedString);
     procedure SetUpgrades(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    function GetDisplayName: string; override;
   published
     property ID:Integer read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
+    property Description: TLocalizedString read FDescription write SetDescription;
     property Upgrades: AnsiString read FUpgrades write SetUpgrades;
 
     property Requires: TRequiredCondition read FRequires;
@@ -683,6 +688,12 @@ begin
   FID:=AValue;
 end;
 
+procedure TTownBuilding.SetDescription(AValue: TLocalizedString);
+begin
+  if FDescription=AValue then Exit;
+  FDescription:=AValue;
+end;
+
 procedure TTownBuilding.SetName(AValue: TLocalizedString);
 begin
   if FName=AValue then Exit;
@@ -705,6 +716,18 @@ destructor TTownBuilding.Destroy;
 begin
   FRequires.Free;
   inherited Destroy;
+end;
+
+function TTownBuilding.GetDisplayName: string;
+begin
+  if FName = '' then
+  begin
+    Result:=inherited GetDisplayName;
+  end
+  else begin
+    Result:=FName;
+  end;
+
 end;
 
 { TCreatureName }
@@ -1462,10 +1485,10 @@ var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
 
-  faction_names: TTextResource;
+  faction_names, bldgneut, bldgspec, dwelling: TTextResource;
   legacy_data: TJsonObjectList;
-  f: Integer;
-  o: TJSONObject;
+  f, build_idx: Integer;
+  o, buildings: TJSONObject;
   info: TFactionInfo;
   iter: TJSONEnum;
 begin
@@ -1474,7 +1497,9 @@ begin
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
-
+  bldgneut := TTextResource.Create('DATA/BLDGNEUT.TXT');
+  bldgspec := TTextResource.Create('DATA/BLDGSPEC.TXT');
+  dwelling := TTextResource.Create('DATA/DWELLING.TXT');
   try
     DebugLn('Loading factions');
     faction_names.Load(ResourceLoader);
@@ -1486,6 +1511,56 @@ begin
       o.Strings['name'] := faction_names.Value[0,f];
 
       legacy_data.Add(o);
+    end;
+
+    bldgneut.Load(ResourceLoader);
+    bldgspec.Load(ResourceLoader);
+    dwelling.Load(ResourceLoader);
+
+    for f in [0..8] do
+    begin
+      o := legacy_data[f];
+
+      buildings := o.GetOrCreateObject('town').GetOrCreateObject('buildings');
+
+      //common buildings
+      for build_idx in [0..14] do
+      begin
+        buildings.GetOrCreateObject(BUILDING_NAMES[build_idx]).Strings['name'] := bldgneut.Value[0,build_idx];
+        buildings.GetOrCreateObject(BUILDING_NAMES[build_idx]).Strings['description'] := bldgneut.Value[1,build_idx];
+      end;
+
+      //shipyard with the ship
+      buildings.GetOrCreateObject(BUILDING_NAMES[20]).Strings['name'] := bldgneut.Value[0,18];
+      buildings.GetOrCreateObject(BUILDING_NAMES[20]).Strings['description'] := bldgneut.Value[1,18];
+
+      //blacksmith
+      buildings.GetOrCreateObject(BUILDING_NAMES[16]).Strings['name'] := bldgneut.Value[0,19];
+      buildings.GetOrCreateObject(BUILDING_NAMES[16]).Strings['description'] := bldgneut.Value[1,19];
+
+
+      //specail buildings
+      for build_idx in [0..8] do
+      begin
+        buildings.GetOrCreateObject(BUILDING_NAMES[17+build_idx]).Strings['name'] := bldgspec.Value[0, build_idx + f * 11];
+        buildings.GetOrCreateObject(BUILDING_NAMES[17+build_idx]).Strings['description'] := bldgspec.Value[1, build_idx + f * 11];
+      end;
+
+      // Grail
+      buildings.GetOrCreateObject(BUILDING_NAMES[26]).Strings['name'] := bldgspec.Value[0, 9 + f * 11];
+      buildings.GetOrCreateObject(BUILDING_NAMES[26]).Strings['description'] := bldgspec.Value[1, 9 + f * 11];
+      // Resource silo
+
+      buildings.GetOrCreateObject(BUILDING_NAMES[15]).Strings['name'] := bldgspec.Value[0, 10 + f * 11];
+      buildings.GetOrCreateObject(BUILDING_NAMES[15]).Strings['description'] := bldgspec.Value[1, 10 + f * 11];
+
+      //dwellings
+      for build_idx in [0..13] do
+      begin
+        buildings.GetOrCreateObject(BUILDING_NAMES[30+build_idx]).Strings['name'] := dwelling.Value[0, build_idx + f * 14];
+        buildings.GetOrCreateObject(BUILDING_NAMES[30+build_idx]).Strings['description'] := dwelling.Value[1, build_idx + f * 14];
+      end;
+
     end;
 
     FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
@@ -1512,6 +1587,9 @@ begin
     FFactionInfos.FillWithTownIds(FTownMap);
 
   finally
+    dwelling.Free;
+    bldgneut.Free;
+    bldgspec.Free;
     faction_names.Free;
     legacy_data.Free;
     FCombinedConfig.Free;

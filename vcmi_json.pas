@@ -287,14 +287,21 @@ begin
   for src_idx := 0 to ASrc.Count - 1 do
   begin
     name := ASrc.Names[src_idx];
-
     dest_idx := ADest.IndexOfName(name);
 
     if dest_idx >=0 then
     begin
-      MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
+      if Asrc.Types[name] = jtNull then
+      begin
+        ADest.Delete(dest_idx);
+      end
+      else
+      begin
+        MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
+      end;
     end
-    else begin
+    else
+    begin
       ADest.Add(name,ASrc.Items[src_idx].Clone());
     end;
   end;

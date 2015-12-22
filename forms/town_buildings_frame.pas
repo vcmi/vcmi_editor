@@ -24,8 +24,9 @@ unit town_buildings_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls, 
-    base_options_frame, object_options;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
+  ExtCtrls, StdCtrls, base_options_frame, object_options,
+  lists_manager, logical_id_condition, editor_classes;
 
 type
 
@@ -33,9 +34,17 @@ type
 
   TTownBuildingsFrame = class(TBaseOptionsFrame)
     Buildings: TTreeView;
+    Built: TCheckBox;
+    Allowed: TCheckBox;
+    Panel1: TPanel;
   private
-    { private declarations }
+    FObject: TLogicalIDCondition;
+    FConfig: TTownInfo;
+
+    procedure FillBuildings;
   public
+    constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Commit; override;
     procedure VisitTown(AOptions: TTownOptions); override;
   end;
@@ -46,15 +55,60 @@ implementation
 
 { TTownBuildingsFrame }
 
+procedure TTownBuildingsFrame.FillBuildings;
+var
+  i: Integer;
+  building: TTownBuilding;
+
+  last_node: TTreeNode;
+
+begin
+  last_node := nil;
+  for i := 0 to FConfig.Buildings.Count - 1 do
+  begin
+    building :=  FConfig.Buildings[i];
+
+    if building.Upgrades = '' then
+    begin
+      last_node := Buildings.Items.AddObject(last_node, building.DisplayName, building);
+    end
+    else
+    begin
+
+    end;
+  end;
+
+
+end;
+
+constructor TTownBuildingsFrame.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+end;
+
+destructor TTownBuildingsFrame.Destroy;
+begin
+  inherited Destroy;
+end;
+
 procedure TTownBuildingsFrame.Commit;
 begin
   inherited Commit;
 end;
 
 procedure TTownBuildingsFrame.VisitTown(AOptions: TTownOptions);
+var
+  town_type: AnsiString;
 begin
   inherited VisitTown(AOptions);
 
+  FObject := AOptions.Buildings;
+
+  town_type := AOptions.MapObject.GetSubId;
+
+  FConfig := ListsManager.GetFaction(town_type).Town;
+
+  FillBuildings;
 end;
 
 end.

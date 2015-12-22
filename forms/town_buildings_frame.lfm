@@ -9,11 +9,37 @@ inherited TownBuildingsFrame: TTownBuildingsFrame
     Left = 0
     Height = 334
     Top = 0
-    Width = 439
+    Width = 317
     Align = alClient
     DefaultItemHeight = 18
     ShowRoot = False
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+  end
+  object Panel1: TPanel[1]
+    Left = 317
+    Height = 334
+    Top = 0
+    Width = 122
+    Align = alRight
+    ClientHeight = 334
+    ClientWidth = 122
+    TabOrder = 1
+    object Built: TCheckBox
+      Left = 14
+      Height = 19
+      Top = 56
+      Width = 44
+      Caption = 'Built'
+      TabOrder = 0
+    end
+    object Allowed: TCheckBox
+      Left = 14
+      Height = 19
+      Top = 24
+      Width = 63
+      Caption = 'Allowed'
+      TabOrder = 1
+    end
   end
 end
