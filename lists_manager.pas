@@ -158,11 +158,13 @@ type
   private
     FDescription: TLocalizedString;
     FID: Integer;
+    FMode: TBuildMode;
     FName: TLocalizedString;
     FRequires: TRequiredCondition;
     FUpgrades: AnsiString;
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetID(AValue: Integer);
+    procedure SetMode(AValue: TBuildMode);
     procedure SetName(AValue: TLocalizedString);
     procedure SetUpgrades(AValue: AnsiString);
   public
@@ -174,6 +176,7 @@ type
     property ID:Integer read FID write SetID;
     property Name: TLocalizedString read FName write SetName;
     property Description: TLocalizedString read FDescription write SetDescription;
+    property Mode: TBuildMode read FMode write SetMode default TBuildMode.normal;
     property Upgrades: AnsiString read FUpgrades write SetUpgrades;
 
     property Requires: TRequiredCondition read FRequires;
@@ -544,6 +547,8 @@ type
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
     function GetFaction(const AID: AnsiString): TFactionInfo;
 
+    function BuildingIndexToString (ABuilding: TCustomID): AnsiString;
+
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
     property HeroClassMap: TStrings read FHeroClassMap;
@@ -688,6 +693,12 @@ begin
   FID:=AValue;
 end;
 
+procedure TTownBuilding.SetMode(AValue: TBuildMode);
+begin
+  if FMode=AValue then Exit;
+  FMode:=AValue;
+end;
+
 procedure TTownBuilding.SetDescription(AValue: TLocalizedString);
 begin
   if FDescription=AValue then Exit;
@@ -710,6 +721,7 @@ constructor TTownBuilding.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FRequires := TRequiredCondition.CreateRoot(TRequiredConditionItem);
+  FMode:=TBuildMode.normal;
 end;
 
 destructor TTownBuilding.Destroy;
@@ -1371,6 +1383,11 @@ begin
   end;
 
   Result := TFactionInfo(FFactionMap.Objects[idx]);
+end;
+
+function TListsManager.BuildingIndexToString(ABuilding: TCustomID): AnsiString;
+begin
+  Result := BUILDING_NAMES[ABuilding];
 end;
 
 function TListsManager.HeroClassIndexToString(AIndex: TCustomID): AnsiString;

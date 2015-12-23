@@ -2042,13 +2042,12 @@ begin
 
     if ReadBoolean then //custom buildings
     begin
-      //6 48
-      SkipNotImpl(6); //built
-      SkipNotImpl(6); //banned
+      ReadBitmask(AOptions.Buildings.AllOf, 6, 48, @FMapEnv.lm.BuildingIndexToString, false);
+      ReadBitmask(AOptions.Buildings.NoneOf, 6, 48, @FMapEnv.lm.BuildingIndexToString, false);
     end
     else
     begin
-      SkipNotImpl(1) ;  //hasfort
+      SkipNotImpl(1);  //hasfort
 
       //insert default
     end;

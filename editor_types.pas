@@ -72,6 +72,8 @@ type
 
   TSkillLevel = (none, basic, advanced, expert);
 
+  TBuildMode = (normal, auto, special, grail);
+
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 

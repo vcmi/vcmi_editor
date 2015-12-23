@@ -1,23 +1,27 @@
 inherited TownBuildingsFrame: TTownBuildingsFrame
   Height = 334
-  Width = 439
+  Width = 454
   ClientHeight = 334
-  ClientWidth = 439
+  ClientWidth = 454
   DesignLeft = 610
   DesignTop = 179
   object Buildings: TTreeView[0]
     Left = 0
     Height = 334
     Top = 0
-    Width = 317
+    Width = 332
     Align = alClient
+    AutoExpand = True
     DefaultItemHeight = 18
+    ReadOnly = True
     ShowRoot = False
     TabOrder = 0
-    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+    OnDeletion = BuildingsDeletion
+    OnSelectionChanged = BuildingsSelectionChanged
+    Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
   end
   object Panel1: TPanel[1]
-    Left = 317
+    Left = 332
     Height = 334
     Top = 0
     Width = 122
@@ -31,6 +35,7 @@ inherited TownBuildingsFrame: TTownBuildingsFrame
       Top = 56
       Width = 44
       Caption = 'Built'
+      OnChange = BuiltChange
       TabOrder = 0
     end
     object Allowed: TCheckBox
@@ -39,6 +44,7 @@ inherited TownBuildingsFrame: TTownBuildingsFrame
       Top = 24
       Width = 63
       Caption = 'Allowed'
+      OnChange = AllowedChange
       TabOrder = 1
     end
   end
