@@ -24,8 +24,8 @@ unit town_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, 
-    base_options_frame, object_options;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  ExtCtrls, base_options_frame, object_options;
 
 type
 
@@ -33,11 +33,11 @@ type
 
   TTownOptionsFrame = class(TBaseOptionsFrame)
     NameCustomise: TCheckBox;
-    Edit1: TEdit;
+    edName: TEdit;
     NameLabel: TLabel;
     OwnerPlaceholder: TLabel;
-    OwnerEditor: TComboBox;
     OwnerLabel: TLabel;
+    edOwner: TRadioGroup;
     TypLabel: TLabel;
     Typ: TLabel;
     TypPlaceholder: TLabel;
@@ -58,16 +58,18 @@ implementation
 
 procedure TTownOptionsFrame.Load;
 begin
-
+  ReadOwner(FObject, edOwner);
 end;
 
 procedure TTownOptionsFrame.Commit;
 begin
   inherited Commit;
+  WriteOwner(FObject, edOwner);
 end;
 
 procedure TTownOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
+  FillWithPlayers(edOwner.Items);
   inherited VisitTown(AOptions);
   FObject:=AOptions;
   Load;

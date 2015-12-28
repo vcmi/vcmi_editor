@@ -18,69 +18,78 @@ inherited TownOptionsFrame: TTownOptionsFrame
   object TypLabel: TLabel[0]
     Left = 5
     Height = 15
-    Top = 61
-    Width = 80
+    Top = 63
+    Width = 88
     Caption = 'Type:'
     ParentColor = False
   end
   object Typ: TLabel[1]
-    Left = 90
+    Left = 98
     Height = 15
-    Top = 61
-    Width = 208
+    Top = 63
+    Width = 183
     ParentColor = False
   end
   object TypPlaceholder: TLabel[2]
-    Left = 303
+    Left = 286
     Height = 15
-    Top = 61
-    Width = 157
+    Top = 63
+    Width = 174
     ParentColor = False
   end
   object OwnerLabel: TLabel[3]
     Left = 5
-    Height = 23
-    Top = 137
-    Width = 80
+    Height = 15
+    Top = 141
+    Width = 88
     Caption = 'Owner:'
     ParentColor = False
   end
-  object OwnerEditor: TComboBox[4]
-    Left = 90
-    Height = 23
-    Top = 137
-    Width = 208
-    ItemHeight = 15
-    TabOrder = 0
+  object edOwner: TRadioGroup[4]
+    Left = 98
+    Height = 15
+    Top = 141
+    Width = 183
+    AutoFill = True
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 0
+    ClientWidth = 179
+    TabOrder = 2
   end
   object OwnerPlaceholder: TLabel[5]
-    Left = 303
-    Height = 23
-    Top = 137
-    Width = 157
+    Left = 286
+    Height = 15
+    Top = 141
+    Width = 174
     ParentColor = False
   end
   object NameLabel: TLabel[6]
     Left = 5
     Height = 23
-    Top = 221
-    Width = 80
+    Top = 219
+    Width = 88
     Caption = 'Name:'
     ParentColor = False
   end
-  object Edit1: TEdit[7]
-    Left = 90
+  object edName: TEdit[7]
+    Left = 98
     Height = 23
-    Top = 221
-    Width = 208
-    TabOrder = 1
+    Top = 219
+    Width = 183
+    TabOrder = 0
   end
   object NameCustomise: TCheckBox[8]
-    Left = 303
+    Left = 286
     Height = 23
-    Top = 221
-    Width = 157
+    Top = 219
+    Width = 174
     Caption = 'Customise'
-    TabOrder = 2
+    TabOrder = 1
   end
 end

@@ -24,10 +24,9 @@ unit base_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil,  LCLType,  Forms, Controls, ComCtrls, Spin, Grids,
-  editor_types,
-  object_options, map,
-  lists_manager, editor_consts;
+  Classes, SysUtils, gvector, FileUtil, LCLType, Forms, Controls, ComCtrls,
+  Spin, Grids, ExtCtrls, editor_types, object_options, map, lists_manager,
+  editor_consts;
 
 type
 
@@ -51,6 +50,12 @@ type
 
     procedure HandleStringGridKeyDown(Sender: TObject;  var Key: Word; Shift: TShiftState);
     procedure HandleStringGridResize(Sender: TObject);
+
+    procedure FillWithPlayers(ATarget: TStrings);
+
+    procedure ReadOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
+    procedure WriteOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
+
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -316,6 +321,42 @@ begin
 
   if grid.EditorMode then
     grid.Editor.BoundsRect := grid.CellRect(grid.Col,grid.Row);
+end;
+
+procedure TBaseOptionsFrame.FillWithPlayers(ATarget: TStrings);
+var
+  p: TPlayer;
+begin
+  ATarget.Clear;
+  ATarget.Add(ListsManager.PlayerName[TPlayer.NONE]);
+  for p in TPlayerColor do
+  begin
+    ATarget.Add(ListsManager.PlayerName[p]);
+  end;
+end;
+
+procedure TBaseOptionsFrame.ReadOwner(AOptions: TObjectOptions;
+  AEditor: TCustomRadioGroup);
+begin
+  if AOptions.Owner = TPlayer.NONE then
+  begin
+    AEditor.ItemIndex := 0; //no player = 255 -> index 0
+  end
+  else begin
+    AEditor.ItemIndex := Integer(AOptions.Owner)+1;
+  end;
+end;
+
+procedure TBaseOptionsFrame.WriteOwner(AOptions: TObjectOptions;
+  AEditor: TCustomRadioGroup);
+begin
+  if AEditor.ItemIndex = 0 then
+  begin
+    AOptions.Owner := TPlayer.NONE;
+  end
+  else begin
+    AOptions.Owner := TPlayer(AEditor.ItemIndex-1);
+  end;
 end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

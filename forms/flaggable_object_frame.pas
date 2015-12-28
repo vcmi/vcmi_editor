@@ -40,40 +40,19 @@ uses Math, editor_types;
 procedure TFlaggableFrame.Commit;
 begin
   inherited Commit;
-
-  if edOwnerRG.ItemIndex = 0 then
-  begin
-    FObject.Owner := TPlayer.NONE;
-  end
-  else begin
-    FObject.Owner := TPlayer(edOwnerRG.ItemIndex-1);
-  end;
+  WriteOwner(FObject, edOwnerRG);
 end;
 
 procedure TFlaggableFrame.SetupControls;
-var
-  p: TPlayer;
 begin
-  edOwnerRG.Items.Clear;
-  edOwnerRG.Items.Add(ListsManager.PlayerName[TPlayer.NONE]);
-  for p in TPlayerColor do
-  begin
-    edOwnerRG.Items.Add(ListsManager.PlayerName[p]);
-  end;
+  FillWithPlayers(edOwnerRG.Items);
 end;
 
 procedure TFlaggableFrame.VisitOptions(AOptions: TObjectOptions);
 begin
   SetupControls;
-
   FObject := AOptions;
-  if AOptions.Owner = TPlayer.NONE then
-  begin
-    edOwnerRG.ItemIndex := 0; //no player = 255 -> index 0
-  end
-  else begin
-    edOwnerRG.ItemIndex := Integer(AOptions.Owner)+1;
-  end;
+  ReadOwner(FObject, edOwnerRG);
 end;
 
 procedure TFlaggableFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions);
