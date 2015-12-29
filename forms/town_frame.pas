@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, base_options_frame, object_options;
+  ExtCtrls, base_options_frame, object_options, editor_types;
 
 type
 
@@ -41,10 +41,14 @@ type
     TypLabel: TLabel;
     Typ: TLabel;
     TypPlaceholder: TLabel;
+    procedure NameCustomiseChange(Sender: TObject);
   private
     FObject: TTownOptions;
+    FCustomName: TLocalizedString;
 
     procedure Load;
+  protected
+    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitTown(AOptions: TTownOptions); override;
@@ -56,15 +60,42 @@ implementation
 
 { TTownOptionsFrame }
 
+procedure TTownOptionsFrame.NameCustomiseChange(Sender: TObject);
+begin
+  UpdateControls;
+
+  DoUpdateText(edName, NameCustomise, FCustomName, '');
+end;
+
 procedure TTownOptionsFrame.Load;
 begin
   ReadOwner(FObject, edOwner);
+
+  NameCustomise.Checked:=FObject.Name <> '';
+
+  FCustomName:=FObject.Name;
+
+  NameCustomiseChange(NameCustomise);
+end;
+
+procedure TTownOptionsFrame.UpdateControls;
+begin
+  inherited UpdateControls;
+  edName.Enabled := NameCustomise.Checked;
 end;
 
 procedure TTownOptionsFrame.Commit;
 begin
   inherited Commit;
   WriteOwner(FObject, edOwner);
+  if NameCustomise.Checked then
+  begin
+    FObject.Name := edName.Text;
+  end
+  else
+  begin
+    FObject.Name := '';
+  end;
 end;
 
 procedure TTownOptionsFrame.VisitTown(AOptions: TTownOptions);

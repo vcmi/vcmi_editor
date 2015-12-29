@@ -23,7 +23,8 @@ type
     FOptions: TScholarOptions;
     FBonusID: AnsiString;
 
-    procedure UpdateControls;
+  protected
+    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitScholar(AOptions: TScholarOptions); override;
@@ -55,7 +56,7 @@ procedure TScholarFrame.UpdateControls;
 var
   tmp : AnsiString;
 begin
-
+  inherited UpdateControls;
   tmp := FBonusID;
 
   edBonusID.Enabled := edBonusType.ItemIndex <> Integer(TScholarBonus.random);

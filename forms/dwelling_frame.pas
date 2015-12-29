@@ -55,7 +55,6 @@ type
      FLinkFrame: TObjectLinkFrame;
 
      procedure SetupControls;
-     procedure UpdateControls;
      procedure LoadLevels;
      procedure SaveLevels;
 
@@ -66,6 +65,8 @@ type
      procedure SaveLink;
 
      procedure NormalizeLevels;
+  protected
+    procedure UpdateControls; override;
   public
      constructor Create(TheOwner: TComponent); override;
      procedure Commit; override;
@@ -116,6 +117,7 @@ end;
 
 procedure TDwellingFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edFaction.Enabled:=rbRandom.Checked;
 
   FLinkFrame.Enabled := rbLinked.Checked;

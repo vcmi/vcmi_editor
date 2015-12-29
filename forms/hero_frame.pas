@@ -102,7 +102,7 @@ type
     function GetDefaultSex: THeroSex; virtual;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
-    procedure UpdateControls(); virtual;
+    procedure UpdateControls(); override;
 
     procedure SaveSkills;
     procedure LoadSkills;
@@ -233,6 +233,7 @@ end;
 
 procedure THeroFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edPortrait.Enabled:=cbPortrait.Checked;
   edExperience.Enabled:=cbExperience.Checked;
   edName.Enabled:=cbName.Checked;
@@ -267,25 +268,9 @@ end;
 
 procedure THeroFrame.UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox;
   ACustom: TLocalizedString; ADefault: TLocalizedString);
-
 begin
   CustomiseChange(AFlag);
-
-  if AFlag.State = cbChecked then
-  begin
-    if ACustom = '' then
-    begin
-      AControl.Text := ADefault;
-    end
-    else
-    begin
-      AControl.Text := ACustom;
-    end;
-  end
-  else
-  begin
-    AControl.Text := ADefault;
-  end;
+  DoUpdateText(AControl, AFlag, ACustom, ADefault);
 end;
 
 constructor THeroFrame.Create(TheOwner: TComponent);

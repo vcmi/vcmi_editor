@@ -40,7 +40,8 @@ type
     procedure rbRandomChange(Sender: TObject);
   strict private
     FObject: TShrineOptions;
-    procedure UpdateControls();
+  protected
+    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitShrine(AOptions: TShrineOptions); override;
@@ -73,6 +74,7 @@ end;
 
 procedure TShrineFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edSpell.Enabled := rbSpecified.Checked;
 
   if (edSpell.ItemIndex < 0) and (edSpell.Items.Count > 0) then

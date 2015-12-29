@@ -51,8 +51,9 @@ type
     FCellTypes: array of TCustomComboBox;
     FCellAmounts: array of TCustomSpinEdit;
 
-    procedure UpdateControls;
   protected
+    procedure UpdateControls; override;
+
     procedure Load(ASrc: TCreatureSet);
   public
     constructor Create(TheOwner: TComponent); override;
@@ -89,6 +90,7 @@ var
   cell_number: Integer;
   disableAll: Boolean;
 begin
+  inherited UpdateControls;
   disableAll := not edCustomize.Checked;
 
   for cell_number in [0..6] do

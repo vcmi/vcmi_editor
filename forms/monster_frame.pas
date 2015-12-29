@@ -43,7 +43,8 @@ type
   private
     FOptions: TMonsterOptions;
 
-    procedure UpdateControls;
+  protected
+    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitMonster(AOptions: TMonsterOptions); override;
@@ -62,6 +63,7 @@ end;
 
 procedure TMonsterFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edCount.Enabled:=not edRandomCount.Checked;
 end;
 

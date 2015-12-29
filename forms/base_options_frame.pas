@@ -25,8 +25,8 @@ interface
 
 uses
   Classes, SysUtils, gvector, FileUtil, LCLType, Forms, Controls, ComCtrls,
-  Spin, Grids, ExtCtrls, editor_types, object_options, map, lists_manager,
-  editor_consts;
+  Spin, Grids, ExtCtrls, StdCtrls, editor_types, object_options, map,
+  lists_manager, editor_consts;
 
 type
 
@@ -56,6 +56,9 @@ type
     procedure ReadOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
     procedure WriteOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
 
+    procedure UpdateControls(); virtual;
+
+    procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -359,25 +362,51 @@ begin
   end;
 end;
 
+procedure TBaseOptionsFrame.UpdateControls;
+begin
+  //do nothing
+end;
+
+procedure TBaseOptionsFrame.DoUpdateText(AControl: TCustomEdit;
+  AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString
+  );
+begin
+  if AFlag.State = cbChecked then
+  begin
+    if ACustom = '' then
+    begin
+      AControl.Text := ADefault;
+    end
+    else
+    begin
+      AControl.Text := ACustom;
+    end;
+  end
+  else
+  begin
+    AControl.Text := ADefault;
+  end;
+end;
+
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
   );
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitGarrison(AOptions: TGarrisonOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitGrail(AOptions: TGrailOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitHero(AOptions: THeroOptions);

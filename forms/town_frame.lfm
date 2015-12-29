@@ -58,8 +58,6 @@ inherited TownOptionsFrame: TTownOptionsFrame
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 0
-    ClientWidth = 179
     TabOrder = 2
   end
   object OwnerPlaceholder: TLabel[5]
@@ -90,6 +88,7 @@ inherited TownOptionsFrame: TTownOptionsFrame
     Top = 219
     Width = 174
     Caption = 'Customise'
+    OnChange = NameCustomiseChange
     TabOrder = 1
   end
 end

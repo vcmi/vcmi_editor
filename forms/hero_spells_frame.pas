@@ -47,10 +47,12 @@ type
     procedure Clear;
 
     procedure ReadData;
-    procedure UpdateControls;
+
     procedure cbCustomiseChange(Sender: TObject);
 
     procedure LoadTypeDefaults(AType: AnsiString);
+  protected
+    procedure UpdateControls; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -124,6 +126,7 @@ end;
 
 procedure THeroSpellsFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   Spellbook.Enabled := cbCustomise.Checked;
 
   if cbCustomise.Checked then

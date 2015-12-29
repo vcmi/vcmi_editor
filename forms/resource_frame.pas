@@ -21,7 +21,8 @@ type
     procedure cbRandomChange(Sender: TObject);
   private
     FOptions: TResourceOptions;
-    procedure UpdateControls;
+  protected
+    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitResource(AOptions: TResourceOptions); override;
@@ -40,6 +41,7 @@ end;
 
 procedure TResourceFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edAmount.Enabled:=not cbRandom.Checked;
 end;
 

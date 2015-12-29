@@ -64,8 +64,10 @@ type
     procedure Load;
     procedure Clear;
 
-    procedure UpdateControls;
+
     procedure Load(AOptions: THeroArtifacts);
+  protected
+    procedure UpdateControls;override;
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
@@ -272,6 +274,7 @@ end;
 
 procedure THeroArtifactsFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   BackPack.Enabled := cbCustomise.Checked;
   pnSlots.Enabled:=cbCustomise.Checked;
 

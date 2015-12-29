@@ -70,7 +70,8 @@ type
 
     procedure FillBuildings;
     procedure LoadBuildings;
-    procedure UpdateControls;
+  protected
+    procedure UpdateControls; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -250,6 +251,7 @@ procedure TTownBuildingsFrame.UpdateControls;
 var
   node_data: TBuildingData;
 begin
+  inherited UpdateControls;
   if Assigned(Buildings.Selected) then
   begin
     node_data := TBuildingData(Buildings.Selected.Data);

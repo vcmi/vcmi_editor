@@ -56,13 +56,13 @@ type
     procedure LoadSkills(ASrc:THeroSecondarySkills);
 
     procedure Load;
-
-    procedure UpdateControls();
-
   protected
+
     procedure VisitNormalHero(AOptions: THeroOptions);override;
     procedure VisitRandomHero(AOptions: THeroOptions);override;
     procedure VisitPrison(AOptions: THeroOptions);override;
+
+    procedure UpdateControls();override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -233,6 +233,7 @@ end;
 
 procedure THeroSkillsFrame.UpdateControls;
 begin
+  inherited UpdateControls;
   edSecondarySkills.Enabled := cbCustomise.Checked;
 end;
 
