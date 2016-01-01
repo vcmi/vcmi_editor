@@ -94,6 +94,8 @@ type
   public
     property ListsManager: TListsManager read FListsManager write SetListsManager;
     property Map: TVCMIMap read FMap write SetMap;
+
+    function IsDirty: Boolean; virtual;
   end;
 
   TBaseOptionsFrameClass = class of TBaseOptionsFrame;
@@ -120,6 +122,8 @@ type
 
     property ListsManager: TListsManager read FListsManager write FListsManager;
     property Map: TVCMIMap read FMap write FMap;
+
+    function IsDirty: Boolean;
   end;
 
 implementation
@@ -189,7 +193,18 @@ begin
   begin
     FData[i].Commit;
   end;
+end;
 
+function TBaseOptionsFrameList.IsDirty: Boolean;
+var
+  i: SizeInt;
+begin
+  Result := false;
+  for i := 0 to FData.Size - 1 do
+  begin
+    if FData[i].IsDirty then
+     Exit(True);
+  end;
 end;
 
 {$R *.lfm}
@@ -443,6 +458,12 @@ end;
 procedure TBaseOptionsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
   //do nothing
+end;
+
+function TBaseOptionsFrame.IsDirty: Boolean;
+begin
+  Result := True;
+  //TODO: TBaseOptionsFrame.IsDirty
 end;
 
 procedure TBaseOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);

@@ -24,12 +24,13 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType, Forms, Controls,
-  Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
-  Buttons, Map, terrain, editor_types, undo_base, map_actions, objects,
-  editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
-  zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions,
-  map_object_actions, player_options_form, gpriorityqueue, types;
+  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType,
+  Forms, Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList,
+  StdCtrls, ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
+  map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
+  lists_manager, zlib_stream, editor_gl, map_terrain_actions,
+  map_road_river_actions, map_object_actions, player_options_form,
+  gpriorityqueue, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -129,7 +130,6 @@ type
     OpenMapDialog: TOpenDialog;
     pnTools: TPanel;
     pnLeft: TPanel;
-    pcToolBox: TPageControl;
     HorisontalAxis: TPaintBox;
     RiverType: TRadioGroup;
     RoadType: TRadioGroup;
@@ -1442,8 +1442,15 @@ begin
 end;
 
 procedure TfMain.MinimapPaint(Sender: TObject);
+var
+  radar_rect: TRect;
 begin
-  FMinimap.Paint(Sender as TPaintBox);
+  radar_rect.Top:=FMapVPos;
+  radar_rect.Left:=FMapHPos;
+  radar_rect.Bottom:=FMapVPos+FViewTilesV;
+  radar_rect.Right:=FMapHPos+FViewTilesH;
+
+  FMinimap.Paint(Sender as TPaintBox, radar_rect);
 end;
 
 procedure TfMain.ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;

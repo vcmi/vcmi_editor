@@ -40,6 +40,8 @@ type
     FMapImgValid: Boolean;
     FMapDimentionsValid: boolean;
 
+    FScale: Double;
+
     procedure MayBeResizeImg;
     procedure MayBeUpdateImg;
 
@@ -50,7 +52,7 @@ type
 
     property Map: TVCMIMap read FMap write SetMap;
 
-    procedure Paint(pb: TPaintBox);
+    procedure Paint(pb: TPaintBox; ARadarRect: TRect);
 
     procedure InvalidateDimensions;
     procedure InvalidateLevel; //todo:InvalidateLevel
@@ -121,7 +123,6 @@ var
   level: Integer;
   ctx: TCanvas;
 
-  scale: Double;
   row, col: Integer;
   tile_size: Integer;
 
@@ -134,36 +135,44 @@ begin
     Exit;
   level := FMap.CurrentLevelIndex;
   ctx := FMapImg.Canvas;
+  FMapImg.BeginUpdate(True);
+  ctx.Lock;
+  try
+    ctx.Brush.Color := clWhite;
+    ctx.FillRect(0, 0, FMapImg.Width,FMapImg.Height);
 
-  ctx.Brush.Color := clWhite;
-  ctx.FillRect(0, 0, FMapImg.Width,FMapImg.Height);
+    FScale := Double(FMapImg.Width) / Double(Fmap.CurrentLevel.Width);
 
-  scale := Double(FMapImg.Width) / Double(Fmap.CurrentLevel.Width);
+    tile_size := trunc(FScale)+1;
 
-  tile_size := trunc(scale)+1;
-
-  for row := 0 to FMap.CurrentLevel.Height - 1 do
-  begin
-    for col := 0 to FMap.CurrentLevel.Width - 1 do
+    for row := 0 to FMap.CurrentLevel.Height - 1 do
     begin
-      tile := FMap.GetTile(level,col,row);
-      tile_rect := Rect(
-        trunc(col*scale),
-        trunc(row*scale),
-        trunc(col*scale) + tile_size,
-        trunc(row*scale) + tile_size);
+      for col := 0 to FMap.CurrentLevel.Width - 1 do
+      begin
+        tile := FMap.GetTile(level,col,row);
+        tile_rect := Rect(
+          trunc(col*FScale),
+          trunc(row*FScale),
+          trunc(col*FScale) + tile_size,
+          trunc(row*FScale) + tile_size);
 
-      ctx.Brush.Color := FterrainColors[tile^.TerType];
+        ctx.Brush.Color := FterrainColors[tile^.TerType];
 
-      ctx.FillRect(tile_rect);
+        ctx.FillRect(tile_rect);
 
+      end;
     end;
+  finally
+    ctx.Unlock;
+    FMapImg.EndUpdate(True);
   end;
 
   FMapImgValid := True;
 end;
 
-procedure TMinimap.Paint(pb: TPaintBox);
+procedure TMinimap.Paint(pb: TPaintBox; ARadarRect: TRect);
+var
+  scaled_radar:  TRect;
 begin
   if not Assigned(FMap) then
     Exit;
@@ -182,6 +191,18 @@ begin
   try
     pb.Canvas.Changing;
     pb.Canvas.Draw(0,0,FMapImg);
+    pb.Canvas.Pen.Style := psDash;
+    pb.Canvas.Pen.Color := clBlack;
+
+    scaled_radar := ARadarRect;
+    scaled_radar.Right:=round(FScale*scaled_radar.Right);
+    scaled_radar.Left:=round(FScale*scaled_radar.Left);
+    scaled_radar.Top:=round(FScale*scaled_radar.Top);
+    scaled_radar.Bottom:=round(FScale*scaled_radar.Bottom);
+
+    pb.Canvas.Frame(scaled_radar);
+
+
 
   finally
     pb.Canvas.Changed;

@@ -92,7 +92,6 @@ type
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure EditObject(Obj: TMapObject);
-
   end;
 
 

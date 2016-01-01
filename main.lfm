@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 426
+  Left = 386
   Height = 838
-  Top = 81
+  Top = 113
   Width = 1254
   Caption = 'VCMI editor'
   ClientHeight = 818
@@ -1132,17 +1132,6 @@ object fMain: TfMain
     ClientHeight = 761
     ClientWidth = 204
     TabOrder = 1
-    object pcToolBox: TPageControl
-      Left = 0
-      Height = 761
-      Top = 0
-      Width = 188
-      TabStop = False
-      Align = alClient
-      ShowTabs = False
-      TabOrder = 0
-      OnChange = pcToolBoxChange
-    end
     object ObjectsView: TOpenGLControl
       Left = 0
       Height = 761
@@ -1166,7 +1155,7 @@ object fMain: TfMain
       Align = alRight
       Kind = sbVertical
       PageSize = 0
-      TabOrder = 2
+      TabOrder = 1
       TabStop = False
       OnScroll = sbObjectsScroll
     end
