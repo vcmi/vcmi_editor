@@ -139,8 +139,10 @@ type
   TGlobalState = class
   private
     const
-       DEFAULT_BUFFER:packed array[1..12] of GLfloat = (0,0,0,0,0,0, 0,0,0,0,0,0);//deprecated
+       VERTEX_BUFFER_SIZE = 4 * 2 * 3 * 2; //4 rotation * 2 triangles * 3 poitns * 2 coordinates
+       UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
   private
+
     EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
   private
 
@@ -156,11 +158,13 @@ type
     FlagColorUniform: GLint;
 
     CoordsBuffer: GLuint;
-    MirroredUVBuffers: array[0..3] of GLuint;
+    MirroredUVBuffer: GLuint;
 
     procedure SetupUVBuffer;
+    procedure SetupCoordsBuffer;
 
   public
+    constructor Create;
     destructor Destroy; override;
     procedure Init;
 
@@ -171,7 +175,7 @@ type
 
   TLocalState = class
   private
-    SpriteVAO: array[0..3] of GLuint;
+    SpriteVAO: GLuint;
     RectVAO: GLuint;
 
     FCurrentProgram: GLuint;
@@ -358,9 +362,8 @@ begin
 
   Assert(Assigned(CurrentContextState), 'no current context state');
 
-  Assert(glIsVertexArray(CurrentContextState.SpriteVAO[mir]) = GL_TRUE, 'invalid SpriteVAO');
 
-  glBindVertexArray(CurrentContextState.SpriteVAO[mir]);
+  glBindVertexArray(CurrentContextState.SpriteVAO);
 
 
   glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
@@ -477,59 +480,84 @@ end;
 
 procedure TGlobalState.SetupUVBuffer;
 var
-  uv_data: packed array[1..12] of GLfloat;
+  uv_data: packed array of GLfloat;
   u: GLfloat;
   v: GLfloat;
   mir: Integer;
+
+  ofc: integer;
+
+  function next_ofc(): integer;
+  begin
+    Result := ofc;
+    inc(ofc);
+  end;
 begin
-  glGenBuffers(Length(MirroredUVBuffers), @MirroredUVBuffers);
+  SetLength(uv_data, UV_BUFFER_SIZE);
 
   u:=1;
   v:=1;
 
   for mir := 0 to 3 do
   begin
-    glBindBuffer(GL_ARRAY_BUFFER,MirroredUVBuffers[mir]);
+    ofc := mir * 12;
+
     case mir of
       0:begin
-          uv_data[1] := 0;   uv_data[2] := 0;
-          uv_data[3] := u;   uv_data[4] := 0;
-          uv_data[5] := u;   uv_data[6] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
 
-          uv_data[7] := u;   uv_data[8] := v;
-          uv_data[9] := 0;   uv_data[10] := v;
-          uv_data[11] := 0;   uv_data[12] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
       end;
       1: begin
-            uv_data[1] := u;   uv_data[2] := 0;
-            uv_data[3] := 0;   uv_data[4] := 0;
-            uv_data[5] := 0;   uv_data[6] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
 
-            uv_data[7] := 0;   uv_data[8] := v;
-            uv_data[9] := u;   uv_data[10] := v;
-            uv_data[11] := u;   uv_data[12] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
         end;
       2: begin
-            uv_data[1] := 0;   uv_data[2] := v;
-            uv_data[3] := u;   uv_data[4] := v;
-            uv_data[5] := u;   uv_data[6] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
 
-            uv_data[7] := u;   uv_data[8] := 0;
-            uv_data[9] := 0;   uv_data[10] := 0;
-            uv_data[11] := 0;   uv_data[12] := v;
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
         end;
       3:begin
-          uv_data[1] := u;   uv_data[2] := v;
-          uv_data[3] := 0;   uv_data[4] := v;
-          uv_data[5] := 0;   uv_data[6] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
 
-          uv_data[7] := 0;   uv_data[8] := 0;
-          uv_data[9] := u;   uv_data[10] := 0;
-          uv_data[11] := u;   uv_data[12] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
         end;
      end;
-     glBufferData(GL_ARRAY_BUFFER, sizeof(uv_data),@uv_data,GL_STATIC_DRAW);
+
   end;
+
+  glGenBuffers(1, @MirroredUVBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,MirroredUVBuffer);
+  glBufferData(GL_ARRAY_BUFFER,UV_BUFFER_SIZE * SizeOf(GLfloat),@uv_data[0],GL_STATIC_DRAW);
+end;
+
+procedure TGlobalState.SetupCoordsBuffer;
+begin
+  glGenBuffers(1,@CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE * SizeOf(GLfloat), @EmptyBufferData[0], GL_STREAM_DRAW);
+end;
+
+constructor TGlobalState.Create;
+begin
+  SetLength(EmptyBufferData, VERTEX_BUFFER_SIZE); //do not care even if it will contain junk
 end;
 
 destructor TGlobalState.Destroy;
@@ -560,13 +588,7 @@ begin
 
   CheckGLErrors('default shader get uniforms');
 
-
-  glGenBuffers(1,@CoordsBuffer);
-
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(DEFAULT_BUFFER),@DEFAULT_BUFFER,GL_STREAM_DRAW);
-
-
+  SetupCoordsBuffer;
   SetupUVBuffer;
   CheckGLErrors('VBO');
 end;
@@ -640,9 +662,9 @@ end;
 
 procedure TLocalState.StartDrawingSprites;
 begin
-  //glBindVertexArray(0);
-  //glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  //glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glBindVertexArray(SpriteVAO);
+  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
+  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
 procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8);
@@ -709,24 +731,13 @@ begin
   glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
+  glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
 
-  Assert(glIsVertexArray(SpriteVAO[mir]) = GL_TRUE, 'invalid SpriteVAO');
-
-  glBindVertexArray(SpriteVAO[mir]);
 
   glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
 
-  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
-  glDrawArrays(GL_TRIANGLES,0,6);  //todo: use triangle strip
-  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
-  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-
-
-
-  glBindVertexArray(0);
+  glDrawArrays(GL_TRIANGLES,mir*6,6);  //todo: use triangle strip
 
  // CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 
@@ -757,25 +768,20 @@ begin
 end;
 
 procedure TLocalState.SetupSpriteVAO;
-var
-  i: Integer;
 begin
-  glGenVertexArrays(Length(SpriteVAO),@SpriteVAO[0]);
+  glGenVertexArrays(1,@SpriteVAO);
 
-  for i := Low(SpriteVAO) to High(SpriteVAO) do
-  begin
-    glBindVertexArray(SpriteVAO[i]);
+  glBindVertexArray(SpriteVAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-    glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffers[i]);
-    glVertexAttribPointer(UV_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
+  glVertexAttribPointer(UV_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glBindVertexArray(0);
-  end;
+  glBindVertexArray(0);
 
 end;
 
