@@ -41,12 +41,13 @@ const
   VERTEX_DEFAULT_SHADER =
   SHADER_VERSION+
   'uniform mat4 projMatrix;'#13#10+
+  'uniform mat4 translateMatrix;'#13#10+
   'layout(location = 1) in vec2 coords;'#13#10+
   'layout(location = 2) in vec2 uv;'#13#10+
   'out vec2 UV;'#13#10+
   'void main(){'+
     'UV = uv;'+
-  	'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
+  	'gl_Position = projMatrix * translateMatrix * vec4(coords,0.0,1.0);'#13#10+
   '}';
 
   FRAGMENT_DEFAULT_SHADER =
@@ -94,25 +95,25 @@ const
       'outColor = applyFlag(outColor);'+
   '}';
 
-  VERTEX_TERRAIN_SHADER =
-    SHADER_VERSION+
-    'uniform mat4 projMatrix;'#13#10+
-    'layout(location = 1) in vec2 coords;'#13#10+
-    'struct Tile{'+
-    '  uint upper;'+ //packed data     FTerType, FTerSubtype, FRiverType, FRiverDir
-    '  uint lower;'+ //packed data     FRoadType, FRoadDir,  FFlags, FOwner
-    '};'+
-    'layout(location = 2) in Tile tileIn'+
-    'out Tile tileOut'+
-    'void main(){'+
-      'tileOut = tileIn;'+
-      'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
-    '}';
+  //VERTEX_TERRAIN_SHADER =
+  //  SHADER_VERSION+
+  //  'uniform mat4 projMatrix;'#13#10+
+  //  'layout(location = 1) in vec2 coords;'#13#10+
+  //  'struct Tile{'+
+  //  '  uint upper;'+ //packed data     FTerType, FTerSubtype, FRiverType, FRiverDir
+  //  '  uint lower;'+ //packed data     FRoadType, FRoadDir,  FFlags, FOwner
+  //  '};'+
+  //  'layout(location = 2) in Tile tileIn'+
+  //  'out Tile tileOut'+
+  //  'void main(){'+
+  //    'tileOut = tileIn;'+
+  //    'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
+  //  '}';
 
 
-  GEOMETRY_TERRAIN_SHADER =
-    SHADER_VERSION+
-    '';
+  //GEOMETRY_TERRAIN_SHADER =
+  //  SHADER_VERSION+
+  //  '';
 
 
 type
@@ -146,6 +147,7 @@ type
     DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
     DefaultProjMatrixUniform: GLint;
+    DefaultTranslateMatrixUniform: GLint;
     UseTextureUniform: GLint;
     UsePaletteUniform: GLint;
     UseFlagUniform: GLint;
@@ -174,13 +176,19 @@ type
 
     FCurrentProgram: GLuint;
 
+    FTranslateMaxrix: Tmatrix4_single;
+
     procedure SetupSpriteVAO;
     procedure SetupRectVAO;
+
+    procedure SetProjection(constref AMatrix: Tmatrix4_single);
   public
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
-    procedure SetProjection(constref AMatrix: Tmatrix4_single);
+
+    procedure SetTranslation(X,Y: Integer);
+
     procedure SetUseFlag(const Value: Boolean);
     procedure SetUsePalette(const Value: Boolean);
     procedure SetUseTexture(const Value: Boolean);
@@ -540,6 +548,7 @@ begin
   DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram, PChar('fragmentColor'));
 
   DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
+  DefaultTranslateMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('translateMatrix'));
 
   UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
   UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
@@ -567,7 +576,7 @@ end;
 
 constructor TLocalState.Create;
 begin
-
+  FTranslateMaxrix.init_identity;
 end;
 
 destructor TLocalState.Destroy;
@@ -588,18 +597,21 @@ const
 var
   vertex_data: packed array[1..8] of GLfloat;
 begin
+  SetTranslation(x,y);
+
   SetFragmentColor(RECT_COLOR);
 //  glLineWidth(1);
 
-  vertex_data[1] := x;
-  vertex_data[2] := y;
-  vertex_data[3] := x + dimx;
-  vertex_data[4] := y;
-  vertex_data[5] := x + dimx;
-  vertex_data[6] := y + dimy;
-  vertex_data[7] := x;
-  vertex_data[8] := y + dimy;
+  vertex_data[1] := 0;
+  vertex_data[2] := 0;
+  vertex_data[3] := 0 + dimx;
+  vertex_data[4] := 0;
+  vertex_data[5] := 0 + dimx;
+  vertex_data[6] := 0 + dimy;
+  vertex_data[7] := 0;
+  vertex_data[8] := 0 + dimy;
 
+  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
@@ -616,6 +628,7 @@ begin
   glBindVertexArray(0);
   glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
   glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
+  SetTranslation(0,0);
 end;
 
 procedure TLocalState.StartDrawingRects;
@@ -632,8 +645,7 @@ begin
   //glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
-procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8
-  );
+procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8);
 var
   factor: Double;
   cur_dim: integer;
@@ -643,6 +655,7 @@ var
 
   vertex_data: packed array[1..12] of GLfloat;
 begin
+  SetTranslation(ASprite.x,ASprite.y); //todo: transalte
   factor := 1;
   if dim <=0 then //render real size w|o scale
   begin
@@ -662,22 +675,22 @@ begin
 
   case mir of
     0:begin
-      x := ASprite.x;//+round(factor * ASprite.LeftMargin);
-      y := ASprite.y+round(factor * ASprite.TopMagin);
+      x := 0;//+round(factor * ASprite.LeftMargin);
+      y := 0 +round(factor * ASprite.TopMagin);
     end;
     1:begin
-      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := ASprite.y+round(factor *  ASprite.TopMagin);
+      x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := 0+round(factor *  ASprite.TopMagin);
 
     end;
     2:begin
-      x := ASprite.x;//+ round(factor * ASprite.LeftMargin);
-      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+      x := 0;//+ round(factor * ASprite.LeftMargin);
+      y := 0+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
 
     end;
     3:begin
-      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+      x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
+      y := 0+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
      end;
   end;
 
@@ -702,6 +715,8 @@ begin
   Assert(glIsVertexArray(SpriteVAO[mir]) = GL_TRUE, 'invalid SpriteVAO');
 
   glBindVertexArray(SpriteVAO[mir]);
+
+  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
 
   glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
   glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
@@ -732,6 +747,13 @@ begin
   m.data[2,3] := - 1;
 
   SetProjection(m);
+end;
+
+procedure TLocalState.SetTranslation(X, Y: Integer);
+begin
+  FTranslateMaxrix.init_identity;
+  FTranslateMaxrix.data[0,3] := x;
+  FTranslateMaxrix.data[1,3] := y;
 end;
 
 procedure TLocalState.SetupSpriteVAO;
