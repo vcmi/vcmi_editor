@@ -2004,7 +2004,7 @@ object fMain: TfMain
     end
   end
   object ApplicationProperties1: TApplicationProperties
-    left = 528
+    left = 525
     top = 208
   end
   object imlMainActions: TImageList

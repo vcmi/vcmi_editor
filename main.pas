@@ -1280,12 +1280,12 @@ begin
 
   CurrentContextState := FMapViewState;
 
-  CurrentContextState.UsePalettedTextures();
+  FMapViewState.UsePalettedTextures();
 
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
 
-  CurrentContextState.SetOrtho(TILE_SIZE * FMapHPos,
+  FMapViewState.SetOrtho(TILE_SIZE * FMapHPos,
     MapView.Width + TILE_SIZE * FMapHPos,
     MapView.Height + TILE_SIZE * FMapVPos,
     TILE_SIZE * FMapVPos);
@@ -1304,7 +1304,7 @@ begin
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  editor_gl.CurrentContextState.StartDrawingSprites;
+  FMapViewState.StartDrawingSprites;
 
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
@@ -1321,11 +1321,11 @@ begin
     FDragging.Render(FMouseTileX,FMouseTileY);
   end;
 
-  editor_gl.CurrentContextState.StartDrawingRects;
+  FMapViewState.StartDrawingRects;
 
   //todo: render passability
 
-  CurrentContextState.UseNoTextures();
+  FMapViewState.UseNoTextures();
 
   if Assigned(FSelectedObject) then
   begin
@@ -1340,7 +1340,7 @@ begin
 
   glDisable (GL_BLEND);
 
-  editor_gl.CurrentContextState.StopDrawing;
+  FMapViewState.StopDrawing;
   //glDisable(GL_ALPHA_TEST);
 
   c.SwapBuffers;
