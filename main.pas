@@ -1496,7 +1496,6 @@ begin
   if not Assigned(FObjectsViewState) then
   begin
     FObjectsViewState := TLocalState.Create;
-
     FObjectsViewState.Init;
   end;
   editor_gl.CurrentContextState := FObjectsViewState;
@@ -1508,14 +1507,14 @@ begin
 
   glScissor(0, 0, c.Width, c.Height);
 
-  editor_gl.CurrentContextState.UseNoTextures();
+  FObjectsViewState.UseNoTextures();
 
-  editor_gl.CurrentContextState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
+  FObjectsViewState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
   glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  editor_gl.CurrentContextState.StartDrawingRects;
+  FObjectsViewState.StartDrawingRects;
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1532,10 +1531,10 @@ begin
     end;
   end;
 
-  editor_gl.CurrentContextState.StopDrawing;
+  FObjectsViewState.StopDrawing;
 
-  editor_gl.CurrentContextState.UsePalettedTextures();
-  editor_gl.CurrentContextState.StartDrawingSprites();
+  FObjectsViewState.UsePalettedTextures();
+  FObjectsViewState.StartDrawingSprites();
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1553,7 +1552,7 @@ begin
 
     end;
   end;
-  editor_gl.CurrentContextState.StopDrawing;
+  FObjectsViewState.StopDrawing;
 
   glDisable (GL_BLEND);
   glDisable(GL_SCISSOR_TEST);

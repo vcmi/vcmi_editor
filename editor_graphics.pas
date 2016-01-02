@@ -98,12 +98,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    (*
-      X,Y: map coords of topleft tile
-    *)
     procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
-
     procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;

@@ -167,7 +167,6 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Init;
-
   end;
 
 
@@ -192,6 +191,7 @@ type
     procedure SetOrtho(left, right, bottom, top: GLfloat);
 
     procedure SetTranslation(X,Y: Integer);
+    procedure ApplyTranslation;
 
     procedure SetUseFlag(const Value: Boolean);
     procedure SetUsePalette(const Value: Boolean);
@@ -211,7 +211,6 @@ type
     procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
 
     procedure StopDrawing;
-
 
   end;
 
@@ -292,89 +291,6 @@ procedure Unbind(var ATextureId: GLuint);
 begin
   glDeleteTextures(1,@ATextureId);
   ATextureId := 0;
-end;
-
-procedure RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8);
-var
-  factor: Double;
-  cur_dim: integer;
-  H,W,
-  x,
-  y: Int32;
-
-  vertex_data: packed array[1..12] of GLfloat;
-begin
-  factor := 1;
-  if dim <=0 then //render real size w|o scale
-  begin
-    H := ASprite.SpriteHeight;
-    W := ASprite.Width;
-  end
-  else
-  begin
-    cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
-    factor := Min(dim / cur_dim, 1); //no zoom
-
-    h := round(Double(ASprite.SpriteHeight) * factor);
-    w := round(Double(ASprite.Width) * factor);
-  end;
-
-   //todo: use indexes
-
-  case mir of
-    0:begin
-      x := ASprite.x;//+round(factor * ASprite.LeftMargin);
-      y := ASprite.y+round(factor * ASprite.TopMagin);
-    end;
-    1:begin
-      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := ASprite.y+round(factor *  ASprite.TopMagin);
-
-    end;
-    2:begin
-      x := ASprite.x;//+ round(factor * ASprite.LeftMargin);
-      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
-
-    end;
-    3:begin
-      x := ASprite.x;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := ASprite.y+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
-     end;
-  end;
-
-  vertex_data[1] := x;   vertex_data[2] := y;
-  vertex_data[3] := x+w; vertex_data[4] := y;
-  vertex_data[5] := x+w; vertex_data[6] := y+h;
-
-  vertex_data[7] := x+w; vertex_data[8] := y+h;
-  vertex_data[9] := x;   vertex_data[10] := y+h;
-  vertex_data[11] := x;  vertex_data[12] := y;
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
-
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferSubData(GL_ARRAY_BUFFER,0,  sizeof(vertex_data),@vertex_data);
-  glBindBuffer(GL_ARRAY_BUFFER,0);
-
-  Assert(Assigned(CurrentContextState), 'no current context state');
-
-
-  glBindVertexArray(CurrentContextState.SpriteVAO);
-
-
-  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
-  glDrawArrays(GL_TRIANGLES,0,6);
-  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
-  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-
-  glBindVertexArray(0);
-
-  CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 end;
 
 procedure CheckGLErrors(Stage: string);
@@ -633,7 +549,7 @@ begin
   vertex_data[7] := 0;
   vertex_data[8] := 0 + dimy;
 
-  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
+  ApplyTranslation;
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
@@ -641,7 +557,7 @@ begin
 
   glDrawArrays(GL_LINE_LOOP,0,4);
 
-  CheckGLErrors('RenderRect');
+//  CheckGLErrors('RenderRect');
 
 end;
 
@@ -655,6 +571,7 @@ end;
 
 procedure TLocalState.StartDrawingRects;
 begin
+  SetTranslation(0,0);
   glBindVertexArray(RectVAO);
   glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
   glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
@@ -662,6 +579,7 @@ end;
 
 procedure TLocalState.StartDrawingSprites;
 begin
+  SetTranslation(0,0);
   glBindVertexArray(SpriteVAO);
   glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
   glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
@@ -672,12 +590,17 @@ var
   factor: Double;
   cur_dim: integer;
   H,W,
+  x_shift, y_shift,
   x,
   y: Int32;
 
   vertex_data: packed array[1..12] of GLfloat;
 begin
-  SetTranslation(ASprite.x,ASprite.y); //todo: transalte
+
+  x_shift := ASprite.x;
+  y_shift := ASprite.Y;
+  SetTranslation(x_shift,y_shift);
+
   factor := 1;
   if dim <=0 then //render real size w|o scale
   begin
@@ -687,7 +610,7 @@ begin
   else
   begin
     cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
-    factor := Min(dim / cur_dim, 1); //no zoom
+    factor := Min((dim-1) / cur_dim, 1); //no zoom
 
     h := round(Double(ASprite.SpriteHeight) * factor);
     w := round(Double(ASprite.Width) * factor);
@@ -734,8 +657,7 @@ begin
   glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
 
-
-  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
+  ApplyTranslation;
 
   glDrawArrays(GL_TRIANGLES,mir*6,6);  //todo: use triangle strip
 
@@ -765,6 +687,11 @@ begin
   FTranslateMaxrix.init_identity;
   FTranslateMaxrix.data[0,3] := x;
   FTranslateMaxrix.data[1,3] := y;
+end;
+
+procedure TLocalState.ApplyTranslation;
+begin
+  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
 end;
 
 procedure TLocalState.SetupSpriteVAO;
