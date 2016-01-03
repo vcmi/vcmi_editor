@@ -1,6 +1,6 @@
 { This file is a part of Map editor for VCMI project
 
-  Copyright (C) 2013 Alexander Shishkin alexvins@users.sourceforge,net
+  Copyright (C) 2013-2016 Alexander Shishkin alexvins@users.sourceforge.net
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
