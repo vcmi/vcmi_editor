@@ -1099,10 +1099,12 @@ end;
 procedure TFactionInfos.FillWithAllIds(AList: TStrings);
 var
   faction: TFactionInfo;
+  idx: SizeInt;
 begin
   AList.Clear;
-  for faction in Self do
+  for idx := 0 to Count - 1 do
   begin
+    faction := Items[idx];
     AList.AddObject(faction.ID, faction);
   end;
 end;
@@ -1110,10 +1112,14 @@ end;
 procedure TFactionInfos.FillWithTownIds(AList: TStrings);
 var
   faction: TFactionInfo;
+  idx: SizeInt;
 begin
   AList.Clear;
-  for faction in Self do
+  //here was  "for faction in Self do" it crashed on O2+ optimize level, WTF?
+  //todo: test with fpc 3.0
+  for idx := 0 to Count - 1 do
   begin
+    faction := Items[idx];
     if faction.HasTown then
       AList.AddObject(faction.ID, faction);
   end;
