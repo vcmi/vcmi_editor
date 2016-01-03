@@ -24,9 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, fpjson,
-  editor_types,
-  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt, lists_manager ;
+  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, fpjson, editor_types,
+  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt,
+  lists_manager, vcmi_json ;
 
 type
 
@@ -263,11 +263,12 @@ type
 implementation
 
 uses
-  LazLoggerBase, CsvDocument, editor_consts, editor_utils, vcmi_json,
+  LazLoggerBase, CsvDocument, editor_consts, editor_utils,
   root_manager, math;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
+  OBJECT_NAMES = 'DATA/OBJNAMES';
 
 { TMaskResource }
 
@@ -693,9 +694,9 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
 begin
   AProgressCallback.NextStage('Loading legacy objects ... ');
 
+
   objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
-
 
   try
     objects_txt.Load(ResourceLoader);
@@ -813,7 +814,13 @@ var
   full_id: TLegacyTemplateId;
   legacy_data: TLegacyObjConfigList;
   t: TJSONObject;
+  objects_names: TTextResource;
 begin
+  objects_names := TTextResource.Create(OBJECT_NAMES);
+  objects_names.Load(ResourceLoader);
+
+
+
   //cycle by type
   for i := 0 to ACombinedConfig.Count - 1 do
   begin
@@ -830,6 +837,13 @@ begin
     if obj_id < 0 then
     begin
       Continue; //no index property or invalid
+    end;
+
+    idx := obj.IndexOfName('name');
+
+    if idx < 0 then
+    begin
+      obj.Strings['name'] := objects_names.Value[0, obj_id];
     end;
 
     if obj.IndexOfName('types')<0 then
@@ -888,6 +902,8 @@ begin
       AFullIdToDefMap.Remove(full_id); //delete merged data
     end;
   end;
+
+  objects_names.Free;
 end;
 
 procedure TObjectsManager.HandleInteritanceObjectTemplate(
