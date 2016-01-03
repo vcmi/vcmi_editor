@@ -62,7 +62,7 @@ type
   { TDefEntry }
 
   TDefEntry = object (TBaseSprite)
-    TopMagin: int32;
+    TopMargin: int32;
     LeftMargin: int32;
     SpriteWidth: Int32;
     SpriteHeight: Int32;
@@ -504,7 +504,7 @@ begin
      add :=0;
 
   PEntry^.LeftMargin := h.LeftMargin;
-  PEntry^.TopMagin := h.TopMargin;
+  PEntry^.TopMargin := h.TopMargin;
   PEntry^.TextureId := ATextureID;
   PEntry^.SpriteHeight := h.SpriteHeight;
   PEntry^.SpriteWidth := h.SpriteWidth;
@@ -513,7 +513,7 @@ begin
 
 
   if (h.TopMargin > 0) or (BottomMargin > 0) or (h.LeftMargin > 0) or (RightMargin > 0) then
-    FillChar(FBuffer[0], Length(FBuffer) ,0); //todo: use marging in texture coords
+    FillChar(FBuffer[0], Length(FBuffer) ,0); //todo: use horz marging in texture coords
 
   ftcp := 0;
 
@@ -861,7 +861,7 @@ begin
   Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
   Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
 
   SetPalyerColor(color);
 
@@ -896,11 +896,11 @@ begin
   Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
   Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
 
   mir := flags mod 4;
 
-  CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+  editor_gl.CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
 
   editor_gl.CurrentContextState.RenderSprite(Sprite,-1,mir);
 
@@ -920,7 +920,7 @@ begin
   Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
   Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMagin;
+  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
 
   SetPalyerColor(color);
 

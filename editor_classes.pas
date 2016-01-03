@@ -39,6 +39,8 @@ type
     property Max: Integer read GetMax write SetMax;
 
     procedure Advance(ADelta: integer);
+
+    procedure NextStage(const AStageLabel:string);
   end;
 
 

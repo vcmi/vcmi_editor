@@ -855,6 +855,7 @@ end;
 
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
+  AProgress.NextStage('Scanning filesystem ...');
   ScanFilesystem;
   ScanMods;
   LoadGameConfig;

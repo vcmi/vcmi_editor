@@ -21,14 +21,13 @@ type
   public
 
     procedure Reset;
-    procedure NextStage(const AStageLabel:string);
   public
     //IProgressCallback
 
     function GetMax: Integer;
     procedure SetMax(AValue: Integer);
     procedure Advance(ADelta: integer);
-
+    procedure NextStage(const AStageLabel:string);
   end;
 
 implementation
@@ -70,6 +69,8 @@ end;
 procedure TProgressForm.SetMax(AValue: Integer);
 begin
   pbDetail.Max := AValue;
+  pbDetail.Position := pbDetail.Min;
+  Application.ProcessMessages;
 end;
 
 end.

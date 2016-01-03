@@ -226,7 +226,7 @@ type
 
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
 
-    procedure LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap);
+    procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
     procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
 
     procedure HandleInteritanceObjectTemplate(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
@@ -503,10 +503,12 @@ var
   lst: TLegacyObjConfigList;
   item: TJSONObject;
 begin
-  FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
-  LoadLegacy(FFullIdToDefMap);
-
   FProgress := AProgressCallback;
+  FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
+  LoadLegacy(AProgressCallback, FFullIdToDefMap);
+
+  AProgressCallback.NextStage('Building objects configuration ... ');
+  AProgressCallback.Max:=8;
 
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := TJSONObject.Create;
@@ -514,12 +516,10 @@ begin
   destreamer.AfterReadObject := @OnObjectDestream;
   try
     FConfig.Load(APaths,ResourceLoader, FCombinedConfig);
-
     AddFactions(FCombinedConfig);
     AddHeroClasses(FCombinedConfig);
     AddCreatures(FCombinedConfig);
     AddArtifacts(FCombinedConfig);
-
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
     for i := 0 to FFullIdToDefMap.Count - 1 do
@@ -527,16 +527,17 @@ begin
       lst := FFullIdToDefMap.Data[i];
       DebugLn(['unused legacy data ', Hi(FFullIdToDefMap.Keys[i]), ' ' , Lo(FFullIdToDefMap.Keys[i])]);
 
-      for item in lst do
-      begin
-
-        DebugLn(item.AsJSON);
-      end;
+      //for item in lst do
+      //begin
+      //  DebugLn(item.AsJSON);
+      //end;
     end;
 
     HandleInteritance(FCombinedConfig);
+    AProgressCallback.Advance(1);
 
     FProgress.Max:=FCombinedConfig.Count;
+    AProgressCallback.NextStage('Loading objects ... ');
     destreamer.JSONToObject(FCombinedConfig,FObjTypes);
 
     PopulateMapOfLegacyObjects;
@@ -601,8 +602,8 @@ begin
   Int64Rec(Result).Lo := SubType;
 end;
 
-procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
-  );
+procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
+  AFullIdToDefMap: TLegacyObjConfigFullIdMap);
   var
     row, col: Integer;
 
@@ -690,11 +691,16 @@ procedure TObjectsManager.LoadLegacy(AFullIdToDefMap: TLegacyObjConfigFullIdMap
 
     msk: TMaskResource;
 begin
+  AProgressCallback.NextStage('Loading legacy objects ... ');
+
   objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
 
+
   try
     objects_txt.Load(ResourceLoader);
+
+    AProgressCallback.Max:=objects_txt.RowCount;
 
     for row := 1 to objects_txt.RowCount-1 do //first row contains no data, so start with 1
     begin
@@ -787,6 +793,8 @@ begin
 
       list.Add(legacy_config);
       def.Free;
+
+      AProgressCallback.Advance(1);
     end;
 
   finally

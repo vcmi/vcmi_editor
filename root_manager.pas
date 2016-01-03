@@ -127,14 +127,12 @@ begin
   GlobalContextState := TGlobalState.Create;
   GlobalContextState.Init;
 
-  ProgressForm.NextStage('Scanning filesystem ...');
-
   FResourceManager := TFSManager.Create(self);
   FResourceManager.Load(FProgressForm);
 
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
 
-  ProgressForm.NextStage('Loading confiduration ...');
+  ProgressForm.NextStage('Loading configuration ...');
 
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.PreLoad;
@@ -154,9 +152,6 @@ begin
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
 
-  //stage 3
-
-  ProgressForm.NextStage('Loading objects ... ');
   LoadObjects;
 
 end;
@@ -212,7 +207,7 @@ begin
     FObjManager := TObjectsManager.Create(FGraphicsManager);
     FObjManager.ListsManager := FListsManager;
     GetConvertedModConfig(OBJECT_METACLASS, ObjectTypesConfig);
-    FObjManager.LoadObjects(RootManager.ProgressForm, ObjectTypesConfig);
+    FObjManager.LoadObjects(ProgressForm, ObjectTypesConfig);
   finally
     ObjectTypesConfig.Free;
   end;
