@@ -1116,7 +1116,7 @@ var
 begin
   AList.Clear;
   //here was  "for faction in Self do" it crashed on O2+ optimize level, WTF?
-  //todo: test with fpc 3.0
+  //todo: revert back for fpc 3.0 - seems to be fixed
   for idx := 0 to Count - 1 do
   begin
     faction := Items[idx];
