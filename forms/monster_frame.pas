@@ -90,7 +90,7 @@ begin
     FOptions.RewardArtifact := '';
   end
   else begin
-    FOptions.RewardArtifact := ListsManager.ArtifactMap[edRewardArtifact.ItemIndex];
+    FOptions.RewardArtifact := edRewardArtifact.SelectedInfo.Identifier;
   end;
 
   SaveResourceSet(gbReward, FOptions.RewardResources);
@@ -112,7 +112,7 @@ begin
 
   ReadResourceSet(gbReward, FOptions.RewardResources);
 
-  edRewardArtifact.FillFromList(ListsManager.ArtifactMap, AOptions.RewardArtifact);
+  edRewardArtifact.FillFromList(ListsManager.ArtifactInfos, AOptions.RewardArtifact);
 
   UpdateControls;
 end;

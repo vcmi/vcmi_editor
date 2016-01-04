@@ -34,13 +34,11 @@ type
 
   TBaseInfo = class abstract(TNamedCollectionItem)
   private
-    FID: AnsiString;
     FName: TLocalizedString;
     FIndex: TCustomID;
 
     function GetCollectionIndex: integer;
     procedure SetCollectionIndex(AValue: integer);
-    procedure SetID(AValue: AnsiString);
 
     procedure SetIndex_(AValue: TCustomID);
   protected
@@ -50,7 +48,6 @@ type
     procedure SetName(AValue: TLocalizedString); virtual;
   public
     constructor Create(ACollection: TCollection); override;
-    property ID: AnsiString read FID write SetID;
 
     property FullID: AnsiString read GetFullID;
 
@@ -100,13 +97,7 @@ end;
 
 function TBaseInfo.GetFullID: AnsiString;
 begin
-  Result := ID;
-end;
-
-procedure TBaseInfo.SetID(AValue: AnsiString);
-begin
-  if FID = AValue then Exit;
-  FID := AValue;
+  Result := Identifier;
 end;
 
 function TBaseInfo.GetCollectionIndex: integer;

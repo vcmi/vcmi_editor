@@ -53,7 +53,7 @@ implementation
 procedure TSpellScrollFrame.Commit;
 begin
   inherited Commit;
-  FObject.Spell := edSpell.SelectedInfo.ID;
+  FObject.Spell := edSpell.SelectedIdentifier;
   FObject.GuardMessage:=edMessage.Text;
 end;
 
@@ -71,7 +71,7 @@ begin
     sinfo := ListsManager.GetSpell(AOptions.Spell);
   end;
 
-  edSpell.FillFromList(ListsManager.SpellMap,sinfo);
+  edSpell.FillFromList(ListsManager.SpellInfos,sinfo);
 
   edMessage.Text:=AOptions.GuardMessage;
 end;

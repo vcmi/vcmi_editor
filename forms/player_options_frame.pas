@@ -21,12 +21,14 @@ unit player_options_frame;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, StdCtrls, ExtCtrls,
   CheckLst, map, lists_manager, editor_types, editor_str_consts, editor_classes,
-  gui_helpers;
+  base_info, gui_helpers;
 
 type
 
@@ -98,6 +100,12 @@ procedure TPlayerOptionsFrame.ReadData;
 var
   i: Integer;
   selected_idx: Integer;
+
+  function TownFilter(ATarget: TBaseInfo): Boolean;
+  begin
+    Result := TFactionInfo(ATarget).HasTown;
+  end;
+
 begin
   //player is playable if it has at least one town or hero
 
@@ -112,7 +120,7 @@ begin
     Enabled:=true;
   end;
 
-  edAllowedFactions.FillFromCondition(FMap.ListsManager.TownMap, FObject.AllowedFactions);
+  edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, @TownFilter);
   AllowedFactionsPermissive.Checked:=FObject.AllowedFactions.IsPermissive;
 
   selected_idx := 0;
@@ -200,7 +208,7 @@ begin
   else
      FObject.CanPlay := TPlayableBy(edCanPlay.ItemIndex+1);
 
-  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionMap, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
+  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
 
   if Assigned(edMainTown.Items.Objects[edMainTown.ItemIndex]) then
     FObject.MainTown:=(edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).Identifier

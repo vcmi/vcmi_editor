@@ -138,7 +138,7 @@ end;
 
 procedure TDwellingFrame.LoadFactions;
 begin
-  edFaction.FillFromList(ListsManager.FactionMap, FOptions.AllowedFactions);
+  edFaction.FillFromList(ListsManager.FactionInfos, FOptions.AllowedFactions);
 
   FFactionsLoaded:=True;
 end;

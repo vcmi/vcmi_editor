@@ -115,13 +115,13 @@ end;
 
 procedure THeroSpellsFrame.Load;
 begin
-  Spellbook.FillFromList(Map.ListsManager.SpellMap, FCache);
+  Spellbook.FillFromList(Map.ListsManager.SpellInfos, FCache);
 end;
 
 procedure THeroSpellsFrame.Clear;
 begin
   Spellbook.SaveToList(FCache);
-  Spellbook.FillFromList(Map.ListsManager.SpellMap, FDefaults);
+  Spellbook.FillFromList(Map.ListsManager.SpellInfos, FDefaults);
 end;
 
 procedure THeroSpellsFrame.UpdateControls;

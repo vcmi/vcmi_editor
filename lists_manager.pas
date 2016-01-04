@@ -462,28 +462,20 @@ type
     FNameMap: TNameToIdMap;
 
     FPrimSkillInfos: TPrimSkillInfos;
-    FPrimSkillMap: TStrings;
 
     FSkillInfos: TSkillInfos;
-    FSkillMap: TStrings;
 
     FSpellInfos: TSpellInfos;
-    FSpellMap: TStrings;
 
     FFactionInfos: TFactionInfos;
-    FFactionMap: TStrings;
 
     FHeroClassInfos: THeroClassInfos;
-    FHeroClassMap: TStrings;
 
     FCreatureInfos: TCreatureInfos;
-    FCreatureMap: TStrings;
 
     FHeroInfos: THeroInfos;
-    FHeroMap: TStrings;
 
     FArtifactInfos: TArtifactInfos;
-    FArtifactMap: TStrings;
 
     FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStrings;
 
@@ -503,7 +495,6 @@ type
   strict private
 
     FTextDataConfig: TTextDataConfig;
-    FTownMap: TStrings;
 
     function GetArtifactSlotMap(ASlot: Integer): TStrings;
     function GetHeroClasses(AId: AnsiString): THeroClassInfo;
@@ -532,23 +523,19 @@ type
     function SIDIdNID(AID: AnsiString): TCustomID;
 
     //primary skills
-    property PrimSkillMap: TStrings read FPrimSkillMap;
+    property PrimarySkills: TPrimSkillInfos read FPrimSkillInfos;
 
     //secondary skills
     function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
-    property SkillMap: TStrings read FSkillMap;
 
     //Spells
     function SpellIndexToString (ASpell: TCustomID): AnsiString;
     property SpellInfos: TSpellInfos read FSpellInfos;
     function GetSpell(const AID: AnsiString): TSpellInfo;
-    property SpellMap: TStrings read FSpellMap;
 
     //Factions
     property FactionInfos:TFactionInfos read FFactionInfos;
-    property FactionMap: TStrings read FFactionMap;
-    property TownMap: TStrings read FTownMap;
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
     function GetFaction(const AID: AnsiString): TFactionInfo;
 
@@ -556,26 +543,21 @@ type
 
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
-    property HeroClassMap: TStrings read FHeroClassMap;
     function HeroClassIndexToString (AIndex: TCustomID):AnsiString;
     property HeroClasses[AId: AnsiString]: THeroClassInfo read GetHeroClasses;
 
     //Creatures
     function CreatureIndexToString (AIndex: TCustomID): AnsiString;
     property CreatureInfos: TCreatureInfos read FCreatureInfos;
-    property CreatureMap: TStrings read FCreatureMap;
 
     //Artifacts
     function ArtifactIndexToString (AIndex: TCustomID): AnsiString;
     property ArtifactInfos: TArtifactInfos read FArtifactInfos;
-    property ArtifactMap: TStrings read FArtifactMap;
-
     property ArtifactSlotMap[ASlot: Integer]: TStrings read GetArtifactSlotMap;
 
     //Heroes
     function HeroIndexToString (AIndex: TCustomID): AnsiString;
     property HeroInfos: THeroInfos read FHeroInfos;
-    property HeroMap: TStrings read FHeroMap;
 
     property Heroes[AId: AnsiString]: THeroInfo read GetHeroes;
 
@@ -820,7 +802,7 @@ begin
       obj := Items[idx];
     if obj.Special then
     begin
-      AList.NoneOf.Add(obj.ID);
+      AList.NoneOf.Add(obj.Identifier);
     end;
   end;
 end;
@@ -1112,7 +1094,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     faction := Items[idx];
-    AList.AddObject(faction.ID, faction);
+    AList.AddObject(faction.Identifier, faction);
   end;
 end;
 
@@ -1128,7 +1110,7 @@ begin
   begin
     faction := Items[idx];
     if faction.HasTown then
-      AList.AddObject(faction.ID, faction);
+      AList.AddObject(faction.Identifier, faction);
   end;
 end;
 
@@ -1136,7 +1118,7 @@ end;
 
 function TSkillInfo.GetFullID: AnsiString;
 begin
-  Result := 'skill.'+ID
+  Result := 'skill.'+Identifier
 end;
 
 { TSkillInfos }
@@ -1159,7 +1141,7 @@ begin
   begin
     spell := Items[idx];
     if spell.SpellType <> TSpellType.Ability then
-      AList.AnyOf.Add(spell.ID);
+      AList.AnyOf.Add(spell.Identifier);
   end;
 end;
 
@@ -1173,7 +1155,7 @@ end;
 
 function TSpellInfo.GetFullID: AnsiString;
 begin
-  Result := 'spell.'+ID;
+  Result := 'spell.'+Identifier;
 end;
 
 procedure TSpellInfo.SetLevel(AValue: integer);
@@ -1196,26 +1178,18 @@ begin
   FNameMap := TNameToIdMap.Create;
 
   FPrimSkillInfos := TPrimSkillInfos.Create();
-  FPrimSkillMap := CrStrList;
 
   FSkillInfos := TSkillInfos.Create();
-  FSkillMap := CrStrList;
 
   FSpellInfos := TSpellInfos.Create();
-  FSpellMap := CrStrList;
 
   FFactionInfos := TFactionInfos.Create();
-  FFactionMap := CrStrList;
-  FTownMap := CrStrList;
 
   FHeroClassInfos := THeroClassInfos.Create();
-  FHeroClassMap := CrStrList;
 
   FCreatureInfos := TCreatureInfos.Create();
-  FCreatureMap := CrStrList;
 
   FArtifactInfos := TArtifactInfos.Create();
-  FArtifactMap := CrStrList;
 
   for i in [0..ARTIFACT_SLOT_COUNT-1] do
   begin
@@ -1223,7 +1197,6 @@ begin
   end;
 
   FHeroInfos := THeroInfos.Create();
-  FHeroMap := CrStrList;
 
   FSlotIds := TSlotMap.Create;
   FillSlotIds;
@@ -1236,31 +1209,23 @@ var
 begin
   FSlotIds.Free;
   FHeroInfos.Free;
-  FHeroMap.Free;
 
   for i in [0..ARTIFACT_SLOT_COUNT-1] do
   begin
     FArtifactSlotMaps[i].Free;
   end;
   FArtifactInfos.Free;
-  FArtifactMap.Free;
 
   FCreatureInfos.free;
-  FCreatureMap.free;
 
-  FHeroClassMap.Free;
   FHeroClassInfos.Free;
-  FTownMap.Free;
-  FFactionMap.Free;
+
   FFactionInfos.Free;
 
-  FSpellMap.Free;
   FSpellInfos.Free;
 
-  FSkillMap.Free;
   FSkillInfos.Free;
 
-  FPrimSkillMap.Free;
   FPrimSkillInfos.Free;
 
   FNameMap.Free;
@@ -1303,20 +1268,13 @@ begin
 end;
 
 function TListsManager.GetHeroes(AId: AnsiString): THeroInfo;
-var
-  idx: Integer;
 begin
-  idx := FHeroMap.IndexOf(AId);
-
-  if idx = -1 then
-    Result := nil
-  else
-    Result := FHeroMap.Objects[idx] as THeroInfo;
+   Result := FHeroInfos.FindItem(AId);
 end;
 
 function TListsManager.GetHeroClasses(AId: AnsiString): THeroClassInfo;
 begin
-  Result := FHeroClassMap.Objects[FHeroClassMap.IndexOf(AId)] as THeroClassInfo;
+  Result := FHeroClassInfos.FindItem(AId);
 end;
 
 function TListsManager.GetArtifactSlotMap(ASlot: Integer): TStrings;
@@ -1354,18 +1312,8 @@ begin
 end;
 
 function TListsManager.GetSpell(const AID: AnsiString): TSpellInfo;
-var
-  idx: Integer;
 begin
-
-  idx := FSpellMap.IndexOf(AID);
-
-  if idx < 0 then
-  begin
-    raise Exception.CreateFmt('Spell not found "%s"',[AID]);
-  end;
-
-  Result := TSpellInfo(FSpellMap.Objects[idx]);
+   Result := FSpellInfos.FindItem(AID);
 end;
 
 function TListsManager.FactionIndexToString(AIndex: TCustomID): AnsiString;
@@ -1379,7 +1327,7 @@ begin
     info := FFactionInfos[i];
     if info.Index = AIndex then
     begin
-      Exit(info.ID);
+      Exit(info.Identifier);
     end;
   end;
 
@@ -1387,17 +1335,8 @@ begin
 end;
 
 function TListsManager.GetFaction(const AID: AnsiString): TFactionInfo;
-var
-  idx: Integer;
 begin
-  idx := FFactionMap.IndexOf(AID);
-
-  if idx < 0 then
-  begin
-    raise Exception.CreateFmt('Faction not found "%s"',[AID]);
-  end;
-
-  Result := TFactionInfo(FFactionMap.Objects[idx]);
+  Result := FFactionInfos.FindItem(AID);
 end;
 
 function TListsManager.BuildingIndexToString(ABuilding: TCustomID): AnsiString;
@@ -1418,7 +1357,7 @@ begin
     info := FHeroClassInfos[i];
     if info.Index = AIndex then
     begin
-      Exit(info.ID);
+      Exit(info.Identifier);
     end;
   end;
 
@@ -1439,7 +1378,7 @@ begin
     info := FCreatureInfos[i];
     if info.Index = AIndex then
     begin
-      Exit(info.ID);
+      Exit(info.Identifier);
     end;
   end;
 
@@ -1460,7 +1399,7 @@ begin
     info := FArtifactInfos[i];
     if info.Index = AIndex then
     begin
-      Exit(info.ID);
+      Exit(info.Identifier);
     end;
   end;
 
@@ -1480,7 +1419,7 @@ begin
     info := FHeroInfos[i];
     if info.Index = AIndex then
     begin
-      Exit(info.ID);
+      Exit(info.Identifier);
     end;
   end;
 
@@ -1494,9 +1433,9 @@ var
   i: Integer;
 begin
   ATarget.Clear;
-  for i := 0 to FHeroMap.Count - 1 do
+  for i := 0 to FHeroInfos.Count - 1 do
   begin
-    hero_info := FHeroMap.Objects[i] as THeroInfo;
+    hero_info := FHeroInfos.Items[i];
 
     if hero_info.&Class = AHeroClass then
     begin
@@ -1602,7 +1541,7 @@ begin
     for iter in FCombinedConfig  do
     begin
       info := FFactionInfos.Add;
-      info.ID := iter.Key;
+      info.Identifier := iter.Key;
 
       o := iter.Value as TJSONObject;
 
@@ -1610,12 +1549,9 @@ begin
 
       info.HasTown:=o.IndexOfName('town')>=0;
 
-      FFactionMap.AddObject(info.ID, info);
-
       DebugLn([info.ID, ' ', info.Name]);
     end;
 
-    FFactionInfos.FillWithTownIds(FTownMap);
 
   finally
     dwelling.Free;
@@ -1672,13 +1608,9 @@ begin
     begin
       info := HeroClassInfos.Add;
 
-      info.ID := iter.Key;
+      info.Identifier := iter.Key;
 
       FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
-
-      DebugLn([(iter.Value as TJSONObject).FormatJSON()]);
-
-      HeroClassMap.AddObject(info.ID, info);
     end;
   finally
     legacy_data.Free;
@@ -1745,15 +1677,13 @@ begin
     begin
       info := CreatureInfos.Add;
 
-      info.ID := iter.Key;
+      info.Identifier := iter.Key;
 
       DebugLn(['Loading creature ',iter.Key]);
 
       FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
       DebugLn(['Index ',info.Index]);
-
-      CreatureMap.AddObject(info.ID, info);
     end;
 
   finally
@@ -1843,13 +1773,11 @@ begin
     begin
       info := ArtifactInfos.Add;
 
-      info.ID := iter.Key;
+      info.Identifier := iter.Key;
 
       o := iter.Value as TJSONObject;
 
       FDestreamer.JSONToObjectEx(o, info);
-
-      ArtifactMap.AddObject(info.ID, info);
     end;
 
   finally
@@ -1874,7 +1802,7 @@ var
 
     if Assigned(iter) then
     begin
-      FArtifactSlotMaps[iter.Value].AddObject(info.ID, info);
+      FArtifactSlotMaps[iter.Value].AddObject(info.Identifier, info);
       iter.Free;
     end;
   end;
@@ -1935,10 +1863,9 @@ begin
   for prim_skill in TPrimarySkill do
   begin
     info := FPrimSkillInfos.Add;
-    info.ID:=PRIMARY_SKILL_NAMES[prim_skill];
+    info.Identifier:=PRIMARY_SKILL_NAMES[prim_skill];
     //todo: set name
 
-    FPrimSkillMap.AddObject(info.ID, info);
   end;
 end;
 
@@ -1961,10 +1888,9 @@ begin
     for i := 2 to sstraits.RowCount - 1 do
     begin
       info := FSkillInfos.Add;
-      info.ID := SECONDARY_SKILL_NAMES[i-2];
+      info.Identifier := SECONDARY_SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
 
-      FSkillMap.AddObject(info.ID,info);
     end;
 
   finally
@@ -2082,11 +2008,10 @@ begin
     begin
       info := FHeroInfos.Add;
 
-      info.ID := iter.Key;
+      info.Identifier := iter.Key;
 
       FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
-      FHeroMap.AddObject(info.ID, info);
     end;
 
   finally
@@ -2125,15 +2050,14 @@ begin
   if sp_type <>TSpellType.Ability then
   begin
     info := FSpellInfos.Add;
-    info.ID := AName;
+    info.Identifier := AName;
     info.Level := lc.Integers['level'];
     info.Name := lc.Strings['name'];
     info.SpellType := sp_type;
     info.Index := nid;
 
-    FNameMap.Insert('spell.'+info.ID,nid);
+    FNameMap.Insert('spell.'+info.Identifier,nid);
 
-    FSpellMap.AddObject(info.ID,info);
   end;
 end;
 
@@ -2173,7 +2097,7 @@ begin
     info := FSpellInfos[i];
     if info.Index = ASpell then
     begin
-      Result := info.ID;
+      Result := info.Identifier;
       Exit;
     end;
   end;

@@ -48,7 +48,7 @@ begin
 
   if edBonusID.ItemIndex<>-1 then
   begin
-    FBonusID:=(edBonusID.Items.Objects[edBonusID.ItemIndex] as TBaseInfo).ID;
+    FBonusID:=(edBonusID.Items.Objects[edBonusID.ItemIndex] as TBaseInfo).Identifier;
   end;
 end;
 
@@ -74,15 +74,15 @@ begin
     end;
     Integer(TScholarBonus.primSkill):
     begin
-      edBonusID.FillFromList(ListsManager.PrimSkillMap, FBonusID);
+      edBonusID.FillFromList(ListsManager.PrimarySkills, FBonusID);
     end;
     Integer(TScholarBonus.skill):
     begin
-      edBonusID.FillFromList(ListsManager.SkillMap, FBonusID);
+      edBonusID.FillFromList(ListsManager.SkillInfos, FBonusID);
     end;
     Integer(TScholarBonus.spell):
     begin
-      edBonusID.FillFromList(ListsManager.SpellMap, FBonusID);
+      edBonusID.FillFromList(ListsManager.SpellInfos, FBonusID);
     end;
   end;
 

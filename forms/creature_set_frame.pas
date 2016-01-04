@@ -116,11 +116,11 @@ begin
     begin
       inst_info := ASrc[cell_number];
 
-      FCellTypes[cell_number].FillFromListWithEmptyOption(ListsManager.CreatureMap, inst_info.&type);
+      FCellTypes[cell_number].FillFromListWithEmptyOption(ListsManager.CreatureInfos, inst_info.&type);
       FCellAmounts[cell_number].Value:=inst_info.Amount;
     end
     else begin
-      FCellTypes[cell_number].FillFromListWithEmptyOption(ListsManager.CreatureMap, '');
+      FCellTypes[cell_number].FillFromListWithEmptyOption(ListsManager.CreatureInfos, '');
       FCellAmounts[cell_number].Value:=0;
     end;
   end;

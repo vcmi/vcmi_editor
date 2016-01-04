@@ -1030,7 +1030,7 @@ begin
 
     MergeJson(faction.Town.MapObject, town_type);
 
-    town_types.Add(faction.ID , town_type);
+    town_types.Add(faction.Identifier , town_type);
   end;
 
 end;
@@ -1053,7 +1053,7 @@ begin
 
     MergeJson(hcinfo.MapObject, hc);
 
-    hero_classes.Add(hcinfo.ID, hc);
+    hero_classes.Add(hcinfo.Identifier, hc);
   end;
 end;
 
@@ -1075,7 +1075,7 @@ begin
       cr.Add('index', cr_info.Index);
     cr_info.Graphics.AddTemplates(cr);
 
-    creatures.Add(cr_info.ID, cr);
+    creatures.Add(cr_info.Identifier, cr);
   end;
 end;
 
@@ -1096,7 +1096,7 @@ begin
       ar.Add('index', info.Index);
 
     info.Graphics.AddTemplates(ar);
-    artifacts.Add(info.ID, ar);
+    artifacts.Add(info.Identifier, ar);
   end;
 
 end;

@@ -145,8 +145,8 @@ begin
   FCurrentHero := h_info;
   FDefaultSkills.Assign(c_info.PrimarySkills);
   FMapSkills.Clear;
-  edHeroClass.FillFromList(ListsManager.HeroClassMap, h_info.&Class);
-  edType.FillFromList(ListsManager.HeroMap, h_info.ID);
+  edHeroClass.FillFromList(ListsManager.HeroClassInfos, h_info.&Class);
+  edType.FillFromList(ListsManager.HeroInfos, h_info.Identifier);
 
   cbPortrait.Checked:=FOptions.Portrait <> '';
   cbExperience.Checked := FOptions.Experience <> 0;

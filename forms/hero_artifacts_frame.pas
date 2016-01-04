@@ -102,7 +102,7 @@ begin
   grid := Sender as TCustomStringGrid;
   Editor := BackpackSelector;
 
-  BackpackSelector.SetValue(ListsManager.ArtifactMap,TBaseInfo(grid.Objects[grid.Col, Grid.Row])) ;
+  BackpackSelector.SetValue(ListsManager.ArtifactInfos,TBaseInfo(grid.Objects[grid.Col, Grid.Row])) ;
 
   Editor.BoundsRect := grid.CellRect(aCol,aRow);
 
@@ -243,7 +243,7 @@ begin
 
     for art in FOptions.Backpack do
     begin
-      info := (ListsManager.ArtifactMap.Objects[ListsManager.ArtifactMap.IndexOf(art)] as TBaseInfo);
+      info := (ListsManager.ArtifactInfos.FindItem(art) as TBaseInfo);
 
       BackPack.Cells[0, row] := info.Name;
       BackPack.Objects[0, row] := info;
@@ -286,7 +286,7 @@ end;
 
 procedure THeroArtifactsFrame.Load(AOptions: THeroArtifacts);
 begin
-  FillItems(BackpackSelector.Items, Map.ListsManager.ArtifactMap);
+  FillItems(BackpackSelector.Items, Map.ListsManager.ArtifactInfos);
   FOptions := AOptions;
   cbCustomise.OnChange:=nil;
   cbCustomise.Checked:=not FOptions.IsEmpty;
@@ -329,7 +329,7 @@ begin
 
     info := BackPack.Objects[0, i] as TBaseInfo;
 
-    FOptions.Backpack.Add(info.ID);
+    FOptions.Backpack.Add(info.Identifier);
   end;
 end;
 

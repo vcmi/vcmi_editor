@@ -19,14 +19,16 @@
 }
 unit shrine_frame;
 
-{$mode objfpc}{$H+}
+{$I compilersetup.inc}
+
+{$MODESWITCH NESTEDPROCVARS}
 
 interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   gui_helpers, lists_manager,
-  base_options_frame, object_options;
+  base_options_frame, object_options, base_info;
 
 type
 
@@ -57,13 +59,13 @@ procedure TShrineFrame.Commit;
 begin
   inherited Commit;
 
-  if rbRandom.Checked then
+  if rbRandom.Checked or (not Assigned(edSpell.SelectedInfo())) then
   begin
     FObject.Spell := '';
   end
   else
   begin
-    FObject.Spell := edSpell.SelectedInfo().Id;
+    FObject.Spell := edSpell.SelectedInfo().Identifier;
   end;
 end;
 
@@ -82,38 +84,24 @@ begin
 end;
 
 procedure TShrineFrame.VisitShrine(AOptions: TShrineOptions);
-var
-  AviableSpells: TStringList;
-  i: Integer;
-  sinfo:TSpellInfo;
+
+  function spell_filter(ATarget:TBaseInfo ): Boolean;
+  begin
+    Result := TSpellInfo(ATarget).Level = AOptions.SpellLevel;
+  end;
+
 begin
   inherited VisitShrine(AOptions);
   FObject := AOptions;
 
   rbRandom.Checked := FObject.Spell = '';
   rbSpecified.Checked := not rbRandom.Checked;
-  AviableSpells := TStringList.Create;
-  try
-    for i := 0 to ListsManager.SpellMap.Count - 1 do
-    begin
-      sinfo := ListsManager.SpellMap.Objects[i] as TSpellInfo;
-      if sinfo.Level = AOptions.SpellLevel then
-      begin
-        AviableSpells.AddObject(sinfo.ID,sinfo);
-      end;
-    end;
-    sinfo := nil;
 
-    if not (FObject.Spell = '') then
-    begin
-      sinfo := ListsManager.GetSpell(AOptions.Spell);
-    end;
 
-    edSpell.FillFromList(AviableSpells,sinfo);
-  finally
-    AviableSpells.Free;
-    UpdateControls();
-  end;
+  edSpell.FillFromList(ListsManager.SpellInfos, FObject.Spell, @spell_filter);
+
+  UpdateControls();
+
 end;
 
 end.

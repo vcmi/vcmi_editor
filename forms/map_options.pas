@@ -104,10 +104,10 @@ begin
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
 
-  edAbilities.SaveToCondition    (FMap.ListsManager.SkillMap,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
-  edSpells.SaveToCondition       (FMap.ListsManager.SpellMap,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroMap,     FMap.AllowedHeroes, True);
-  edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
+  edAbilities.SaveToCondition    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
+  edSpells.SaveToCondition       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
+  edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
   FMap.IsDirty:=True;
 
@@ -139,12 +139,12 @@ begin
 
   info := edAllowedHeroes.selectedInfo();
 
-  option := Map.PredefinedHeroes.FindItem(info.ID);
+  option := Map.PredefinedHeroes.FindItem(info.Identifier);
 
   if not Assigned(option) then
   begin
     option := Map.PredefinedHeroes.Add;
-    option.Identifier := info.ID;
+    option.Identifier := info.Identifier;
   end;
 
   frm.EditObject(option);
@@ -166,16 +166,16 @@ begin
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;
 
-  edAbilities.FillFromCondition(FMap.ListsManager.SkillMap, FMap.AllowedAbilities);
+  edAbilities.FillFromCondition(FMap.ListsManager.SkillInfos, FMap.AllowedAbilities);
   cbSkillsNegate.ItemIndex:=ifthen(FMap.AllowedAbilities.IsPermissive, 1, 0);
 
-  edSpells.FillFromCondition(FMap.ListsManager.SpellMap, FMap.AllowedSpells);
+  edSpells.FillFromCondition(FMap.ListsManager.SpellInfos, FMap.AllowedSpells);
   cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);
 
-  edArtifacts.FillFromCondition(FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts);
+  edArtifacts.FillFromCondition(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts);
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
-  edAllowedHeroes.FillFromCondition(Fmap.ListsManager.HeroMap, FMap.AllowedHeroes);
+  edAllowedHeroes.FillFromCondition(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);
 
   for mod_id in FMap.Mods.AllOf do
   begin

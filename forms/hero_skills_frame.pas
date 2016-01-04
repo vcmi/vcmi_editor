@@ -115,7 +115,7 @@ begin
     begin
       Editor := SecondarySkillSelector;
 
-      SecondarySkillSelector.FillFromList(ListsManager.SkillMap,TBaseInfo(grid.Objects[grid.Col, Grid.Row]))
+      SecondarySkillSelector.FillFromList(ListsManager.SkillInfos,TBaseInfo(grid.Objects[grid.Col, Grid.Row]))
     end;
     1:
     begin
@@ -180,7 +180,7 @@ begin
     info := edSecondarySkills.Objects[0, i] as TBaseInfo;
 
     option := FCustomSkills.Add;
-    option.Identifier := info.ID;
+    option.Identifier := info.Identifier;
     option.Level:=TSkillLevel(Integer(PtrUint(edSecondarySkills.Objects[1, i])));
   end;
 end;
@@ -202,7 +202,7 @@ begin
     row := edSecondarySkills.RowCount;
     edSecondarySkills.InsertColRow(false, row);
 
-    info := (ListsManager.SkillMap.Objects[ListsManager.SkillMap.IndexOf(option.Identifier)] as TBaseInfo);
+    info := ListsManager.SkillInfos.FindItem(option.Identifier);
 
     edSecondarySkills.Cells[0, row] := info.Name;
     edSecondarySkills.Objects[0, row] := info;

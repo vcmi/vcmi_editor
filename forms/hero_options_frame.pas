@@ -140,13 +140,13 @@ begin
     class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
     FClassSkills.Assign(class_info.PrimarySkills);
 
-    ListsManager.FillWithHeroesOfClass(edType.Items, class_info.ID);
+    ListsManager.FillWithHeroesOfClass(edType.Items, class_info.Identifier);
 
     hero_type :=  FOptions.&type;
 
     for idx := 0 to edType.Items.Count - 1 do
     begin
-      if (edType.Items.Objects[idx] as TBaseInfo).ID = hero_type then
+      if (edType.Items.Objects[idx] as TBaseInfo).Identifier = hero_type then
       begin
         edType.ItemIndex := idx;
         break;
@@ -198,7 +198,7 @@ begin
   begin
     FCurrentHero := info as THeroInfo;
 
-    definition := Map.PredefinedHeroes.FindItem(info.ID);
+    definition := Map.PredefinedHeroes.FindItem(info.Identifier);
     FCurrentDefinition := definition;
   end;
 
@@ -237,7 +237,7 @@ begin
     cbBiography.Checked:=FOptions.Biography <> '';
     cbSkills.Checked := not FOptions.PrimarySkills.IsDefault;
 
-    edHeroClass.FillFromList(ListsManager.HeroClassMap, GetHeroClass);
+    edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
 
     edHeroClassChange(edHeroClass); //also loads type
 
@@ -406,7 +406,7 @@ begin
 
   if edType.Visible then
   begin
-    FOptions.&type := edType.SelectedInfo.ID;
+    FOptions.&type := edType.SelectedInfo.Identifier;
   end;
 
   if edOwner.Visible then

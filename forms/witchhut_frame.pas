@@ -107,7 +107,7 @@ begin
   inherited VisitWitchHut(AOptions);
   FObject := AOptions;
 
-  edAllowedSkills.FillFromList(ListsManager.SkillMap, AOptions.AllowedSkills);
+  edAllowedSkills.FillFromList(ListsManager.SkillInfos, AOptions.AllowedSkills);
 
   edAllowedSkillsClickCheck(nil);
 end;

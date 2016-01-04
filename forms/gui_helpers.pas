@@ -22,25 +22,32 @@ unit gui_helpers;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
   Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
-  editor_types, base_info, logical_id_condition, editor_str_consts;
+  editor_types, base_info, logical_id_condition, editor_str_consts,
+  editor_classes;
 
 type
+
+  TBaseInfoFilter = function (ATarget: TBaseInfo): boolean is nested;
 
   { TCheckListBoxHelper }
 
   TCheckListBoxHelper = class helper for TCustomCheckListBox
   public
-    procedure FillFromList(AFullList: TStrings; ASrc: TStrings);
+    procedure FillFromList(AFullList: THashedCollection; ASrc: TStrings);
     procedure SaveToList(ADest: TStrings);
 
-    procedure SaveToCondition(AFullList: TStrings; ADest: TLogicalIDCondition; Permissive: Boolean);
+    procedure SaveToCondition(AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
 
-    procedure FillFromCondition(AFullList: TStrings; ASrc: TLogicalIDCondition);
+    procedure FillFromCondition(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
+
+    procedure FillFromCondition(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
 
     function SelectedInfo: TBaseInfo;
   end;
@@ -49,30 +56,36 @@ type
 
   TListBoxHelper = class helper for TCustomListBox
   public
-    procedure FillFromList(AFullList: TStrings; ASelected: TBaseInfo);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter);
     function SelectedInfo: TBaseInfo;
+    function SelectedIdentifier: AnsiString;
   end;
 
   { TComboBoxHelper }
 
   TComboBoxHelper = class helper for TCustomComboBox
   public
-    procedure FillFromList(AFullList: TStrings; ASelected: AnsiString);
-    procedure FillFromList(AFullList: TStrings; ASelected: TBaseInfo);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
 
+    procedure FillFromListWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
+
     function GetValueWithEmptyOption(): AnsiString;
     //assumes items filed from AFullList
+    procedure SetValueWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
     procedure SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
     //assumes items filed from AFullList
-    procedure SetValue(AFullList: TStrings; ASelected: AnsiString);
-    procedure SetValue(AFullList: TStrings; ASelected: TBaseInfo);
+    procedure SetValue(AFullList: THashedCollection; ASelected: AnsiString);
+    procedure SetValue(AFullList: THashedCollection; ASelected: TBaseInfo);
 
     function SelectedInfo: TBaseInfo;
   end;
 
-  procedure FillItems(ATarget: TStrings; AFullList: TStrings);
+  procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
 
 implementation
 
@@ -85,11 +98,62 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Objects[i] as TBaseInfo;
-    ATarget.AddObject(info.Name+'('+info.ID+')',info);
+    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
   end;
 end;
 
-procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ASrc: TStrings);
+procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Items[i] as TBaseInfo;
+    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+  end;
+end;
+
+function FillItems(ATarget: TStrings; AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter): integer;
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  Result := -1;
+
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Items[i] as TBaseInfo;
+    if AFilter(info) then
+    begin
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+      if(ASelected <>'') and (info.Identifier = ASelected) then
+      begin
+        Result := ATarget.Count - 1;
+      end;
+    end;
+  end;
+end;
+
+procedure FillItems(ATarget: TStrings; AFullList: THashedCollection; AFilter: TBaseInfoFilter);
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Items[i] as TBaseInfo;
+    if AFilter(info) then
+    begin
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+    end;
+  end;
+end;
+
+procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TStrings);
 var
   i: Integer;
   info: TBaseInfo;
@@ -99,11 +163,11 @@ begin
   for i := 0 to ATarget.Items.Count - 1 do
   begin
     info := ATarget.Items.Objects[i] as TBaseInfo;
-    ATarget.Checked[i] := ASrc.IndexOf(info.ID)>=0;
+    ATarget.Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
   end;
 end;
 
-procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ASrc: TLogicalIDCondition);
+procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
 var
   i: Integer;
   info: TBaseInfo;
@@ -113,7 +177,7 @@ begin
   for i := 0 to ATarget.Items.Count - 1 do
   begin
     info := ATarget.Items.Objects[i] as TBaseInfo;
-    ATarget.Checked[i] := ASrc.IsAllowed(info.ID);
+    ATarget.Checked[i] := ASrc.IsAllowed(info.Identifier);
   end;
 end;
 
@@ -140,12 +204,12 @@ begin
     info := ATarget.Items.Objects[i] as TBaseInfo;
     if ATarget.Checked[i] then
     begin
-      ADest.Add(info.ID);
+      ADest.Add(info.Identifier);
     end;
   end;
 end;
 
-procedure SaveCheckListBox(ATarget: TCustomCheckListBox; AFullList: TStrings; ADest: TLogicalIDCondition; Permissive: Boolean);
+procedure SaveCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
 var
   info: TBaseInfo;
   i: Integer;
@@ -162,7 +226,7 @@ begin
       info := ATarget.Items.Objects[i] as TBaseInfo;
       if not ATarget.Checked[i] then
       begin
-        ban_list.Add(info.ID);
+        ban_list.Add(info.Identifier);
       end;
     end;
 
@@ -173,11 +237,11 @@ begin
     else begin
       for i := 0 to AFullList.Count - 1 do
       begin
-        info := AFullList.Objects[i] as TBaseInfo;
+        info := AFullList.Items[i] as TBaseInfo;
 
-        if ban_list.IndexOf(info.ID) < 0 then
+        if ban_list.IndexOf(info.Identifier) < 0 then
         begin
-          ADest.AnyOf.Add(info.ID);
+          ADest.AnyOf.Add(info.Identifier);
         end;
       end;
     end;
@@ -189,7 +253,7 @@ end;
 
 { TComboBoxHelper }
 
-procedure TComboBoxHelper.FillFromList(AFullList: TStrings;
+procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
   ASelected: AnsiString);
 var
   idx: Integer;
@@ -203,11 +267,11 @@ begin
   end
   else
   begin
-    idx := AFullList.IndexOf(ASelected);
+    idx := AFullList.IndexOfName(ASelected);
 
     if idx <> -1 then
     begin
-      text := (AFullList.Objects[idx] as TBaseInfo).Name;
+      text := (AFullList.Items[idx] as TBaseInfo).Name;
     end
       else Text := '';
 
@@ -215,16 +279,38 @@ begin
   end;
 end;
 
-procedure TComboBoxHelper.FillFromList(AFullList: TStrings; ASelected: TBaseInfo
-  );
+procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASelected: TBaseInfo);
 var
   ID: AnsiString;
 begin
   if Assigned(ASelected) then
-    ID := ASelected.ID
+    ID := ASelected.Identifier
   else
     ID := '';
   FillFromList(AFullList, ID)
+end;
+
+procedure TComboBoxHelper.FillFromListWithEmptyOption(
+  AFullList: THashedCollection; ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  FillItems(Items, AFullList);
+
+  Items.Insert(0, rsEmpty);
+
+  if ASelected = '' then
+  begin
+    ItemIndex:= 0;
+  end
+  else
+  begin
+    idx := AFullList.IndexOfName(ASelected);
+
+    ItemIndex := idx+1;
+  end;
+
 end;
 
 procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings;
@@ -242,11 +328,10 @@ begin
   end
   else
   begin
-    idx := AFullList.IndexOf(ASelected);
+    idx := AFullList.IndexOfName(ASelected);
 
     ItemIndex := idx+1;
   end;
-
 end;
 
 function TComboBoxHelper.GetValueWithEmptyOption: AnsiString;
@@ -256,8 +341,18 @@ begin
     Exit('');
   end
   else begin
-    exit(SelectedInfo.ID)
+    exit(SelectedInfo.Identifier)
   end;
+end;
+
+procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: THashedCollection;
+  ASelected: AnsiString);
+var
+  idx: Integer;
+begin
+  idx := AFullList.IndexOfName(ASelected);
+
+  itemindex := idx+1;
 end;
 
 procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: TStrings;
@@ -270,21 +365,23 @@ begin
   itemindex := idx+1;
 end;
 
-procedure TComboBoxHelper.SetValue(AFullList: TStrings; ASelected: AnsiString);
+procedure TComboBoxHelper.SetValue(AFullList: THashedCollection;
+  ASelected: AnsiString);
 var
   idx: Integer;
 begin
-  idx := AFullList.IndexOf(ASelected);
+  idx := AFullList.IndexOfName(ASelected);
 
   itemindex := idx;
 end;
 
-procedure TComboBoxHelper.SetValue(AFullList: TStrings; ASelected: TBaseInfo);
+procedure TComboBoxHelper.SetValue(AFullList: THashedCollection;
+  ASelected: TBaseInfo);
 var
   ID: AnsiString;
 begin
   if Assigned(ASelected) then
-    ID := ASelected.ID
+    ID := ASelected.Identifier
   else
     ID := '';
   SetValue(AFullList, ID);
@@ -297,7 +394,8 @@ end;
 
 { TCheckListBoxHelper }
 
-procedure TCheckListBoxHelper.FillFromList(AFullList: TStrings; ASrc: TStrings);
+procedure TCheckListBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASrc: TStrings);
 begin
   FillCheckListBox(Self,AFullList,ASrc)
 end;
@@ -307,16 +405,28 @@ begin
   SaveCheckListBox(Self,ADest);
 end;
 
-procedure TCheckListBoxHelper.SaveToCondition(AFullList: TStrings;
+procedure TCheckListBoxHelper.SaveToCondition(AFullList: THashedCollection;
   ADest: TLogicalIDCondition; Permissive: Boolean);
 begin
   SaveCheckListBox(Self,AFullList, ADest, Permissive);
 end;
 
-procedure TCheckListBoxHelper.FillFromCondition(AFullList: TStrings;
+procedure TCheckListBoxHelper.FillFromCondition(AFullList: THashedCollection;
   ASrc: TLogicalIDCondition);
+
+  function filter_stub(ATarget: TBaseInfo): Boolean;
+  begin
+    Result := True;
+  end;
+
 begin
-  FillCheckListBox(Self,AFullList,ASrc);
+  FillCheckListBox(Self,AFullList,ASrc, @filter_stub);
+end;
+
+procedure TCheckListBoxHelper.FillFromCondition(AFullList: THashedCollection;
+  ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
+begin
+  FillCheckListBox(Self,AFullList,ASrc, AFilter);
 end;
 
 function TCheckListBoxHelper.SelectedInfo: TBaseInfo;
@@ -327,8 +437,8 @@ end;
 
 { TListBoxHelper }
 
-procedure TListBoxHelper.FillFromList(AFullList: TStrings; ASelected: TBaseInfo
-  );
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASelected: TBaseInfo);
 begin
   FillItems(Self.Items, AFullList);
   if Assigned(ASelected) then
@@ -338,9 +448,32 @@ begin
 
 end;
 
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
+begin
+  if Assigned(ASelected) then
+    FillFromList(AFullList, ASelected.Identifier, AFilter)
+  else
+    FillFromList(AFullList, '', AFilter)
+end;
+
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASelected: AnsiString; AFilter: TBaseInfoFilter);
+begin
+  ItemIndex := FillItems(Self.Items, AFullList, ASelected, AFilter);
+end;
+
 function TListBoxHelper.SelectedInfo: TBaseInfo;
 begin
   Result := GetSelectedInfo(Items,ItemIndex);
+end;
+
+function TListBoxHelper.SelectedIdentifier: AnsiString;
+begin
+  if Assigned(SelectedInfo) then
+    Result := SelectedInfo.Identifier
+  else
+    Result := '';
 end;
 
 end.
