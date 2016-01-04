@@ -96,7 +96,6 @@
               <ShowHints Value="False"/>
               <ShoLineNum Value="True"/>
             </Verbosity>
-            <CustomOptions Value="-dDEBUG"/>
           </Other>
         </CompilerOptions>
       </Item3>

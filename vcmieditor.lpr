@@ -50,7 +50,7 @@ town_frame, town_buildings_frame;
 
 begin
 
-  {$IF DEFINED(DEBUG) and not defined(FPC_PROFILE)}
+  {$IF DEFINED(DEBUG)}
   if FileExists('heap.trc') then
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');
