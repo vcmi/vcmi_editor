@@ -66,7 +66,7 @@ type
   private
     FMapObject: TJSONObject;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
     property MapObject: TJSONObject read FMapObject;
@@ -78,9 +78,9 @@ implementation
 
 { TMapObjectInfo }
 
-constructor TMapObjectInfo.Create;
+constructor TMapObjectInfo.Create(ACollection: TCollection);
 begin
-  inherited;
+  inherited Create(ACollection);
   FMapObject := TJSONObject.Create;
 end;
 

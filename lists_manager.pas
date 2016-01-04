@@ -259,17 +259,17 @@ type
   private
     FPrimarySkills: THeroPrimarySkills;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills;
   end;
 
-  THeroClassInfoList = specialize TFPGObjectList<THeroClassInfo>;
+  THeroClassInfoCollection = specialize TGNamedCollection<THeroClassInfo>;
 
   { THeroClassInfos }
 
-  THeroClassInfos = class(THeroClassInfoList)
+  THeroClassInfos = class(THeroClassInfoCollection)
   public
   end;
 
@@ -763,9 +763,9 @@ end;
 
 { THeroClassInfo }
 
-constructor THeroClassInfo.Create;
+constructor THeroClassInfo.Create(ACollection: TCollection);
 begin
-  inherited Create;
+  inherited Create(ACollection);
   FPrimarySkills := THeroPrimarySkills.Create;
   FPrimarySkills.SetZero;
 end;
@@ -1208,7 +1208,7 @@ begin
   FFactionMap := CrStrList;
   FTownMap := CrStrList;
 
-  FHeroClassInfos := THeroClassInfos.Create(True);
+  FHeroClassInfos := THeroClassInfos.Create();
   FHeroClassMap := CrStrList;
 
   FCreatureInfos := TCreatureInfos.Create();
@@ -1670,7 +1670,7 @@ begin
 
     for iter in FCombinedConfig do
     begin
-      info := THeroClassInfo.Create;
+      info := HeroClassInfos.Add;
 
       info.ID := iter.Key;
 
@@ -1678,7 +1678,6 @@ begin
 
       DebugLn([(iter.Value as TJSONObject).FormatJSON()]);
 
-      HeroClassInfos.Add(info);
       HeroClassMap.AddObject(info.ID, info);
     end;
   finally
