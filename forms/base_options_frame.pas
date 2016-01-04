@@ -96,6 +96,8 @@ type
     property Map: TVCMIMap read FMap write SetMap;
 
     function IsDirty: Boolean; virtual;
+
+    function Validate: String; virtual;
   end;
 
   TBaseOptionsFrameClass = class of TBaseOptionsFrame;
@@ -464,6 +466,11 @@ function TBaseOptionsFrame.IsDirty: Boolean;
 begin
   Result := True;
   //TODO: TBaseOptionsFrame.IsDirty
+end;
+
+function TBaseOptionsFrame.Validate: String;
+begin
+  Result := '';
 end;
 
 procedure TBaseOptionsFrame.VisitPandorasBox(AOptions: TPandorasOptions);
