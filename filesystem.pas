@@ -863,9 +863,9 @@ end;
 
 procedure TFSManager.LoadFileResource(AResource: IResource; APath: TFilename);
 var
-  stm: TFileStream;
+  stm: TFileStreamUTF8;
 begin
-  stm := TFileStream.Create(APath,fmOpenRead or fmShareDenyWrite);
+  stm := TFileStreamUTF8.Create(APath,fmOpenRead or fmShareDenyWrite);
   try
     stm.Seek(0,soBeginning);
     AResource.LoadFromStream(stm);

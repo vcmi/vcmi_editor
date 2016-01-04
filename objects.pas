@@ -24,9 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, gvector, ghashmap, FileUtil, fpjson, editor_types,
-  filesystem_base, base_info, editor_graphics, editor_classes, h3_txt,
-  lists_manager, vcmi_json ;
+  Classes, SysUtils, fgl, FileUtil, fpjson, editor_types,
+  filesystem_base, editor_graphics, editor_classes, h3_txt,
+  lists_manager, vcmi_json;
 
 type
 

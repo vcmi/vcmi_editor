@@ -24,7 +24,7 @@ unit lod;
 interface
 
 uses
-  SysUtils, Classes, fgl, filesystem_base, zlib_stream;
+  SysUtils, Classes, fgl, filesystem_base, zlib_stream, LazUTF8Classes;
 
 //Format Specifications
 //
@@ -64,7 +64,7 @@ type
 
   TLod = class
   private
-    FFileStream: TFileStream;
+    FFileStream: TFileStreamUTF8;
     //FBuffer: TZBuffer;
   public
     constructor Create(AFullPath: string);
@@ -93,7 +93,7 @@ var
 
 constructor TLod.Create(AFullPath: string);
 begin
-  FFileStream := TFileStream.Create(AFullPath, fmOpenRead+fmShareDenyWrite);
+  FFileStream := TFileStreamUTF8.Create(AFullPath, fmOpenRead+fmShareDenyWrite);
   //FBuffer := TZBuffer.Create;
 end;
 
