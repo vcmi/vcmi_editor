@@ -31,7 +31,7 @@ type
   { TMapUndoItem }
 
   TMapUndoItem = class(TAbstractUndoItem)
-  strict protected
+  protected
     FMap: TVCMIMap;
   public
     constructor Create(AMap: TVCMIMap); virtual;
@@ -50,13 +50,16 @@ type
 
   TItemStack = specialize TFPGObjectList<TAbstractUndoItem>;
 
-  { TMapUndoManger }
+  { TMapUndoManager }
 
   TMapUndoManager = class(TAbstractUndoManager)
   strict private
     FItemStack: TItemStack;
+    FCheckPoint: Integer;
 
     FCurrentPosition: Integer;
+    FMap: TVCMIMap;
+    procedure SetMap(AValue: TVCMIMap);
   public
     constructor Create;
     destructor Destroy; override;
@@ -71,7 +74,12 @@ type
     function PeekCurrent: TAbstractUndoItem; override;
     function PeekNext: TAbstractUndoItem; override;
 
+    procedure MarkCheckPoint;
+    function IsCheckPoint: Boolean;
+
     procedure Clear; override;
+
+    property Map: TVCMIMap read FMap write SetMap;
   end;
 
 implementation
@@ -107,12 +115,20 @@ procedure TMapUndoManager.Clear;
 begin
   FItemStack.Clear;
   FCurrentPosition := -1;
+  FCheckPoint := -2;
+end;
+
+procedure TMapUndoManager.SetMap(AValue: TVCMIMap);
+begin
+  if FMap=AValue then Exit;
+  FMap:=AValue;
 end;
 
 constructor TMapUndoManager.Create;
 begin
   FItemStack := TItemStack.Create(True);
   FCurrentPosition := -1;
+  FCheckPoint:= -2;
 end;
 
 destructor TMapUndoManager.Destroy;
@@ -134,7 +150,7 @@ begin
   end;
 
   FCurrentPosition := FItemStack.Add(AItem);
-
+  FMap.IsDirty:= not IsCheckPoint;
 end;
 
 function TMapUndoManager.PeekCurrent: TAbstractUndoItem;
@@ -161,11 +177,22 @@ begin
   end;
 end;
 
+procedure TMapUndoManager.MarkCheckPoint;
+begin
+  FCheckPoint := FCurrentPosition;
+end;
+
+function TMapUndoManager.IsCheckPoint: Boolean;
+begin
+  Result := FCheckPoint = FCurrentPosition;
+end;
+
 procedure TMapUndoManager.Redo;
 begin
   PeekNext.Redo;
   SetItemState(PeekNext,TUndoItemState.ReDone);
   Inc(FCurrentPosition);
+  FMap.IsDirty:= not IsCheckPoint;
 end;
 
 procedure TMapUndoManager.Undo;
@@ -173,6 +200,7 @@ begin
   PeekCurrent.Undo;
   SetItemState(PeekCurrent,TUndoItemState.UnDone);
   Dec(FCurrentPosition);
+  FMap.IsDirty:= not IsCheckPoint;
 end;
 
 end.

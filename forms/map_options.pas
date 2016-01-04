@@ -109,6 +109,8 @@ begin
   edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroMap,     FMap.AllowedHeroes, True);
   edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactMap, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
+  FMap.IsDirty:=True;
+
   ModalResult := mrOK;
 end;
 

@@ -430,19 +430,22 @@ procedure TEditTerrain.Redo;
 var
   new_info: TTileTerrainInfo;
   i: Integer;
+  map_level: TMapLevel;
 begin
+
+  map_level := FMap.MapLevels[Level];
+
   for i := 0 to FNewTileInfos.Size - 1 do
   begin
     new_info := FNewTileInfos[i];
 
-    FMap.SetTerrain(Level,
+    map_level.SetTerrain(
       new_info.X,
       new_info.Y,
       new_info.TerType,
       new_info.TerSubtype,
       new_info.mir);
   end;
-
 end;
 
 procedure TEditTerrain.SetTerrainType(AValue: TTerrainType);
@@ -784,7 +787,7 @@ end;
 
 procedure TEditTerrain.UndoTile(constref Tile: TTileTerrainInfo);
 begin
-  FMap.SetTerrain(Level, Tile.X, Tile.Y,Tile.TerType, Tile.TerSubtype, Tile.mir);
+  FMap.MapLevels[Level].SetTerrain(Tile.X, Tile.Y,Tile.TerType, Tile.TerSubtype, Tile.mir);
 end;
 
 function TEditTerrain.ValidateTerrainView(info: TTileTerrainInfo; pattern: TPattern;

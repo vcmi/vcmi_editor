@@ -443,7 +443,7 @@ type
 
     procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
     procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
-
+    procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -555,7 +555,7 @@ type
 
     FIsDirty: boolean;
 
-    procedure Changed;
+    //procedure Changed;
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -568,8 +568,7 @@ type
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetName(AValue: TLocalizedString);
 
-    procedure SetTerrain(X, Y: Integer; TT: TTerrainType); overload; //set terrain with random subtype
-
+    procedure SetIsDirty(AValue: Boolean);
   private
     FTeams: TTeamSettings;
     type
@@ -604,6 +603,7 @@ type
 
      var
        FModUsage:TModUsage;
+
   public
     //create with default params
     constructor CreateDefault(env: TMapEnvironment);
@@ -613,8 +613,6 @@ type
     constructor CreateEmpty(env: TMapEnvironment);
 
     destructor Destroy; override;
-
-    procedure SetTerrain(Level, X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8 =0); overload;
 
     procedure FillLevel(TT: TTerrainType);
 
@@ -630,7 +628,7 @@ type
 
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
-    property IsDirty: Boolean read FIsDirty;
+    property IsDirty: Boolean read FIsDirty write SetIsDirty;
 
     property TerrainManager: TTerrainManager read FTerrainManager;
     property ListsManager: TListsManager read FListsManager;
@@ -1712,6 +1710,17 @@ begin
   end;
 end;
 
+procedure TMapLevel.SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8;
+  mir: UInt8);
+var
+  t: PMapTile;
+begin
+  t := GetTile(X,Y);
+  t^.TerType := TT;
+  t^.TerSubtype := TS;
+  t^.Flags := (t^.Flags and $FC) or (mir and 3);
+end;
+
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
 begin
   Result :=@FTiles[x,y];
@@ -1793,11 +1802,11 @@ begin
   AObserved.FPOAttachObserver(Self);
 end;
 
-procedure TVCMIMap.Changed;
-begin
-  FIsDirty := True;
-end;
-
+//procedure TVCMIMap.Changed;
+//begin
+//  FIsDirty := True;
+//end;
+//
 constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
 var
   lvl: TMapLevel;
@@ -1917,11 +1926,9 @@ begin
   begin
     for Y := 0 to CurrentLevel.Height - 1 do
     begin
-      SetTerrain(x,y,tt);
+       CurrentLevel.SetTerrain(x,y, tt, TerrainManager.GetRandomNormalSubtype(tt), 0);
     end;
-
   end;
-
 end;
 
 procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
@@ -2188,14 +2195,12 @@ procedure TVCMIMap.SetDescription(AValue: TLocalizedString);
 begin
   if FDescription = AValue then Exit;
   FDescription := AValue;
-  Changed;
 end;
 
 procedure TVCMIMap.SetDifficulty(AValue: TDifficulty);
 begin
   if FDifficulty = AValue then Exit;
   FDifficulty := AValue;
-  Changed;
 end;
 
 procedure TVCMIMap.SetLevelLimit(AValue: Integer);
@@ -2206,32 +2211,18 @@ begin
   begin
     FLevelLimit := MAX_HERO_LEVEL;
   end;
-  Changed;
 end;
 
 procedure TVCMIMap.SetName(AValue: TLocalizedString);
 begin
   if FName = AValue then Exit;
   FName := AValue;
-  Changed;
 end;
 
-procedure TVCMIMap.SetTerrain(Level, X, Y: Integer; TT: TTerrainType;
-  TS: UInt8; mir: UInt8);
-var
-  t: PMapTile;
+procedure TVCMIMap.SetIsDirty(AValue: Boolean);
 begin
-  t := GetTile(Level,X,Y);
-  t^.TerType := TT;
-  t^.TerSubtype := TS;
-  t^.Flags := (t^.Flags and $FC) or (mir and 3);
-
-  Changed;
-end;
-
-procedure TVCMIMap.SetTerrain(X, Y: Integer; TT: TTerrainType);
-begin
-  SetTerrain(CurrentLevelIndex,X,Y,TT,FTerrainManager.GetRandomNormalSubtype(TT));
+  if FIsDirty=AValue then Exit;
+  FIsDirty:=AValue;
 end;
 
 end.

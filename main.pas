@@ -29,7 +29,7 @@ uses
   StdCtrls, ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
   map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, player_options_form,
+  map_road_river_actions, map_object_actions, undo_map, player_options_form,
   gpriorityqueue, types;
 
 type
@@ -274,7 +274,7 @@ type
     //selected brush
     FActiveBrush: TMapBrush;
 
-    FUndoManager: TAbstractUndoManager;
+    FUndoManager: TMapUndoManager;
 
     FMinimap: TMinimap;
 
@@ -347,7 +347,7 @@ var
 implementation
 
 uses
-  undo_map, map_format, map_format_h3m, editor_str_consts,
+  map_format, map_format_h3m, editor_str_consts,
   root_manager, map_format_zip, editor_consts, map_options,
   new_map, edit_object_options, Math, lazutf8classes;
 
@@ -568,7 +568,7 @@ end;
 
 procedure TfMain.actSaveMapUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty;
+  (Sender as TAction).Enabled := Assigned(FMap) and FMap.IsDirty {and not FUndoManager.IsCheckPoint};
 end;
 
 procedure TfMain.actUndoExecute(Sender: TObject);
@@ -1036,11 +1036,13 @@ end;
 
 procedure TfMain.MapChanded;
 begin
+  FUndoManager.Clear;
   FSelectedObject := nil;
 
   FMinimap.Map := FMap;
+  InvalidateMap;
   InvalidateMapDimensions;
-  FUndoManager.Clear;
+  FUndoManager.Map := FMap;
   SetupLevelSelection;
 end;
 
@@ -1692,7 +1694,7 @@ var
   file_ext: String;
 begin
 
-  if FileExistsUTF8(AFileName) then
+  if (FMapFilename <> AFileName) and FileExistsUTF8(AFileName) then
   begin
     if MessageDlg(rsConfirm,rsFileExists, TMsgDlgType.mtConfirmation, mbYesNo,0) <> mrYes then
       exit;
@@ -1717,6 +1719,7 @@ begin
 
     FMap.SaveToStream(stm,writer);
     FMapFilename := AFileName;
+    FUndoManager.MarkCheckPoint;
   finally
     stm.Free;
   end;
