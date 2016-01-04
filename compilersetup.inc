@@ -1,3 +1,6 @@
+{$IF FPC_FULLVERSION < 20604}
+{$ERROR Freepascal 2.6.4 + required}
+{$ENDIF}
 
 {$mode objfpc}{$H+}
 {.$modeswitch advancedrecords}

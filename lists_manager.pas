@@ -344,7 +344,6 @@ type
   end;
 
   TArtifactTexts = class(TBaseTexts)
-
   end;
 
   TArtifactType = (HERO, CREATURE, COMMANDER);
