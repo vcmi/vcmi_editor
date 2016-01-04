@@ -67,9 +67,11 @@ type
 
   end;
 
+  TPrimSkillInfoCollection = specialize TGNamedCollection<TPrimSkillInfo>;
+
   { TPrimSkillInfos }
 
-  TPrimSkillInfos = class (specialize TFPGObjectList<TPrimSkillInfo>)
+  TPrimSkillInfos = class (TPrimSkillInfoCollection)
   public
 
   end;
@@ -81,9 +83,11 @@ type
     function GetFullID: AnsiString; override;
   end;
 
+  TSkillInfoCollection = specialize TGNamedCollection<TSkillInfo>;
+
   { TSkillInfos }
 
-  TSkillInfos = class (specialize TFPGObjectList<TSkillInfo>)
+  TSkillInfos = class (TSkillInfoCollection)
   public
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
@@ -105,9 +109,11 @@ type
     property SpellType: TSpellType read FType write SetType;
   end;
 
+  TSpellInfoCollection =  specialize TGNamedCollection<TSpellInfo>;
+
   { TSpellInfos }
 
-  TSpellInfos = class (specialize TFPGObjectList<TSpellInfo>)
+  TSpellInfos = class (TSpellInfoCollection)
   public
     //all except abilities
     procedure FillWithAllIds(AList: TLogicalIDCondition);
@@ -226,7 +232,7 @@ type
     procedure SetHasTown(AValue: Boolean);
     procedure SetVillageDefName(AValue: AnsiString);
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     property VillageDefName: AnsiString read FVillageDefName write SetVillageDefName;
     property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
@@ -238,9 +244,9 @@ type
 
   { TFactionInfos }
 
-  TFactionInfoList = specialize TFPGObjectList<TFactionInfo>;
+  TFactionInfoCollection = specialize TGNamedCollection<TFactionInfo>;
 
-  TFactionInfos = class (TFactionInfoList)
+  TFactionInfos = class (TFactionInfoCollection)
   public
     procedure FillWithAllIds(AList: TStrings);
     procedure FillWithTownIds(AList: TStrings);
@@ -322,18 +328,18 @@ type
     function GetName: TLocalizedString; override;
     procedure SetName(AValue: TLocalizedString); override;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
     property Name:TCreatureName read FName;
     property Graphics: TCreatureGraphics read FGraphics;
   end;
 
-  TCreatureInfoList = specialize TFPGObjectList<TCreatureInfo>;
+  TCreatureInfoCollection = specialize TGNamedCollection<TCreatureInfo>;
 
   { TCreatureInfos }
 
-  TCreatureInfos = class(TCreatureInfoList)
+  TCreatureInfos = class(TCreatureInfoCollection)
   public
   end;
 
@@ -363,7 +369,7 @@ type
     function GetName: TLocalizedString; override;
     procedure SetName(AValue: TLocalizedString); override;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
     property Graphics: TArtifactGraphics read FGraphics;
@@ -374,11 +380,11 @@ type
     property &type:TArtifactTypes read FType write SetType;
   end;
 
-  TArtifactInfoList = specialize TFPGObjectList<TArtifactInfo>;
+  TArtifactInfoCollection = specialize TGNamedCollection<TArtifactInfo>;
 
   { TArtifactInfos }
 
-  TArtifactInfos = class(TArtifactInfoList)
+  TArtifactInfos = class(TArtifactInfoCollection)
   public
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
@@ -410,7 +416,7 @@ type
 
     procedure SetName(AValue: TLocalizedString); override;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
     //IHeroInfo
@@ -435,11 +441,11 @@ type
     property Skills: THeroSecondarySkills read FSkills;
   end;
 
-  THeroInfoList = specialize TFPGObjectList<THeroInfo>;
+  THeroInfoCollection = specialize TGNamedCollection<THeroInfo>;
 
   { THeroInfos }
 
-  THeroInfos = class(THeroInfoList)
+  THeroInfos = class(THeroInfoCollection)
   public
     procedure FillWithNotSpecial(AList: TLogicalIDCondition);
   end;
@@ -807,9 +813,11 @@ end;
 procedure THeroInfos.FillWithNotSpecial(AList: TLogicalIDCondition);
 var
   obj: THeroInfo;
+  idx: Integer;
 begin
-  for obj in Self do
+  for idx := 0 to Count - 1 do
   begin
+      obj := Items[idx];
     if obj.Special then
     begin
       AList.NoneOf.Add(obj.ID);
@@ -847,9 +855,9 @@ begin
   FFemale:=AValue;
 end;
 
-constructor THeroInfo.Create;
+constructor THeroInfo.Create(ACollection: TCollection);
 begin
-  inherited;
+  inherited Create(ACollection);
   FTexts := THeroTexts.Create;
   FSpellBook := CrStrList;
   FSkills := THeroSecondarySkills.Create;
@@ -975,9 +983,9 @@ begin
   FTexts.Name:=AValue;
 end;
 
-constructor TArtifactInfo.Create;
+constructor TArtifactInfo.Create(ACollection: TCollection);
 begin
-  inherited;
+  inherited Create(ACollection);
   FGraphics := TArtifactGraphics.Create;
   FSlot := TStringList.Create;
   FTexts := TArtifactTexts.Create;
@@ -1041,9 +1049,9 @@ begin
   FName.Plural := AValue;
 end;
 
-constructor TCreatureInfo.Create;
+constructor TCreatureInfo.Create(ACollection: TCollection);
 begin
-  inherited;
+  inherited Create(ACollection);
   FGraphics := TCreatureGraphics.Create;
   FName := TCreatureName.Create;
 end;
@@ -1081,9 +1089,9 @@ begin
   FVillageDefName := AValue;
 end;
 
-constructor TFactionInfo.Create;
+constructor TFactionInfo.Create(ACollection: TCollection);
 begin
-  inherited Create;
+  inherited Create(ACollection);
   FTown := TTownInfo.Create;
 end;
 
@@ -1144,10 +1152,12 @@ end;
 procedure TSpellInfos.FillWithAllIds(AList: TLogicalIDCondition);
 var
   spell: TSpellInfo;
+  idx: Integer;
 begin
   AList.Clear;
-  for spell in Self do
+  for idx := 0 to Count - 1 do
   begin
+    spell := Items[idx];
     if spell.SpellType <> TSpellType.Ability then
       AList.AnyOf.Add(spell.ID);
   end;
@@ -1185,26 +1195,26 @@ begin
 
   FNameMap := TNameToIdMap.Create;
 
-  FPrimSkillInfos := TPrimSkillInfos.Create(True);
+  FPrimSkillInfos := TPrimSkillInfos.Create();
   FPrimSkillMap := CrStrList;
 
-  FSkillInfos := TSkillInfos.Create(True);
+  FSkillInfos := TSkillInfos.Create();
   FSkillMap := CrStrList;
 
-  FSpellInfos := TSpellInfos.Create(True);
+  FSpellInfos := TSpellInfos.Create();
   FSpellMap := CrStrList;
 
-  FFactionInfos := TFactionInfos.Create(True);
+  FFactionInfos := TFactionInfos.Create();
   FFactionMap := CrStrList;
   FTownMap := CrStrList;
 
   FHeroClassInfos := THeroClassInfos.Create(True);
   FHeroClassMap := CrStrList;
 
-  FCreatureInfos := TCreatureInfos.Create(True);
+  FCreatureInfos := TCreatureInfos.Create();
   FCreatureMap := CrStrList;
 
-  FArtifactInfos := TArtifactInfos.Create(True);
+  FArtifactInfos := TArtifactInfos.Create();
   FArtifactMap := CrStrList;
 
   for i in [0..ARTIFACT_SLOT_COUNT-1] do
@@ -1212,7 +1222,7 @@ begin
     FArtifactSlotMaps[i] := CrStrList;
   end;
 
-  FHeroInfos := THeroInfos.Create(True);
+  FHeroInfos := THeroInfos.Create();
   FHeroMap := CrStrList;
 
   FSlotIds := TSlotMap.Create;
@@ -1591,7 +1601,7 @@ begin
 
     for iter in FCombinedConfig  do
     begin
-      info := TFactionInfo.Create;
+      info := FFactionInfos.Add;
       info.ID := iter.Key;
 
       o := iter.Value as TJSONObject;
@@ -1600,7 +1610,6 @@ begin
 
       info.HasTown:=o.IndexOfName('town')>=0;
 
-      FFactionInfos.Add(info);
       FFactionMap.AddObject(info.ID, info);
 
       DebugLn([info.ID, ' ', info.Name]);
@@ -1735,7 +1744,7 @@ begin
 
     for iter in FCombinedConfig do
     begin
-      info := TCreatureInfo.Create;
+      info := CreatureInfos.Add;
 
       info.ID := iter.Key;
 
@@ -1745,7 +1754,6 @@ begin
 
       DebugLn(['Index ',info.Index]);
 
-      CreatureInfos.Add(info);
       CreatureMap.AddObject(info.ID, info);
     end;
 
@@ -1834,7 +1842,7 @@ begin
 
     for iter in FCombinedConfig do
     begin
-      info := TArtifactInfo.Create;
+      info := ArtifactInfos.Add;
 
       info.ID := iter.Key;
 
@@ -1842,7 +1850,6 @@ begin
 
       FDestreamer.JSONToObjectEx(o, info);
 
-      ArtifactInfos.Add(info);
       ArtifactMap.AddObject(info.ID, info);
     end;
 
@@ -1858,6 +1865,7 @@ end;
 
 procedure TListsManager.FillArtifactCache;
 var
+  item: TCollectionItem;
   info: TArtifactInfo;
   procedure ProcessSlotId(id: String);
   var
@@ -1875,8 +1883,9 @@ var
 var
   slot_id: String;
 begin
-  for info in FArtifactInfos do
+  for item in FArtifactInfos do
   begin
+    info := TArtifactInfo(item);
     for slot_id in info.Slot do
     begin
       if slot_id = 'RING' then
@@ -1926,11 +1935,10 @@ var
 begin
   for prim_skill in TPrimarySkill do
   begin
-    info := TPrimSkillInfo.Create;
+    info := FPrimSkillInfos.Add;
     info.ID:=PRIMARY_SKILL_NAMES[prim_skill];
     //todo: set name
 
-    FPrimSkillInfos.Add(info);
     FPrimSkillMap.AddObject(info.ID, info);
   end;
 end;
@@ -1953,10 +1961,10 @@ begin
 
     for i := 2 to sstraits.RowCount - 1 do
     begin
-      info := TSkillInfo.Create;
+      info := FSkillInfos.Add;
       info.ID := SECONDARY_SKILL_NAMES[i-2];
       info.Name := sstraits.Value[0,i];
-      FSkillInfos.Add(info);
+
       FSkillMap.AddObject(info.ID,info);
     end;
 
@@ -2073,13 +2081,12 @@ begin
 
     for iter in FCombinedConfig do
     begin
-      info := THeroInfo.Create;
+      info := FHeroInfos.Add;
 
       info.ID := iter.Key;
 
       FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
 
-      FHeroInfos.Add(info);
       FHeroMap.AddObject(info.ID, info);
     end;
 
@@ -2118,7 +2125,7 @@ begin
   sp_type := SPELL_TYPES[lc.Integers['type']];
   if sp_type <>TSpellType.Ability then
   begin
-    info := TSpellInfo.Create;
+    info := FSpellInfos.Add;
     info.ID := AName;
     info.Level := lc.Integers['level'];
     info.Name := lc.Strings['name'];
@@ -2127,7 +2134,6 @@ begin
 
     FNameMap.Insert('spell.'+info.ID,nid);
 
-    FSpellInfos.Add(info);
     FSpellMap.AddObject(info.ID,info);
   end;
 end;

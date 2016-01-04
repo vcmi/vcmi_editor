@@ -24,7 +24,7 @@ unit base_info;
 interface
 
 uses
-  Classes, SysUtils, fpjson, editor_types;
+  Classes, SysUtils, fpjson, editor_types, editor_classes;
 
 type
   {$push}
@@ -32,28 +32,32 @@ type
 
   { TBaseInfo }
 
-  TBaseInfo = class abstract
+  TBaseInfo = class abstract(TNamedCollectionItem)
   private
     FID: AnsiString;
     FName: TLocalizedString;
     FIndex: TCustomID;
 
+    function GetCollectionIndex: integer;
+    procedure SetCollectionIndex(AValue: integer);
     procedure SetID(AValue: AnsiString);
 
-    procedure SetIndex(AValue: TCustomID);
+    procedure SetIndex_(AValue: TCustomID);
   protected
     function GetFullID: AnsiString; virtual;
 
     function GetName: TLocalizedString; virtual;
     procedure SetName(AValue: TLocalizedString); virtual;
   public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     property ID: AnsiString read FID write SetID;
 
     property FullID: AnsiString read GetFullID;
+
+    property CollectionIndex: integer read GetCollectionIndex write SetCollectionIndex;
   published
     property Name: TLocalizedString read GetName write SetName;
-    property Index: TCustomID read FIndex write SetIndex default ID_INVALID;
+    property Index: TCustomID read FIndex write SetIndex_ default ID_INVALID;
   end;
 
   { TMapObjectInfo }
@@ -88,8 +92,9 @@ end;
 
 { TBaseInfo }
 
-constructor TBaseInfo.Create;
+constructor TBaseInfo.Create(ACollection: TCollection);
 begin
+  inherited Create(ACollection);
   FIndex := ID_INVALID;
 end;
 
@@ -104,6 +109,16 @@ begin
   FID := AValue;
 end;
 
+function TBaseInfo.GetCollectionIndex: integer;
+begin
+  Result := inherited Index;
+end;
+
+procedure TBaseInfo.SetCollectionIndex(AValue: integer);
+begin
+  inherited Index := AValue;
+end;
+
 function TBaseInfo.GetName: TLocalizedString;
 begin
   Result := FName;
@@ -115,7 +130,7 @@ begin
   FName := AValue;
 end;
 
-procedure TBaseInfo.SetIndex(AValue: TCustomID);
+procedure TBaseInfo.SetIndex_(AValue: TCustomID);
 begin
   if FIndex = AValue then Exit;
   FIndex := AValue;
