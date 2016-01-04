@@ -74,7 +74,6 @@ type
     procedure FillFromListWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
-    function GetValueWithEmptyOption(): AnsiString;
     //assumes items filed from AFullList
     procedure SetValueWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
     procedure SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
@@ -84,6 +83,7 @@ type
     procedure SetValue(AFullList: THashedCollection; ASelected: TBaseInfo);
 
     function SelectedInfo: TBaseInfo;
+    function SelectedIdentifier: AnsiString;
   end;
 
   procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
@@ -205,13 +205,25 @@ end;
 
 
 function GetSelectedInfo(AItems: TStrings; AIndex: Integer): TBaseInfo;
+var
+  tmp: TObject;
 begin
   if AIndex < 0 then
   begin
     Exit(nil);
   end
-  else begin
-    Exit(AItems.Objects[AIndex] as TBaseInfo);
+  else
+  begin
+    tmp := AItems.Objects[AIndex];
+    if Assigned(tmp) then
+    begin
+      Exit(tmp as TBaseInfo);
+    end
+    else
+    begin
+      Exit(nil);
+    end;
+
   end;
 end;
 
@@ -343,17 +355,6 @@ begin
   end;
 end;
 
-function TComboBoxHelper.GetValueWithEmptyOption: AnsiString;
-begin
-  if ItemIndex <= 0 then
-  begin
-    Exit('');
-  end
-  else begin
-    exit(SelectedInfo.Identifier)
-  end;
-end;
-
 procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: THashedCollection;
   ASelected: AnsiString);
 var
@@ -399,6 +400,17 @@ end;
 function TComboBoxHelper.SelectedInfo: TBaseInfo;
 begin
   Result := GetSelectedInfo(Items,ItemIndex);
+end;
+
+function TComboBoxHelper.SelectedIdentifier: AnsiString;
+var
+  info: TBaseInfo;
+begin
+  info := SelectedInfo();
+  if Assigned(info) then
+    Result := SelectedInfo.Identifier
+  else
+    Result := '';
 end;
 
 { TCheckListBoxHelper }

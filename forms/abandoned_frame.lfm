@@ -5,7 +5,7 @@ inherited AbandonedFrame: TAbandonedFrame
   ClientWidth = 319
   DesignLeft = 587
   DesignTop = 267
-  object Label1: TLabel[0]
+  object PossibleResourcesLabel: TLabel[0]
     Left = 8
     Height = 15
     Top = 8

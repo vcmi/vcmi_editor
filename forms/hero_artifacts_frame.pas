@@ -316,7 +316,7 @@ begin
   end;
 
   for slot in [0..ARTIFACT_SLOT_COUNT-1] do
-    FOptions.BySlotNumber[slot]:=FSlotEditors[slot].GetValueWithEmptyOption();
+    FOptions.BySlotNumber[slot]:=FSlotEditors[slot].SelectedIdentifier();
 
   FOptions.Backpack.Clear;
 

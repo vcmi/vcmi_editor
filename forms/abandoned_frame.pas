@@ -35,7 +35,7 @@ type
 
   TAbandonedFrame = class(TBaseOptionsFrame)
     edPossibleResources: TCheckListBox;
-    Label1: TLabel;
+    PossibleResourcesLabel: TLabel;
   private
     FOptions: TAbandonedOptions;
   public
