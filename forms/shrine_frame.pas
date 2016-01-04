@@ -59,13 +59,13 @@ procedure TShrineFrame.Commit;
 begin
   inherited Commit;
 
-  if rbRandom.Checked or (not Assigned(edSpell.SelectedInfo())) then
+  if rbRandom.Checked then
   begin
     FObject.Spell := '';
   end
   else
   begin
-    FObject.Spell := edSpell.SelectedInfo().Identifier;
+    FObject.Spell := edSpell.SelectedIdentifier;
   end;
 end;
 

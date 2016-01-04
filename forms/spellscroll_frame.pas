@@ -58,22 +58,13 @@ begin
 end;
 
 procedure TSpellScrollFrame.VisitSpellScroll(AOptions: TSpellScrollOptions);
-var
-  sinfo:TSpellInfo;
 begin
   inherited VisitSpellScroll(AOptions);
   FObject := AOptions;
-  if AOptions.Spell = '' then
-  begin
-    sinfo := nil;
-  end
-  else begin
-    sinfo := ListsManager.GetSpell(AOptions.Spell);
-  end;
 
-  edSpell.FillFromList(ListsManager.SpellInfos,sinfo);
+  edSpell.FillFromList(ListsManager.SpellInfos,FObject.Spell);
 
-  edMessage.Text:=AOptions.GuardMessage;
+  edMessage.Text:=FObject.GuardMessage;
 end;
 
 end.

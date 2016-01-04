@@ -56,9 +56,10 @@ type
 
   TListBoxHelper = class helper for TCustomListBox
   public
+    procedure FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
     procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
-    procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
     procedure FillFromList(AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter);
+    procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
     function SelectedInfo: TBaseInfo;
     function SelectedIdentifier: AnsiString;
   end;
@@ -134,6 +135,27 @@ begin
         Result := ATarget.Count - 1;
       end;
     end;
+  end;
+end;
+
+function FillItems(ATarget: TStrings; AFullList: THashedCollection; ASelected: AnsiString): integer;
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  Result := -1;
+
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Items[i] as TBaseInfo;
+
+    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+    if(ASelected <>'') and (info.Identifier = ASelected) then
+    begin
+      Result := ATarget.Count - 1;
+    end;
+
   end;
 end;
 
@@ -255,27 +277,14 @@ end;
 
 procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
   ASelected: AnsiString);
-var
-  idx: Integer;
 begin
-  FillItems(Items, AFullList);
+  text := '';
 
-  if ASelected = '' then
+  ItemIndex := FillItems(Items,AFullList, ASelected);
+
+  if ItemIndex >=0 then
   begin
-    ItemIndex:= -1;
-    text := '';
-  end
-  else
-  begin
-    idx := AFullList.IndexOfName(ASelected);
-
-    if idx <> -1 then
-    begin
-      text := (AFullList.Items[idx] as TBaseInfo).Name;
-    end
-      else Text := '';
-
-    ItemIndex := idx;
+    Text := (Items.Objects[ItemIndex] as TBaseInfo).Name;
   end;
 end;
 
@@ -436,6 +445,12 @@ end;
 
 
 { TListBoxHelper }
+
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
+  ASelected: AnsiString);
+begin
+  ItemIndex := FillItems(Self.Items,AFullList,ASelected);
+end;
 
 procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
   ASelected: TBaseInfo);
