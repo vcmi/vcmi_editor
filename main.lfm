@@ -1945,7 +1945,7 @@ object fMain: TfMain
   object MainActions: TActionList
     Images = imlMainActions
     left = 440
-    top = 208
+    top = 216
     object actCreateMap: TAction
       Caption = 'Create map ...'
       ImageIndex = 0

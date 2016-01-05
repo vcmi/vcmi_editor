@@ -828,6 +828,20 @@ procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
 var
   dx,dy: integer;
 begin
+  if Shift * [ssCtrl, ssAlt] = [ssCtrl] then
+  begin
+    case Key of
+      VK_0, VK_NUMPAD0: SetCurrentPlayer(TPlayer.none);
+      VK_1, VK_NUMPAD1: SetCurrentPlayer(TPlayer.red);
+      VK_2, VK_NUMPAD2: SetCurrentPlayer(TPlayer.blue);
+      VK_3, VK_NUMPAD3: SetCurrentPlayer(TPlayer.tan);
+      VK_4, VK_NUMPAD4: SetCurrentPlayer(TPlayer.green);
+      VK_5, VK_NUMPAD5: SetCurrentPlayer(TPlayer.orange);
+      VK_6, VK_NUMPAD6: SetCurrentPlayer(TPlayer.purple);
+      VK_7, VK_NUMPAD7: SetCurrentPlayer(TPlayer.teal);
+      VK_8, VK_NUMPAD8: SetCurrentPlayer(TPlayer.pink);
+    end;
+  end;
 
   if not Assigned(FSelectedObject) then
   begin
