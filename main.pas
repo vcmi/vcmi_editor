@@ -1765,6 +1765,12 @@ end;
 procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
 begin
   FActiveBrush := ABrush;
+
+  if FActiveBrush<>FIdleBrush then
+  begin
+    FSelectedObject := nil;
+  end;
+
   FActiveBrush.Clear;
 
   if FActiveBrush <> FRoadRiverBrush then
