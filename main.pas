@@ -1080,6 +1080,7 @@ end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
+  FActiveBrush := FIdleBrush;
   SetMapViewMouse(x,y);
 
   FDragging.Drop;
@@ -1090,6 +1091,7 @@ end;
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
+  FActiveBrush := FIdleBrush;
   Accept := true; //TODO: handle accceptible terrain
 
   FSelectedObject := nil;
@@ -1472,6 +1474,7 @@ begin
     FNextDragSubject:=TDragSubject.MapTemplate;
     FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
     DragManager.DragStart(self, True,0); //after state change
+    FActiveBrush := FIdleBrush;
   end;
 
 end;
