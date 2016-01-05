@@ -45,7 +45,8 @@ type
   public
     constructor Create(AOwner: TfMain); reintroduce;
     destructor Destroy; override;
-    procedure Drop; virtual; abstract;
+    procedure DropOnMap; virtual; abstract;
+    procedure DropOnPalette; virtual;
     procedure Render(x,y: integer); virtual; abstract;
   end;
 
@@ -57,7 +58,7 @@ type
   public
     constructor Create(AOwner: TfMain; ADraggingTemplate: TObjTemplate);
 
-    procedure Drop; override;
+    procedure DropOnMap; override;
     procedure Render(x, y: integer); override;
   end;
 
@@ -69,7 +70,8 @@ type
     FDraggingObject: TMapObject;
   public
     constructor Create(AOwner: TfMain;ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
-    procedure Drop; override;
+    procedure DropOnMap; override;
+    procedure DropOnPalette; override;
     procedure Render(x, y: integer); override;
   end;
 
@@ -215,6 +217,9 @@ type
     procedure MapViewResize(Sender: TObject);
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
     procedure ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
@@ -339,6 +344,7 @@ type
     procedure DragCanceled; override;
   public
     procedure MoveObject(AObject: TMapObject; l,x,y: integer);
+    procedure DeleteObject(AObject: TMapObject);
   end;
 
 var
@@ -368,6 +374,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TDragProxy.DropOnPalette;
+begin
+  //do nothing by default
+end;
+
 { TObjectDragProxy }
 
 constructor TObjectDragProxy.Create(AOwner: TfMain;
@@ -380,9 +391,19 @@ begin
 end;
 
 
-procedure TObjectDragProxy.Drop;
+procedure TObjectDragProxy.DropOnMap;
 begin
   FOwner.MoveObject(FDraggingObject,FOwner.FMap.CurrentLevelIndex,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
+end;
+
+procedure TObjectDragProxy.DropOnPalette;
+begin
+  if FOwner.FSelectedObject = FDraggingObject then
+  begin
+    FOwner.FSelectedObject := nil;
+  end;
+  FOwner.DeleteObject(FDraggingObject);
+  FDraggingObject := nil;
 end;
 
 procedure TObjectDragProxy.Render(x, y: integer);
@@ -399,7 +420,7 @@ begin
   inherited Create(AOwner);
 end;
 
-procedure TTemplateDragProxy.Drop;
+procedure TTemplateDragProxy.DropOnMap;
 var
   action_item: TAddObject;
 begin
@@ -459,14 +480,8 @@ begin
 end;
 
 procedure TfMain.actDeleteExecute(Sender: TObject);
-var
-  action_item: TDeleteObject;
 begin
-  action_item := TDeleteObject.Create(FMap);
-  action_item.TargetObject :=FSelectedObject;
-
-  FUndoManager.ExecuteItem(action_item);
-
+  DeleteObject(FSelectedObject);
   FSelectedObject := nil;
 end;
 
@@ -1097,7 +1112,7 @@ begin
   FActiveBrush := FIdleBrush;
   SetMapViewMouse(x,y);
 
-  FDragging.Drop;
+  FDragging.DropOnMap;
 
   InvalidateMapContent;
 end;
@@ -1398,6 +1413,21 @@ begin
 
     SetMapPosition(pos);
 
+  end;
+end;
+
+procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
+begin
+  FDragging.DropOnPalette;
+end;
+
+procedure TfMain.ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
+  State: TDragState; var Accept: Boolean);
+begin
+  Accept := false;
+  if Assigned(FDragging) and (FDragging is TObjectDragProxy) then
+  begin
+    Accept := true;
   end;
 end;
 
@@ -1964,6 +1994,15 @@ begin
 
   FSelectedObject := AObject;
   InvalidateMapContent;
+end;
+
+procedure TfMain.DeleteObject(AObject: TMapObject);
+var
+  action_item: TDeleteObject;
+begin
+  action_item := TDeleteObject.Create(FMap);
+  action_item.TargetObject :=AObject;
+  FUndoManager.ExecuteItem(action_item);
 end;
 
 procedure TfMain.VerticalAxisPaint(Sender: TObject);

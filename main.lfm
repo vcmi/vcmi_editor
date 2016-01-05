@@ -1142,6 +1142,8 @@ object fMain: TfMain
       OpenGLMajorVersion = 3
       OpenGLMinorVersion = 3
       AlphaBits = 8
+      OnDragDrop = ObjectsViewDragDrop
+      OnDragOver = ObjectsViewDragOver
       OnMouseDown = ObjectsViewMouseDown
       OnMouseWheel = ObjectsViewMouseWheel
       OnPaint = ObjectsViewPaint
