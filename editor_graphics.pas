@@ -24,10 +24,8 @@ unit editor_graphics;
 interface
 
 uses
-  Classes, SysUtils, Math,
-  gvector, fgl,
-  Gl,
-  editor_types, editor_consts, editor_utils, filesystem_base, editor_gl;
+  Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
+  editor_utils, filesystem_base, editor_gl, LazLoggerBase;
 
 const
 
@@ -135,8 +133,11 @@ type
       INITIAL_BUFFER_SIZE = 32768;
   strict private
     FBuffer: packed array of byte; //indexed bitmap
+    FDefBuffer: packed array of byte;
+
     palette: TRGBAPalette;
     procedure IncreaseBuffer(ANewSize: SizeInt);
+    procedure IncreaseDefBuffer(ANewSize: SizeInt);
   private
     FCurrentDef: TDef;
     FMode: TGraphicsLoadMode;
@@ -291,6 +292,17 @@ begin
   end;
 end;
 
+procedure TDefFormatLoader.IncreaseDefBuffer(ANewSize: SizeInt);
+begin
+  if ANewSize > Length(FDefBuffer) then
+  begin
+
+    ANewSize := (ANewSize div INITIAL_BUFFER_SIZE + 1)*INITIAL_BUFFER_SIZE;
+
+    SetLength(FDefBuffer, ANewSize);
+  end;
+end;
+
 procedure TDefFormatLoader.LoadSprite(AStream: TStream; const SpriteIndex: UInt8;
   ATextureID: GLuint; offset: Uint32);
 var
@@ -425,19 +437,19 @@ var
     SegmentType, code, value: UInt8;
     len: Integer;
     RowAdd: Int32;
+
+
   begin
     for row := 0 to h.SpriteHeight - 1 do
     begin
-      AStream.Seek(BaseOffsetor+row*2*(h.SpriteWidth div 32),soBeginning);
-      tmp := AStream.ReadWord();
-      BaseOffset := BaseOffsetor + tmp;
+      tmp := PWord(@FDefBuffer[row*2*(h.SpriteWidth div 32)])^;
+      BaseOffset := LEtoN(tmp);
+
       SkipIfPositive(h.LeftMargin);
       TotalRowLength := 0;
 
-      AStream.Seek(BaseOffset,soBeginning);
-
       repeat
-         SegmentType := AStream.ReadByte;
+         SegmentType := FDefBuffer[BaseOffset]; inc(BaseOffset);
          code := SegmentType div 32;
          value := (SegmentType and 31) + 1;
 
@@ -447,7 +459,7 @@ var
 
          if code = 7 then
          begin
-           AStream.Read(FBuffer[ftcp],len);
+           Move(FDefBuffer[BaseOffset], FBuffer[ftcp], len); inc(BaseOffset, len);
          end
          else begin
            FillChar(FBuffer[ftcp],len,code);
@@ -476,8 +488,10 @@ begin
   AStream.Seek(BaseOffset,soBeginning);
   AStream.Read(h{%H-},SizeOf(h));
 
+
   BaseOffset := AStream.Position;
   BaseOffsetor := BaseOffset;
+
 
   with h do
   begin
@@ -489,6 +503,13 @@ begin
     LeToNInPlase(SpriteWidth);
     LeToNInPlase(LeftMargin);
     LeToNInPlase(TopMargin);
+  end;
+
+  //todo: optimize other compression types
+  if h.defType2 = 3 then
+  begin
+    IncreaseDefBuffer(h.prSize);
+    AStream.Read(FDefBuffer[0], h.prSize);
   end;
 
   RightMargin := h.FullWidth - h.SpriteWidth - h.LeftMargin;
@@ -533,6 +554,7 @@ begin
   else
     raise Exception.Create('Unknown sprite compression format');
   end;
+
 
   BindUncompressedPaletted(ATextureID,h.FullWidth,h.SpriteHeight, @FBuffer[0]);
 end;
