@@ -59,6 +59,8 @@ type
     Allowed: TCheckBox;
     Panel1: TPanel;
     procedure AllowedChange(Sender: TObject);
+    procedure BuildingsCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
+      State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure BuildingsDeletion(Sender: TObject; Node: TTreeNode);
     procedure BuildingsSelectionChanged(Sender: TObject);
     procedure BuiltChange(Sender: TObject);
@@ -132,6 +134,12 @@ begin
     TBuildingData(Buildings.Selected.Data).Allowed:= Allowed.Checked;
   end;
   UpdateControls;
+end;
+
+procedure TTownBuildingsFrame.BuildingsCustomDrawItem(Sender: TCustomTreeView;
+  Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+begin
+  DefaultDraw := true;
 end;
 
 procedure TTownBuildingsFrame.BuildingsSelectionChanged(Sender: TObject);

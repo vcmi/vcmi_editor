@@ -16,6 +16,7 @@ inherited TownBuildingsFrame: TTownBuildingsFrame
     ReadOnly = True
     ShowRoot = False
     TabOrder = 0
+    OnCustomDrawItem = BuildingsCustomDrawItem
     OnDeletion = BuildingsDeletion
     OnSelectionChanged = BuildingsSelectionChanged
     Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]

@@ -29,7 +29,7 @@ uses
   lazutf8classes, LazFileUtils,
   vcmi_json,
   editor_classes,
-  filesystem_base, lod, editor_types, fpjson, zipper ;
+  filesystem_base, lod, editor_types, fpjson, zipper, zipper_ex ;
 
   {
   real FS
@@ -249,11 +249,11 @@ type
     lod:TLod;
     FileHeader: TLodItem;
     //for archive
-    archive: TUnZipper;
-
+    archive: TUnZipperEx;
+    entry: TFullZipFileEntry;
     procedure SetLod(ALod: TLod; AFileHeader: TLodItem);
     procedure SetFile(AFullPath: string);
-    procedure SetArchive(AArchive: TUnZipper;APath: TFilename);
+    procedure SetArchive(AArchive: TUnZipperEx;AEntry: TFullZipFileEntry);
   end;
 
   TResId = record
@@ -326,7 +326,7 @@ type
     procedure UnzipperCreateStream(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry);
     procedure UnzipperDoneStream(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry);
 
-    procedure LoadArchiveResource(AResource: IResource; AArchive: TUnZipper; AArchivePath: TFilename);
+    procedure LoadArchiveResource(AResource: IResource; AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
 
     procedure ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: TStrings);
     procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
@@ -486,11 +486,12 @@ begin
   lod := nil;
 end;
 
-procedure TResLocation.SetArchive(AArchive: TUnZipper; APath: TFilename);
+procedure TResLocation.SetArchive(AArchive: TUnZipperEx;
+  AEntry: TFullZipFileEntry);
 begin
   lt := TLocationType.InArchive;
   archive := AArchive;
-  path := APath;
+  entry := AEntry;
 end;
 
 procedure TResLocation.SetLod(ALod: TLod; AFileHeader: TLodItem);
@@ -793,7 +794,7 @@ end;
 
 procedure TFSManager.OnArchiveFound(FileIterator: TFileIterator);
 var
-  arch: TUnZipper;
+  arch: TUnZipperEx;
   i: Integer;
 
 var
@@ -809,7 +810,7 @@ var
   rel_path: string;
 
 begin
-  arch := TUnZipper.Create;
+  arch := TUnZipperEx.Create;
   arch.OnCreateStream:=@UnzipperCreateStream;
   arch.OnDoneStream:=@UnzipperDoneStream;
 
@@ -825,7 +826,7 @@ begin
     if arch.Entries[i].IsDirectory then
       Continue;
 
-    res_loc.SetArchive(arch, arch.Entries[i].ArchiveFileName);
+    res_loc.SetArchive(arch, arch.Entries[i]);
 
     src_file_name := arch.Entries[i].ArchiveFileName;
 
@@ -888,17 +889,11 @@ begin
 end;
 
 procedure TFSManager.LoadArchiveResource(AResource: IResource;
-  AArchive: TUnZipper; AArchivePath: TFilename);
+  AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
 begin
-  AArchive.Files.Clear;
-  AArchive.Files.Add(AArchivePath);
-
-  AArchive.UnZipAllFiles;
-
+  AArchive.UnZipOneFile(AEntry);
   FUnzipBuffer.Seek(0, soBeginning);
   AResource.LoadFromStream(FUnzipBuffer);
-
-  AArchive.Files.Clear;
 end;
 
 procedure TFSManager.LoadFSConfig;
@@ -957,7 +952,7 @@ begin
   case res_loc.lt of
     TLocationType.InLod: res_loc.lod.LoadResource(AResource,res_loc.FileHeader) ;
     TLocationType.InFile: LoadFileResource(AResource,res_loc.path);
-    TLocationType.InArchive: LoadArchiveResource(AResource, res_loc.archive, res_loc.path);
+    TLocationType.InArchive: LoadArchiveResource(AResource, res_loc.archive, res_loc.entry);
   end;
 end;
 
