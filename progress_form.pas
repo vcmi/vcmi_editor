@@ -38,13 +38,13 @@ implementation
 
 procedure TProgressForm.Advance(ADelta: integer);
 begin
-  pbDetail.Position := pbDetail.Position+ADelta;
-  Application.ProcessMessages;
+  //pbDetail.Position := pbDetail.Position+ADelta;
+  //Application.ProcessMessages;
 end;
 
 procedure TProgressForm.FormCreate(Sender: TObject);
 begin
-  Reset;
+  //Reset;
 end;
 
 function TProgressForm.GetMax: Integer;
@@ -54,23 +54,23 @@ end;
 
 procedure TProgressForm.NextStage(const AStageLabel: string);
 begin
-  pbDetail.Position := pbDetail.Min;
-  lbDetail.Caption := AStageLabel;
-
-  Application.ProcessMessages;
+  //pbDetail.Position := pbDetail.Min;
+  //lbDetail.Caption := AStageLabel;
+  //
+  //Application.ProcessMessages;
 end;
 
 procedure TProgressForm.Reset;
 begin
-  pbDetail.Position := pbDetail.Min;
-  lbDetail.Caption := '';
+  //pbDetail.Position := pbDetail.Min;
+  //lbDetail.Caption := '';
 end;
 
 procedure TProgressForm.SetMax(AValue: Integer);
 begin
-  pbDetail.Max := AValue;
-  pbDetail.Position := pbDetail.Min;
-  Application.ProcessMessages;
+  //pbDetail.Max := AValue;
+  //pbDetail.Position := pbDetail.Min;
+  //Application.ProcessMessages;
 end;
 
 end.

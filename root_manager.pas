@@ -120,9 +120,9 @@ begin
   end;
 
   FProgressForm := TProgressForm.Create(Self);
-  FProgressForm.Visible := True;
+  //FProgressForm.Visible := True;
 
-  Application.ProcessMessages;
+  //Application.ProcessMessages;
 
   GlobalContextState := TGlobalState.Create;
   GlobalContextState.Init;
@@ -153,7 +153,7 @@ begin
   FTerrianManager.LoadTerrainGraphics;
 
   LoadObjects;
-
+  Application.Terminate;
 end;
 
 procedure TRootManager.DataModuleDestroy(Sender: TObject);
