@@ -74,6 +74,9 @@ type
     procedure LoadBuildings;
   protected
     procedure UpdateControls; override;
+
+    procedure VisitNormalTown(AOptions: TTownOptions); override;
+    procedure VisitRandomTown(AOptions: TTownOptions); override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -282,6 +285,31 @@ begin
   end;
 end;
 
+procedure TTownBuildingsFrame.VisitNormalTown(AOptions: TTownOptions);
+var
+  town_type: AnsiString;
+begin
+  inherited VisitNormalTown(AOptions);
+
+  FObject := AOptions.Buildings;
+
+  town_type := AOptions.MapObject.GetSubId;
+
+  FConfig := ListsManager.GetFaction(town_type).Town;
+
+  FillBuildings;
+  LoadBuildings;
+
+  UpdateControls;
+
+  FDoUpdateNodeData := true;
+end;
+
+procedure TTownBuildingsFrame.VisitRandomTown(AOptions: TTownOptions);
+begin
+  inherited VisitRandomTown(AOptions);
+end;
+
 constructor TTownBuildingsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
@@ -298,23 +326,8 @@ begin
 end;
 
 procedure TTownBuildingsFrame.VisitTown(AOptions: TTownOptions);
-var
-  town_type: AnsiString;
 begin
   inherited VisitTown(AOptions);
-
-  FObject := AOptions.Buildings;
-
-  town_type := AOptions.MapObject.GetSubId;
-
-  FConfig := ListsManager.GetFaction(town_type).Town;
-
-  FillBuildings;
-  LoadBuildings;
-
-  UpdateControls;
-
-  FDoUpdateNodeData := true;
 end;
 
 end.

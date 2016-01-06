@@ -48,6 +48,9 @@ type
     procedure VisitRandomHero({%H-}AOptions: THeroOptions);virtual;
     procedure VisitPrison({%H-}AOptions: THeroOptions);virtual;
 
+    procedure VisitNormalTown({%H-}AOptions: TTownOptions);virtual;
+    procedure VisitRandomTown({%H-}AOptions: TTownOptions);virtual;
+
     procedure HandleStringGridKeyDown(Sender: TObject;  var Key: Word; Shift: TShiftState);
     procedure HandleStringGridResize(Sender: TObject);
 
@@ -75,7 +78,7 @@ type
     procedure VisitArtifact({%H-}AOptions: TArtifactOptions);virtual;
     procedure VisitSpellScroll({%H-}AOptions: TSpellScrollOptions);virtual;
     procedure VisitResource({%H-}AOptions: TResourceOptions);virtual;
-    procedure VisitTown({%H-}AOptions: TTownOptions);virtual;
+    procedure VisitTown(AOptions: TTownOptions);virtual;
     procedure VisitAbandonedMine({%H-}AOptions: TAbandonedOptions); virtual;
     procedure VisitShrine({%H-}AOptions: TShrineOptions);virtual;
     procedure VisitPandorasBox({%H-}AOptions: TPandorasOptions);virtual;
@@ -311,6 +314,16 @@ begin
 
 end;
 
+procedure TBaseOptionsFrame.VisitNormalTown(AOptions: TTownOptions);
+begin
+
+end;
+
+procedure TBaseOptionsFrame.VisitRandomTown(AOptions: TTownOptions);
+begin
+
+end;
+
 procedure TBaseOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 var
@@ -438,23 +451,23 @@ end;
 procedure TBaseOptionsFrame.VisitHeroPlaceholder(
   AOptions: THeroPlaceholderOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitMonster(AOptions: TMonsterOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions
   );
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
@@ -518,7 +531,7 @@ end;
 
 procedure TBaseOptionsFrame.VisitShrine(AOptions: TShrineOptions);
 begin
-  //do nothig
+  //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitSignBottle(AOptions: TSignBottleOptions);
@@ -533,7 +546,10 @@ end;
 
 procedure TBaseOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
-  //do nothing
+  case AOptions.MapObject.GetID of
+    TYPE_TOWN: VisitNormalTown(AOptions);
+    TYPE_RANDOMTOWN: VisitRandomTown(AOptions);
+  end;
 end;
 
 procedure TBaseOptionsFrame.VisitWitchHut(AOptions: TWitchHutOptions);
