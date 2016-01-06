@@ -51,10 +51,12 @@ type
     FCellTypes: array of TCustomComboBox;
     FCellAmounts: array of TCustomSpinEdit;
 
+    FAllowRandom: Boolean;
   protected
     procedure UpdateControls; override;
 
     procedure Load(ASrc: TCreatureSet);
+
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
@@ -125,6 +127,8 @@ begin
     end;
   end;
 
+  //todo: add "ramdom types"
+
   UpdateControls;
 end;
 
@@ -179,7 +183,8 @@ begin
     inst_info :=  FOptions.Add;
     inst_info.&type := FCellTypes[cell_number].SelectedIdentifier();
 
-    if inst_info.IsEmptyType() then
+    //index 0 = empty slot, empty slot is marked by zero amount
+    if FCellTypes[cell_number].ItemIndex > 0 then
     begin
       inst_info.Amount:=0;
     end

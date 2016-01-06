@@ -82,7 +82,6 @@ type
   public
     constructor Create(ACollection: TCollection); override;
 
-    function IsEmptyType(): Boolean;
   published
     property &type: AnsiString read FType write SetType;
     property Amount: Integer read FAmount write SetAmount nodefault;
@@ -1190,11 +1189,6 @@ end;
 constructor TCreatureInstInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-end;
-
-function TCreatureInstInfo.IsEmptyType: Boolean;
-begin
-  Result := FType = '';
 end;
 
 procedure TCreatureInstInfo.SetAmount(AValue: Integer);
