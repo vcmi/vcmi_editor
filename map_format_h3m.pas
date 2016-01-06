@@ -685,6 +685,7 @@ var
   version: Boolean;
   i: Integer;
   info: TCreatureInstInfo;
+  random_type: Integer;
 begin
   version := IsNotROE;
 
@@ -709,12 +710,14 @@ begin
 
       if creid > maxID - $f then
       begin
-        //maxID - creID - 1
-        //todo: random count
+        random_type := maxID - creID - 1;
+        info.Level:= random_type div 2;
+        info.Upgraded:=(random_type mod 2) > 0;
       end
-      else begin
-          info.&type := FMapEnv.lm.CreatureIndexToString(creid);
-          info.Amount := crecnt;
+      else
+      begin
+        info.&type := FMapEnv.lm.CreatureIndexToString(creid);
+        info.Amount := crecnt;
       end;
     end;
   end;

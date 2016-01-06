@@ -74,7 +74,9 @@ type
   TCreatureInstInfo = class (TCollectionItem)
   private
     FAmount: Integer;
+    FLevel: Integer;
     FType: AnsiString;
+    FUpgraded: Boolean;
     procedure SetAmount(AValue: Integer);
     procedure SetType(AValue: AnsiString);
   public
@@ -84,6 +86,9 @@ type
   published
     property &type: AnsiString read FType write SetType;
     property Amount: Integer read FAmount write SetAmount nodefault;
+
+    property Level: Integer read FLevel write FLevel default 0;
+    property Upgraded: Boolean Read FUpgraded write FUpgraded default false;
   end;
 
   { TCreatureSet }
