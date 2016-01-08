@@ -419,7 +419,7 @@ begin
     FCurrentChar := #0;
     EndOfFile := True;
   end;
-  EndOfLine := FCurrentChar in LineEndingChars;
+  EndOfLine := FCurrentChar = CR;
 end;
 
 procedure TCSVParser.ParseCell;

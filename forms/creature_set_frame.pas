@@ -5,9 +5,9 @@ unit creature_set_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Spin, base_options_frame, gui_helpers, object_options,
-  lists_manager;
+  Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
+  ExtCtrls, StdCtrls, Spin, base_options_frame, gui_helpers, object_options,
+  lists_manager, editor_str_consts;
 
 type
 
@@ -57,6 +57,12 @@ type
 
     procedure Load(ASrc: TCreatureSet);
 
+    procedure VisitNormalHero(AOptions: THeroOptions); override;
+    procedure VisitPrison(AOptions: THeroOptions); override;
+    procedure VisitRandomHero(AOptions: THeroOptions); override;
+
+    procedure VisitNormalTown(AOptions: TTownOptions); override;
+    procedure VisitRandomTown(AOptions: TTownOptions); override;
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
@@ -107,10 +113,15 @@ var
   cell_number: Integer;
 
   inst_info: TCreatureInstInfo;
+  customised: Boolean;
+  creature_level: Integer;
+  shift: Integer;
 begin
   FOptions := ASrc;
 
-  edCustomize.Checked:=ASrc.Count>0;
+  customised :=  ASrc.Count>0;
+
+  edCustomize.Checked:=customised;
 
   for cell_number in [0..6] do
   begin
@@ -127,9 +138,54 @@ begin
     end;
   end;
 
-  //todo: add "ramdom types"
+  if FAllowRandom then
+  begin
+    for cell_number in [0..6] do
+    begin
+      for creature_level := 1 to 7 do
+      begin
+        FCellTypes[cell_number].Items.Add(Format(rsRandomCreatureName,[creature_level]));
+        FCellTypes[cell_number].Items.Add(Format(rsRandomCreatureNameUpgrade,[creature_level]));
+      end;
+      if (cell_number < ASrc.Count) and (ASrc[cell_number].Amount > 0) and (ASrc[cell_number].&type = '') then
+      begin
+        inst_info := ASrc[cell_number];
+        FCellTypes[cell_number].ItemIndex:=FCellTypes[cell_number].Items.Count - 1 - 13 + inst_info.RawRandom;
+      end;
+    end;
+  end;
 
   UpdateControls;
+end;
+
+procedure TCreatureSetFrame.VisitNormalHero(AOptions: THeroOptions);
+begin
+  inherited VisitNormalHero(AOptions);
+  FAllowRandom := False;
+end;
+
+procedure TCreatureSetFrame.VisitPrison(AOptions: THeroOptions);
+begin
+  inherited VisitPrison(AOptions);
+  FAllowRandom := False;
+end;
+
+procedure TCreatureSetFrame.VisitRandomHero(AOptions: THeroOptions);
+begin
+  inherited VisitRandomHero(AOptions);
+  FAllowRandom := True;
+end;
+
+procedure TCreatureSetFrame.VisitNormalTown(AOptions: TTownOptions);
+begin
+  inherited VisitNormalTown(AOptions);
+  FAllowRandom := False;
+end;
+
+procedure TCreatureSetFrame.VisitRandomTown(AOptions: TTownOptions);
+begin
+  inherited VisitRandomTown(AOptions);
+  FAllowRandom := True;
 end;
 
 constructor TCreatureSetFrame.Create(TheOwner: TComponent);
@@ -184,12 +240,18 @@ begin
     inst_info.&type := FCellTypes[cell_number].SelectedIdentifier();
 
     //index 0 = empty slot, empty slot is marked by zero amount
-    if FCellTypes[cell_number].ItemIndex > 0 then
+    if FCellTypes[cell_number].ItemIndex = 0 then
     begin
       inst_info.Amount:=0;
     end
-    else begin
+    else
+    begin
       inst_info.Amount:=FCellAmounts[cell_number].Value;
+
+      if (inst_info.&type = '') and FAllowRandom then
+      begin
+        inst_info.RawRandom:=13 - (FCellTypes[cell_number].Items.Count - FCellTypes[cell_number].ItemIndex - 1);
+      end;
     end;
   end;
 end;

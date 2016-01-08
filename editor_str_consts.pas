@@ -64,7 +64,8 @@ resourcestring
 
   rsSlotBackpack = 'Backpack';
 
-
+  rsRandomCreatureName = 'Creature of level %d';
+  rsRandomCreatureNameUpgrade = 'Upgraded creature of level %d';
 
 implementation
 

@@ -710,9 +710,7 @@ begin
 
       if creid > maxID - $f then
       begin
-        random_type := maxID - creID - 1;
-        info.Level:= random_type div 2;
-        info.Upgraded:=(random_type mod 2) > 0;
+        info.RawRandom:=maxID - creID - 1;
       end
       else
       begin

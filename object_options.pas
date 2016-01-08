@@ -26,8 +26,8 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, editor_types, editor_classes, root_manager, editor_utils,
-  logical_id_condition, vcmi_json, editor_consts, fpjson;
+  Classes, SysUtils, math, editor_types, editor_classes, root_manager,
+  editor_utils, logical_id_condition, vcmi_json, editor_consts, fpjson;
 
 type
 
@@ -77,11 +77,14 @@ type
     FLevel: Integer;
     FType: AnsiString;
     FUpgraded: Boolean;
+    function GetRawRandom: integer;
     procedure SetAmount(AValue: Integer);
+    procedure SetRawRandom(AValue: integer);
     procedure SetType(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
 
+    property RawRandom: integer Read GetRawRandom write SetRawRandom;
   published
     property &type: AnsiString read FType write SetType;
     property Amount: Integer read FAmount write SetAmount nodefault;
@@ -1194,6 +1197,26 @@ end;
 procedure TCreatureInstInfo.SetAmount(AValue: Integer);
 begin
   FAmount := AValue;
+end;
+
+function TCreatureInstInfo.GetRawRandom: integer;
+begin
+  Result := (Level - 1) * 2 + ifthen(Upgraded, 1, 0);
+end;
+
+procedure TCreatureInstInfo.SetRawRandom(AValue: integer);
+var
+  random_type: Integer;
+begin
+  random_type := AValue;
+
+  if (random_type < 0) or (random_type > 13) then
+  begin
+    raise Exception.CreateFmt('Invalid raw random type %d ', [random_type]);
+  end;
+
+  Level:= (random_type div 2) + 1;
+  Upgraded:=(random_type mod 2) > 0;
 end;
 
 procedure TCreatureInstInfo.SetType(AValue: AnsiString);
