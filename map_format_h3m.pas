@@ -1422,7 +1422,7 @@ begin
       MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
 
       Skip(1); // MainHeroPortrait  unused
-      ReadLocalizedString;// MainHeroName unused
+      SkipString; // MainHeroName unused
     end;
   end;
 
@@ -1824,7 +1824,7 @@ begin
 
   if VictoryConditionType = TVictoryCondition.WINSTANDARD then
   begin
-
+    allow_normal_victory := true;
   end
   else
   begin
@@ -1930,11 +1930,14 @@ begin
     end;
   end;
 
+  if allow_normal_victory then
+    FMap.TriggeredEvents.AddStandardVictory();
+
   LossConditionType := TLossCondition(FSrc.ReadByte);
 
   if (LossConditionType = TLossCondition.LOSSSTANDARD) then
   begin
-
+    FMap.TriggeredEvents.AddStandardDefeat();
   end
   else
   begin

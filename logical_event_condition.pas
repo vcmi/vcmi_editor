@@ -106,8 +106,9 @@ type
 
 
   { TTriggeredEvents }
+  TTriggeredEventsCollection = specialize TGNamedCollection<TTriggeredEvent>;
 
-  TTriggeredEvents = class(specialize TGNamedCollection<TTriggeredEvent>)
+  TTriggeredEvents = class(TTriggeredEventsCollection)
   public
     procedure AddStandardVictory();
     procedure AddStandardDefeat();
