@@ -124,14 +124,11 @@ type
     Width: Int32;
     Height: Int32;
 
-    TopMagin: int32;
+    TopMargin: int32;
     LeftMargin: int32;
 
     SpriteWidth: Int32;
     SpriteHeight: int32;
-
-    X: Int32;
-    Y: Int32;
   end;
 
   { TGlobalState }
@@ -185,7 +182,9 @@ type
     procedure SetupRectVAO;
 
     procedure SetProjection(constref AMatrix: Tmatrix4_single);
-  public
+
+    procedure DoRenderSprite(ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
+ public
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
@@ -208,7 +207,11 @@ type
     procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 
     procedure StartDrawingSprites;
-    procedure RenderSprite(ASprite: TGLSprite; dim: integer = -1; mir: UInt8 = 0);
+
+    procedure RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
+
+    procedure RenderSpriteSimple(ASprite: TGLSprite);
+    procedure RenderSpriteIcon(ASprite: TGLSprite; dim: Integer);
 
     procedure StopDrawing;
 
@@ -585,84 +588,82 @@ begin
   glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
 end;
 
-procedure TLocalState.RenderSprite(ASprite: TGLSprite; dim: integer; mir: UInt8);
+procedure TLocalState.RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
 var
-  factor: Double;
-  cur_dim: integer;
   H,W,
-  x_shift, y_shift,
   x,
-  y: Int32;
-
-  vertex_data: packed array[1..12] of GLfloat;
+  y,
+  TopMargin: Int32;
 begin
+  H := ASprite.SpriteHeight;
+  W := ASprite.Width;
+  TopMargin := ASprite.TopMargin;
 
-  x_shift := ASprite.x;
-  y_shift := ASprite.Y;
-  SetTranslation(x_shift,y_shift);
-
-  factor := 1;
-  if dim <=0 then //render real size w|o scale
-  begin
-    H := ASprite.SpriteHeight;
-    W := ASprite.Width;
-  end
-  else
-  begin
-    cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
-    factor := Min((dim-1) / cur_dim, 1); //no zoom
-
-    h := round(Double(ASprite.SpriteHeight) * factor);
-    w := round(Double(ASprite.Width) * factor);
-  end;
-
-   //todo: use indexes
+  //todo: use indexes
 
   case mir of
     0:begin
       x := 0;//+round(factor * ASprite.LeftMargin);
-      y := 0 +round(factor * ASprite.TopMagin);
+      y := 0 +TopMargin;
     end;
     1:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+round(factor *  ASprite.TopMagin);
+      y := 0+ASprite.TopMargin;
 
     end;
     2:begin
       x := 0;//+ round(factor * ASprite.LeftMargin);
-      y := 0+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+      y := 0+(ASprite.Height - ASprite.SpriteHeight - ASprite.TopMargin);
 
     end;
     3:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+round(factor * (ASprite.Height - ASprite.SpriteHeight - ASprite.TopMagin));
+      y := 0+(ASprite.Height - ASprite.SpriteHeight - ASprite.TopMargin);
      end;
   end;
 
-  vertex_data[1] := x;   vertex_data[2] := y;
-  vertex_data[3] := x+w; vertex_data[4] := y;
-  vertex_data[5] := x+w; vertex_data[6] := y+h;
+  DoRenderSprite(ASprite, x,y,w,h, mir);
+end;
 
-  vertex_data[7] := x+w; vertex_data[8] := y+h;
-  vertex_data[9] := x;   vertex_data[10] := y+h;
-  vertex_data[11] := x;  vertex_data[12] := y;
+procedure TLocalState.RenderSpriteSimple(ASprite: TGLSprite);
+var
+  H,W,
+  x,
+  y,
+  TopMargin: Int32;
+begin
+    H := ASprite.SpriteHeight;
+    W := ASprite.Width;
+    TopMargin := ASprite.TopMargin;
+    x := 0;//+round(factor * ASprite.LeftMargin);
+    y := 0 +TopMargin;
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
+  DoRenderSprite(ASprite, x,y,w,h, 0);
+end;
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+procedure TLocalState.RenderSpriteIcon(ASprite: TGLSprite; dim: Integer);
+var
+  factor: Double;
+  cur_dim: integer;
+  H,W,
+  x,
+  y,
+  TopMargin: Int32;
+begin
+  cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
 
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
-  glBindBuffer(GL_ARRAY_BUFFER,0);
+  factor := Min((dim-1) / cur_dim, 1); //no zoom
 
-  ApplyTranslation;
+  h := round(Double(ASprite.SpriteHeight) * factor);
+  w := round(Double(ASprite.Width) * factor);
 
-  glDrawArrays(GL_TRIANGLES,mir*6,6);  //todo: use triangle strip
+  TopMargin := dim - 1 - h;
 
- // CheckGLErrors('render sprite mir='+IntToStr(mir)+ ' xy='+IntToStr(ASprite.X)+' '+ IntToStr(ASprite.Y));
 
+  x := 0;//+round(factor * ASprite.LeftMargin);
+  y := 0 +TopMargin;
+
+  DoRenderSprite(ASprite, x,y,w,h, 0);
 end;
 
 
@@ -751,6 +752,34 @@ begin
     Assert(false);
 end;
 
+procedure TLocalState.DoRenderSprite(ASprite: TGLSprite; x, y, w, h: Int32;
+  mir: UInt8);
+var
+  vertex_data: packed array[1..12] of GLfloat;
+begin
+  vertex_data[1] := x;   vertex_data[2] := y;
+  vertex_data[3] := x+w; vertex_data[4] := y;
+  vertex_data[5] := x+w; vertex_data[6] := y+h;
+
+  vertex_data[7] := x+w; vertex_data[8] := y+h;
+  vertex_data[9] := x;   vertex_data[10] := y+h;
+  vertex_data[11] := x;  vertex_data[12] := y;
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+
+  ApplyTranslation;
+
+  glDrawArrays(GL_TRIANGLES,mir*6,6);  //todo: use triangle strip
+end;
+
 procedure TLocalState.SetUseFlag(const Value: Boolean);
 begin
   glUniform1i(GlobalContextState.UseFlagUniform, ifthen(Value, 1, 0));
@@ -780,7 +809,6 @@ begin
   FCurrentProgram := GlobalContextState.DefaultProgram;
   glUseProgram(GlobalContextState.DefaultProgram);
 
-  SetUseFlag(true);
   SetUsePalette(true);
   SetUseTexture(true);
 

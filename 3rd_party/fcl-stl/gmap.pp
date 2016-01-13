@@ -20,7 +20,7 @@ uses gset;
 
 type
   generic TMapCompare<TPair, TKeyCompare>=class
-    class function c(a,b :TPair):boolean;
+    class function c(const a,b :TPair):boolean;
   end;
 
   generic TMapIterator<TKey, TValue, TPair, TNode>=class
@@ -77,7 +77,7 @@ type
 
 implementation
 
-class function TMapCompare.c(a,b: TPair):boolean;
+class function TMapCompare.c(const a,b: TPair):boolean;
 begin
   c:= TKeyCompare.c(a.Key, b.Key);
 end;

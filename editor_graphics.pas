@@ -96,7 +96,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Render(const SpriteIndex: UInt8; X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
+    procedure RenderIcon(X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
     procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
@@ -658,8 +658,6 @@ begin
     FCurrentDef.entries.Resize(total_entries);
   end;
 
-
-
   case Mode of
     TGraphicsLoadMode.LoadFisrt: begin
       GenerateTextureIds(1,0);
@@ -869,26 +867,22 @@ begin
   FResourceID:=AValue;
 end;
 
-procedure TDef.Render(const SpriteIndex: UInt8; X, Y: Integer; dim: integer;
-  color: TPlayer);
+procedure TDef.RenderIcon(X, Y: Integer; dim: integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
-  Sprite.TextureID := entries[SpriteIndex].TextureId;
+  Sprite.TextureID := entries[0].TextureId;
   Sprite.PaletteID := FPaletteID;
-  Sprite.X := X;
-  Sprite.Y := Y;
   Sprite.Height := height;
   Sprite.Width := width;
-  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
-  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
-  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
+  Sprite.SpriteHeight:=entries[0].SpriteHeight;
+  Sprite.SpriteWidth:=entries[0].SpriteWidth;
+  Sprite.LeftMargin:=entries[0].LeftMargin;
+  Sprite.TopMargin:=entries[0].TopMargin;
 
   SetPalyerColor(color);
-
-  editor_gl.CurrentContextState.RenderSprite(Sprite, dim);
-
+  editor_gl.CurrentContextState.SetTranslation(x,y);
+  editor_gl.CurrentContextState.RenderSpriteIcon(Sprite, dim);
 end;
 
 procedure TDef.RenderBorder(TileX, TileY: Integer);
@@ -909,8 +903,6 @@ var
   mir: UInt8;
   Sprite: TGLSprite;
 begin
-  Sprite.X := X;
-  Sprite.Y := Y;
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
@@ -918,23 +910,19 @@ begin
   Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
   Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
+  Sprite.TopMargin:=entries[SpriteIndex].TopMargin;
 
   mir := flags mod 4;
 
   editor_gl.CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
-
-  editor_gl.CurrentContextState.RenderSprite(Sprite,-1,mir);
-
-
+  editor_gl.CurrentContextState.SetTranslation(x,y);
+  editor_gl.CurrentContextState.RenderSpriteMirrored(Sprite,mir);
 end;
 
 procedure TDef.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
-  Sprite.X := X - width;
-  Sprite.Y := Y - height;
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
@@ -942,11 +930,11 @@ begin
   Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
   Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMagin:=entries[SpriteIndex].TopMargin;
+  Sprite.TopMargin:=entries[SpriteIndex].TopMargin;
 
   SetPalyerColor(color);
-
-  editor_gl.CurrentContextState.RenderSprite(Sprite);
+  editor_gl.CurrentContextState.SetTranslation(X - width, Y - height);
+  editor_gl.CurrentContextState.RenderSpriteSimple(Sprite);
 
 end;
 

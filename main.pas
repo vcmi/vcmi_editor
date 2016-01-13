@@ -1320,6 +1320,7 @@ begin
 
   FMapViewState.UsePalettedTextures();
 
+
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
 
@@ -1344,11 +1345,13 @@ begin
 
   FMapViewState.StartDrawingSprites;
 
+  FMapViewState.SetUseFlag(false);
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   //glEnable (GL_BLEND);
   //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  FMapViewState.SetUseFlag(true);
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
 
@@ -1588,6 +1591,7 @@ begin
   FObjectsViewState.StopDrawing;
 
   FObjectsViewState.UsePalettedTextures();
+  FObjectsViewState.SetUseFlag(true);
   FObjectsViewState.StartDrawingSprites();
 
   for row := 0 to FViewObjectRowsH + 1 do
@@ -1602,7 +1606,7 @@ begin
       cy := row * OBJ_CELL_SIZE;
 
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.Def.Render(0,cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
+      o_def.Def.RenderIcon(cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
 
     end;
   end;
