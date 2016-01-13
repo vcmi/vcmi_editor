@@ -301,9 +301,9 @@ type
     procedure SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
     procedure SetCurrentVFSPath(ACurrentVFSPath: string);
 
-    function MakeFullPath(ARootPath: string; RelPath: string):string;
+    function MakeFullPath(const ARootPath: string; const RelPath: string):string;
 
-    function MatchFilter(AExt: string; out AType: TResourceType): boolean;
+    function MatchFilter(const AExt: string; out AType: TResourceType): boolean;
 
     procedure OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
     procedure ScanLod(LodRelPath: string; ARootPath: TStrings);
@@ -312,7 +312,7 @@ type
     procedure OnDirectoryFound(FileIterator: TFileIterator);
     procedure OnArchiveFound(FileIterator: TFileIterator);
 
-    procedure ScanDir(RelDir: string; ARootPath: TStrings);
+    procedure ScanDir(const RelDir: string; ARootPath: TStrings);
 
     procedure ScanMap(MapPath: string; ARootPath: TStrings);
 
@@ -371,7 +371,7 @@ const
   GAME_PATH_CONFIG = 'gamepath.txt';
 
   RES_TO_EXT: array[TResourceType] of string = (
-    'TXT','JSON','DEF', 'MSK'
+    '.TXT','.JSON','.DEF', '.MSK'
   );
 
   CONFIG = 'config';
@@ -1177,24 +1177,26 @@ begin
   FCurrentFilter := VFS_FILTERS[ACurrentVFSPath];
 end;
 
-function TFSManager.MakeFullPath(ARootPath: string; RelPath: string): string;
+function TFSManager.MakeFullPath(const ARootPath: string; const RelPath: string
+  ): string;
 begin
   Result := IncludeTrailingPathDelimiter(ARootPath)+ ExcludeLeadingPathDelimiter(RelPath);
   //Result := IncludeTrailingPathDelimiter(Result);
 end;
 
-function TFSManager.MatchFilter(AExt: string; out AType: TResourceType
+function TFSManager.MatchFilter(const AExt: string; out AType: TResourceType
   ): boolean;
 var
   fltr: TResourceType;
+  temp: string;
 begin
   Result := (FCurrentFilter = []); //empty filter = all files match
   if Result then
     Exit;
-  AExt  := Trim(UpperCase(AExt));
+  temp  := Trim(UpperCase(AExt));
   for fltr in FCurrentFilter do
   begin
-    if AExt = '.'+RES_TO_EXT[fltr] then
+    if temp = RES_TO_EXT[fltr] then
     begin
       Result := True;
       AType:=  fltr;
@@ -1358,13 +1360,12 @@ begin
   end;
 end;
 
-procedure TFSManager.ScanDir(RelDir: string; ARootPath: TStrings);
+procedure TFSManager.ScanDir(const RelDir: string; ARootPath: TStrings);
 var
   srch: TFileSearcher;
   p: string;
   root_path: String;
 begin
-
   for root_path in ARootPath do
   begin
     srch := TFileSearcher.Create;
