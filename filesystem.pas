@@ -232,10 +232,7 @@ type
 
   TModQueue = specialize TQueue<TModConfig>;
 
-  //index = index in TModConfigs
-  //TModDependencyMatrix[i,j] === TModConfigs[i] depends on TModConfigs[j]
   TModDependencyMatrix = array of array of boolean;
-
 
   TLocationType = (InLod, InFile, InArchive);
 
@@ -243,7 +240,7 @@ type
 
   TResLocation = object
     lt: TLocationType;
-    //for files: Real path; for archive: archive filename
+    //for files: Real path
     path: TFilename;
     //for lods
     lod:TLod;
@@ -397,8 +394,6 @@ end;
 constructor TGameConfig.Create;
 begin
   inherited;
-  FHeroClasses.Add('CONFIG\heroClasses');
-  FArtifacts.Add('CONFIG\artifacts');
 end;
 
 { TBaseConfig }
