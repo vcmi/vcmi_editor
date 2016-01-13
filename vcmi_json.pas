@@ -195,9 +195,6 @@ type
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
   procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
 
-  procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); overload ;
-  procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); overload ;
-
   procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out AObjectId: AnsiString);
 
   //serialise helpers
@@ -213,6 +210,8 @@ uses
 var
   rexp_oid: TRegExpr;
 
+procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); forward;
+procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); forward;
 
 procedure DoSetMeta(ATarget: TJSONData; AValue: AnsiString);
 begin
@@ -284,7 +283,9 @@ var
   src_idx, dest_idx: Integer;
   name: TJSONStringType;
 begin
-  for src_idx := 0 to ASrc.Count - 1 do
+  src_idx := ASrc.Count - 1;
+
+  while src_idx >= 0 do
   begin
     name := ASrc.Names[src_idx];
     dest_idx := ADest.IndexOfName(name);
@@ -302,8 +303,9 @@ begin
     end
     else
     begin
-      ADest.Add(name,ASrc.Items[src_idx].Clone());
+      ADest.Add(name, ASrc.Extract(src_idx));
     end;
+    dec(src_idx);
   end;
 end;
 

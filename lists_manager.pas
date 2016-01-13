@@ -1253,6 +1253,7 @@ var
   index: LongInt;
   i: Integer;
 begin
+  ASrc.FreeObjects := false; //todo: index-based extract
   for i := 0 to ADest.Count - 1 do
   begin
     o := ADest.Items[i] as TJSONObject;
@@ -1262,9 +1263,12 @@ begin
       index := o.Integers['index'];
       MergeJson(o, ASrc[index]);
 
-      ADest.Items[i] := ASrc[index].Clone;
+      ADest.Items[i] := ASrc[index];
+      ASrc[index] := nil;
     end;
   end;
+
+  ASrc.FreeObjects := true;
 end;
 
 function TListsManager.GetHeroes(AId: AnsiString): THeroInfo;
