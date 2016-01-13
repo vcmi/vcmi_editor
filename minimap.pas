@@ -212,7 +212,7 @@ end;
 
 procedure TMinimap.SetMap(AValue: TVCMIMap);
 begin
-  if FMap = AValue then Exit;
+  //if FMap = AValue then Exit;
   FMap := AValue;
 
   FMapImgValid := False;

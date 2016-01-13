@@ -910,7 +910,7 @@ procedure TfMain.hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
   ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize +1,ScrollPos);
-
+  ScrollPos := Max(ScrollPos, 0);
   FMapHPos := ScrollPos;
   InvalidateMapAxis;
 end;
@@ -1297,6 +1297,11 @@ begin
   c := TOpenGLControl(Sender);
 
   if not c.MakeCurrent() then
+  begin
+    Exit;
+  end;
+
+  if not Assigned(FMap) then
   begin
     Exit;
   end;
@@ -1856,6 +1861,7 @@ procedure TfMain.SetMapPosition(APosition: TPoint);
    begin
      APosition := Max(APosition,0);
      APosition := Min(sb.Max-sb.PageSize+1,APosition);
+     APosition := Max(APosition,0);
      sb.Position := APosition;
    end;
 begin
@@ -2014,6 +2020,7 @@ procedure TfMain.vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
   ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize +1,ScrollPos);
+  ScrollPos := Max(ScrollPos, 0);
   FMapVPos := ScrollPos;
   InvalidateMapAxis;
 end;
