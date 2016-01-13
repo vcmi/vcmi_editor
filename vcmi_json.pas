@@ -311,15 +311,19 @@ end;
 
 procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
 var
-  iter: TJSONEnum;
+  idx: SizeInt;
 begin
   if ASrc.Count = 0 then
     exit;
 
   ADest.Clear;
-  for iter in Asrc do
+
+  idx := ASrc.Count - 1;
+
+  while idx >= 0 do
   begin
-    ADest.Add(iter.Value.Clone);
+    ADest.Insert(0, ASrc.Extract(idx));
+    dec(idx);
   end;
 end;
 
