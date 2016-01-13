@@ -262,7 +262,7 @@ type
 
   TResIDCompare = class
   public
-    class function c(a,b :TResId):boolean;
+    class function c(constref a:TResId;constref b:TResId):boolean;
   end;
 
   TResIDToLcationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
@@ -500,7 +500,7 @@ end;
 
 { TResIDCompare }
 
-class function TResIDCompare.c(a, b: TResId): boolean;
+class function TResIDCompare.c(constref a: TResId; constref b: TResId): boolean;
 var
   cres:Integer;
 begin

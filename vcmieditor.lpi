@@ -72,8 +72,8 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
+            <OtherUnitFiles Value="forms;3rd_party;3rd_party\fcl-stl;forms\subframes"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\profile"/>
           </SearchPaths>
           <CodeGeneration>
             <Optimizations>
