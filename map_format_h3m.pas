@@ -1795,14 +1795,14 @@ type
    TLossCondition = (LOSSCASTLE, LOSSHERO, TIMEEXPIRES, LOSSSTANDARD = 255);
 
 var
-  special_condition:TLogicalEventConditionItem;
+  special_victory_condition:TLogicalEventConditionItem;
 
   procedure SetHaveCondition(ObjType, ObjSubtype: AnsiString; Amount: Int32);
   begin
-    special_condition.&type:=ObjType;
-    special_condition.subType:=ObjSubtype;
-    special_condition.Value := Amount;
-    special_condition.ConditionType:=TWinLossCondition.have;
+    special_victory_condition.&type:=ObjType;
+    special_victory_condition.subType:=ObjSubtype;
+    special_victory_condition.Value := Amount;
+    special_victory_condition.ConditionType:=TWinLossCondition.have;
   end;
 
 var
@@ -1815,10 +1815,12 @@ var
 
   obj_subtype: AnsiString;
 
-  special_victory: TTriggeredEvent;
+  special_victory, special_defeat: TTriggeredEvent;
+  special_defeat_condition:TLogicalEventConditionItem;
 
 begin
   //TODO:ReadSVLC
+  FMap.TriggeredEvents.Clear;
 
   VictoryConditionType := TVictoryCondition(FSrc.ReadByte);
 
@@ -1840,19 +1842,19 @@ begin
     special_victory.Effect.&type:='victory';
     special_victory.Identifier := 'specialVictory';
 
-    special_condition := special_victory.Condition.Add as TLogicalEventConditionItem;
+    special_victory_condition := special_victory.AddCondition;
 
     if not applies_to_ai then
     begin
-      with special_condition.SubExpressions.Add as TLogicalEventConditionItem do
+      with special_victory_condition.SubExpressions.Add as TLogicalEventConditionItem do
       begin
         ConditionType:=TWinLossCondition.isHuman;
         Value := 1;
       end;
 
-      special_condition.LogicalOperator:=TLogicalOperator.allOf;
+      special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
 
-      special_condition := special_condition.SubExpressions.Add as TLogicalEventConditionItem;
+      special_victory_condition := special_victory_condition.SubExpressions.Add as TLogicalEventConditionItem;
     end;
 
     case VictoryConditionType of
@@ -1899,7 +1901,7 @@ begin
       end;
       TVictoryCondition.BUILDCITY:
       begin
-        ReadPosition(special_condition.Position);
+        ReadPosition(special_victory_condition.Position);
         SkipNotImpl(2);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,283];
@@ -1907,37 +1909,37 @@ begin
       end;
       TVictoryCondition.BUILDGRAIL:
       begin
-        ReadPosition(special_condition.Position);
-        special_condition.ConditionType:=TWinLossCondition.haveBuilding;
-        special_condition.&type:='grail';
+        ReadPosition(special_victory_condition.Position);
+        special_victory_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        special_victory_condition.&type:='grail';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,285];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,284];
       end;
       TVictoryCondition.BEATHERO:
       begin
-        special_condition.ConditionType:=TWinLossCondition.destroy;
-        special_condition.&type:=TYPE_HERO;
+        special_victory_condition.ConditionType:=TWinLossCondition.destroy;
+        special_victory_condition.&type:=TYPE_HERO;
 
-        ReadPosition(special_condition.Position);
+        ReadPosition(special_victory_condition.Position);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,253];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,252];
       end;
       TVictoryCondition.CAPTURECITY:
       begin
-        special_condition.ConditionType:=TWinLossCondition.have;
-        special_condition.&type:=TYPE_TOWN;
-        ReadPosition(special_condition.Position);
+        special_victory_condition.ConditionType:=TWinLossCondition.have;
+        special_victory_condition.&type:=TYPE_TOWN;
+        ReadPosition(special_victory_condition.Position);
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,250];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,249];
       end;
       TVictoryCondition.BEATMONSTER:
       begin
-        special_condition.ConditionType:=TWinLossCondition.destroy;
-        special_condition.&type:=TYPE_MONSTER;
+        special_victory_condition.ConditionType:=TWinLossCondition.destroy;
+        special_victory_condition.&type:=TYPE_MONSTER;
 
-        ReadPosition(special_condition.Position);
+        ReadPosition(special_victory_condition.Position);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,287];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,286];
@@ -1956,11 +1958,11 @@ begin
       end;
       TVictoryCondition.TRANSPORTITEM:
       begin
-        special_condition.ConditionType:=TWinLossCondition.have;
-        special_condition.&type:=TYPE_ARTIFACT;
-        special_condition.subType:=ReadID1(@FMapEnv.lm.ArtifactIndexToString);
-        special_condition.Value:=1;
-        ReadPosition(special_condition.Position);
+        special_victory_condition.ConditionType:=TWinLossCondition.have;
+        special_victory_condition.&type:=TYPE_ARTIFACT;
+        special_victory_condition.subType:=ReadID1(@FMapEnv.lm.ArtifactIndexToString);
+        special_victory_condition.Value:=1;
+        ReadPosition(special_victory_condition.Position);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,293];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,292];
@@ -1973,11 +1975,12 @@ begin
   if allow_normal_victory then
     FMap.TriggeredEvents.AddStandardVictory();
 
+  FMap.TriggeredEvents.AddStandardDefeat();
+
   LossConditionType := TLossCondition(FSrc.ReadByte);
 
   if (LossConditionType = TLossCondition.LOSSSTANDARD) then
   begin
-    FMap.TriggeredEvents.AddStandardDefeat();
     FMap.DefeatIconIndex := 3;
     FMap.DefeatString := FMapEnv.i18n.LossTexts[0,0];
   end
@@ -1985,18 +1988,30 @@ begin
   begin
     FMap.DefeatIconIndex := Integer(LossConditionType);
     FMap.DefeatString := FMapEnv.i18n.LossTexts.Value[0,SizeUInt(LossConditionType)+1];
+
+    special_defeat := FMap.TriggeredEvents.Add;
+    special_defeat.Effect.&type:='defeat';
+    special_defeat.Effect.MessageToSend := FMapEnv.i18n.GeneralTexts[0,5];
+
+    special_defeat_condition := special_defeat.AddCondition;
+
     case LossConditionType of
       TLossCondition.LOSSCASTLE:
       begin
         SkipNotImpl(3); //posistion
+
+        special_defeat.Message:=FMapEnv.i18n.GeneralTexts[0,251];
       end;
       TLossCondition.LOSSHERO:
       begin
         SkipNotImpl(3); //posistion
+        special_defeat.Message:=FMapEnv.i18n.GeneralTexts[0,253];
       end;
       TLossCondition.TIMEEXPIRES:
       begin
-        SkipNotImpl(2); //days
+        special_defeat_condition.ConditionType:=TWinLossCondition.daysPassed;
+        special_defeat_condition.Value:=FSrc.ReadWord;
+        special_defeat.Message:=FMapEnv.i18n.GeneralTexts[0,254];
       end;
     end;
 

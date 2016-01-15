@@ -40,6 +40,7 @@ type
     FObjectLink: string;
     FPosition: TPosition;
     FValue: Int32;
+    function IsPositionStored: Boolean;
     procedure SetEventType(AValue: TWinLossCondition);
     procedure SetObjectLink(AValue: string);
     procedure SetSubType(AValue: AnsiString);
@@ -55,11 +56,11 @@ type
   public
     property ConditionType: TWinLossCondition read FEventType write SetEventType;
   published
-    property Value:Int32 read FValue write SetValue;
+    property Value:Int32 read FValue write SetValue default 0;
 
     property &Object: string read FObjectLink write SetObjectLink;
 
-    property Position: TPosition read FPosition;
+    property Position: TPosition read FPosition stored IsPositionStored;
     property &type: AnsiString read FType write SetType;
     property SubType: AnsiString read FSubType write SetSubType;
   end;
@@ -96,6 +97,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    function AddCondition:TLogicalEventConditionItem;
   published
     property Message: TLocalizedString read FMessage write SetMessage;
 
@@ -144,6 +147,11 @@ procedure TLogicalEventConditionItem.SetEventType(AValue: TWinLossCondition);
 begin
   if FEventType=AValue then Exit;
   FEventType:=AValue;
+end;
+
+function TLogicalEventConditionItem.IsPositionStored: Boolean;
+begin
+  Result := not FPosition.IsEmpty;
 end;
 
 procedure TLogicalEventConditionItem.SetObjectLink(AValue: string);
@@ -294,6 +302,11 @@ begin
   FEffect.Free;
   FCondition.Free;
   inherited Destroy;
+end;
+
+function TTriggeredEvent.AddCondition: TLogicalEventConditionItem;
+begin
+  Result := Condition.Add as TLogicalEventConditionItem;
 end;
 
 end.
