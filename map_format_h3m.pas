@@ -1825,9 +1825,14 @@ begin
   if VictoryConditionType = TVictoryCondition.WINSTANDARD then
   begin
     allow_normal_victory := true;
+    FMap.VictoryIconIndex := 11;
+    FMap.VictoryString:=FMapEnv.i18n.VictoryTexts[0,0];
   end
   else
   begin
+    FMap.VictoryIconIndex := Integer(VictoryConditionType);
+    FMap.VictoryString := FMapEnv.i18n.VictoryTexts.Value[0,SizeUInt(VictoryConditionType)+1];
+
     allow_normal_victory := FSrc.ReadBoolean;
     applies_to_ai := Fsrc.ReadBoolean;
 
@@ -1859,6 +1864,9 @@ begin
 
         SetHaveCondition(TYPE_ARTIFACT, obj_subtype, 0);
 
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,281];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,280];
+
         if IsNotROE then
           FSrc.Skip(1);
       end;
@@ -1867,31 +1875,44 @@ begin
         obj_id := FSrc.ReadByte;
 
         obj_subtype := FMapEnv.lm.CreatureIndexToString(obj_id);
+
+        if IsNotROE then
+          FSrc.Skip(1);
+
         value := FSrc.ReadDWord;
 
         SetHaveCondition(TYPE_MONSTER, obj_subtype, value);
 
-        if IsNotROE then
-          FSrc.Skip(1);
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,277];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,276];
       end;
       TVictoryCondition.GATHERRESOURCE:
       begin
         obj_id := FSrc.ReadByte;
-
         obj_subtype := RESOURCE_NAMES[TResType(obj_id)];
-
         value := FSrc.ReadDWord;
 
         SetHaveCondition(TYPE_RESOURCE, obj_subtype, value);
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,279];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,278];
       end;
       TVictoryCondition.BUILDCITY:
       begin
-        SkipNotImpl(3); //posistion
+        ReadPosition(special_condition.Position);
         SkipNotImpl(2);
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,283];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,282];
       end;
       TVictoryCondition.BUILDGRAIL:
       begin
-        SkipNotImpl(3); //posistion
+        ReadPosition(special_condition.Position);
+        special_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        special_condition.&type:='grail';
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,285];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,284];
       end;
       TVictoryCondition.BEATHERO:
       begin
@@ -1899,12 +1920,17 @@ begin
         special_condition.&type:=TYPE_HERO;
 
         ReadPosition(special_condition.Position);
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,253];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,252];
       end;
       TVictoryCondition.CAPTURECITY:
       begin
         special_condition.ConditionType:=TWinLossCondition.have;
         special_condition.&type:=TYPE_TOWN;
         ReadPosition(special_condition.Position);
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,250];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,249];
       end;
       TVictoryCondition.BEATMONSTER:
       begin
@@ -1912,18 +1938,32 @@ begin
         special_condition.&type:=TYPE_MONSTER;
 
         ReadPosition(special_condition.Position);
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,287];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,286];
       end;
       TVictoryCondition.TAKEDWELLINGS:
       begin
-        //
+        //todo:
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,289];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,288];
       end;
       TVictoryCondition.TAKEMINES:
       begin
-        //
+        //todo:
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,291];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,290];
       end;
       TVictoryCondition.TRANSPORTITEM:
       begin
-        SkipNotImpl(4);
+        special_condition.ConditionType:=TWinLossCondition.have;
+        special_condition.&type:=TYPE_ARTIFACT;
+        special_condition.subType:=ReadID1(@FMapEnv.lm.ArtifactIndexToString);
+        special_condition.Value:=1;
+        ReadPosition(special_condition.Position);
+
+        special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,293];
+        special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,292];
       end;
       else
         raise Exception.CreateFmt('Invalid victory condition %d',[Integer(VictoryConditionType)]);
@@ -1938,9 +1978,13 @@ begin
   if (LossConditionType = TLossCondition.LOSSSTANDARD) then
   begin
     FMap.TriggeredEvents.AddStandardDefeat();
+    FMap.DefeatIconIndex := 3;
+    FMap.DefeatString := FMapEnv.i18n.LossTexts[0,0];
   end
   else
   begin
+    FMap.DefeatIconIndex := Integer(LossConditionType);
+    FMap.DefeatString := FMapEnv.i18n.LossTexts.Value[0,SizeUInt(LossConditionType)+1];
     case LossConditionType of
       TLossCondition.LOSSCASTLE:
       begin

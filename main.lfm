@@ -1936,6 +1936,9 @@ object fMain: TfMain
       object MenuItem7: TMenuItem
         Action = actPlayerOptions
       end
+      object MenuItem12: TMenuItem
+        Action = actVictoryLossConditions
+      end
     end
     object menuPlayer: TMenuItem
       Caption = 'Player'
@@ -2003,6 +2006,11 @@ object fMain: TfMain
     object actPlayerOptions: TAction
       Caption = 'Player options ...'
       OnExecute = actPlayerOptionsExecute
+    end
+    object actVictoryLossConditions: TAction
+      Caption = 'Victory-loss conditions ...'
+      OnExecute = actVictoryLossConditionsExecute
+      OnUpdate = actVictoryLossConditionsUpdate
     end
   end
   object ApplicationProperties1: TApplicationProperties

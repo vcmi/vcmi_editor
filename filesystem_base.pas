@@ -74,10 +74,9 @@ type
   TFSConsumer = class abstract (TComponent)
   private
     FResourceLoader: IResourceLoader;
-    procedure SetResourceLoader(AValue: IResourceLoader);
   public
     constructor Create(AOwner: TComponent); override;
-    property ResourceLoader:IResourceLoader read FResourceLoader write SetResourceLoader;
+    property ResourceLoader:IResourceLoader read FResourceLoader;
   end;
 
 implementation
@@ -106,20 +105,15 @@ begin
 
   if AOwner.GetInterface(IResourceLoader,rl) then
   begin
-    ResourceLoader := rl;
-  end;
-
+    FResourceLoader := rl;
+  end
+  else
   if AOwner is TFSConsumer then
   begin
-    ResourceLoader := (AOwner as TFSConsumer).ResourceLoader;
+    FResourceLoader := (AOwner as TFSConsumer).ResourceLoader;
   end;
 end;
 
-procedure TFSConsumer.SetResourceLoader(AValue: IResourceLoader);
-begin
-  if FResourceLoader = AValue then Exit;
-  FResourceLoader := AValue;
-end;
 
 end.
 

@@ -26,7 +26,8 @@ interface
 uses
   Classes, SysUtils, FileUtil, LazLogger, gl, glext40, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, objects,
-  editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types;
+  editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types,
+  locale_manager;
 
 type
 
@@ -39,6 +40,7 @@ type
     type
       TLoadObjectProc = procedure(APaths: TModdedConfigPaths) of object;
   private
+    FLocaleManager: TLocaleManager;
     FProgressForm:    TProgressForm;
     FHiddenForm:      TRootForm;
     FResourceManager: TFSManager;
@@ -70,6 +72,7 @@ type
     property TerrainManager: TTerrainManager read FTerrianManager;
     property SharedContext: TOpenGLControl read FGLContext;
     property ListsManager: TListsManager read FListsManager;
+    property LocaleManager: TLocaleManager read FLocaleManager;
   end;
 
 var
@@ -133,6 +136,9 @@ begin
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
 
   ProgressForm.NextStage('Loading configuration ...');
+
+  FLocaleManager := TLocaleManager.Create(FResourceManager);
+  FLocaleManager.LoadTexts;
 
   FListsManager := TListsManager.Create(FResourceManager);
   FListsManager.PreLoad;

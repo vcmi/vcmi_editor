@@ -46,7 +46,7 @@ type
     destructor Destroy; override;
     procedure LoadFromStream(AStream: TStream); override;
 
-    property Value[Col,Row: Integer]:TLocalizedString read GetValue;
+    property Value[Col,Row: Integer]:TLocalizedString read GetValue; default;
     function HasCell(Col,Row: Integer):boolean;
 
     property RowCount: Integer read GetRowCount;

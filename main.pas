@@ -24,12 +24,12 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType,
-  Forms, Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList,
-  StdCtrls, ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
-  map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
-  lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, undo_map, player_options_form,
+  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType, Forms, Controls,
+  Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
+  Buttons, EditBtn, Map, terrain, editor_types, undo_base, map_actions, objects,
+  editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
+  zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions,
+  map_object_actions, undo_map, player_options_form, edit_triggered_events,
   gpriorityqueue, types;
 
 type
@@ -79,6 +79,7 @@ type
 
   TfMain = class(TForm)
     actDelete: TAction;
+    actVictoryLossConditions: TAction;
     actPlayerOptions: TAction;
     actProperties: TAction;
     actMapOptions: TAction;
@@ -115,6 +116,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
     MenuItem7: TMenuItem;
     menuLevel: TMenuItem;
     menuPlayer: TMenuItem;
@@ -173,6 +175,8 @@ type
     procedure actSaveMapUpdate(Sender: TObject);
     procedure actUndoExecute(Sender: TObject);
     procedure actUndoUpdate(Sender: TObject);
+    procedure actVictoryLossConditionsExecute(Sender: TObject);
+    procedure actVictoryLossConditionsUpdate(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
     procedure btnBrush2Click(Sender: TObject);
@@ -610,6 +614,21 @@ begin
 
 end;
 
+procedure TfMain.actVictoryLossConditionsExecute(Sender: TObject);
+var
+  f: TTriggeredEventsForm;
+begin
+  f := TTriggeredEventsForm.Create(Self);
+
+  f.Map := FMap;
+  f.ShowModal;
+end;
+
+procedure TfMain.actVictoryLossConditionsUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FMap);
+end;
+
 procedure TfMain.AnimTimerTimer(Sender: TObject);
 begin
   if Visible and (WindowState<>wsMinimized) then
@@ -771,6 +790,8 @@ begin
 
   FGraphicsManager := RootManager.GraphicsManager;
   FEnv.lm := RootManager.ListsManager;
+
+  FEnv.i18n := RootManager.LocaleManager;
 
   FUndoManager := TMapUndoManager.Create;
 

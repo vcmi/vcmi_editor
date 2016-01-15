@@ -27,7 +27,8 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression, vcmi_json, vcmi_fpjsonrtti;
+  logical_event_condition, logical_expression, vcmi_json, locale_manager,
+  vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -408,6 +409,7 @@ type
     tm: TTerrainManager;
     lm: TListsManager;
     om: TObjectsManager;
+    i18n: TLocaleManager;
   end;
 
   ///WIP, MULTILEVEL MAP
@@ -570,7 +572,11 @@ type
 
     procedure SetIsDirty(AValue: Boolean);
   private
+    FDefeatIconIndex: Integer;
+    FDefeatString: TLocalizedString;
     FTeams: TTeamSettings;
+    FVictoryIconIndex: Integer;
+    FVictoryString: TLocalizedString;
     type
       { TModRefCountInfo }
 
@@ -604,6 +610,10 @@ type
      var
        FModUsage:TModUsage;
 
+     procedure SetDefeatIconIndex(AValue: Integer);
+     procedure SetDefeatString(AValue: TLocalizedString);
+     procedure SetVictoryIconIndex(AValue: Integer);
+     procedure SetVictoryString(AValue: TLocalizedString);
   public
     //create with default params
     constructor CreateDefault(env: TMapEnvironment);
@@ -663,6 +673,11 @@ type
     property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
 
     property TriggeredEvents: TTriggeredEvents read FTriggeredEvents;
+
+    property VictoryString: TLocalizedString read FVictoryString write SetVictoryString;
+    property DefeatString: TLocalizedString read FDefeatString write SetDefeatString;
+    property VictoryIconIndex: Integer read FVictoryIconIndex write SetVictoryIconIndex;
+    property DefeatIconIndex: Integer read FDefeatIconIndex write SetDefeatIconIndex;
 
     property Mods: TLogicalIDCondition read FMods;
   public //manual streamimg
@@ -2223,6 +2238,30 @@ procedure TVCMIMap.SetIsDirty(AValue: Boolean);
 begin
   if FIsDirty=AValue then Exit;
   FIsDirty:=AValue;
+end;
+
+procedure TVCMIMap.SetVictoryString(AValue: TLocalizedString);
+begin
+  if FVictoryString=AValue then Exit;
+  FVictoryString:=AValue;
+end;
+
+procedure TVCMIMap.SetDefeatString(AValue: TLocalizedString);
+begin
+  if FDefeatString=AValue then Exit;
+  FDefeatString:=AValue;
+end;
+
+procedure TVCMIMap.SetDefeatIconIndex(AValue: Integer);
+begin
+  if FDefeatIconIndex=AValue then Exit;
+  FDefeatIconIndex:=AValue;
+end;
+
+procedure TVCMIMap.SetVictoryIconIndex(AValue: Integer);
+begin
+  if FVictoryIconIndex=AValue then Exit;
+  FVictoryIconIndex:=AValue;
 end;
 
 end.
