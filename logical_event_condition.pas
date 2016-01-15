@@ -46,6 +46,8 @@ type
     procedure SetSubType(AValue: AnsiString);
     procedure Settype(AValue: AnsiString);
     procedure SetValue(AValue: Int32);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -81,6 +83,8 @@ type
     FMessageToSend: TLocalizedString;
     procedure settype(AValue: AnsiString);
     procedure SetMessageToSend(AValue: TLocalizedString);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   published
     property MessageToSend: TLocalizedString read FMessageToSend write SetMessageToSend;
     property &type: AnsiString read Ftype write Settype;
@@ -94,6 +98,8 @@ type
     FEffect: TTriggeredEventEffect;
     FMessage: TLocalizedString;
     procedure SetMessage(AValue: TLocalizedString);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -101,7 +107,6 @@ type
     function AddCondition:TLogicalEventConditionItem;
   published
     property Message: TLocalizedString read FMessage write SetMessage;
-
     property Condition:TLogicalEventCondition read FCondition;
     property Effect: TTriggeredEventEffect read FEffect;
   end;
@@ -176,6 +181,26 @@ procedure TLogicalEventConditionItem.SetValue(AValue: Int32);
 begin
   if FValue=AValue then Exit;
   FValue:=AValue;
+end;
+
+procedure TLogicalEventConditionItem.AssignTo(Dest: TPersistent);
+var
+  dest_typed:  TLogicalEventConditionItem;
+begin
+  if Dest is TLogicalEventConditionItem then
+  begin
+    dest_typed := TLogicalEventConditionItem(Dest);
+    dest_typed.Value:=Value;
+    dest_typed.&Object:=&Object;
+    dest_typed.Position.X:=Position.X;
+    dest_typed.Position.Y:=Position.Y;
+    dest_typed.Position.L:=Position.L;
+    dest_typed.&type:=&type;
+    dest_typed.SubType:=SubType;
+  end;
+
+  inherited AssignTo(Dest);
+
 end;
 
 function TLogicalEventConditionItem.Serialize(AHandler: TVCMIJSONStreamer
@@ -276,6 +301,22 @@ begin
   FMessageToSend:=AValue;
 end;
 
+procedure TTriggeredEventEffect.AssignTo(Dest: TPersistent);
+var
+  dest_typed:  TTriggeredEventEffect;
+begin
+  if Dest is TTriggeredEventEffect then
+  begin
+    dest_typed := TTriggeredEventEffect(Dest);
+    dest_typed.MessageToSend := MessageToSend;
+    dest_typed.&type := &type;
+  end
+  else
+  begin
+     inherited AssignTo(Dest);
+  end;
+end;
+
 procedure TTriggeredEventEffect.settype(AValue: AnsiString);
 begin
   if Ftype=AValue then Exit;
@@ -288,6 +329,20 @@ procedure TTriggeredEvent.SetMessage(AValue: TLocalizedString);
 begin
   if FMessage=AValue then Exit;
   FMessage:=AValue;
+end;
+
+procedure TTriggeredEvent.AssignTo(Dest: TPersistent);
+var
+  dest_typed:  TTriggeredEvent;
+begin
+  if Dest is TTriggeredEvent then
+  begin
+    dest_typed := TTriggeredEvent(Dest);
+    dest_typed.Condition.Assign(Condition);
+    dest_typed.Effect.Assign(Effect);
+    dest_typed.Message:=Message;
+  end;
+  inherited AssignTo(Dest);
 end;
 
 constructor TTriggeredEvent.Create(ACollection: TCollection);

@@ -96,7 +96,7 @@ end;
 
 function TPosition.IsEmpty: Boolean;
 begin
-  Result := (X>=0) or (Y>=0) or (L>=0);
+  Result := (X<0) or (Y<0) or (L<0);
 end;
 
 end.

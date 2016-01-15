@@ -519,7 +519,7 @@ begin
   begin
     if not ReadBoolean then exit;
 
-    for i := 0 to 16 - 1 do
+    for i := 0 to 15 do
     begin
       ReadArtifactsToSlot(obj,i);
     end;
@@ -934,7 +934,7 @@ begin
       if players_raw <> $FF then
       begin
         players := [];
-        defintion := FMap.PredefinedHeroes.EnsureItem(FMapEnv.lm.HeroClassIndexToString(id));
+        defintion := FMap.PredefinedHeroes.EnsureItem(FMapEnv.lm.HeroIndexToString(id));
 
         for bit := 0 to 8 - 1 do
         begin

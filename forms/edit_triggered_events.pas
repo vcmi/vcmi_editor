@@ -26,7 +26,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, SynEdit, SynHighlighterAny, Forms, Controls,
-  Graphics, Dialogs, ActnList, StdCtrls, Map, fpjson, vcmi_json, vcmi_fpjsonrtti;
+  Graphics, Dialogs, ActnList, StdCtrls, Map, fpjson, vcmi_json,
+  logical_event_condition, vcmi_fpjsonrtti;
 
 type
 
@@ -40,6 +41,7 @@ type
     btOk: TButton;
     JsonEditor: TSynEdit;
     JsonSyn: TSynAnySyn;
+    ErrorLabel: TLabel;
     procedure actDontSaveExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
     procedure actSaveUpdate(Sender: TObject);
@@ -47,6 +49,8 @@ type
     FMap: TVCMIMap;
 
     FRawData: TJSONData;
+
+    FBuffer: TTriggeredEvents;
 
     FStreamer: TVCMIJSONStreamer;
     FDeStreamer: TVCMIJSONDestreamer;
@@ -68,8 +72,22 @@ implementation
 
 procedure TTriggeredEventsForm.actSaveExecute(Sender: TObject);
 begin
-  //todo: validate
-  //todo: save
+  ErrorLabel.Visible:=False;
+  //todo: validate more
+  try
+    FBuffer.Clear;
+    FDeStreamer.JSONToObject(JsonEditor.Text, FBuffer);
+  except
+    on e: Exception do
+    begin
+      ErrorLabel.Visible:=True;
+      ErrorLabel.Caption := e.Message;
+      Exit;
+    end;
+  end;
+
+  FMap.TriggeredEvents.Assign(FBuffer);
+  ModalResult:=mrOK;
 end;
 
 procedure TTriggeredEventsForm.actSaveUpdate(Sender: TObject);
@@ -90,9 +108,11 @@ end;
 
 procedure TTriggeredEventsForm.ReadData;
 begin
-  FRawData := FStreamer.StreamCollection(FMap.TriggeredEvents);
+  FBuffer.Assign(FMap.TriggeredEvents);
 
-  JsonEditor.Text := FRawData.AsJSON;
+  FRawData := FStreamer.StreamCollection(FBuffer);
+
+  JsonEditor.Text := FRawData.FormatJSON([foUseTabchar], 1);
 end;
 
 constructor TTriggeredEventsForm.Create(TheOwner: TComponent);
@@ -101,10 +121,12 @@ begin
   FStreamer := TVCMIJSONStreamer.Create(Self);
   FDeStreamer := TVCMIJSONDestreamer.Create(Self);
   FRawData := nil;
+  FBuffer:=TTriggeredEvents.Create;
 end;
 
 destructor TTriggeredEventsForm.Destroy;
 begin
+  FBuffer.Free;
   FRawData.Free;
   inherited Destroy;
 end;

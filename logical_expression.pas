@@ -44,6 +44,7 @@ type
 
     procedure SetLogicalOperator(AValue: TLogicalOperator);
   protected
+    procedure AssignTo(Dest: TPersistent); override;
     class function GetSubExpressionsClass():TLogicalExpressionClass; virtual;
   public
     constructor Create(ACollection: TCollection); override;
@@ -127,6 +128,22 @@ end;
 procedure TLogicalExpressionItem.SetLogicalOperator(AValue: TLogicalOperator);
 begin
   FLogicalOperator:=AValue;
+end;
+
+procedure TLogicalExpressionItem.AssignTo(Dest: TPersistent);
+var
+  dest_typed:  TLogicalExpressionItem;
+begin
+  if Dest is TLogicalExpressionItem then
+  begin
+    dest_typed := TLogicalExpressionItem(Dest);
+    dest_typed.LogicalOperator:=LogicalOperator;
+    dest_typed.SubExpressions.Assign(SubExpressions);
+  end
+  else
+  begin
+     inherited AssignTo(Dest);
+  end;
 end;
 
 class function TLogicalExpressionItem.GetSubExpressionsClass: TLogicalExpressionClass;

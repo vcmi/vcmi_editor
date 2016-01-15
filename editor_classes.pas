@@ -94,6 +94,7 @@ type
     FIdentifier: AnsiString;
     procedure SetIdentifier(AValue: AnsiString);
   protected
+    procedure AssignTo(Dest: TPersistent); override;
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;
   public
@@ -432,6 +433,22 @@ begin
   if Assigned(Collection) then
     (Collection as THashedCollection).ItemIdentifierChanged(Self, FIdentifier, AValue);
   FIdentifier:=AValue;
+end;
+
+procedure TNamedCollectionItem.AssignTo(Dest: TPersistent);
+var
+  dest_typed:  TNamedCollectionItem;
+begin
+  if Dest is TNamedCollectionItem then
+  begin
+    dest_typed := TNamedCollectionItem(Dest);
+    dest_typed.Identifier := Identifier;
+    dest_typed.DisplayName:=DisplayName;
+  end
+  else
+  begin
+     inherited AssignTo(Dest);
+  end;
 end;
 
 function TNamedCollectionItem.GetDisplayName: string;

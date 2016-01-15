@@ -3,7 +3,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
   Height = 572
   Top = 166
   Width = 773
-  Caption = 'TriggeredEventsForm'
+  Caption = 'Victory-loss conditions'
   ClientHeight = 572
   ClientWidth = 773
   LCLVersion = '1.4.5.0'
@@ -39,7 +39,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
   end
   inline JsonEditor: TSynEdit
     Left = 8
-    Height = 521
+    Height = 504
     Top = 8
     Width = 754
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -534,6 +534,21 @@ object TriggeredEventsForm: TTriggeredEventsForm
       end
     end
   end
+  object ErrorLabel: TLabel
+    Left = 16
+    Height = 40
+    Top = 520
+    Width = 576
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
+    Caption = 'ErrorLabel'
+    Font.Color = 8421631
+    Layout = tlBottom
+    ParentColor = False
+    ParentFont = False
+    Visible = False
+    WordWrap = True
+  end
   object act: TActionList
     left = 440
     top = 16
@@ -550,6 +565,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
     end
   end
   object JsonSyn: TSynAnySyn
+    Enabled = False
     Comments = [csCStyle]
     DetectPreprocessor = False
     IdentifierChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz'
