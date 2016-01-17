@@ -1817,9 +1817,14 @@ var
 
   special_victory, special_defeat: TTriggeredEvent;
   special_defeat_condition:TLogicalEventConditionItem;
+  position: TPosition;
+  building_1: Byte;
+  building_2: Byte;
+  child_condition: TLogicalEventConditionItem;
 
 begin
   //TODO:ReadSVLC
+  position := TPosition.Create;
   FMap.TriggeredEvents.Clear;
 
   VictoryConditionType := TVictoryCondition(FSrc.ReadByte);
@@ -1901,8 +1906,21 @@ begin
       end;
       TVictoryCondition.BUILDCITY:
       begin
-        ReadPosition(special_victory_condition.Position);
-        SkipNotImpl(2);
+        ReadPosition(Position);
+        building_1 := 10 + FSrc.ReadByte;
+        building_2 := 7 + FSrc.ReadByte;
+
+        special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_1);
+        child_condition.Position.Assign(position);
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_2);
+        child_condition.Position.Assign(position);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,283];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,282];
@@ -1946,13 +1964,31 @@ begin
       end;
       TVictoryCondition.TAKEDWELLINGS:
       begin
-        //todo:
+        special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.&type:='creatureGeneratorCommon';
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.&type:='creatureGeneratorSpecial';
+
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,289];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,288];
       end;
       TVictoryCondition.TAKEMINES:
       begin
-        //todo:
+        special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.&type:='mine';
+
+        child_condition := special_victory_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.&type:='abandonedMine';
+
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,291];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,290];
       end;
@@ -2016,6 +2052,7 @@ begin
     end;
 
   end;
+  position.Free;
 end;
 
 procedure TMapReaderH3m.ReadTeams;

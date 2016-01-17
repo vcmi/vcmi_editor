@@ -57,6 +57,8 @@ type
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   public
     property ConditionType: TWinLossCondition read FEventType write SetEventType;
+
+    function AddSubCondition:TLogicalEventConditionItem;
   published
     property Value:Int32 read FValue write SetValue default 0;
 
@@ -278,6 +280,11 @@ begin
       AHandler.JSONToObject(o,Self);
     end;
   end;
+end;
+
+function TLogicalEventConditionItem.AddSubCondition: TLogicalEventConditionItem;
+begin
+  Result := SubExpressions.Add as TLogicalEventConditionItem;
 end;
 
 constructor TLogicalEventConditionItem.Create(ACollection: TCollection);

@@ -43,6 +43,8 @@ type
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 
+    procedure Assign(AOther: TPosition);
+
     property X: Integer read FX write SetX;
     property Y: Integer read FY write SetY;
     property L: Integer read FL write SetL;
@@ -92,6 +94,13 @@ begin
   X := src_array.Integers[0];
   Y := src_array.Integers[1];
   L := src_array.Integers[2];
+end;
+
+procedure TPosition.Assign(AOther: TPosition);
+begin
+  X:=AOther.X;
+  Y:=AOther.Y;
+  L:=AOther.L;
 end;
 
 function TPosition.IsEmpty: Boolean;
