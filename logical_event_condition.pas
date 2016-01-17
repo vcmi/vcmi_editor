@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, fpjson, editor_classes, logical_expression, editor_types,
-  vcmi_json, position;
+  vcmi_json, root_manager, position;
 
 type
 
@@ -36,12 +36,12 @@ type
   private
     FSubType: AnsiString;
     Ftype: AnsiString;
-    FEventType: TWinLossCondition;
+    FConditionType: TWinLossCondition;
     FObjectLink: string;
     FPosition: TPosition;
     FValue: Int32;
     function IsPositionStored: Boolean;
-    procedure SetEventType(AValue: TWinLossCondition);
+    procedure SetConditionType(AValue: TWinLossCondition);
     procedure SetObjectLink(AValue: string);
     procedure SetSubType(AValue: AnsiString);
     procedure Settype(AValue: AnsiString);
@@ -56,7 +56,7 @@ type
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   public
-    property ConditionType: TWinLossCondition read FEventType write SetEventType;
+    property ConditionType: TWinLossCondition read FConditionType write SetConditionType;
 
     function AddSubCondition:TLogicalEventConditionItem;
   published
@@ -131,13 +131,34 @@ uses typinfo;
 { TTriggeredEvents }
 
 procedure TTriggeredEvents.AddStandardVictory;
+var
+  standard_victory: TTriggeredEvent;
+  condition:TLogicalEventConditionItem;
 begin
-  //todo:TTriggeredEvents.AddStandardVictory
+  standard_victory := Add;
+  standard_victory.Effect.&type := 'victory';
+  standard_victory.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,5];
+  standard_victory.Identifier:='standardVictory';
+  standard_victory.Message:=RootManager.LocaleManager.GeneralTexts[0,659];
+
+  condition := standard_victory.AddCondition;
+  condition.ConditionType:=TWinLossCondition.standardWin;
 end;
 
 procedure TTriggeredEvents.AddStandardDefeat;
+var
+  standard_defeat: TTriggeredEvent;
+  condition:TLogicalEventConditionItem;
 begin
-  //todo:TTriggeredEvents.AddStandardDefeat
+  standard_defeat := Add;
+  standard_defeat.Effect.&type := 'defeat';
+  standard_defeat.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,8];
+  standard_defeat.Identifier:='standardDefeat';
+  standard_defeat.Message:=RootManager.LocaleManager.GeneralTexts[0,7];
+
+  condition := standard_defeat.AddCondition;
+  condition.ConditionType:=TWinLossCondition.daysWithoutTown;
+  condition.Value := 7;
 end;
 
 { TLogicalEventCondition }
@@ -150,10 +171,10 @@ end;
 
 { TLogicalEventConditionItem }
 
-procedure TLogicalEventConditionItem.SetEventType(AValue: TWinLossCondition);
+procedure TLogicalEventConditionItem.SetConditionType(AValue: TWinLossCondition);
 begin
-  if FEventType=AValue then Exit;
-  FEventType:=AValue;
+  if FConditionType=AValue then Exit;
+  FConditionType:=AValue;
 end;
 
 function TLogicalEventConditionItem.IsPositionStored: Boolean;
@@ -192,6 +213,7 @@ begin
   if Dest is TLogicalEventConditionItem then
   begin
     dest_typed := TLogicalEventConditionItem(Dest);
+    dest_typed.ConditionType := ConditionType;
     dest_typed.Value:=Value;
     dest_typed.&Object:=&Object;
     dest_typed.Position.X:=Position.X;

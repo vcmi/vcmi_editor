@@ -1859,6 +1859,8 @@ begin
 
   Create(env,params);
 
+  TriggeredEvents.AddStandardDefeat();
+  TriggeredEvents.AddStandardVictory();
 end;
 
 
