@@ -2034,13 +2034,25 @@ begin
     case LossConditionType of
       TLossCondition.LOSSCASTLE:
       begin
-        SkipNotImpl(3); //posistion
+        ReadPosition(position);
+        special_defeat_condition.LogicalOperator:=TLogicalOperator.noneOf;
+
+        child_condition := special_defeat_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.Position.Assign(position);
+        child_condition.&type:='hero';
 
         special_defeat.Message:=FMapEnv.i18n.GeneralTexts[0,251];
       end;
       TLossCondition.LOSSHERO:
       begin
-        SkipNotImpl(3); //posistion
+        ReadPosition(position);
+
+        child_condition := special_defeat_condition.AddSubCondition;
+        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.Position.Assign(position);
+        child_condition.&type:='town';
+
         special_defeat.Message:=FMapEnv.i18n.GeneralTexts[0,253];
       end;
       TLossCondition.TIMEEXPIRES:
