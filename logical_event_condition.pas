@@ -224,7 +224,6 @@ begin
   end;
 
   inherited AssignTo(Dest);
-
 end;
 
 function TLogicalEventConditionItem.Serialize(AHandler: TVCMIJSONStreamer

@@ -1345,6 +1345,7 @@ end;
 
 function TListsManager.BuildingIndexToString(ABuilding: TCustomID): AnsiString;
 begin
+  //todo: convert buildings
   Result := BUILDING_NAMES[ABuilding];
 end;
 
@@ -2105,8 +2106,8 @@ begin
       Exit;
     end;
   end;
-
-  raise Exception.CreateFmt('Spell not found: %d',[ASpell]);
+  //todo: fix PRESET = 254 spell load
+  //raise Exception.CreateFmt('Spell not found: %d',[ASpell]);
 end;
 
 end.
