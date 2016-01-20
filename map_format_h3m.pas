@@ -127,7 +127,10 @@ type
      FLinksToResolve: TQIResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
-     function IsNotROE: boolean;
+
+     function IsAtLeastAB: Boolean;
+     function IsAtLeastSoD: Boolean;
+
      function IsWog: Boolean;
 
      procedure SkipNotImpl(count: Integer);
@@ -322,6 +325,16 @@ begin
   end;
 end;
 
+function TMapReaderH3m.IsAtLeastAB: Boolean;
+begin
+  Result := FMapVersion >= MAP_VERSION_AB;
+end;
+
+function TMapReaderH3m.IsAtLeastSoD: Boolean;
+begin
+  Result := FMapVersion >= MAP_VERSION_SOD;
+end;
+
 constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
@@ -336,11 +349,6 @@ begin
   FLinksToResolve.Free;
   FQuestIdentifierMap.Free;
   inherited Destroy;
-end;
-
-function TMapReaderH3m.IsNotROE: boolean;
-begin
-  Result :=  FMapVersion <> MAP_VERSION_ROE;
 end;
 
 function TMapReaderH3m.IsWog: Boolean;
@@ -422,7 +430,7 @@ begin
 
       Result.Difficulty := TDifficulty(ReadByte);
 
-      if FMapVersion <> MAP_VERSION_ROE then
+      if IsAtLeastAB() then
       begin
         Result.LevelLimit := ReadByte;
       end else
@@ -462,7 +470,7 @@ end;
 
 procedure TMapReaderH3m.ReadAllowedAbilities;
 begin
-  if FMapVersion>=MAP_VERSION_SOD then
+  if IsAtLeastSoD() then
   begin
     ReadBitmask(FMap.AllowedAbilities,4,SECONDARY_SKILL_QUANTITY,@FMapEnv.lm.SkillNidToString);
   end;
@@ -472,9 +480,9 @@ procedure TMapReaderH3m.ReadAllowedArtifacts;
 var
   cnt: Integer;
 begin
-  if FMapVersion <> MAP_VERSION_ROE then
+  if IsAtLeastAB() then
   begin
-    cnt := ifthen(FMapVersion=MAP_VERSION_AB,17,18);
+    cnt := ifthen(IsAtLeastAB(),18,17);
 
     ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString, false);
   end;
@@ -485,12 +493,12 @@ var
   cnt: Integer;
 begin
 
-  cnt := ifthen(FMapVersion=MAP_VERSION_ROE,16,20);
+  cnt := ifthen(IsAtLeastAB(),20,16);
 
   ReadBitmask(FMap.AllowedHeroes, cnt, HERO_QUANTITY, @FMapEnv.lm.HeroIndexToString, False);
 
   //unknown plaseholder
-  if FMapVersion<>MAP_VERSION_ROE then
+  if IsAtLeastAB() then
   begin
     cnt :=FSrc.ReadDWord;
     FSrc.Skip(cnt);
@@ -499,7 +507,7 @@ end;
 
 procedure TMapReaderH3m.ReadAllowedSpells;
 begin
-  if FMapVersion>=MAP_VERSION_SOD then
+  if IsAtLeastSoD() then
   begin
     ReadBitmask(FMap.AllowedSpells,9,SPELL_QUANTITY_ACTUAL,@(FMapEnv.lm.SpellIndexToString));
   end;
@@ -524,12 +532,12 @@ begin
       ReadArtifactsToSlot(obj,i);
     end;
 
-    if FMapVersion>=MAP_VERSION_SOD then
+    if IsAtLeastSoD() then
     begin
       ReadArtifactsToSlot(obj,16);
     end;
     ReadArtifactsToSlot(obj,17); //spellbook
-    if IsNotROE then
+    if IsAtLeastAB() then
     begin
       ReadArtifactsToSlot(obj,18);
     end;
@@ -549,9 +557,9 @@ var
 
   artId: AnsiString;
 begin
-  artmask := ifthen(IsNotROE,$FFFF, $FF);
+  artmask := ifthen(IsAtLeastAB(),$FFFF, $FF);
 
-  if IsNotROE then
+  if IsAtLeastAB() then
   begin
     aid := FSrc.ReadWord;
   end
@@ -687,7 +695,7 @@ var
   info: TCreatureInstInfo;
   random_type: Integer;
 begin
-  version := IsNotROE;
+  version := IsAtLeastAB();
 
   maxID := ifthen(version,$ffff, $ff);
 
@@ -747,7 +755,7 @@ procedure TMapReaderH3m.ReadQuestIdentifier;
 var
   ident: DWord;
 begin
-  if IsNotROE then
+  if IsAtLeastAB() then
   begin
     ident := FSrc.ReadDWord;
     FQuestIdentifierMap.KeyData[ident] := FCurrentObject;
@@ -919,7 +927,7 @@ begin
 
   //ignoring all but availability
 
-  if FMapVersion >= MAP_VERSION_SOD then
+  if IsAtLeastSoD() then
   begin
     hero_count := FSrc.ReadByte;
 
@@ -959,7 +967,7 @@ begin
   ReadOwner(AOptions,TOwnerSize.size1);
   FSrc.Skip(3);
   ReadCreatureSet(AOptions.Army,7);
-  if IsNotROE then
+  if IsAtLeastAB() then
   begin
     AOptions.RemovableUnits := FSrc.ReadBoolean;
   end
@@ -995,7 +1003,7 @@ begin
     end;
 
     exper := 0;
-    if FMapVersion > MAP_VERSION_AB then
+    if IsAtLeastSoD() then
     begin
       if ReadBoolean then
       begin
@@ -1035,7 +1043,7 @@ begin
 
     AOptions.Sex := THeroSex.default;
 
-    if IsNotROE then
+    if IsAtLeastAB() then
     begin
       if ReadBoolean then
       begin
@@ -1044,21 +1052,22 @@ begin
       AOptions.Sex  := THeroSex(ReadByte);
     end;
 
-    if FMapVersion > MAP_VERSION_AB then
+    if IsAtLeastSoD() then
     begin
       if ReadBoolean then
       begin
         ReadBitmask(AOptions.SpellBook, 9, SPELL_QUANTITY_ACTUAL,@FMapEnv.lm.SpellIndexToString,False);
       end;
     end
-    else if FMapVersion = MAP_VERSION_AB then
+    else if IsAtLeastAB() then
     begin
       AOptions.SpellBook.Add(ReadID(@FMapEnv.lm.SpellIndexToString,1));
     end;
 
-    if (FMapVersion > MAP_VERSION_AB) and ReadBoolean then
+    if IsAtLeastSoD() then
     begin
-      ReadPrimarySkills(AOptions.PrimarySkills);
+      if ReadBoolean then
+        ReadPrimarySkills(AOptions.PrimarySkills);
     end;
 
     skip(16); //junk
@@ -1133,7 +1142,7 @@ begin
       AOptions.RewardMessage := ReadLocalizedString;
       ReadResources(AOptions.RewardResources);
 
-      AOptions.RewardArtifact := ReadID(@FMapEnv.lm.ArtifactIndexToString, ifthen(IsNotROE,2,1));
+      AOptions.RewardArtifact := ReadID(@FMapEnv.lm.ArtifactIndexToString, ifthen(IsAtLeastAB(),2,1));
     end;
     AOptions.NeverFlees := ReadBoolean;
     AOptions.NoGrowing := ReadBoolean;
@@ -1293,7 +1302,7 @@ begin
     cnt := ReadByte;
     for i := 0 to cnt - 1 do
     begin
-      if IsNotROE then
+      if IsAtLeastAB() then
       begin
         artid := ReadWord;
       end
@@ -1339,7 +1348,7 @@ begin
 
   if not (CanComputerPlay or CanHumanPlay) then
   begin
-    if FMapVersion >=MAP_VERSION_SOD then
+    if IsAtLeastSoD() then
     begin
       FSrc.Skip(13);
     end
@@ -1365,7 +1374,7 @@ begin
   Attr.AITactics := TAITactics(FSrc.ReadByte);
 
 
-  if FMapVersion >=MAP_VERSION_SOD then
+  if IsAtLeastSoD() then
   begin
     AllowedFactionsSet := FSrc.ReadBoolean;
   end
@@ -1399,13 +1408,14 @@ begin
   HasMainTown := FSrc.ReadBoolean;
   if HasMainTown then
   begin
-    if FMapVersion = MAP_VERSION_ROE then
-    begin
-      Attr.GenerateHeroAtMainTown := True;
-    end else
+    if IsAtLeastAB() then
     begin
       Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
       SkipNotImpl(1); //todo: in VCMI it is GenerateHero
+    end
+    else
+    begin
+      Attr.GenerateHeroAtMainTown := True;
     end;
 
     main_town_pos := TPosition.Create;
@@ -1427,7 +1437,7 @@ begin
   end;
 
   //plased heroes ignored
-  if FMapVersion <> MAP_VERSION_ROE then
+  if IsAtLeastAB() then
   begin
     FSrc.Skip(1); //unknown byte
     heroes_count := FSrc.ReadDWord;
@@ -1457,7 +1467,8 @@ var
 
   definition:  THeroDefinition;
 begin
-  if FMapVersion < MAP_VERSION_SOD then Exit;
+  if not IsAtLeastSoD() then
+    Exit;
 
   for i := 0 to HERO_QUANTITY - 1 do
   begin
@@ -1671,7 +1682,7 @@ var
   tmp: DWord;
 begin
   with FSrc, AOptions do begin
-    if IsNotROE then
+    if IsAtLeastAB() then
     begin
       mis_type := ReadQuest(Quest);
     end
@@ -1719,7 +1730,7 @@ begin
         end;
         TSeerHutReward.artifact:
         begin
-          if IsNotROE then
+          if IsAtLeastAB() then
           begin
             tmp := ReadWord;
           end
@@ -1734,7 +1745,7 @@ begin
         end;
         TSeerHutReward.creature:
         begin
-          if IsNotROE then
+          if IsAtLeastAB() then
           begin
             tmp := ReadWord;
           end
@@ -1874,7 +1885,7 @@ begin
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,281];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,280];
 
-        if IsNotROE then
+        if IsAtLeastAB() then
           FSrc.Skip(1);
       end;
       TVictoryCondition.GATHERTROOP:
@@ -1883,7 +1894,7 @@ begin
 
         obj_subtype := FMapEnv.lm.CreatureIndexToString(obj_id);
 
-        if IsNotROE then
+        if IsAtLeastAB() then
           FSrc.Skip(1);
 
         value := FSrc.ReadDWord;
@@ -2164,7 +2175,7 @@ begin
       //insert default
     end;
 
-    if IsNotROE then
+    if IsAtLeastAB() then
     begin
       ReadBitmask(AOptions.Spells.AllOf, 9, SPELL_QUANTITY_ACTUAL, @FMapEnv.lm.SpellIndexToString, false);
     end;
@@ -2180,7 +2191,8 @@ begin
       SkipNotImpl(28);
 
       SkipNotImpl(1);
-      if FMapVersion > MAP_VERSION_AB then SkipNotImpl(1);
+      if IsAtLeastSoD() then
+        SkipNotImpl(1);
       SkipNotImpl(1);
 
       SkipNotImpl(3);
@@ -2191,7 +2203,8 @@ begin
       SkipNotImpl(14);
       skip(4); //junk
     end;
-    if FMapVersion > MAP_VERSION_AB then SkipNotImpl(1); //alignment
+    if IsAtLeastSoD() then
+      SkipNotImpl(1); //alignment
     Skip(3); //junk
   end;
 end;
@@ -2203,7 +2216,7 @@ var
   bit: Integer;
   id: Integer;
 begin
-  if IsNotROE then
+  if IsAtLeastAB() then
   begin
     for byte_nom in [0..3] do
     begin
