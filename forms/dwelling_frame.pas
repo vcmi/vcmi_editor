@@ -109,7 +109,7 @@ procedure TDwellingFrame.SetupControls;
 begin
   FLinkFrame.Map := Map;
 
-  rbLinked.Checked := FOptions.Linked;
+  rbLinked.Checked := FOptions.SameAsTown <> '' ;
   rbLinkedChange(rbLinked);
 
   UpdateControls;
@@ -156,7 +156,13 @@ end;
 
 procedure TDwellingFrame.SaveLink;
 begin
-  FOptions.SameAsTown := FLinkFrame.SelectedObject.Identifier;
+  if rbLinked.Checked then
+  begin
+    FOptions.SameAsTown := FLinkFrame.SelectedObject.Identifier;
+  end
+  else begin
+    FOptions.SameAsTown := '';
+  end;
 end;
 
 procedure TDwellingFrame.NormalizeLevels;
@@ -178,7 +184,6 @@ end;
 procedure TDwellingFrame.Commit;
 begin
   inherited Commit;
-  FOptions.Linked:=rbLinked.Checked;
   if FLevelsLoaded then SaveLevels;
   if FFactionsLoaded then SaveFactions;
 

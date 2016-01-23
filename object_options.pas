@@ -629,12 +629,9 @@ type
   TBaseRandomDwellingOptions = class abstract (TObjectOptions)
   private
     FAllowedFactions: TStrings;
-    FLinked: boolean;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
     FSameAsTown: String;
-    function IsSameAsTownStored: Boolean;
-    procedure SetLinked(AValue: boolean);
     procedure SetMaxLevel(AValue: UInt8);
     procedure SetMinLevel(AValue: UInt8);
     function IsAllowedFactionsStored: boolean;
@@ -647,12 +644,10 @@ type
 
     property AllowedFactions: TStrings read FAllowedFactions stored IsAllowedFactionsStored;
 
-    property Linked: boolean read FLinked write SetLinked;
-
     procedure SetSameAsTown(AValue: string);
-    property SameAsTown: string read FSameAsTown write SetSameAsTown stored IsSameAsTownStored;
+    property SameAsTown: string read FSameAsTown write SetSameAsTown;
   published
-     property Owner default TPlayer.none;
+    property Owner default TPlayer.none;
   end;
 
   { TRandomDwellingOptions }
@@ -664,7 +659,6 @@ type
     property MinLevel;
     property MaxLevel;
     property AllowedFactions;
-    property Linked;
     property SameAsTown;
   end;
 
@@ -675,7 +669,6 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property AllowedFactions;
-    property Linked;
     property SameAsTown;
   end;
 
@@ -1146,17 +1139,6 @@ begin
   FMaxLevel:=AValue;
 end;
 
-function TBaseRandomDwellingOptions.IsSameAsTownStored: Boolean;
-begin
-  Result := Linked;
-end;
-
-procedure TBaseRandomDwellingOptions.SetLinked(AValue: boolean);
-begin
-  if FLinked=AValue then Exit;
-  FLinked:=AValue;
-end;
-
 procedure TBaseRandomDwellingOptions.SetMinLevel(AValue: UInt8);
 begin
   if FMinLevel=AValue then Exit;
@@ -1178,7 +1160,7 @@ end;
 
 function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
 begin
-  Result := not Linked;
+  Result := FAllowedFactions.Count > 0;
 end;
 
 procedure TBaseRandomDwellingOptions.SetSameAsTown(AValue: string);

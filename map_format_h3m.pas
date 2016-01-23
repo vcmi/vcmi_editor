@@ -124,7 +124,7 @@ type
 
      FCurrentObject: TMapObject;
      FQuestIdentifierMap: TH3MQuestIdentifierMap;
-     FLinksToResolve: TQIResolveRequests;
+     FQILinksToResolve: TQIResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
 
@@ -134,7 +134,7 @@ type
      function IsWog: Boolean;
 
      procedure SkipNotImpl(count: Integer);
-     procedure PushResolveRequest(AIdent: UInt32; AResolveProc: TQIResolveRequest.TResolveProc);
+     procedure PushQIResolveRequest(AIdent: UInt32; AResolveProc: TQIResolveRequest.TResolveProc);
      procedure ResolveQuestIdentifiers;
    strict private
      type
@@ -339,14 +339,14 @@ constructor TMapReaderH3m.Create(AMapEnv: TMapEnvironment);
 begin
   inherited Create(AMapEnv);
   FQuestIdentifierMap := TH3MQuestIdentifierMap.Create;
-  FLinksToResolve := TQIResolveRequests.Create(True);
+  FQILinksToResolve := TQIResolveRequests.Create(True);
   FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
 
 destructor TMapReaderH3m.Destroy;
 begin
   FTemplates.Free;
-  FLinksToResolve.Free;
+  FQILinksToResolve.Free;
   FQuestIdentifierMap.Free;
   inherited Destroy;
 end;
@@ -1525,7 +1525,7 @@ begin
         obj.HeroLevel:=ReadDWord;
       end;
       TQuestMission.KillHero,TQuestMission.KillCreature: begin
-        PushResolveRequest(ReadDWord, @obj.SetKillTarget);
+        PushQIResolveRequest(ReadDWord, @obj.SetKillTarget);
       end;
       TQuestMission.Artifact: begin
         ReadArtifactSet(obj.Artifacts);
@@ -1569,18 +1569,19 @@ end;
 procedure TMapReaderH3m.VisitRandomDwelling(AOptions: TRandomDwellingOptions);
 var
   ident: DWord;
+  linked: Boolean;
 begin
   ReadOwner(AOptions);
 
   ident := FSrc.ReadDWord;
-  AOptions.Linked:=ident <> 0;
-  if not AOptions.Linked then
+  Linked:=ident <> 0;
+  if not Linked then
   begin
     ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
   end
   else
   begin
-    PushResolveRequest(ident, @AOptions.SetSameAsTown);
+    PushQIResolveRequest(ident, @AOptions.SetSameAsTown);
   end;
 
   AOptions.MinLevel := FSrc.ReadByte;
@@ -1592,20 +1593,21 @@ procedure TMapReaderH3m.VisitRandomDwellingLVL(
   AOptions: TRandomDwellingLVLOptions);
 var
   ident: DWord;
+  linked: Boolean;
 begin
   ReadOwner(AOptions);
 
   ident := FSrc.ReadDWord;
 
-  AOptions.Linked:=ident <> 0;
+  Linked:=ident <> 0;
 
-  if not AOptions.Linked then
+  if not Linked then
   begin
     ReadBitmask(AOptions.AllowedFactions,2,9,@FMap.ListsManager.FactionIndexToString, False);
   end
   else
   begin
-    PushResolveRequest(ident, @AOptions.SetSameAsTown);
+    PushQIResolveRequest(ident, @AOptions.SetSameAsTown);
   end;
 end;
 
@@ -2249,7 +2251,7 @@ begin
   FSrc.Skip(count);
 end;
 
-procedure TMapReaderH3m.PushResolveRequest(AIdent: UInt32;
+procedure TMapReaderH3m.PushQIResolveRequest(AIdent: UInt32;
   AResolveProc: TQIResolveRequest.TResolveProc);
 var
   request: TQIResolveRequest;
@@ -2257,7 +2259,7 @@ begin
   request := TQIResolveRequest.Create;
   request.ResolveProc := AResolveProc;
   request.Identifier:=AIdent;
-  FLinksToResolve.Add(request);
+  FQILinksToResolve.Add(request);
 end;
 
 procedure TMapReaderH3m.ResolveQuestIdentifiers;
@@ -2265,15 +2267,15 @@ var
   req: TQIResolveRequest;
   o: TMapObject;
 begin
-  while FLinksToResolve.Count>0 do
+  while FQILinksToResolve.Count>0 do
   begin
-    req := FLinksToResolve[0];
+    req := FQILinksToResolve[0];
 
     o := FQuestIdentifierMap.KeyData[req.Identifier];
 
     req.ResolveProc(o.Identifier);
 
-    FLinksToResolve.Delete(0);
+    FQILinksToResolve.Delete(0);
   end;
 end;
 
