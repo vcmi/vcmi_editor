@@ -23,7 +23,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="24"/>
+      <BuildNr Value="25"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -383,9 +383,9 @@
         <IsPartOfProject Value="True"/>
       </Unit50>
       <Unit51>
-        <Filename Value="forms\monster_frame.pas"/>
+        <Filename Value="forms\creature_frame.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="MonsterFrame"/>
+        <ComponentName Value="CreatureFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit51>

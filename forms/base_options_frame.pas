@@ -70,7 +70,7 @@ type
     procedure VisitLocalEvent({%H-}AOptions: TLocalEventOptions); virtual;
     procedure VisitSignBottle({%H-}AOptions: TSignBottleOptions);virtual;
     procedure VisitHero(AOptions: THeroOptions);virtual;
-    procedure VisitMonster({%H-}AOptions: TMonsterOptions);virtual;
+    procedure VisitMonster({%H-}AOptions: TCreatureOptions);virtual;
     procedure VisitSeerHut({%H-}AOptions: TSeerHutOptions);virtual;
     procedure VisitWitchHut({%H-}AOptions: TWitchHutOptions);virtual;
     procedure VisitScholar({%H-}AOptions: TScholarOptions);virtual;
@@ -459,7 +459,7 @@ begin
   //do nothing
 end;
 
-procedure TBaseOptionsFrame.VisitMonster(AOptions: TMonsterOptions);
+procedure TBaseOptionsFrame.VisitMonster(AOptions: TCreatureOptions);
 begin
   //do nothing
 end;

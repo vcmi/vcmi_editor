@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, ActnList, object_options, map, editor_str_consts,
-  base_options_frame, monster_frame, abandoned_frame, scholar_frame,
+  base_options_frame, creature_frame, abandoned_frame, scholar_frame,
   creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
   hero_frame, hero_artifacts_frame, message_frame, hero_options_frame,
   hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame;
@@ -67,7 +67,7 @@ type
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
     procedure VisitHero(AOptions: THeroOptions);//+
-    procedure VisitMonster(AOptions: TMonsterOptions);//+
+    procedure VisitMonster(AOptions: TCreatureOptions);//+
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
     procedure VisitScholar(AOptions: TScholarOptions);//+
@@ -224,9 +224,9 @@ begin
   VisitGuardedObject(AOptions);
 end;
 
-procedure TEditObjectOptions.VisitMonster(AOptions: TMonsterOptions);
+procedure TEditObjectOptions.VisitMonster(AOptions: TCreatureOptions);
 begin
-  FActiveEditors.AddFrame(TMonsterFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TCreatureFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitOwnedObject(AOptions: TOwnedObjectOptions);

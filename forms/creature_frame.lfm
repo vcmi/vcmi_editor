@@ -1,4 +1,4 @@
-inherited MonsterFrame: TMonsterFrame
+inherited CreatureFrame: TCreatureFrame
   Height = 457
   Width = 441
   ClientHeight = 457
@@ -75,7 +75,7 @@ inherited MonsterFrame: TMonsterFrame
       Top = 58
       Width = 205
       Caption = 'Never flees'
-      TabOrder = 4
+      TabOrder = 2
     end
   end
   object gbReward: TGroupBox[2]

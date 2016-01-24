@@ -395,11 +395,11 @@ type
      property Sex: THeroSex read FSex write SetSex;
   end;
 
-  { TMonsterOptions }
+  { TCreatureOptions }
 
-  TMonsterOptions = class(TObjectOptions)
+  TCreatureOptions = class(TObjectOptions)
   private
-    FCharacter: Integer;
+    FCharacter: TCreatureCharacter;
     FCount: Integer;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
@@ -409,7 +409,6 @@ type
     function IsRewardArtifactStored: Boolean;
     function IsRewardMessageStored: Boolean;
     function IsRewardResourcesStored: Boolean;
-    procedure SetCharacter(AValue: Integer);
     procedure SetCount(AValue: Integer);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
@@ -423,7 +422,7 @@ type
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
     property Count: Integer read FCount write SetCount default 0; //0=random
-    property Character: Integer read FCharacter write SetCharacter nodefault;
+    property Character: TCreatureCharacter read FCharacter write FCharacter nodefault;
 
     property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
     property RewardResources: TResourceSet read FRewardResources stored IsRewardResourcesStored;
@@ -718,7 +717,7 @@ type
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions);
     procedure VisitHero(AOptions: THeroOptions);
-    procedure VisitMonster(AOptions: TMonsterOptions);
+    procedure VisitMonster(AOptions: TCreatureOptions);
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);
     procedure VisitScholar(AOptions: TScholarOptions);
@@ -767,7 +766,7 @@ begin
     'randomMonsterLevel5',
     'randomMonsterLevel6',
     'randomMonsterLevel7':
-      c := TMonsterOptions;
+      c := TCreatureOptions;
     'seerHut':
       c := TSeerHutOptions;
     'witchHut':
@@ -1595,69 +1594,63 @@ begin
   inherited Destroy;
 end;
 
-{ TMonsterOptions }
+{ TCreatureOptions }
 
-procedure TMonsterOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+procedure TCreatureOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitMonster(Self);
 end;
 
-procedure TMonsterOptions.SetNeverFlees(AValue: boolean);
+procedure TCreatureOptions.SetNeverFlees(AValue: boolean);
 begin
   FNeverFlees := AValue;
 end;
 
-procedure TMonsterOptions.SetCount(AValue: Integer);
+procedure TCreatureOptions.SetCount(AValue: Integer);
 begin
   if FCount=AValue then Exit;
   FCount:=AValue;
 end;
 
-function TMonsterOptions.IsRewardArtifactStored: Boolean;
+function TCreatureOptions.IsRewardArtifactStored: Boolean;
 begin
   Result := (FRewardArtifact <> '');
 end;
 
-function TMonsterOptions.IsRewardMessageStored: Boolean;
+function TCreatureOptions.IsRewardMessageStored: Boolean;
 begin
   Result := (FRewardMessage <> '');
 end;
 
-function TMonsterOptions.IsRewardResourcesStored: Boolean;
+function TCreatureOptions.IsRewardResourcesStored: Boolean;
 begin
   Result := (not FRewardResources.IsEmpty);
 end;
 
-procedure TMonsterOptions.SetCharacter(AValue: Integer);
-begin
-  if FCharacter=AValue then Exit;
-  FCharacter:=AValue;
-end;
-
-procedure TMonsterOptions.SetNoGrowing(AValue: boolean);
+procedure TCreatureOptions.SetNoGrowing(AValue: boolean);
 begin
   FNoGrowing := AValue;
 end;
 
-procedure TMonsterOptions.SetRewardArtifact(AValue: AnsiString);
+procedure TCreatureOptions.SetRewardArtifact(AValue: AnsiString);
 begin
   if FRewardArtifact=AValue then Exit;
   FRewardArtifact:=AValue;
 end;
 
-procedure TMonsterOptions.SetRewardMessage(AValue: TLocalizedString);
+procedure TCreatureOptions.SetRewardMessage(AValue: TLocalizedString);
 begin
   if FRewardMessage=AValue then Exit;
   FRewardMessage:=AValue;
 end;
 
-constructor TMonsterOptions.Create(AObject: IMapObject);
+constructor TCreatureOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FRewardResources := TResourceSet.Create;
 end;
 
-destructor TMonsterOptions.Destroy;
+destructor TCreatureOptions.Destroy;
 begin
   FRewardResources.Free;
   inherited Destroy;

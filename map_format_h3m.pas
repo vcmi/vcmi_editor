@@ -197,7 +197,7 @@ type
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
      procedure VisitHero(AOptions: THeroOptions);//+
-     procedure VisitMonster(AOptions: TMonsterOptions);//+
+     procedure VisitMonster(AOptions: TCreatureOptions);//+
      procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
      procedure VisitScholar(AOptions: TScholarOptions);//+
@@ -1124,7 +1124,7 @@ end;
 
 
 
-procedure TMapReaderH3m.VisitMonster(AOptions: TMonsterOptions);
+procedure TMapReaderH3m.VisitMonster(AOptions: TCreatureOptions);
 var
   HasReward: Boolean;
 begin
@@ -1133,7 +1133,7 @@ begin
     ReadQuestIdentifier;
 
     AOptions.Count := ReadWord;
-    AOptions.Character := ReadByte;
+    AOptions.Character := TCreatureCharacter(ReadByte);
 
     HasReward:=ReadBoolean;
 

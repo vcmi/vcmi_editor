@@ -1,4 +1,4 @@
-unit monster_frame;
+unit creature_frame;
 
 {$mode objfpc}{$H+}
 
@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Spin, ExtCtrls, object_options, base_options_frame, gui_helpers;
+  Spin, ExtCtrls, object_options, editor_types, base_options_frame, gui_helpers;
 
 type
 
-  { TMonsterFrame }
+  { TCreatureFrame }
 
-  TMonsterFrame = class(TBaseOptionsFrame)
+  TCreatureFrame = class(TBaseOptionsFrame)
     edRewardArtifact: TComboBox;
     edNoGrowing: TCheckBox;
     edRandomCount: TCheckBox;
@@ -41,33 +41,33 @@ type
     edMithril: TSpinEdit;
     procedure edRandomCountChange(Sender: TObject);
   private
-    FOptions: TMonsterOptions;
+    FOptions: TCreatureOptions;
 
   protected
     procedure UpdateControls; override;
   public
     procedure Commit; override;
-    procedure VisitMonster(AOptions: TMonsterOptions); override;
+    procedure VisitMonster(AOptions: TCreatureOptions); override;
   end;
 
 implementation
 
 {$R *.lfm}
 
-{ TMonsterFrame }
+{ TCreatureFrame }
 
-procedure TMonsterFrame.edRandomCountChange(Sender: TObject);
+procedure TCreatureFrame.edRandomCountChange(Sender: TObject);
 begin
   UpdateControls;
 end;
 
-procedure TMonsterFrame.UpdateControls;
+procedure TCreatureFrame.UpdateControls;
 begin
   inherited UpdateControls;
   edCount.Enabled:=not edRandomCount.Checked;
 end;
 
-procedure TMonsterFrame.Commit;
+procedure TCreatureFrame.Commit;
 begin
   inherited Commit;
 
@@ -81,7 +81,7 @@ begin
 
   FOptions.NoGrowing := edNoGrowing.Checked;
 
-  FOptions.Character := rgCharacter.ItemIndex;
+  FOptions.Character := TCreatureCharacter(rgCharacter.ItemIndex);
   FOptions.NeverFlees := edNeverFlees.Checked;
   FOptions.RewardMessage := edRewardMessage.Text;
 
@@ -96,7 +96,7 @@ begin
   SaveResourceSet(gbReward, FOptions.RewardResources);
 end;
 
-procedure TMonsterFrame.VisitMonster(AOptions: TMonsterOptions);
+procedure TCreatureFrame.VisitMonster(AOptions: TCreatureOptions);
 begin
   inherited VisitMonster(AOptions);
   FOptions := AOptions;
@@ -105,7 +105,7 @@ begin
   edNoGrowing.Checked := FOptions.NoGrowing;
   edRandomCount.Checked := FOptions.Count = 0;
 
-  rgCharacter.ItemIndex := FOptions.Character;
+  rgCharacter.ItemIndex := Integer(FOptions.Character);
   edNeverFlees.Checked := FOptions.NeverFlees;
 
   edRewardMessage.Text:=FOptions.RewardMessage;

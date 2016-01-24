@@ -41,12 +41,13 @@ type
 
   TPrimarySkill = (attack=0, defence=1, spellpower=2, knowledge=3);
 
-
   TResType = (wood = 0, mercury, ore, sulfur, crystal, gems, gold, mithril);
 
   THeroSex = (male=0, female=1, default = $FF);
 
   TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
+
+  TCreatureCharacter = (compliant = 0, friendly = 1, agressive = 2, hostile = 3, savage = 4);
 
 {$pop}
 

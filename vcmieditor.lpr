@@ -37,7 +37,7 @@ uses
   witchhut_frame, h3_txt, gui_helpers, shrine_frame, spellscroll_frame,
   root_form, dwelling_frame, map_format_zip, map_format_json,
   map_terrain_actions, map_road_river_actions, map_object_actions,
-  road_transitions, transitions, base_info, monster_frame,
+  road_transitions, transitions, base_info, creature_frame,
   object_link_frame, logical_id_condition, logical_event_condition,
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
