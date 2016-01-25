@@ -64,18 +64,18 @@ inherited CreatureFrame: TCreatureFrame
     Items.Strings = (
       'Compliant'
       'Friendly'
-      'Agressive'
+      'Aggressive'
       'Hostile'
       'Savage'
     )
     TabOrder = 1
     object edNeverFlees: TCheckBox
-      Left = 210
-      Height = 27
-      Top = 58
+      Left = 6
+      Height = 29
+      Top = 0
       Width = 205
       Caption = 'Never flees'
-      TabOrder = 2
+      TabOrder = 0
     end
   end
   object gbReward: TGroupBox[2]

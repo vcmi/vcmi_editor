@@ -47,7 +47,7 @@ type
 
   TSeerHutReward = (nothing, experience, manaPoints, moraleBonus, luckBonus, resources, primarySkill, secondarySkill, artifact, spell, creature);
 
-  TCreatureCharacter = (compliant = 0, friendly = 1, agressive = 2, hostile = 3, savage = 4);
+  TCreatureCharacter = (compliant = 0, friendly = 1, aggressive = 2, hostile = 3, savage = 4);
 
 {$pop}
 
