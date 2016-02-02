@@ -1132,7 +1132,7 @@ begin
   begin
     ReadQuestIdentifier;
 
-    AOptions.Count := ReadWord;
+    AOptions.Amount := ReadWord;
     AOptions.Character := TCreatureCharacter(ReadByte);
 
     HasReward:=ReadBoolean;

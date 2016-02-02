@@ -400,7 +400,7 @@ type
   TCreatureOptions = class(TObjectOptions)
   private
     FCharacter: TCreatureCharacter;
-    FCount: Integer;
+    FAmount: Integer;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
     FRewardArtifact: AnsiString;
@@ -409,7 +409,7 @@ type
     function IsRewardArtifactStored: Boolean;
     function IsRewardMessageStored: Boolean;
     function IsRewardResourcesStored: Boolean;
-    procedure SetCount(AValue: Integer);
+    procedure SetAmount(AValue: Integer);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
     procedure SetRewardArtifact(AValue: AnsiString);
@@ -421,7 +421,7 @@ type
   published
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
-    property Count: Integer read FCount write SetCount default 0; //0=random
+    property Amount: Integer read FAmount write SetAmount default 0; //0=random
     property Character: TCreatureCharacter read FCharacter write FCharacter nodefault;
 
     property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
@@ -1606,10 +1606,10 @@ begin
   FNeverFlees := AValue;
 end;
 
-procedure TCreatureOptions.SetCount(AValue: Integer);
+procedure TCreatureOptions.SetAmount(AValue: Integer);
 begin
-  if FCount=AValue then Exit;
-  FCount:=AValue;
+  if FAmount=AValue then Exit;
+  FAmount:=AValue;
 end;
 
 function TCreatureOptions.IsRewardArtifactStored: Boolean;

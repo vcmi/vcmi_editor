@@ -73,10 +73,10 @@ begin
 
   if edRandomCount.Checked then
   begin
-    FOptions.Count := 0;
+    FOptions.Amount := 0;
   end
   else begin
-    FOptions.Count := edCount.Value;
+    FOptions.Amount := edCount.Value;
   end;
 
   FOptions.NoGrowing := edNoGrowing.Checked;
@@ -101,9 +101,9 @@ begin
   inherited VisitMonster(AOptions);
   FOptions := AOptions;
 
-  edCount.Value := FOptions.Count;
+  edCount.Value := FOptions.Amount;
   edNoGrowing.Checked := FOptions.NoGrowing;
-  edRandomCount.Checked := FOptions.Count = 0;
+  edRandomCount.Checked := FOptions.Amount = 0;
 
   rgCharacter.ItemIndex := Integer(FOptions.Character);
   edNeverFlees.Checked := FOptions.NeverFlees;
