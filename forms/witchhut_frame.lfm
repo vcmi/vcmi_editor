@@ -14,9 +14,9 @@ inherited WitchHutFrame: TWitchHutFrame
   end
   object lbAllowedSkills: TLabel[1]
     Left = 8
-    Height = 14
+    Height = 15
     Top = 6
-    Width = 66
+    Width = 74
     Caption = 'Allowed skills:'
     ParentBidiMode = False
     ParentColor = False

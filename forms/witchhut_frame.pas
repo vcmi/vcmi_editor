@@ -54,7 +54,7 @@ procedure TWitchHutFrame.Commit;
 begin
   inherited Commit;
 
-  edAllowedSkills.SaveToList(FObject.AllowedSkills);
+  edAllowedSkills.SaveToCondition(ListsManager.SkillInfos, FObject.AllowedSkills, false);
 
 end;
 
@@ -107,7 +107,7 @@ begin
   inherited VisitWitchHut(AOptions);
   FObject := AOptions;
 
-  edAllowedSkills.FillFromList(ListsManager.SkillInfos, AOptions.AllowedSkills);
+  edAllowedSkills.FillFromCondition(ListsManager.SkillInfos, AOptions.AllowedSkills);
 
   edAllowedSkillsClickCheck(nil);
 end;

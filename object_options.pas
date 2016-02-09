@@ -456,15 +456,15 @@ type
 
   TWitchHutOptions = class(TObjectOptions)
   private
-    FAllowedSkills: TStringList;
-    function GetAllowedSkills: TStrings;
+    FAllowedSkills: TLogicalIDCondition;
+
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
   published
-    property AllowedSkills: TStrings read GetAllowedSkills;
+    property AllowedSkills: TLogicalIDCondition read FAllowedSkills;
   end;
 
   { TScholarOptions }
@@ -1533,28 +1533,17 @@ var
   i: Integer;
 begin
   inherited Create(AObject);
-  FAllowedSkills := TStringList.Create;
-  FAllowedSkills.Sorted := True;
-  FAllowedSkills.Duplicates := dupIgnore;
+  FAllowedSkills := TLogicalIDCondition.Create(AObject);
 
   //todo: make it configurable
-  for i := 0 to SECONDARY_SKILL_QUANTITY - 1 do
-  begin
-    FAllowedSkills.Add(SECONDARY_SKILL_NAMES[i]);
-  end;
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SECONDARY_SKILL_NAMES[6]));
-  FAllowedSkills.Delete(FAllowedSkills.IndexOf(SECONDARY_SKILL_NAMES[12]));
+  FAllowedSkills.NoneOf.Add(SECONDARY_SKILL_NAMES[6]); //leadership
+  FAllowedSkills.NoneOf.Add(SECONDARY_SKILL_NAMES[12]);//necromancy
 end;
 
 destructor TWitchHutOptions.Destroy;
 begin
   FAllowedSkills.Free;
   inherited Destroy;
-end;
-
-function TWitchHutOptions.GetAllowedSkills: TStrings;
-begin
-  Result := FAllowedSkills;
 end;
 
 { TSeerHutOptions }

@@ -2212,37 +2212,17 @@ begin
 end;
 
 procedure TMapReaderH3m.VisitWitchHut(AOptions: TWitchHutOptions);
-var
-  i,byte_nom: Integer;
-  b: Byte;
-  bit: Integer;
-  id: Integer;
 begin
   if IsAtLeastAB() then
   begin
-    for byte_nom in [0..3] do
-    begin
-      b := FSrc.ReadByte;
+    AOptions.AllowedSkills.Clear;
 
-      for bit in [0..7] do
-      begin
-        id := byte_nom * 8 + bit;
-        if id < SECONDARY_SKILL_QUANTITY then
-        begin
-          if (b and (1 shl bit)) > 0 then
-          begin
-            AOptions.AllowedSkills.Add(FMapEnv.lm.SkillNidToString(id));
-          end;
-        end;
-      end;
-    end;
+    ReadBitmask(AOptions.AllowedSkills, 4, SECONDARY_SKILL_QUANTITY, @FMapEnv.lm.SkillNidToString, false);
   end
-  else begin
+  else
+  begin
     //all skill allowed
-    for i := 0 to SECONDARY_SKILL_QUANTITY - 1 do
-    begin
-      AOptions.AllowedSkills.Add(FMapEnv.lm.SkillNidToString(i));
-    end;
+    //leave default
   end;
 end;
 
