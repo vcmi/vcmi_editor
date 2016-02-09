@@ -3053,7 +3053,7 @@ object fMain: TfMain
   object OpenMapDialog: TOpenDialog
     Title = 'Open existing map'
     DefaultExt = '.json'
-    Filter = 'VCMI Maps|*.zip|H3 Maps|*.h3m'
+    Filter = 'VCMI Maps (temp)|*.zip|H3 Maps|*.h3m|VCMI Maps|*.vmap'
     FilterIndex = 0
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 440
@@ -3062,7 +3062,7 @@ object fMain: TfMain
   object SaveMapAsDialog: TSaveDialog
     Title = 'Select file to save map to'
     DefaultExt = '.json'
-    Filter = 'VCMI maps|*.zip'
+    Filter = 'VCMI maps|*.vmap'
     FilterIndex = 0
     left = 440
     top = 392

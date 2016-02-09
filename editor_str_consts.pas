@@ -7,6 +7,7 @@ interface
 const
   FORMAT_H3M_EXT = '.H3M';
   FORMAT_ZIP_EXT = '.ZIP';
+  FORMAT_VCMI_EXT = '.VMAP';
 
 resourcestring
   rsDefaultMapName = 'Untitled';

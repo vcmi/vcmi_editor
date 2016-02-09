@@ -1058,7 +1058,7 @@ begin
              cstm := stm;
           end;
         end;
-      FORMAT_ZIP_EXT:
+      FORMAT_ZIP_EXT,FORMAT_VCMI_EXT:
       begin
          reader := TMapReaderZIP.Create(FEnv);
          cstm := stm;
@@ -1784,7 +1784,7 @@ begin
 
   try
    case file_ext of
-    FORMAT_ZIP_EXT:
+    FORMAT_VCMI_EXT:
     begin
        writer := TMapWriterZIP.Create(FEnv);
     end
