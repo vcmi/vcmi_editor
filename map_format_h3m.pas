@@ -2039,6 +2039,7 @@ begin
     FMap.DefeatString := FMapEnv.i18n.LossTexts.Value[0,SizeUInt(LossConditionType)+1];
 
     special_defeat := FMap.TriggeredEvents.Add;
+    special_defeat.Identifier:='specialDefeat';
     special_defeat.Effect.&type:='defeat';
     special_defeat.Effect.MessageToSend := FMapEnv.i18n.GeneralTexts[0,5];
 
