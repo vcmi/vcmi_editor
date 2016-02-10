@@ -248,8 +248,8 @@ type
 
   TFactionInfos = class (TFactionInfoCollection)
   public
-    procedure FillWithAllIds(AList: TStrings);
-    procedure FillWithTownIds(AList: TStrings);
+    procedure FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
+    procedure FillWithTownIds(AList: TStrings; AIncludeMods: Boolean);
   end;
 
 
@@ -1085,7 +1085,7 @@ end;
 
 { TFactionInfos }
 
-procedure TFactionInfos.FillWithAllIds(AList: TStrings);
+procedure TFactionInfos.FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
 var
   faction: TFactionInfo;
   idx: SizeInt;
@@ -1094,11 +1094,14 @@ begin
   for idx := 0 to Count - 1 do
   begin
     faction := Items[idx];
-    AList.AddObject(faction.Identifier, faction);
+    if AIncludeMods or (ExtractModID(faction.Identifier) = '') then
+    begin
+      AList.AddObject(faction.Identifier, faction);
+    end;
   end;
 end;
 
-procedure TFactionInfos.FillWithTownIds(AList: TStrings);
+procedure TFactionInfos.FillWithTownIds(AList: TStrings; AIncludeMods: Boolean);
 var
   faction: TFactionInfo;
   idx: SizeInt;

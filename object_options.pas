@@ -1148,7 +1148,7 @@ constructor TBaseRandomDwellingOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FAllowedFactions := TIdentifierSet.Create(AObject);
-  RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions);
+  RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions, False);
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;

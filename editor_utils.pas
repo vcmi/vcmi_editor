@@ -41,6 +41,8 @@ type
 
   //TIdToNameMap = specialize TMap<TCustomID,AnsiString,TCustomIDCompare>;
 
+  function ExtractModID(AIdentifier:AnsiString): AnsiString;
+
   procedure LeToNInPlase(var Val:Int32); inline;
 
   function CrStrList: TStringList;
@@ -60,6 +62,21 @@ implementation
 
 uses
   FileUtil;
+
+function ExtractModID(AIdentifier:AnsiString): AnsiString;
+var
+  colon_pos: SizeInt;
+begin
+  if(AIdentifier = '') then
+    exit('');
+
+  colon_pos := pos(':',AIdentifier);
+
+  if colon_pos <= 0 then
+    exit('');//object is from core
+
+  Result := copy(AIdentifier, 1, colon_pos-1);
+end;
 
 procedure LeToNInPlase(var Val:Int32); inline;
 begin

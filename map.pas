@@ -2066,22 +2066,6 @@ begin
 end;
 
 procedure TVCMIMap.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
-
-  function ExtractModID(AIdentifier:AnsiString): AnsiString;
-  var
-    colon_pos: SizeInt;
-  begin
-    if(AIdentifier = '') then
-      exit('');
-
-    colon_pos := pos(':',AIdentifier);
-
-    if colon_pos <= 0 then
-      exit('');//object is from core
-
-    Result := copy(AIdentifier, 1, colon_pos-1);
-  end;
-
 var
   mod_id: AnsiString;
 begin
