@@ -3053,7 +3053,7 @@ object fMain: TfMain
   object OpenMapDialog: TOpenDialog
     Title = 'Open existing map'
     DefaultExt = '.json'
-    Filter = 'VCMI Maps (temp)|*.zip|H3 Maps|*.h3m|VCMI Maps|*.vmap'
+    Filter = 'VCMI Maps|*.vmap|H3 Maps|*.h3m'
     FilterIndex = 0
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 440

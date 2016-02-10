@@ -1058,7 +1058,7 @@ begin
              cstm := stm;
           end;
         end;
-      FORMAT_ZIP_EXT,FORMAT_VCMI_EXT:
+      FORMAT_VCMI_EXT:
       begin
          reader := TMapReaderZIP.Create(FEnv);
          cstm := stm;
