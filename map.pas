@@ -656,7 +656,7 @@ type
     property Description:TLocalizedString read FDescription write SetDescription; //+
 
     property Difficulty: TDifficulty read FDifficulty write SetDifficulty nodefault; //?
-    property LevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
+    property HeroLevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
 
     property Players: TPlayerInfos read FPlayers;
     property Teams:TTeamSettings read FTeams;

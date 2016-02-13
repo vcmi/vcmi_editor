@@ -99,7 +99,7 @@ begin
   //todo: save
 
   FMap.Difficulty := TDifficulty(edDifficulty.ItemIndex);
-  FMap.LevelLimit:=edLevelLimit.Value;
+  FMap.HeroLevelLimit:=edLevelLimit.Value;
 
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
@@ -161,7 +161,7 @@ var
 begin
 
   edDifficulty.ItemIndex := Integer(FMap.Difficulty);
-  edLevelLimit.Value := FMap.LevelLimit;
+  edLevelLimit.Value := FMap.HeroLevelLimit;
 
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;

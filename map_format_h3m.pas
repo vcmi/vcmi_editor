@@ -432,10 +432,10 @@ begin
 
       if IsAtLeastAB() then
       begin
-        Result.LevelLimit := ReadByte;
+        Result.HeroLevelLimit := ReadByte;
       end else
       begin
-        Result.LevelLimit := 0;
+        Result.HeroLevelLimit := 0;
       end;
     end;
 
