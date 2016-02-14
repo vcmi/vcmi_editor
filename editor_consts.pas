@@ -228,7 +228,9 @@ const
 
   ARTIFACT_SLOT_COUNT = 19;
 
-
+const
+  MAP_FORMAT_MAJOR = 1;
+  MAP_FORMAT_MINOR = 0;
 
 implementation
 

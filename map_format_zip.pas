@@ -31,7 +31,8 @@ interface
 
 uses
   Classes, SysUtils, fgl, contnrs, editor_types, map, map_format, terrain,
-  vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager, map_format_json, zipper;
+  vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager, map_format_json,
+  editor_consts, zipper;
 
 type
 
@@ -71,7 +72,7 @@ type
     procedure WriteObjects(AMap: TVCMIMap);
     procedure WriteTerrain(AMap: TVCMIMap);
 
-    procedure AddArchiveEntry(AData: TJSONData; AFilename: AnsiString);
+    procedure AddArchiveEntry(var AData: TJSONData; AFilename: AnsiString);
   public
     constructor Create(AMapEnv: TMapEnvironment); override;
     destructor Destroy; override;
@@ -249,33 +250,40 @@ end;
 { TMapWriterZIP }
 
 procedure TMapWriterZIP.WriteHeader(AMap: TVCMIMap);
+var
+  header_data: TJSONData;
 begin
-  AddArchiveEntry( FStreamer.ObjectToJsonEx(AMap), HEADER_FILENAME);
+  header_data := FStreamer.ObjectToJsonEx(AMap);
+  (header_data as TJSONObject).Integers['versionMajor'] := MAP_FORMAT_MAJOR;
+  (header_data as TJSONObject).Integers['versionMinor'] := MAP_FORMAT_MINOR;
+  AddArchiveEntry( header_data, HEADER_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteObjects(AMap: TVCMIMap);
+var
+  objects_data: TJSONData;
 begin
-  AddArchiveEntry(FStreamer.StreamCollection(AMap.Objects),OBJECTS_FILENAME);
+  objects_data :=  FStreamer.StreamCollection(AMap.Objects);
+  AddArchiveEntry(objects_data,OBJECTS_FILENAME);
 end;
 
 procedure TMapWriterZIP.WriteTerrain(AMap: TVCMIMap);
 var
   i: Integer;
-
-  buffer: TJSONArray;
+  buffer: TJSONData;
 begin
   for i := 0 to AMap.MapLevels.Count - 1 do
   begin
     buffer := CreateJSONArray([]);
 
-    StreamTilesLevel(buffer, AMap, i);
+    StreamTilesLevel(TJSONArray(buffer), AMap, i);
 
     AddArchiveEntry(buffer, AMap.MapLevels[i].Identifier + '_terrain.json');
   end;
 end;
 
-procedure TMapWriterZIP.AddArchiveEntry(AData: TJSONData; AFilename: AnsiString
-  );
+procedure TMapWriterZIP.AddArchiveEntry(var AData: TJSONData;
+  AFilename: AnsiString);
 var
   json_text: TJSONStringType;
   Stream: TStringStream;
