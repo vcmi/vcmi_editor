@@ -777,7 +777,11 @@ var
   O : TJSONObject;
   A: TJSONArray;
 begin
-  if (JSON.JSONType = jtObject) and (ACollection is INamedCollection) then
+  if (json.JSONType = jtNull) then
+  begin
+    ACollection.Clear;
+  end
+  else if (JSON.JSONType = jtObject) and (ACollection is INamedCollection) then
   begin
     ACollection.Clear;
 
