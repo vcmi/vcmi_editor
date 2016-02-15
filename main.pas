@@ -328,6 +328,12 @@ type
 
     procedure MapChanded;
 
+    procedure DoSetMapLevelIndex(ANewIndex: Integer);
+
+    procedure DoMapLevelWheelScroll(Shift: TShiftState; WheelDelta: Integer);
+
+    procedure DoMapViewWheelScroll(sb: TScrollBar;Shift: TShiftState; WheelDelta: Integer;MousePos: TPoint);
+
     procedure PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
 
     procedure RenderCursor;
@@ -1096,6 +1102,53 @@ begin
   SetupLevelSelection;
 end;
 
+procedure TfMain.DoSetMapLevelIndex(ANewIndex: Integer);
+begin
+  FMap.CurrentLevelIndex := ANewIndex;
+  FSelectedObject := nil;
+  InvalidateMapDimensions;
+  InvalidateMapContent;
+end;
+
+procedure TfMain.DoMapLevelWheelScroll(Shift: TShiftState; WheelDelta: Integer);
+var
+  direction : Integer;
+
+  old_level, new_level: integer;
+begin
+  direction:= - Sign(WheelDelta);
+
+  old_level := FMap.CurrentLevelIndex;
+
+  new_level := old_level + direction;
+
+  if (new_level >=0) and (new_level < FMap.MapLevels.Count) then
+  begin
+    DoSetMapLevelIndex(new_level);
+  end;
+end;
+
+procedure TfMain.DoMapViewWheelScroll(sb: TScrollBar; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint);
+begin
+  sb.Position := sb.Position - Sign(WheelDelta) * 3;
+
+  sb.Position := Min(sb.Max-sb.PageSize+1,sb.Position);
+
+  if ssShift in Shift then
+  begin
+    FMapHPos := sb.Position;
+  end
+  else begin
+    FMapVPos := sb.Position;
+  end;
+
+  SetMapViewMouse(MousePos.x,MousePos.Y);
+
+  InvalidateMapAxis;
+
+end;
+
 procedure TfMain.MapViewClick(Sender: TObject);
 begin
   //FActiveBrush.TileClicked(FMouseTileX, FMouseTileY);
@@ -1276,35 +1329,26 @@ end;
 
 procedure TfMain.MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-var
-  sb: TScrollBar;
 begin
-  //
-  if ssShift in Shift then
+  if [ssShift, ssCtrl] * Shift = [ssShift] then
   begin
-    sb := hScrollBar;
+    DoMapViewWheelScroll(hScrollBar, Shift, WheelDelta, MousePos);
+    Handled := True;
   end
-  else begin
-    sb := vScrollBar;
+  else if [ssShift, ssCtrl] * Shift = [] then
+  begin
+    DoMapViewWheelScroll(vScrollBar, Shift, WheelDelta, MousePos);
+    Handled := True;
+  end
+  else if [ssShift, ssCtrl] * Shift = [ssCtrl] then
+  begin
+    DoMapLevelWheelScroll(Shift, WheelDelta);
+  end
+  else
+  begin
+    Handled := false;
   end;
 
-  sb.Position := sb.Position - Sign(WheelDelta) * 3;
-
-  sb.Position := Min(sb.Max-sb.PageSize+1,sb.Position);
-
-  if ssShift in Shift then
-  begin
-    FMapHPos := sb.Position;
-  end
-  else begin
-    FMapVPos := sb.Position;
-  end;
-
-  SetMapViewMouse(MousePos.x,MousePos.Y);
-
-  InvalidateMapAxis;
-
-  Handled := True;
 end;
 
 procedure TfMain.MapViewPaint(Sender: TObject);
@@ -1505,11 +1549,7 @@ begin
     if mc=m then
     begin
 
-      FMap.CurrentLevelIndex := M.Tag;
-      FSelectedObject := nil;
-      InvalidateMapDimensions;
-      InvalidateMapContent;
-
+      DoSetMapLevelIndex(M.Tag);
       mc.Checked := True;
     end
     else begin
