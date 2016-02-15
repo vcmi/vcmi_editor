@@ -99,6 +99,8 @@ type
     procedure SetDisplayName(const Value: string); override;
   public
     property Identifier: AnsiString read FIdentifier write SetIdentifier;
+
+    class function UseMeta: boolean; virtual;
   end;
 
   TNamedCollectionItemClass = class of TNamedCollectionItem;
@@ -459,6 +461,11 @@ end;
 procedure TNamedCollectionItem.SetDisplayName(const Value: string);
 begin
 //do nothing here
+end;
+
+class function TNamedCollectionItem.UseMeta: boolean;
+begin
+  Result := false;
 end;
 
 { TGCollection }

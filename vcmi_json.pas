@@ -725,13 +725,35 @@ procedure TVCMIJSONDestreamer.CollectionObjCallback(const AName: TJSONStringType
 var
   ACollection: THashedCollection;
   new_item: TNamedCollectionItem;
+  meta: string;
 begin
   ACollection:=THashedCollection(Data);
 
   if item.JSONType <> jtNull then
   begin
     new_item := TNamedCollectionItem(ACollection.Add);
-    new_item.Identifier := AName;
+
+    if new_item.UseMeta and (item is TVCMIJsonObject) then
+    begin
+      meta := TVCMIJsonObject(Item).Meta;
+    end
+    else if new_item.UseMeta and (item is TVCMIJsonArray) then
+    begin
+      meta := TVCMIJsonObject(Item).Meta;
+    end
+    else
+    begin
+       new_item.Identifier := AName;
+    end;
+
+    if meta <> '' then
+    begin
+      new_item.Identifier :=  Meta + '.' + AName;
+    end
+    else
+    begin
+      new_item.Identifier := AName;
+    end;
 
     DestreamCollectionItem(ACollection, Item, new_item);
   end;

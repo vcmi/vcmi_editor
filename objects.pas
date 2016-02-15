@@ -120,6 +120,8 @@ type
 
     property ObjType: TObjType read FObjType;
     property ObjSubType: TObjSubType read FObjSubtype;
+
+    class function UseMeta: boolean; override;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -156,6 +158,8 @@ type
     destructor Destroy; override;
 
     property ObjType: TObjType read FObjType;
+
+    class function UseMeta: boolean; override;
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
     property Templates:TObjTemplates read FTemplates;
@@ -184,6 +188,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    class function UseMeta: boolean; override;
   published
     property Index: TCustomID read FNid write FNid default ID_INVALID;
     property Types:TObjSubTypes read FSubTypes;
@@ -367,6 +373,11 @@ begin
   inherited Destroy;
 end;
 
+class function TObjType.UseMeta: boolean;
+begin
+  Result:=true;
+end;
+
 { TObjSubType }
 
 function TObjSubType.GetIndexAsID: TCustomID;
@@ -392,6 +403,11 @@ destructor TObjSubType.Destroy;
 begin
   FTemplates.Free;
   inherited Destroy;
+end;
+
+class function TObjSubType.UseMeta: boolean;
+begin
+  Result:=true;
 end;
 
 { TObjTemplate }
@@ -459,6 +475,11 @@ begin
   FMask.Free;
   FVisitableFrom.Free;
   inherited Destroy;
+end;
+
+class function TObjTemplate.UseMeta: boolean;
+begin
+  Result:=True;
 end;
 
 { TLegacyObjTemplate }
