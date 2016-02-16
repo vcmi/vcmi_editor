@@ -1654,7 +1654,6 @@ var
   b: Byte;
   typ:TScholarBonus;
 begin
-
   b := FSrc.ReadByte;
 
   if b=$FF then

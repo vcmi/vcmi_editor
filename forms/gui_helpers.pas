@@ -292,11 +292,6 @@ begin
   text := '';
 
   ItemIndex := FillItems(Items,AFullList, ASelected);
-
-  if ItemIndex >=0 then
-  begin
-    Text := (Items.Objects[ItemIndex] as TBaseInfo).Name;
-  end;
 end;
 
 procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
