@@ -100,9 +100,13 @@ type
   TCreatureSet = class (TCreatureInstInfoCollection)
   private
     FOwner: IMapObject;
+    FTightFormation: Boolean;
+    procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AOwner: IMapObject);
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+
+    property TightFormation:Boolean read FTightFormation write SetTightFormation;
   end;
 
   {$push}
@@ -358,7 +362,7 @@ type
     FSex: THeroSex;
     FSecondarySkills: THeroSecondarySkills;
     FSpellBook: TStrings;
-    FTightFormation: Boolean;
+    function GetTightFormation: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
@@ -389,7 +393,7 @@ type
     property &type: AnsiString read FId write SetId;
 
     property Army: TCreatureSet read FArmy;
-    property TightFormation: Boolean read FTightFormation write SetTightFormation;
+    property TightFormation: Boolean read GetTightFormation write SetTightFormation;
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
 
     property Artifacts: THeroArtifacts read FArtifacts;
@@ -554,7 +558,7 @@ type
     FArmy: TCreatureSet;
     FName: TLocalizedString;
     FSpells: TLogicalIDCondition;
-    FTightFormation: Boolean;
+    function GetTightFormation: Boolean;
     procedure SetName(AValue: TLocalizedString);
     procedure SetTightFormation(AValue: Boolean);
   public
@@ -563,7 +567,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   published
     property Army: TCreatureSet read FArmy;
-    property TightFormation: Boolean read FTightFormation write SetTightFormation;
+    property TightFormation: Boolean read GetTightFormation write SetTightFormation;
     property Name: TLocalizedString read FName write SetName;
     property Spells: TLogicalIDCondition read FSpells;
     property Buildings: TLogicalIDCondition read FBuildings;
@@ -1238,6 +1242,12 @@ end;
 
 { TCreatureSet }
 
+procedure TCreatureSet.SetTightFormation(AValue: Boolean);
+begin
+  if FTightFormation=AValue then Exit;
+  FTightFormation:=AValue;
+end;
+
 constructor TCreatureSet.Create(AOwner: IMapObject);
 begin
   inherited Create;
@@ -1425,10 +1435,14 @@ begin
   FName := AValue;
 end;
 
+function TTownOptions.GetTightFormation: Boolean;
+begin
+  Result := FArmy.TightFormation;
+end;
+
 procedure TTownOptions.SetTightFormation(AValue: Boolean);
 begin
-  if FTightFormation=AValue then Exit;
-  FTightFormation:=AValue;
+  FArmy.TightFormation := AValue;
 end;
 
 { TResourceOptions }
@@ -1710,6 +1724,11 @@ begin
   Result := not FPrimarySkills.IsDefault;
 end;
 
+function THeroOptions.GetTightFormation: Boolean;
+begin
+  Result := FArmy.TightFormation;
+end;
+
 function THeroOptions.IsSecondarySkillsStored: Boolean;
 begin
   Result := FSecondarySkills.Count > 0;
@@ -1748,7 +1767,7 @@ end;
 
 procedure THeroOptions.SetTightFormation(AValue: Boolean);
 begin
-  FTightFormation:=AValue;
+  FArmy.TightFormation:=AValue;
 end;
 
 constructor THeroOptions.Create(AObject: IMapObject);

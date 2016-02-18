@@ -14,6 +14,7 @@ type
   { TCreatureSetFrame }
 
   TCreatureSetFrame = class(TBaseOptionsFrame)
+    edTightFormation: TCheckBox;
     edRemovableUnits: TCheckBox;
     edCustomize: TCheckBox;
     edCell1: TComboBox;
@@ -155,6 +156,11 @@ begin
     end;
   end;
 
+  if edTightFormation.Visible then
+  begin
+    edTightFormation.Checked:=ASrc.TightFormation
+  end;
+
   UpdateControls;
 end;
 
@@ -225,6 +231,11 @@ begin
   if Assigned(FGarrisonOptions) then
   begin
     FGarrisonOptions.RemovableUnits:=edRemovableUnits.Checked;
+  end;
+
+  if edTightFormation.Visible then
+  begin
+    FOptions.TightFormation := edTightFormation.Checked;
   end;
 
   FOptions.Clear;
@@ -302,12 +313,14 @@ procedure TCreatureSetFrame.VisitHero(AOptions: THeroOptions);
 begin
   inherited VisitHero(AOptions);
   Load(AOptions.Army);
+  edTightFormation.Visible := true;
 end;
 
 procedure TCreatureSetFrame.VisitTown(AOptions: TTownOptions);
 begin
   inherited VisitTown(AOptions);
   Load(AOptions.Army);
+  edTightFormation.Visible := true;
 end;
 
 end.
