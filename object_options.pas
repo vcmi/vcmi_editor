@@ -344,7 +344,7 @@ type
 
   { THeroOptions }
 
-  THeroOptions = class(TOwnedObjectOptions)
+  THeroOptions = class(TOwnedObjectOptions, IEditableHeroInfo)
   private
     FArmy: TCreatureSet;
     FArtifacts: THeroArtifacts;
@@ -362,13 +362,10 @@ type
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
     procedure SetId(AValue: AnsiString);
-    procedure SetName(AValue: TLocalizedString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetPortrait(AValue: AnsiString);
-    procedure SetSex(AValue: THeroSex);
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
@@ -377,19 +374,31 @@ type
 
     procedure AfterSerialize(Sender: TObject; AData: TJSONData); override;
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
+  public//IHeroInfo
+    function GetBiography: TLocalizedString;
+    procedure SetBiography(const AValue: TLocalizedString);
+
+    function GetName: TLocalizedString;
+    procedure SetName(const AValue: TLocalizedString);
+
+    function GetSex: THeroSex;
+    procedure SetSex(const AValue: THeroSex);
+
+    function GetPrimarySkills: THeroPrimarySkills;
   published
     property &type: AnsiString read FId write SetId;
-    property Portrait: AnsiString read FPortrait write SetPortrait;
+
     property Army: TCreatureSet read FArmy;
+    property TightFormation: Boolean read FTightFormation write SetTightFormation;
+    property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
+
     property Artifacts: THeroArtifacts read FArtifacts;
+    property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read FExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Biography: TLocalizedString read FBiography write SetBiography;
+    property Portrait: AnsiString read FPortrait write SetPortrait;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
-    property TightFormation: Boolean read FTightFormation write SetTightFormation;
-
-    property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
   public //manual streaming
      property Sex: THeroSex read FSex write SetSex;
@@ -1529,8 +1538,6 @@ begin
 end;
 
 constructor TWitchHutOptions.Create(AObject: IMapObject);
-var
-  i: Integer;
 begin
   inherited Create(AObject);
   FAllowedSkills := TLogicalIDCondition.Create(AObject);
@@ -1666,13 +1673,33 @@ begin
   Sex:=LoadHeroSex(AData);
 end;
 
+function THeroOptions.GetBiography: TLocalizedString;
+begin
+  Result := FBiography;
+end;
+
+function THeroOptions.GetSex: THeroSex;
+begin
+  Result := FSex;
+end;
+
+function THeroOptions.GetName: TLocalizedString;
+begin
+  Result := FName;
+end;
+
+function THeroOptions.GetPrimarySkills: THeroPrimarySkills;
+begin
+  Result := FPrimarySkills;
+end;
+
 procedure THeroOptions.SetExperience(AValue: UInt64);
 begin
   if FExperience=AValue then Exit;
   FExperience:=AValue;
 end;
 
-procedure THeroOptions.SetBiography(AValue: TLocalizedString);
+procedure THeroOptions.SetBiography(const AValue: TLocalizedString);
 begin
   if FBiography=AValue then Exit;
   FBiography:=AValue;
@@ -1699,33 +1726,28 @@ begin
   FId:=AValue;
 end;
 
-procedure THeroOptions.SetName(AValue: TLocalizedString);
+procedure THeroOptions.SetName(const AValue: TLocalizedString);
 begin
-  if FName=AValue then Exit;
   FName:=AValue;
 end;
 
 procedure THeroOptions.SetPatrolRadius(AValue: Integer);
 begin
-  if FPatrolRadius=AValue then Exit;
   FPatrolRadius:=AValue;
 end;
 
 procedure THeroOptions.SetPortrait(AValue: AnsiString);
 begin
-  if FPortrait=AValue then Exit;
   FPortrait:=AValue;
 end;
 
-procedure THeroOptions.SetSex(AValue: THeroSex);
+procedure THeroOptions.SetSex(const AValue: THeroSex);
 begin
-  if FSex=AValue then Exit;
   FSex:=AValue;
 end;
 
 procedure THeroOptions.SetTightFormation(AValue: Boolean);
 begin
-  if FTightFormation=AValue then Exit;
   FTightFormation:=AValue;
 end;
 

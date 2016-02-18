@@ -49,21 +49,12 @@ type
   private
     FOptions: THeroOptions;
 
-    FCurrentDefinition: IHeroInfo; //map specific
-
     procedure Load();
 
     function GetHeroClass():AnsiString;
     function GetHeroClassName():TLocalizedString;
 
   protected
-    function GetDefaultBiography: TLocalizedString; override;
-    function GetDefaultName: TLocalizedString; override;
-    function GetDefaultSex: THeroSex; override;
-
-    procedure VisitNormalHero(AOptions: THeroOptions);override;
-    procedure VisitRandomHero(AOptions: THeroOptions);override;
-    procedure VisitPrison(AOptions: THeroOptions);override;
 
     procedure UpdateControls(); override;
   public
@@ -138,6 +129,7 @@ begin
     edType.ItemIndex := -1;
 
     class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
+
     FClassSkills.Assign(class_info.PrimarySkills);
 
     ListsManager.FillWithHeroesOfClass(edType.Items, class_info.Identifier);
@@ -188,7 +180,7 @@ var
 
   definition : THeroDefinition;
 begin
-  FCurrentHero := nil;
+  FHeroTypeDefaults := nil;
 
   editor := Sender as TCustomComboBox;
 
@@ -196,15 +188,17 @@ begin
   definition := nil;
   if Assigned(info) then
   begin
-    FCurrentHero := info as THeroInfo;
+    FHeroTypeDefaults := info as THeroInfo;
 
     definition := Map.PredefinedHeroes.FindItem(info.Identifier);
-    FCurrentDefinition := definition;
+
   end;
+
+  FHeroMapDefaults := definition;
 
   if Assigned(definition) then
   begin
-    FMapSkills.Assign(definition);
+    FMapSkills.Assign(definition.PrimarySkills);
   end
   else begin
     FMapSkills.Clear;
@@ -232,10 +226,7 @@ begin
     cbPortrait.Checked:=FOptions.Portrait <> '';
     cbExperience.Checked := FOptions.Experience <> 0;
 
-    cbName.Checked:=FOptions.Name <> '';
     cbSex.Checked:=FOptions.Sex <> THeroSex.default;
-    cbBiography.Checked:=FOptions.Biography <> '';
-    cbSkills.Checked := not FOptions.PrimarySkills.IsDefault;
 
     edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
 
@@ -257,13 +248,6 @@ begin
     begin
       edExperience.Text := '0';
     end;
-
-    if cbName.Checked then
-    begin
-      FCustomName:=FOptions.Name;
-    end;
-
-    cbNameChange(cbName);
 
     case FOptions.PatrolRadius of
       -1: edPatrol.ItemIndex := 0 ;
@@ -316,88 +300,17 @@ begin
   Result := ListsManager.HeroClasses[hero_class].Name;
 end;
 
-function THeroOptionsFrame.GetDefaultBiography: TLocalizedString;
-begin
-  Result := '';
-
-  if Assigned(FCurrentDefinition) then
-  begin
-    Result :=FCurrentDefinition.GetBiography;
-  end;
-
-  if Result = '' then
-  begin
-    Result := inherited GetDefaultBiography;
-  end;
-end;
-
-function THeroOptionsFrame.GetDefaultName: TLocalizedString;
-begin
-  Result := '';
-
-  if Assigned(FCurrentDefinition) then
-  begin
-    Result :=FCurrentDefinition.GetName;
-  end;
-
-  if Result = '' then
-  begin
-    Result := inherited GetDefaultName;
-  end
-end;
-
-function THeroOptionsFrame.GetDefaultSex: THeroSex;
-begin
-  Result := THeroSex.default;
-
-  if Assigned(FCurrentDefinition) then
-  begin
-    Result :=FCurrentDefinition.GetSex;
-  end;
-
-  if Result = THeroSex.default then
-  begin
-    Result := inherited GetDefaultSex;
-  end
-end;
-
 procedure THeroOptionsFrame.UpdateControls;
 begin
   inherited;
-end;
-
-procedure THeroOptionsFrame.VisitNormalHero(AOptions: THeroOptions);
-begin
-  edHeroClass.Enabled:=False;
-  Load();
-end;
-
-procedure THeroOptionsFrame.VisitRandomHero(AOptions: THeroOptions);
-begin
-  lbHeroClass.Visible:=False;
-  edHeroClass.Visible:=False;
-  Placeholder1.Visible:=False;
-
-  lbType.Visible:=False;
-  edType.Visible:=False;
-  Placeholder2.Visible:=False;
-
-  Load();
-end;
-
-procedure THeroOptionsFrame.VisitPrison(AOptions: THeroOptions);
-begin
-  lbOwner.Visible:=False;
-  edOwner.Visible := False;
-  Placeholder3.Visible:=False;
-
-  Load();
 end;
 
 procedure THeroOptionsFrame.VisitHero(AOptions: THeroOptions);
 begin
   FOptions := AOptions;
   inherited VisitHero(AOptions); //continue dispatch
+
+  Load();
 end;
 
 procedure THeroOptionsFrame.Commit;
@@ -422,31 +335,6 @@ begin
   end
   else begin
     FOptions.Experience := 0;
-  end;
-
-  if cbName.Checked then
-  begin
-    FOptions.Name := edName.Text;
-  end
-  else begin
-    FOptions.Name := '';
-  end;
-
-  if cbSex.Checked then
-  begin
-    FOptions.Sex := THeroSex(Integer(FCustomFemale));
-  end
-  else begin
-    FOptions.Sex := THeroSex.default;
-  end;
-
-  if cbBiography.Checked then
-  begin
-    FOptions.Biography:=edBiography.Text;
-  end
-  else
-  begin
-    FOptions.Biography:='';
   end;
 
   if edPatrol.ItemIndex >=0 then

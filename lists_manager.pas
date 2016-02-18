@@ -31,6 +31,8 @@ uses
 
 type
 
+  TListsManager = class;
+
   {$push}
   {$m+}
 
@@ -326,7 +328,7 @@ type
     FName: TCreatureName;
   protected
     function GetName: TLocalizedString; override;
-    procedure SetName(AValue: TLocalizedString); override;
+    procedure SetName(const AValue: TLocalizedString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -367,7 +369,7 @@ type
     procedure SetType(AValue: TArtifactTypes);
   protected
     function GetName: TLocalizedString; override;
-    procedure SetName(AValue: TLocalizedString); override;
+    procedure SetName(const AValue: TLocalizedString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -414,15 +416,18 @@ type
     procedure SetSpecial(AValue: Boolean);
   protected
 
-    procedure SetName(AValue: TLocalizedString); override;
+    procedure SetName(const AValue: TLocalizedString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
     //IHeroInfo
+    function GetBiography: TLocalizedString;
+
     function GetName: TLocalizedString; override;
     function GetSex: THeroSex;
-    function GetBiography: TLocalizedString;
+
+    function GetPrimarySkills: THeroPrimarySkills;
 
   public// ISerializeNotify
     procedure BeforeSerialize(Sender:TObject);
@@ -446,7 +451,10 @@ type
   { THeroInfos }
 
   THeroInfos = class(THeroInfoCollection)
+  private
+    FOwner:TListsManager;
   public
+    constructor Create(AOwner: TListsManager);
     procedure FillWithNotSpecial(AList: TLogicalIDCondition);
   end;
 
@@ -792,6 +800,12 @@ end;
 
 { THeroInfos }
 
+constructor THeroInfos.Create(AOwner: TListsManager);
+begin
+  inherited Create;
+  FOwner := AOwner;
+end;
+
 procedure THeroInfos.FillWithNotSpecial(AList: TLogicalIDCondition);
 var
   obj: THeroInfo;
@@ -826,7 +840,7 @@ begin
   Result:=FTexts.Name;
 end;
 
-procedure THeroInfo.SetName(AValue: TLocalizedString);
+procedure THeroInfo.SetName(const AValue: TLocalizedString);
 begin
   FTexts.Name:=AValue;
 end;
@@ -859,6 +873,21 @@ begin
      Result := THeroSex.female
   else
     Result := THeroSex.male;
+end;
+
+function THeroInfo.GetPrimarySkills: THeroPrimarySkills;
+var
+  c_info: THeroClassInfo;
+begin
+  if FHeroClass = '' then
+  begin
+    Result := nil;
+    raise Exception.Create('No hero class to get attributes from.');
+  end;
+
+  c_info := THeroInfos(Collection).FOwner.HeroClasses[FHeroClass];
+
+  Result := c_info.PrimarySkills;
 end;
 
 function THeroInfo.GetBiography: TLocalizedString;
@@ -960,7 +989,7 @@ begin
   Result:= FTexts.Name;
 end;
 
-procedure TArtifactInfo.SetName(AValue: TLocalizedString);
+procedure TArtifactInfo.SetName(const AValue: TLocalizedString);
 begin
   FTexts.Name:=AValue;
 end;
@@ -1026,7 +1055,7 @@ begin
   Result:=FName.Plural;
 end;
 
-procedure TCreatureInfo.SetName(AValue: TLocalizedString);
+procedure TCreatureInfo.SetName(const AValue: TLocalizedString);
 begin
   FName.Plural := AValue;
 end;
@@ -1199,7 +1228,7 @@ begin
     FArtifactSlotMaps[i] := CrStrList;
   end;
 
-  FHeroInfos := THeroInfos.Create();
+  FHeroInfos := THeroInfos.Create(self);
 
   FSlotIds := TSlotMap.Create;
   FillSlotIds;

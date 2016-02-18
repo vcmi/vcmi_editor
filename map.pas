@@ -465,7 +465,7 @@ type
 
   { THeroDefinition }
 
-  THeroDefinition = class (TNamedCollectionItem, ISerializeNotify, IHeroInfo)
+  THeroDefinition = class (TNamedCollectionItem, ISerializeNotify, IEditableHeroInfo, IHeroInfo)
   private
     FArtifacts: THeroArtifacts;
     FAvailableFor: TPlayers;
@@ -481,11 +481,9 @@ type
     function IsPrimarySkillsStored: Boolean;
     function IsSkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetBiography(AValue: TLocalizedString);
     procedure SetExperience(AValue: UInt64);
-    procedure SetName(AValue: TLocalizedString);
+
     procedure SetPortrait(AValue: TIdentifier);
-    procedure SetSex(AValue: THeroSex);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -495,20 +493,28 @@ type
     procedure BeforeSerialize({%H-}Sender: TObject);
     procedure AfterSerialize(Sender: TObject; AData: TJSONData);
   public//IHeroInfo
-    function GetSex: THeroSex;
     function GetBiography: TLocalizedString;
+    procedure SetBiography(const AValue: TLocalizedString);
     function GetName: TLocalizedString;
-  published
-    property Experience: UInt64 read FExperience write SetExperience default 0;
-    property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
-    property Artifacts: THeroArtifacts read FArtifacts stored IsArtifactsStored;
+    procedure SetName(const AValue: TLocalizedString);
 
+    function GetSex: THeroSex;
+    procedure SetSex(const AValue: THeroSex);
+
+    function GetPrimarySkills: THeroPrimarySkills;
+  published
+    property AvailableFor: TPlayers read FAvailableFor write FAvailableFor default ALL_PLAYERS;
+
+    property Artifacts: THeroArtifacts read FArtifacts stored IsArtifactsStored;
     property Biography: TLocalizedString read FBiography write SetBiography;
-    property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
-    property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+    property Experience: UInt64 read FExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
     property Portrait: TIdentifier read FPortrait write SetPortrait;
-    property AvailableFor: TPlayers read FAvailableFor write FAvailableFor default ALL_PLAYERS;
+    property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+    property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
+    property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
+
+
   public //manual streaming
     property Sex:THeroSex read FSex write SetSex default THeroSex.default;
   end;
@@ -1004,31 +1010,26 @@ end;
 
 procedure THeroDefinition.SetExperience(AValue: UInt64);
 begin
-  if FExperience=AValue then Exit;
   FExperience:=AValue;
 end;
 
-procedure THeroDefinition.SetName(AValue: TLocalizedString);
+procedure THeroDefinition.SetName(const AValue: TLocalizedString);
 begin
-  if FName=AValue then Exit;
   FName:=AValue;
 end;
 
 procedure THeroDefinition.SetPortrait(AValue: TIdentifier);
 begin
-  if FPortrait=AValue then Exit;
   FPortrait:=AValue;
 end;
 
-procedure THeroDefinition.SetSex(AValue: THeroSex);
+procedure THeroDefinition.SetSex(const AValue: THeroSex);
 begin
-  if FSex=AValue then Exit;
   FSex:=AValue;
 end;
 
-procedure THeroDefinition.SetBiography(AValue: TLocalizedString);
+procedure THeroDefinition.SetBiography(const AValue: TLocalizedString);
 begin
-  if FBiography=AValue then Exit;
   FBiography:=AValue;
 end;
 
@@ -1060,6 +1061,11 @@ end;
 function THeroDefinition.GetName: TLocalizedString;
 begin
   Result := FName;
+end;
+
+function THeroDefinition.GetPrimarySkills: THeroPrimarySkills;
+begin
+  Result := FPrimarySkills;
 end;
 
 function THeroDefinition.IsSpellBookStored: Boolean;

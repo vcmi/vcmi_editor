@@ -211,8 +211,15 @@ type
 
   IHeroInfo = interface
     function GetBiography: TLocalizedString;
-    function GetSex: THeroSex;
     function GetName: TLocalizedString;
+    function GetSex: THeroSex;
+    function GetPrimarySkills: THeroPrimarySkills;
+  end;
+
+  IEditableHeroInfo = interface(IHeroInfo)
+    procedure SetBiography(const AValue: TLocalizedString);
+    procedure SetName(const AValue: TLocalizedString);
+    procedure SetSex(const AValue: THeroSex);
   end;
 
   { TBaseIdentifierList }

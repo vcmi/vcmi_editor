@@ -45,7 +45,7 @@ type
     function GetFullID: AnsiString; virtual;
 
     function GetName: TLocalizedString; virtual;
-    procedure SetName(AValue: TLocalizedString); virtual;
+    procedure SetName(const AValue: TLocalizedString); virtual;
   public
     constructor Create(ACollection: TCollection); override;
 
@@ -115,7 +115,7 @@ begin
   Result := FName;
 end;
 
-procedure TBaseInfo.SetName(AValue: TLocalizedString);
+procedure TBaseInfo.SetName(const AValue: TLocalizedString);
 begin
   if FName = AValue then Exit;
   FName := AValue;
