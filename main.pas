@@ -24,7 +24,7 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, GL, OpenGLContext, LCLType, Forms, Controls,
+  Classes, SysUtils, FileUtil, LazFileUtils, GL, OpenGLContext, LCLType, Forms, Controls,
   Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
   Buttons, EditBtn, Map, terrain, editor_types, undo_base, map_actions, objects,
   editor_graphics, minimap, filesystem, filesystem_base, lists_manager,

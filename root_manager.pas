@@ -24,7 +24,7 @@ unit root_manager;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazLogger, gl, glext40, Forms, Controls,
+  Classes, SysUtils,  FileUtil, LazFileUtils, LazLogger, gl, glext40, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, objects,
   editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types,
   locale_manager;

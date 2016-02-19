@@ -24,9 +24,9 @@ unit filesystem;
 interface
 
 uses
-  Classes, SysUtils,FileUtil,
+  Classes, SysUtils, FileUtil, LazFileUtils,
   gmap, gqueue, fgl,
-  lazutf8classes, LazFileUtils,
+  lazutf8classes,
   vcmi_json,
   editor_classes,
   filesystem_base, lod, editor_types, fpjson, zipper, zipper_ex ;
@@ -1448,7 +1448,7 @@ var
 
 begin
   s := GetPrivateConfigPath+GAME_PATH_CONFIG;
-  if FileUtil.FileExistsUTF8(s) then
+  if FileExistsUTF8(s) then
   begin
     FGamePath.LoadFromFile(s);
   end
