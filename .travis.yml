@@ -1,10 +1,10 @@
 language: c
 
 install:
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.4/lazarus_1.4.4-0_amd64.deb
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.4/fpc-src_2.6.4-150228_amd64.deb
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.4.4/fpc_2.6.4-150228_amd64.deb
-    - sudo dpkg -i fpc-src_2.6.4-150228_amd64.deb fpc_2.6.4-150228_amd64.deb lazarus_1.4.4-0_amd64.deb
+    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/lazarus_1.6-0_amd64.deb
+    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/fpc-src_3.0.0-151205_amd64.deb
+    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/fpc_3.0.0-151205_amd64.deb
+    - sudo dpkg -i fpc-src_3.0.0-151205_amd64.deb fpc_3.0.0-151205_amd64.deb lazarus_1.6-0_amd64.deb
 
 script:
     - make
