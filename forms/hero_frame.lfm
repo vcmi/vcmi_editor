@@ -149,6 +149,7 @@ inherited HeroFrame: THeroFrame
     Top = 151
     Width = 419
     NumbersOnly = True
+    OnEditingDone = edExperienceEditingDone
     TabOrder = 4
   end
   object cbExperience: TCheckBox[14]

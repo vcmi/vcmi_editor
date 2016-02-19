@@ -210,16 +210,23 @@ type
   end;
 
   IHeroInfo = interface
+    function GetHeroIdentifier: AnsiString;
+
     function GetBiography: TLocalizedString;
+    function GetExperience: UInt64;
     function GetName: TLocalizedString;
-    function GetSex: THeroSex;
+    function GetPortrait: AnsiString;
     function GetPrimarySkills: THeroPrimarySkills;
+    function GetSex: THeroSex;
   end;
 
   IEditableHeroInfo = interface(IHeroInfo)
     procedure SetBiography(const AValue: TLocalizedString);
+    procedure SetExperience(const AValue: UInt64);
     procedure SetName(const AValue: TLocalizedString);
     procedure SetSex(const AValue: THeroSex);
+
+    //todo: set portrait
   end;
 
   { TBaseIdentifierList }

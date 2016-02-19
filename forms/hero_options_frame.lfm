@@ -8,6 +8,9 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   inherited cbPortrait: TCheckBox
     OnChange = cbPortraitChange
   end
+  inherited edExperience: TEdit
+    OnEditingDone = nil
+  end
   inherited cbExperience: TCheckBox
     OnChange = cbExperienceChange
   end

@@ -223,20 +223,12 @@ end;
 
 procedure THeroOptionsFrame.Load;
 begin
-    cbPortrait.Checked:=FOptions.Portrait <> '';
     cbExperience.Checked := FOptions.Experience <> 0;
-
-    cbSex.Checked:=FOptions.Sex <> THeroSex.default;
 
     edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
 
     edHeroClassChange(edHeroClass); //also loads type
 
-
-    if edOwner.Visible then
-    begin
-      edOwner.ItemIndex := Integer(FOptions.Owner);
-    end;
 
     //TODO: load portrait
 
@@ -322,21 +314,6 @@ begin
     FOptions.&type := edType.SelectedInfo.Identifier;
   end;
 
-  if edOwner.Visible then
-  begin
-    FOptions.Owner := TPlayer(edOwner.ItemIndex);
-  end;
-
-  //todo: save portrait
-
-  if cbExperience.Checked then
-  begin
-    FOptions.Experience := StrToQWordDef(edExperience.Text, 0);
-  end
-  else begin
-    FOptions.Experience := 0;
-  end;
-
   if edPatrol.ItemIndex >=0 then
   begin
     FOptions.PatrolRadius := edPatrol.ItemIndex-1;
@@ -346,14 +323,6 @@ begin
     FOptions.PatrolRadius := StrToIntDef(edPatrol.Text, -1);
   end;
 
-  if cbSkills.Checked then
-  begin
-    FOptions.PrimarySkills.Assign(FCustomSkills);
-  end
-  else
-  begin
-    FOptions.PrimarySkills.Clear;
-  end;
 end;
 
 end.

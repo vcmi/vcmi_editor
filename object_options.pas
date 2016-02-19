@@ -362,11 +362,11 @@ type
     FSex: THeroSex;
     FSecondarySkills: THeroSecondarySkills;
     FSpellBook: TStrings;
+
     function GetTightFormation: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetExperience(AValue: UInt64);
     procedure SetId(AValue: AnsiString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetPortrait(AValue: AnsiString);
@@ -379,11 +379,18 @@ type
     procedure AfterSerialize(Sender: TObject; AData: TJSONData); override;
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
   public//IHeroInfo
+    function GetHeroIdentifier: AnsiString;
+
     function GetBiography: TLocalizedString;
     procedure SetBiography(const AValue: TLocalizedString);
 
+    function GetExperience: UInt64;
+    procedure SetExperience(const AValue: UInt64);
+
     function GetName: TLocalizedString;
     procedure SetName(const AValue: TLocalizedString);
+
+    function GetPortrait: AnsiString;
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -398,9 +405,9 @@ type
 
     property Artifacts: THeroArtifacts read FArtifacts;
     property Biography: TLocalizedString read FBiography write SetBiography;
-    property Experience: UInt64 read FExperience write SetExperience default 0;
+    property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: AnsiString read FPortrait write SetPortrait;
+    property Portrait: AnsiString read GetPortrait write SetPortrait;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
@@ -1687,6 +1694,11 @@ begin
   Sex:=LoadHeroSex(AData);
 end;
 
+function THeroOptions.GetHeroIdentifier: AnsiString;
+begin
+  Result := &type;
+end;
+
 function THeroOptions.GetBiography: TLocalizedString;
 begin
   Result := FBiography;
@@ -1707,15 +1719,13 @@ begin
   Result := FPrimarySkills;
 end;
 
-procedure THeroOptions.SetExperience(AValue: UInt64);
+procedure THeroOptions.SetExperience(const AValue: UInt64);
 begin
-  if FExperience=AValue then Exit;
   FExperience:=AValue;
 end;
 
 procedure THeroOptions.SetBiography(const AValue: TLocalizedString);
 begin
-  if FBiography=AValue then Exit;
   FBiography:=AValue;
 end;
 
@@ -1727,6 +1737,16 @@ end;
 function THeroOptions.GetTightFormation: Boolean;
 begin
   Result := FArmy.TightFormation;
+end;
+
+function THeroOptions.GetExperience: UInt64;
+begin
+  Result := FExperience;
+end;
+
+function THeroOptions.GetPortrait: AnsiString;
+begin
+  Result := FPortrait;
 end;
 
 function THeroOptions.IsSecondarySkillsStored: Boolean;

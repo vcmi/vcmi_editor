@@ -422,9 +422,12 @@ type
     destructor Destroy; override;
 
     //IHeroInfo
-    function GetBiography: TLocalizedString;
+    function GetHeroIdentifier: AnsiString;
 
+    function GetBiography: TLocalizedString;
+    function GetExperience: UInt64;
     function GetName: TLocalizedString; override;
+    function GetPortrait: AnsiString;
     function GetSex: THeroSex;
 
     function GetPrimarySkills: THeroPrimarySkills;
@@ -867,6 +870,16 @@ begin
   inherited Destroy;
 end;
 
+function THeroInfo.GetPortrait: AnsiString;
+begin
+  Result := Identifier;
+end;
+
+function THeroInfo.GetHeroIdentifier: AnsiString;
+begin
+  Result := Identifier;
+end;
+
 function THeroInfo.GetSex: THeroSex;
 begin
   if Female then
@@ -893,6 +906,11 @@ end;
 function THeroInfo.GetBiography: TLocalizedString;
 begin
   Result := FTexts.Biography;
+end;
+
+function THeroInfo.GetExperience: UInt64;
+begin
+  Result := 0;
 end;
 
 procedure THeroInfo.BeforeSerialize(Sender: TObject);

@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, ActnList, map, lists_manager, base_options_frame,
-  hero_frame, hero_definition_frame, hero_spells_frame, hero_artifacts_frame,
+  hero_frame, hero_spells_frame, hero_artifacts_frame,
   hero_skills_frame;
 
 type
@@ -108,7 +108,7 @@ end;
 
 procedure TEditHeroOptions.EditObject(AObject: THeroDefinition);
 begin
-  FEditors.AddFrame(THeroDefinitionFrame, AObject, tsMain);
+  FEditors.AddFrame(THeroFrame, AObject, tsMain);
   FEditors.AddFrame(THeroSkillsFrame, AObject, tsSecondary);
   FEditors.AddFrame(THeroArtifactsFrame, AObject, tsArtifacts);
   FEditors.AddFrame(THeroSpellsFrame, AObject, tsSpells);

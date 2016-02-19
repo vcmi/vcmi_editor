@@ -83,6 +83,7 @@ type
     procedure cbSexChange(Sender: TObject);
     procedure cbSkillsChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
+    procedure edExperienceEditingDone(Sender: TObject);
     procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
@@ -103,14 +104,18 @@ type
     FCustomName: TLocalizedString;
     FCustomFemale: Boolean;
     FCustomBiography: TLocalizedString;
+    FCustomPortrait: AnsiString;
+    FCustomExperience: UInt64;
 
     FCustomSkills, FDefaultSkills, FClassSkills, FMapSkills:  THeroPrimarySkills;
 
     FHeroTypeDefaults, FHeroMapDefaults: IHeroInfo;
 
     function GetDefaultBiography: TLocalizedString;
+    function GetDefaultExperience: UInt64;
     function GetDefaultName: TLocalizedString;
     function GetDefaultSex: THeroSex;
+    function GetDefaultPortrait: AnsiString;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
@@ -170,6 +175,13 @@ begin
     FCustomBiography := GetDefaultBiography();
   cbBiographyChange(cbBiography);
 
+  cbExperience.Checked := FOptions.GetExperience() <> 0;
+  if cbExperience.Checked then
+    FCustomExperience := FOptions.GetExperience()
+  else
+    FCustomExperience := GetDefaultExperience();
+  cbExperienceChange(cbExperience);
+
   cbName.Checked:=FOptions.GetName <> '';
   if cbName.Checked then
     FCustomName := FOptions.GetName()
@@ -177,6 +189,12 @@ begin
     FCustomName:=GetDefaultName();
   cbNameChange(cbName);
 
+  cbPortrait.Checked:=FOptions.GetPortrait <> '';
+  if cbPortrait.Checked then
+    FCustomPortrait := FOptions.GetPortrait()
+  else
+    FCustomName:=GetDefaultPortrait();
+  cbPortraitChange(cbPortrait);
 
   cbSkills.Checked:=not FOptions.GetPrimarySkills.IsDefault;
   if cbSkills.Checked then
@@ -210,6 +228,14 @@ begin
     FOptions.SetBiography('');
   end;
 
+  if cbExperience.Checked then
+  begin
+    FOptions.SetExperience(StrToInt64Def(edExperience.Text, 0));
+  end
+  else
+  begin
+    FOptions.SetExperience(0);
+  end;
 
   if cbName.Checked then
   begin
@@ -264,7 +290,10 @@ end;
 
 procedure THeroFrame.CommitHeroOptions;
 begin
-
+  if edOwner.Visible then
+  begin
+    FHeroOptions.Owner := TPlayer(edOwner.ItemIndex);
+  end;
 end;
 
 procedure THeroFrame.CommitHeroDefinition;
@@ -280,6 +309,16 @@ begin
     Result := FHeroTypeDefaults.GetBiography()
   else
     Result := '';
+end;
+
+function THeroFrame.GetDefaultExperience: UInt64;
+begin
+  if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetExperience > 0) then
+     FHeroMapDefaults.GetExperience()
+  else if Assigned(FHeroTypeDefaults) then
+    Result := FHeroTypeDefaults.GetExperience()
+  else
+    Result := 0;
 end;
 
 function THeroFrame.GetDefaultName: TLocalizedString;
@@ -302,14 +341,31 @@ begin
     Result := THeroSex.male;
 end;
 
+function THeroFrame.GetDefaultPortrait: AnsiString;
+begin
+  if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetPortrait() <> '') then
+     FHeroMapDefaults.GetPortrait()
+  else if Assigned(FHeroTypeDefaults) then
+    Result := FHeroTypeDefaults.GetPortrait()
+  else
+    Result := FOptions.GetHeroIdentifier();
+end;
+
 procedure THeroFrame.CustomiseChange(Sender: TObject);
 begin
   UpdateControls();
 end;
 
+procedure THeroFrame.edExperienceEditingDone(Sender: TObject);
+begin
+  FCustomExperience := StrToInt64Def(edExperience.Text, 0);
+end;
+
 procedure THeroFrame.cbPortraitChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
+  //todo: THeroFrame.cbPortraitChange
+//  UpdateText(edPortrait, cbPortrait, FCustomPortrait, GetDefaultPortrait);
 end;
 
 procedure THeroFrame.cbSexChange(Sender: TObject);
@@ -343,6 +399,22 @@ end;
 procedure THeroFrame.cbExperienceChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
+
+  if cbBiography.State = cbChecked then
+  begin
+    if FCustomExperience = 0 then
+    begin
+      edExperience.Text := IntToStr(GetDefaultExperience);
+    end
+    else
+    begin
+      edExperience.Text := IntToStr(FCustomExperience);
+    end;
+  end
+  else
+  begin
+    edExperience.Text := IntToStr(GetDefaultExperience);
+  end;
 end;
 
 procedure THeroFrame.cbBiographyChange(Sender: TObject);
@@ -480,9 +552,15 @@ begin
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
 
-  inherited VisitHero(AOptions);
+  inherited VisitHero(AOptions);//process normal, random, prison
 
   Load;
+
+  if edOwner.Visible then
+  begin
+    edOwner.ItemIndex := Integer(FHeroOptions.Owner);
+  end;
+
 end;
 
 procedure THeroFrame.VisitHeroDefinition(AOptions: THeroDefinition);
@@ -523,7 +601,7 @@ begin
 
   LoadAvilableFor;
 
-  //UpdateControls();
+  UpdateControls();
 end;
 
 

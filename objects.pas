@@ -522,8 +522,8 @@ var
 
   FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
   i: Integer;
-  lst: TLegacyObjConfigList;
-  item: TJSONObject;
+  //lst: TLegacyObjConfigList;
+  //item: TJSONObject;
 begin
   FProgress := AProgressCallback;
   FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
@@ -546,7 +546,7 @@ begin
 
     for i := 0 to FFullIdToDefMap.Count - 1 do
     begin
-      lst := FFullIdToDefMap.Data[i];
+      //lst := FFullIdToDefMap.Data[i];
       DebugLn(['unused legacy data ', Hi(FFullIdToDefMap.Keys[i]), ' ' , Lo(FFullIdToDefMap.Keys[i])]);
 
       //for item in lst do

@@ -477,12 +477,11 @@ type
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
     FSpellBook: TStrings;
+
     function IsArtifactsStored: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsSkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetExperience(AValue: UInt64);
-
     procedure SetPortrait(AValue: TIdentifier);
   public
     constructor Create(ACollection: TCollection); override;
@@ -493,10 +492,18 @@ type
     procedure BeforeSerialize({%H-}Sender: TObject);
     procedure AfterSerialize(Sender: TObject; AData: TJSONData);
   public//IHeroInfo
+    function GetHeroIdentifier: AnsiString;
+
     function GetBiography: TLocalizedString;
     procedure SetBiography(const AValue: TLocalizedString);
+
+    function GetExperience: UInt64;
+    procedure SetExperience(const AValue: UInt64);
+
     function GetName: TLocalizedString;
     procedure SetName(const AValue: TLocalizedString);
+
+    function GetPortrait: TIdentifier;
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -507,9 +514,9 @@ type
 
     property Artifacts: THeroArtifacts read FArtifacts stored IsArtifactsStored;
     property Biography: TLocalizedString read FBiography write SetBiography;
-    property Experience: UInt64 read FExperience write SetExperience default 0;
+    property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: TIdentifier read FPortrait write SetPortrait;
+    property Portrait: TIdentifier read GetPortrait write SetPortrait;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
@@ -1008,7 +1015,7 @@ end;
 
 { THeroDefinition }
 
-procedure THeroDefinition.SetExperience(AValue: UInt64);
+procedure THeroDefinition.SetExperience(const AValue: UInt64);
 begin
   FExperience:=AValue;
 end;
@@ -1046,6 +1053,16 @@ end;
 function THeroDefinition.IsArtifactsStored: Boolean;
 begin
   Result := not FArtifacts.IsEmpty;
+end;
+
+function THeroDefinition.GetExperience: UInt64;
+begin
+  Result := FExperience;
+end;
+
+function THeroDefinition.GetPortrait: TIdentifier;
+begin
+  Result := FPortrait;
 end;
 
 function THeroDefinition.GetSex: THeroSex;
@@ -1112,6 +1129,11 @@ end;
 procedure THeroDefinition.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
   SaveHeroSex(AData, Sex);
+end;
+
+function THeroDefinition.GetHeroIdentifier: AnsiString;
+begin
+  Result := Identifier;
 end;
 
 { THeroDefinitions }
