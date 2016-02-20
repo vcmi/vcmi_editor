@@ -1,5 +1,5 @@
-{$IF FPC_FULLVERSION < 20604}
-{$ERROR Freepascal 2.6.4 + required}
+{$IF FPC_FULLVERSION < 30000}
+{$ERROR Freepascal 3.0.0 + required}
 {$ENDIF}
 
 {$mode objfpc}{$H+}
