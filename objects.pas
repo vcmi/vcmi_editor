@@ -24,9 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, typinfo, FileUtil, fpjson, editor_types,
+  Classes, SysUtils, fgl, typinfo, FileUtil, LazUTF8, fpjson, editor_types,
   filesystem_base, editor_graphics, editor_classes, h3_txt,
-  lists_manager, vcmi_json, contnrs, gset;
+  lists_manager, vcmi_json, contnrs, gset, gvector, RegExpr;
 
 type
 
@@ -54,10 +54,7 @@ type
     property LandEditGroups: uint16 read FLandEditGroups;
     property Typ: uint32 read FTyp;
     property SubType: uint32 read FSubType;
-
     property IsOverlay: uint8 read FIsOverlay;
-
-
   end;
 
   { TMaskResource }
@@ -104,6 +101,7 @@ type
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
+    FTags: TStrings;
     FVisitableFrom: TStringList;
     FMask: TStringList;
     FzIndex: Integer;
@@ -129,6 +127,7 @@ type
     property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
     property Mask: TStrings read GetMask;
     property ZIndex: Integer read FzIndex write SetzIndex default 0;
+    property Tags: TStrings read FTags;
   end;
 
   { TObjTemplates }
@@ -220,11 +219,11 @@ type
     property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
   end;
 
-  { TSizeIntCompare }
+  { TObjTemplateCompare }
 
-  TSizeIntCompare = class
+  TObjTemplateCompare = class
   public
-    class function c(a,b: SizeInt): boolean;
+    class function c(a,b: TObjTemplate): boolean;
   end;
 
   { TSearchIndexBusket }
@@ -232,17 +231,16 @@ type
   TSearchIndexBusket = class
   public
     type
-      TBusketData = specialize gset.TSet<SizeInt, TSizeIntCompare>;
+      TDataVector = specialize gvector.TVector<TObjTemplate>;
+      TBusketData = specialize gset.TSet<TObjTemplate, TObjTemplateCompare>;
     var
       data: TBusketData;
     constructor Create();
     destructor Destroy; override;
 
-    procedure AddItem(AHandle: SizeInt);
-
-    procedure SaveToList(AFullList:TObjTemplatesList; ATarget:TObjTemplatesList);
-
-    procedure IntersectToList(ATarget:TObjTemplatesList);
+    procedure AddItem(AItem: TObjTemplate);
+    procedure SaveTo(ATarget:TBusketData);
+    procedure Intersect(ATarget:TSearchIndexBusket.TBusketData);
   end;
 
   { TSearchIndex }
@@ -256,9 +254,11 @@ type
     constructor Create(AIndexSize: SizeInt);
     destructor Destroy; override;
 
-    procedure AddToIndex(AKeyWord: String; AHandle: SizeInt);
+    procedure AddToIndex(AKeyWord: String; AItem: TObjTemplate);
 
-    procedure Find(AKeyWord: String; AFullList:TObjTemplatesList; ATarget:TObjTemplatesList);
+    procedure Find(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
+
+    procedure Intersect(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
   end;
 
   { TObjectsManager }
@@ -274,6 +274,8 @@ type
     FLegacyObjTypes: TLegacyIdMap;
 
     FProgress: IProgressCallback;
+
+    FTextTokenizer: TRegExpr;
 
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
 
@@ -311,7 +313,7 @@ type
     function SelectAll: TObjectsSelection;
 
     // AKeyWords = space separated words
-    function SelectByKeywords(AKeyWords: string): TObjectsSelection;
+    function SelectByKeywords(AInput: string): TObjectsSelection;
 
     function ResolveLegacyID(Typ,SubType: uint32):TObjSubType;
 
@@ -328,11 +330,11 @@ const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
 
-{ TSizeIntCompare }
+{ TObjTemplateCompare }
 
-class function TSizeIntCompare.c(a, b: SizeInt): boolean;
+class function TObjTemplateCompare.c(a, b: TObjTemplate): boolean;
 begin
-  Result := a < b;
+  Result := PtrInt(a) < PtrInt(b);
 end;
 
 { TSearchIndexBusket }
@@ -348,31 +350,57 @@ begin
   inherited Destroy;
 end;
 
-procedure TSearchIndexBusket.AddItem(AHandle: SizeInt);
+procedure TSearchIndexBusket.AddItem(AItem: TObjTemplate);
 begin
-  data.Insert(AHandle);
+  data.Insert(AItem);
 end;
 
-procedure TSearchIndexBusket.SaveToList(AFullList: TObjTemplatesList;
-  ATarget: TObjTemplatesList);
+procedure TSearchIndexBusket.SaveTo(ATarget: TBusketData);
 var
   it: TBusketData.TIterator;
 begin
-  ATarget.Clear;
   it := data.Min;
 
   if Assigned(it) then
   begin
     repeat
-      ATarget.Add(AFullList[it.Data]);
+      ATarget.Insert(it.Data);
     until not it.Next;
     it.free;
   end;
 end;
 
-procedure TSearchIndexBusket.IntersectToList(ATarget: TObjTemplatesList);
+procedure TSearchIndexBusket.Intersect(ATarget: TSearchIndexBusket.TBusketData);
+var
+  it: TBusketData.TIterator;
+  n: TBusketData.PNode;
+
+  to_delete: TDataVector;
+  i: SizeInt;
 begin
-  //todo:TSearchIndexBusket.IntersectToList
+  to_delete := TDataVector.Create;
+
+  it := ATarget.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      n := data.NFind(it.Data);
+
+      if not Assigned(n) then
+      begin
+        to_delete.PushBack(it.data);
+      end;
+    until not it.Next;
+    it.free;
+  end;
+
+  for i := 0 to SizeInt(to_delete.Size) - 1 do
+  begin
+    ATarget.Delete(to_delete.Items[i]);
+  end;
+
+  to_delete.Free;
 end;
 
 { TSearchIndex }
@@ -389,7 +417,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSearchIndex.AddToIndex(AKeyWord: String; AHandle: SizeInt);
+procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TObjTemplate);
 var
   busket: TSearchIndexBusket;
 
@@ -409,11 +437,11 @@ begin
     busket := TSearchIndexBusket(FHash.Items[idx]);
   end;
 
-  busket.AddItem(AHandle);
+  busket.AddItem(AItem);
 end;
 
-procedure TSearchIndex.Find(AKeyWord: String; AFullList: TObjTemplatesList;
-  ATarget: TObjTemplatesList);
+procedure TSearchIndex.Find(AKeyWord: String;
+  ATarget: TSearchIndexBusket.TBusketData);
 var
   short_key: ShortString;
   idx: Integer;
@@ -424,7 +452,30 @@ begin
 
   if idx >= 0 then
   begin
-    TSearchIndexBusket(FHash.Items[idx]).SaveToList(AFullList, ATarget);
+    TSearchIndexBusket(FHash.Items[idx]).SaveTo(ATarget);
+  end;
+end;
+
+procedure TSearchIndex.Intersect(AKeyWord: String;
+  ATarget: TSearchIndexBusket.TBusketData);
+var
+  short_key: ShortString;
+  idx: Integer;
+begin
+  short_key := AKeyWord;
+
+  idx := FHash.FindIndexOf(short_key);
+
+  if idx >= 0 then
+  begin
+    TSearchIndexBusket(FHash.Items[idx]).Intersect(ATarget);
+  end
+  else
+  begin
+    while not ATarget.IsEmpty do
+    begin
+      ATarget.Delete(ATarget.NMin^.Data);
+    end;
   end;
 end;
 
@@ -620,10 +671,12 @@ begin
   FObjSubtype :=  (ACollection as TObjTemplates).ObjSubtype;
 
   FObjType := (ACollection as TObjTemplates).ObjSubtype.FObjType;
+  FTags := TStringList.Create;
 end;
 
 destructor TObjTemplate.Destroy;
 begin
+  FTags.Free;
   FMask.Free;
   FVisitableFrom.Free;
   inherited Destroy;
@@ -651,10 +704,14 @@ begin
   FLegacyObjTypes := TLegacyIdMap.Create;
 
   FAllTemplates := TObjTemplatesList.Create(false);
+
+  FTextTokenizer := TRegExpr.Create('\s+');
+  FTextTokenizer.Compile
 end;
 
 destructor TObjectsManager.Destroy;
 begin
+  FTextTokenizer.Free;
   FSearchIndex.Free;
   FAllTemplates.Free;
   FLegacyObjTypes.Free;
@@ -707,8 +764,6 @@ var
 
   FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
   i: Integer;
-  //lst: TLegacyObjConfigList;
-  //item: TJSONObject;
 begin
   FProgress := AProgressCallback;
   FFullIdToDefMap := TLegacyObjConfigFullIdMap.Create;
@@ -731,13 +786,7 @@ begin
 
     for i := 0 to FFullIdToDefMap.Count - 1 do
     begin
-      //lst := FFullIdToDefMap.Data[i];
       DebugLn(['unused legacy data ', Hi(FFullIdToDefMap.Keys[i]), ' ' , Lo(FFullIdToDefMap.Keys[i])]);
-
-      //for item in lst do
-      //begin
-      //  DebugLn(item.AsJSON);
-      //end;
     end;
 
     HandleInteritance(FCombinedConfig);
@@ -763,22 +812,57 @@ begin
   FillWithAllObjects(Result.FData);
 end;
 
-function TObjectsManager.SelectByKeywords(AKeyWords: string): TObjectsSelection;
-begin
-  AKeyWords := trim(AKeyWords);
+function TObjectsManager.SelectByKeywords(AInput: string): TObjectsSelection;
+var
+  keywords: TStringList;
 
-  if AKeyWords = '' then
+  data: TSearchIndexBusket.TBusketData;
+  i: Integer;
+
+  it: TSearchIndexBusket.TBusketData.TIterator;
+begin
+  data := TSearchIndexBusket.TBusketData.Create;
+
+  AInput := UTF8Trim(UTF8LowerCase(AInput));
+
+
+  if AInput = '' then
   begin
     Result := SelectAll;
-  end
-  else
-  begin
-    Result := TObjectsSelection.Create(Self);
-
-    //PoC use one keyword
-
-    FSearchIndex.Find(AKeyWords, FAllTemplates, Result.FData);
+    Exit;
   end;
+
+  keywords := TStringList.Create;
+  keywords.Sorted:=true;
+  keywords.Duplicates:=dupIgnore;
+
+  FTextTokenizer.Split(AInput, keywords);
+
+  FSearchIndex.Find(keywords[0], data);
+
+  if not data.IsEmpty() then
+  begin
+    for i := 1 to keywords.Count - 1 do
+    begin
+      FSearchIndex.Intersect(keywords[i], data);
+      if data.IsEmpty then
+        break;
+    end;
+  end;
+
+  Result := TObjectsSelection.Create(Self);
+  it := data.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      Result.FData.Add(it.Data);
+    until not it.Next;
+    it.free;
+  end;
+
+  data.Free;
+  keywords.Free;
 end;
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
@@ -802,25 +886,60 @@ var
 
   obj: TObjTemplate;
 
+  keyword: string;
+
+  keywords: TStringList;
+
+
   tt: TTerrainType;
+  i: Integer;
+  obj_type: TObjType;
+  obj_subtype: TObjSubType;
 begin
   FillWithAllObjects(FAllTemplates);
   FSearchIndex := TSearchIndex.Create(FAllTemplates.Count);
+  keywords := TStringList.Create;
+  keywords.Sorted:=true;
+  keywords.Duplicates:=dupIgnore;
 
   for idx := 0 to FAllTemplates.Count - 1 do
   begin
+    keywords.Clear;
     obj := FAllTemplates[idx];
 
-    //index by terrain name
-
+    //index by terrain name, temp
     for tt in TTerrainType do
     begin
       if [tt] * obj.AllowedTerrains = [tt] then
       begin
-        FSearchIndex.AddToIndex(GetEnumName(TypeInfo(TTerrainType), Integer(tt)), idx);
+        keywords.Add(UTF8LowerCase(GetEnumName(TypeInfo(TTerrainType), Integer(tt))));
       end;
     end;
+
+    obj_type := obj.ObjType;
+
+    if obj_type.Name <> '' then
+    begin
+      keyword := UTF8LowerCase(UTF8Trim(obj_type.Name));
+
+      FTextTokenizer.Split(keyword, keywords);
+    end;
+
+    obj_subtype := obj.ObjSubType;
+
+    if obj_subtype.Name <> '' then
+    begin
+      keyword := UTF8LowerCase(UTF8Trim(obj_subtype.Name));
+
+      FTextTokenizer.Split(keyword, keywords);
+    end;
+
+    for i := 0 to keywords.Count - 1 do
+    begin
+      FSearchIndex.AddToIndex(keywords[i], obj);
+    end;
   end;
+  keywords.Free;
 end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;

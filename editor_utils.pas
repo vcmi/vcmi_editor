@@ -24,7 +24,8 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, Classes, types, editor_types, editor_consts, fpjson, gmap, gutil;
+  sysutils, Classes, types, editor_types, editor_consts, LazUTF8, fpjson, gmap,
+  gutil;
 
 type
 
