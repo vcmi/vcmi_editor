@@ -39,7 +39,6 @@ type
     FListsManager: TListsManager;
     FMainIdentifier: AnsiString;
     FMap: TVCMIMap;
-    procedure SetListsManager(AValue: TListsManager);
     procedure SetMainIdentifier(AValue: AnsiString);
     procedure SetMap(AValue: TVCMIMap);
   protected
@@ -51,8 +50,6 @@ type
 
     procedure HandleStringGridKeyDown(Sender: TObject;  var Key: Word; Shift: TShiftState);
     procedure HandleStringGridResize(Sender: TObject);
-
-    procedure FillWithPlayers(ATarget: TStrings);
 
     procedure ReadOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
     procedure WriteOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
@@ -102,7 +99,7 @@ type
     procedure VisitHeroDefinition({%H-}AOptions: THeroDefinition); virtual;
 
   public
-    property ListsManager: TListsManager read FListsManager write SetListsManager;
+    property ListsManager: TListsManager read FListsManager;
     property Map: TVCMIMap read FMap write SetMap;
 
     function IsDirty: Boolean; virtual;
@@ -166,7 +163,6 @@ begin
   F := AClass.Create(Self);
   F.Parent := AParent;
   F.Align := alClient;
-  F.ListsManager := ListsManager;
   F.Map := Map;
   AOptions.ApplyVisitor(F); //do AFTER assign properties
   FData.PushBack(F);
@@ -184,7 +180,6 @@ begin
   F := AClass.Create(Self);
   F.Parent := AParent;
   F.Align := alClient;
-  F.ListsManager := ListsManager;
   F.Map := Map;
   F.VisitHeroDefinition(AOptions); //do AFTER assign properties
   FData.PushBack(F);
@@ -230,13 +225,8 @@ end;
 
 constructor TBaseOptionsFrame.Create(TheOwner: TComponent);
 begin
+  FListsManager := (TheOwner as TBaseOptionsFrameList).ListsManager;
   inherited Create(TheOwner);
-end;
-
-procedure TBaseOptionsFrame.SetListsManager(AValue: TListsManager);
-begin
-  if FListsManager = AValue then Exit;
-  FListsManager := AValue;
 end;
 
 procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
@@ -369,18 +359,6 @@ begin
 
   if grid.EditorMode then
     grid.Editor.BoundsRect := grid.CellRect(grid.Col,grid.Row);
-end;
-
-procedure TBaseOptionsFrame.FillWithPlayers(ATarget: TStrings);
-var
-  p: TPlayer;
-begin
-  ATarget.Clear;
-  ATarget.Add(ListsManager.PlayerName[TPlayer.NONE]);
-  for p in TPlayerColor do
-  begin
-    ATarget.Add(ListsManager.PlayerName[p]);
-  end;
 end;
 
 procedure TBaseOptionsFrame.ReadOwner(AOptions: TObjectOptions;

@@ -554,16 +554,11 @@ begin
 end;
 
 constructor THeroFrame.Create(TheOwner: TComponent);
-var
-  p: TPlayer;
 begin
   inherited Create(TheOwner);
 
-  edOwner.Items.Clear;
-  for p in TPlayerColor do
-  begin
-    edOwner.Items.Add(ListsManager.PlayerName[p]);
-  end;
+  ListsManager.FillWithPlayers(edOwner.Items, False);
+
   FCustomSkills := THeroPrimarySkills.Create;
 end;
 

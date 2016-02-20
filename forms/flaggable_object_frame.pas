@@ -45,7 +45,7 @@ end;
 
 procedure TFlaggableFrame.SetupControls;
 begin
-  FillWithPlayers(edOwnerRG.Items);
+  ListsManager.FillWithPlayers(edOwnerRG.Items, True);
 end;
 
 procedure TFlaggableFrame.VisitOptions(AOptions: TObjectOptions);

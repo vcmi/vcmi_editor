@@ -65,7 +65,7 @@ type
     procedure Redo; override;
     procedure Undo; override;
 
-    property  Template: TObjTemplate read FTemplate write SetTemplate;
+    property Template: TObjTemplate read FTemplate write SetTemplate;
 
     property X:Integer read FX write SetX;
     property Y:Integer read FY write SetY;
@@ -162,7 +162,7 @@ end;
 procedure TAddObject.Execute;
 begin
   TargetObject := FMap.Objects.Add;
-  //(!)do not set TargetObject display name
+
   TargetObject.&Type:=Template.ObjType.Identifier;
   TargetObject.Subtype:=Template.ObjSubType.Identifier;
 

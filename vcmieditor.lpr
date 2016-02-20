@@ -45,7 +45,7 @@ uses
   hero_options_frame, player_options_form, 
 player_options_frame, position, hero_spells_frame, hero_skills_frame, 
 town_frame, town_buildings_frame, zipper_ex, edit_triggered_events, 
-locale_manager;
+locale_manager, player_selection_form;
 
 {$R *.res}
 

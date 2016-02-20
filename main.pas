@@ -24,12 +24,13 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazFileUtils, GL, OpenGLContext, LCLType, Forms, Controls,
-  Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls,
-  Buttons, EditBtn, Map, terrain, editor_types, undo_base, map_actions, objects,
-  editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
-  zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions,
-  map_object_actions, undo_map, player_options_form, edit_triggered_events,
+  Classes, SysUtils, FileUtil, LazFileUtils, GL, OpenGLContext, LCLType, Forms,
+  Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls,
+  ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
+  map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
+  lists_manager, zlib_stream, editor_gl, map_terrain_actions,
+  map_road_river_actions, map_object_actions, undo_map, object_options,
+  player_options_form, edit_triggered_events, player_selection_form,
   gpriorityqueue, types;
 
 type
@@ -433,7 +434,34 @@ end;
 procedure TTemplateDragProxy.DropOnMap;
 var
   action_item: TAddObject;
+  c: TObjectOptionsClass;
+  frm: TPlayerSelectionForm;
+  mr: Integer;
+
+  p: TPlayer;
 begin
+  c :=  TObjectOptions.GetClassByID(FDraggingTemplate.ObjType.Identifier, FDraggingTemplate.ObjSubType.Identifier);
+
+  p := FOwner.FCurrentPlayer;
+
+  if c.MustBeOwned then
+  begin
+    while p = TPlayer.none do
+    begin
+      frm := TPlayerSelectionForm.Create(nil);
+      try
+        mr := frm.ShowModal;
+        if mr = mrOK then
+        begin
+          p := frm.SelectedPlayer;
+        end;
+      finally
+        frm.Free;
+      end;
+      if mr = mrCancel then
+        Exit;
+    end;
+  end;
 
   action_item := TAddObject.Create(FOwner.FMap);
 
@@ -442,7 +470,7 @@ begin
   action_item.Y := FOwner.FMouseTileY;
   action_item.Template := FDraggingTemplate;
 
-  action_item.CurrentPlayer:=FOwner.FCurrentPlayer;
+  action_item.CurrentPlayer:=p;
 
   FOwner.FUndoManager.ExecuteItem(action_item);
 

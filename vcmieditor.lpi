@@ -135,7 +135,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="78">
+    <Units Count="79">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -550,6 +550,13 @@
         <Filename Value="locale_manager.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit77>
+      <Unit78>
+        <Filename Value="forms\player_selection_form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PlayerSelectionForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit78>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

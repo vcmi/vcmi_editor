@@ -531,6 +531,8 @@ type
 
     property PlayerName[const APlayer: TPlayer]: TLocalizedString read GetPlayerName;
 
+    procedure FillWithPlayers(ATarget: TStrings; AIncludeNeutral: Boolean);
+
     function SIDIdNID(AID: AnsiString): TCustomID;
 
     //primary skills
@@ -2075,6 +2077,20 @@ begin
     hotraits.free;
     herobios.Free;
     legacy_data.Free;
+  end;
+end;
+
+procedure TListsManager.FillWithPlayers(ATarget: TStrings;
+  AIncludeNeutral: Boolean);
+var
+  p: TPlayer;
+begin
+  ATarget.Clear;
+  if AIncludeNeutral then
+    ATarget.Add(PlayerName[TPlayer.NONE]);
+  for p in TPlayerColor do
+  begin
+    ATarget.Add(PlayerName[p]);
   end;
 end;
 

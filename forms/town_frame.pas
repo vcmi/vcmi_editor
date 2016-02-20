@@ -100,7 +100,7 @@ end;
 
 procedure TTownOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
-  FillWithPlayers(edOwner.Items);
+  ListsManager.FillWithPlayers(edOwner.Items, True);
   inherited VisitTown(AOptions);
   FObject:=AOptions;
   Load;

@@ -484,7 +484,6 @@ end;
 
 { TLegacyObjTemplate }
 
-
 constructor TLegacyObjTemplate.Create;
 begin
   inherited;

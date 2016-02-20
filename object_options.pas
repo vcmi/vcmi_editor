@@ -441,6 +441,7 @@ type
 
   TPrisonOptions = class(THeroOptions, IEditableHeroInfo)
   public
+    constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
 
@@ -947,6 +948,12 @@ begin
 end;
 
 { TPrisonOptions }
+
+constructor TPrisonOptions.Create(AObject: IMapObject);
+begin
+  inherited Create(AObject);
+  &type := RootManager.ListsManager.HeroInfos.Items[0].Identifier;
+end;
 
 procedure TPrisonOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
@@ -1875,7 +1882,6 @@ end;
 
 procedure THeroOptions.SetId(AValue: AnsiString);
 begin
-  if FId=AValue then Exit;
   FId:=AValue;
 end;
 
