@@ -64,6 +64,13 @@ type
     procedure ApplyVisitor({%H-}AVisitor: IObjectOptionsVisitor); virtual;
 
     property MapObject: IMapObject read FObject;
+
+    class function MustBeOwned: Boolean; virtual;
+
+    class function GetClassByID(ID: AnsiString; SubID: AnsiString): TObjectOptionsClass;
+
+    class function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
+
   public
     property Owner: TPlayer read GetOwner write SetOwner;
   end;
@@ -419,18 +426,16 @@ type
   TNormalHeroOptions = class(THeroOptions, IEditableHeroInfo)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    class function MustBeOwned: Boolean; override;
   end;
-
-  { TNormalHeroOptions }
 
   { TRandomHeroOptions }
 
   TRandomHeroOptions = class(THeroOptions, IEditableHeroInfo)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    class function MustBeOwned: Boolean; override;
   end;
-
-  { TNormalHeroOptions }
 
   { TPrisonOptions }
 
@@ -787,28 +792,43 @@ type
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
-function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
+
+
 
 implementation
 
+{ TObjectOptions }
 
-function CreateByID(ID: AnsiString; SubID: AnsiString;AObject: IMapObject): TObjectOptions;
-var
-  c: TObjectOptionsClass;
+constructor TObjectOptions.Create(AObject: IMapObject);
 begin
-  c := TObjectOptions;
+  FObject := AObject;
+end;
 
+procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  //do nothing here
+end;
+
+class function TObjectOptions.MustBeOwned: Boolean;
+begin
+  Result := false;
+end;
+
+class function TObjectOptions.GetClassByID(ID: AnsiString; SubID: AnsiString
+  ): TObjectOptionsClass;
+begin
+  Result := TObjectOptions;
   case ID of
     'event':
-      c := TLocalEventOptions;
+      Result := TLocalEventOptions;
     'oceanBottle', 'sign':
-      c := TSignBottleOptions;
+      Result := TSignBottleOptions;
     'hero':
-      c := TNormalHeroOptions;
+      Result := TNormalHeroOptions;
     'randomHero':
-      c := TRandomHeroOptions;
+      Result := TRandomHeroOptions;
     'prison':
-      c := TPrisonOptions;
+      Result := TPrisonOptions;
     'monster',
     'randomMonster',
     'randomMonsterLevel1',
@@ -818,29 +838,29 @@ begin
     'randomMonsterLevel5',
     'randomMonsterLevel6',
     'randomMonsterLevel7':
-      c := TCreatureOptions;
+      Result := TCreatureOptions;
     'seerHut':
-      c := TSeerHutOptions;
+      Result := TSeerHutOptions;
     'witchHut':
-      c := TWitchHutOptions;
+      Result := TWitchHutOptions;
     'scholar':
-      c := TScholarOptions;
+      Result := TScholarOptions;
     'garrisonHorizontal', 'garrisonVertical':
-      c := TGarrisonOptions;
+      Result := TGarrisonOptions;
 
     'artifact', 'randomArtifact',
     'randomArtifactTreasure',
     'randomArtifactMinor',
     'randomArtifactMajor',
     'randomArtifactRelic':
-      c := TArtifactOptions;
+      Result := TArtifactOptions;
     'spellScroll':
-      c := TSpellScrollOptions;
+      Result := TSpellScrollOptions;
     'resource',
     'randomResource':
-      c := TResourceOptions;
+      Result := TResourceOptions;
     'randomTown', 'town':
-      c := TTownOptions;
+      Result := TTownOptions;
 
     'creatureGeneratorCommon',
 
@@ -849,43 +869,81 @@ begin
     //CREATURE_GENERATOR3,
 
     'creatureGeneratorSpecial':
-      c := TOwnedObjectOptions;
+      Result := TOwnedObjectOptions;
     'mine':
     begin
       if SubID = 'abandoned' then
       begin
-        c := TAbandonedOptions;
+        Result := TAbandonedOptions;
       end else
       begin
-        c := TOwnedObjectOptions;
+        Result := TOwnedObjectOptions;
       end;
     end;
 
     'abandonedMine':
-      c := TAbandonedOptions;
+      Result := TAbandonedOptions;
     'shrineOfMagicLevel1':
-      c := TShrine1Options;
+      Result := TShrine1Options;
     'shrineOfMagicLevel2':
-      c := TShrine2Options;
+      Result := TShrine2Options;
     'shrineOfMagicLevel3':
-      c := TShrine3Options;
+      Result := TShrine3Options;
     'pandoraBox':
-      c := TPandorasOptions;
+      Result := TPandorasOptions;
     'grail':
-      c := TGrailOptions;
+      Result := TGrailOptions;
     'randomDwelling':
-      c := TRandomDwellingOptions;
+      Result := TRandomDwellingOptions;
     'randomDwellingLvl':
-      c := TRandomDwellingLVLOptions;
+      Result := TRandomDwellingLVLOptions;
     'randomDwellingFaction':
-      c := TRandomDwellingTownOptions;
+      Result := TRandomDwellingTownOptions;
     'questGuard':
-      c := TQuestGuardOptions;
+      Result := TQuestGuardOptions;
     'shipyard','lighthouse':
-      c := TOwnedObjectOptions;
+      Result := TOwnedObjectOptions;
   end;
+end;
 
-  Result := c.Create(AObject);
+class function TObjectOptions.CreateByID(ID: AnsiString; SubID: AnsiString;
+  AObject: IMapObject): TObjectOptions;
+begin
+   Result := GetClassByID(Id, SubId).Create(AObject);
+end;
+
+procedure TObjectOptions.SetOwner(AValue: TPlayer);
+begin
+  if not (AValue in [TPlayer.RED..TPlayer.PINK,TPlayer.NONE]) then
+  begin
+    raise Exception.CreateFmt('Invalid player color %d',[Integer(AValue)]);
+  end;
+  FObject.SetPlayer(AValue);
+end;
+
+function TObjectOptions.GetOwner: TPlayer;
+begin
+  Result := FObject.GetPlayer;
+end;
+
+procedure TObjectOptions.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TObjectOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TObjectOptions.BeforeSerialize(Sender: TObject);
+begin
+
+end;
+
+procedure TObjectOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+
 end;
 
 { TPrisonOptions }
@@ -902,11 +960,21 @@ begin
   AVisitor.VisitRandomHero(self);
 end;
 
+class function TRandomHeroOptions.MustBeOwned: Boolean;
+begin
+  Result:=true;
+end;
+
 { TNormalHeroOptions }
 
 procedure TNormalHeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitNormalHero(self);
+end;
+
+class function TNormalHeroOptions.MustBeOwned: Boolean;
+begin
+  Result:=true;
 end;
 
 { THeroArtifacts }
@@ -1901,52 +1969,6 @@ end;
 procedure TSignBottleOptions.SetText(AValue: TLocalizedString);
 begin
   FText := AValue;
-end;
-
-{ TObjectOptions }
-
-constructor TObjectOptions.Create(AObject: IMapObject);
-begin
-  FObject := AObject;
-end;
-
-procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
-begin
-  //do nothing here
-end;
-
-procedure TObjectOptions.SetOwner(AValue: TPlayer);
-begin
-  if not (AValue in [TPlayer.RED..TPlayer.PINK,TPlayer.NONE]) then
-  begin
-    raise Exception.CreateFmt('Invalid player color %d',[Integer(AValue)]);
-  end;
-  FObject.SetPlayer(AValue);
-end;
-
-function TObjectOptions.GetOwner: TPlayer;
-begin
-  Result := FObject.GetPlayer;
-end;
-
-procedure TObjectOptions.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
-begin
-
-end;
-
-procedure TObjectOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
-begin
-
-end;
-
-procedure TObjectOptions.BeforeSerialize(Sender: TObject);
-begin
-
-end;
-
-procedure TObjectOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
-begin
-
 end;
 
 end.

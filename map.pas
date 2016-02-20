@@ -1362,7 +1362,7 @@ begin
 
   if (FType <>'') and (FSubtype<>'') then
   begin
-    FOptions := CreateByID(FType, FSubtype,Self);
+    FOptions := TObjectOptions.CreateByID(FType, FSubtype,Self);
   end;
 end;
 
