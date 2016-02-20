@@ -1549,6 +1549,8 @@ begin
   FHeroes.FPOAttachObserver(Self);
   FTowns := TPlayerTowns.Create;
   FTowns.FPOAttachObserver(Self);
+
+  FCanPlay:=TPlayableBy.PlayerOrAI;
 end;
 
 destructor TPlayerInfo.Destroy;

@@ -134,6 +134,8 @@ type
     MapView: TOpenGLControl;
     ObjectsView: TOpenGLControl;
     OpenMapDialog: TOpenDialog;
+    pnObjectsSearch: TPanel;
+    pnObjects: TPanel;
     pnTools: TPanel;
     pnLeft: TPanel;
     HorisontalAxis: TPaintBox;
