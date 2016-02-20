@@ -101,6 +101,7 @@ type
     btnSub: TSpeedButton;
     btnSwamp: TSpeedButton;
     btnWater: TSpeedButton;
+    ObjectsSearch: TEditButton;
     gbBrush: TGroupBox;
     gbTerrain: TGroupBox;
     imlMainActionsSmall: TImageList;
@@ -222,6 +223,10 @@ type
     procedure MapViewResize(Sender: TObject);
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure ObjectsSearchButtonClick(Sender: TObject);
+    procedure ObjectsSearchChange(Sender: TObject);
+    procedure ObjectsSearchEditingDone(Sender: TObject);
+    procedure ObjectsSearchKeyPress(Sender: TObject; var Key: char);
     procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -349,6 +354,10 @@ type
     procedure SetupLevelSelection;
 
     procedure UpdateWidgets();
+
+    procedure ResetFocus;
+
+    procedure DoObjectsSearch;
   protected
     procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -1035,7 +1044,7 @@ begin
   if FObjectReminder > 0 then inc(FObjectRows);
 
   sbObjects.Min := 0;
-  sbObjects.Max := FObjectRows - 1;
+  sbObjects.Max := Max(0, FObjectRows - 1);
 
   sbObjects.PageSize := ObjectsView.Height div OBJ_CELL_SIZE;
 
@@ -1222,6 +1231,7 @@ end;
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
+
   FActiveBrush := FIdleBrush;
   Accept := true; //TODO: handle accceptible terrain
 
@@ -1320,6 +1330,7 @@ end;
 
 procedure TfMain.MapViewMouseEnter(Sender: TObject);
 begin
+  ResetFocus;
 end;
 
 procedure TfMain.MapViewMouseLeave(Sender: TObject);
@@ -1333,6 +1344,8 @@ var
   FOldTileX: Integer;
   FOldTileY: Integer;
 begin
+  ResetFocus;
+
   FOldTileX := FMouseTileX;
   FOldTileY := FMouseTileY;
   SetMapViewMouse(x,y);
@@ -1515,6 +1528,26 @@ begin
     SetMapPosition(pos);
 
   end;
+end;
+
+procedure TfMain.ObjectsSearchButtonClick(Sender: TObject);
+begin
+  DoObjectsSearch;
+end;
+
+procedure TfMain.ObjectsSearchChange(Sender: TObject);
+begin
+  StatusBar.Panels[1].Text := ObjectsSearch.Text;
+end;
+
+procedure TfMain.ObjectsSearchEditingDone(Sender: TObject);
+begin
+  DoObjectsSearch;
+end;
+
+procedure TfMain.ObjectsSearchKeyPress(Sender: TObject; var Key: char);
+begin
+//
 end;
 
 procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1947,6 +1980,23 @@ begin
   begin
     StatusBar.Panels[0].Text := '';
   end;
+end;
+
+procedure TfMain.ResetFocus;
+begin
+  if ObjectsSearch.Focused then
+  begin
+    ObjectsSearch.EditingDone;
+  end;
+
+  FocusControl(nil);
+end;
+
+procedure TfMain.DoObjectsSearch;
+begin
+  FreeAndNil(FTemplatesSelection);
+  FTemplatesSelection := RootManager.ObjectsManager.SelectByKeywords(ObjectsSearch.Text);
+  InvalidateObjects;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);

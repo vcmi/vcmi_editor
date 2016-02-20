@@ -1,11 +1,11 @@
 object fMain: TfMain
-  Left = 393
-  Height = 838
-  Top = 0
-  Width = 1254
+  Left = 349
+  Height = 836
+  Top = 103
+  Width = 1312
   Caption = 'VCMI editor'
-  ClientHeight = 818
-  ClientWidth = 1254
+  ClientHeight = 816
+  ClientWidth = 1312
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1018,25 +1018,25 @@ object fMain: TfMain
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   Position = poDefault
-  LCLVersion = '1.4.5.0'
+  LCLVersion = '1.6.1.0'
   object pnMap: TPanel
     Left = 202
-    Height = 761
+    Height = 759
     Top = 34
-    Width = 848
+    Width = 906
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 761
-    ClientWidth = 848
+    ClientHeight = 759
+    ClientWidth = 906
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
-      Left = 18
-      Height = 727
-      Top = 18
-      Width = 814
+      Left = 23
+      Height = 720
+      Top = 23
+      Width = 867
       Align = alClient
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
@@ -1058,8 +1058,8 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 745
-      Width = 812
+      Top = 743
+      Width = 870
       Align = alBottom
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
@@ -1069,9 +1069,9 @@ object fMain: TfMain
       OnScroll = hScrollBarScroll
     end
     object vScrollBar: TScrollBar
-      Left = 832
-      Height = 727
-      Top = 18
+      Left = 890
+      Height = 720
+      Top = 23
       Width = 16
       Align = alRight
       Kind = sbVertical
@@ -1082,40 +1082,40 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 727
-      Top = 18
-      Width = 18
+      Height = 720
+      Top = 23
+      Width = 23
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 727
-      ClientWidth = 18
+      ClientHeight = 720
+      ClientWidth = 23
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 727
+        Height = 720
         Top = 0
-        Width = 18
+        Width = 23
         Align = alClient
         OnPaint = VerticalAxisPaint
       end
     end
     object pnHAxis: TPanel
-      Left = 18
-      Height = 18
+      Left = 23
+      Height = 23
       Top = 0
-      Width = 812
+      Width = 865
       Align = alTop
-      BorderSpacing.Left = 18
+      BorderSpacing.Left = 23
       BorderSpacing.Right = 18
       BevelOuter = bvNone
-      ClientHeight = 18
-      ClientWidth = 812
+      ClientHeight = 23
+      ClientWidth = 865
       TabOrder = 4
       object HorisontalAxis: TPaintBox
         Left = 0
-        Height = 18
+        Height = 23
         Top = 0
-        Width = 812
+        Width = 865
         Align = alClient
         ParentColor = False
         OnPaint = HorisontalAxisPaint
@@ -1123,19 +1123,19 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = 1050
-    Height = 761
+    Left = 1108
+    Height = 759
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 761
+    ClientHeight = 759
     ClientWidth = 204
     TabOrder = 1
     object ObjectsView: TOpenGLControl
       Left = 0
-      Height = 761
-      Top = 0
+      Height = 736
+      Top = 23
       Width = 188
       Align = alClient
       AutoResizeViewport = True
@@ -1151,8 +1151,8 @@ object fMain: TfMain
     end
     object sbObjects: TScrollBar
       Left = 188
-      Height = 761
-      Top = 0
+      Height = 736
+      Top = 23
       Width = 16
       Align = alRight
       Kind = sbVertical
@@ -1161,12 +1161,65 @@ object fMain: TfMain
       TabStop = False
       OnScroll = sbObjectsScroll
     end
+    object ObjectsSearch: TEditButton
+      Left = 0
+      Height = 23
+      Top = 0
+      Width = 204
+      Align = alTop
+      ButtonWidth = 20
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000002000000040000000500000006000000060000
+        00070000000600000006636363646A6D6CFE6A6D6CFF6A6D6C56000000000000
+        00000000000000000000858A8861858A88B6696E6CF5696E6CFF858A88B6858A
+        8861000000006B6B6B866A6D6CFFCACBCBFFD6D6D6FF6A6D6CFF000000000000
+        0000858A882E686C6AE47D807FDC8F908FE2C2C2C2F2DFDFDFFF898A89D86266
+        64E15D5D5D636B6E6DFFB5B7B7FF888B89FFC7C7C7FD6A6D6CFF00000000858A
+        882E696E6CF7919291E3E9E2DBFFD2B396FFCDA178FECE9F72FFD3B497FFE4DC
+        D5FF686B6AFDB7B8B8FF848785FF727674FD646866E96A6D6C3000000000686C
+        6AE7A8A9A8ECDCCAB9FFCE9F72FFB3855CD0CA9B7076CA9B6FA3AD8059CDCE9F
+        73FFD2CCC5FF929593FE858786F5666968F25357551900000000848987628184
+        82E2E1D9D1FFCE9F72FFCD9C6F98D09E7177D09F7262CE9E7281CF9F7255C797
+        6C7BCE9F72FFE0D9D2FF656967EA7176747E0000000000000000808583C7C4C4
+        C4FBCAA685FCC59469C5CF9D728BCF9F7175D1A0725ED09E7372CF9E744FCF9F
+        7465B98A61BFCBA989FDC8C9C9F8828684C00000000000000000696E6CFADFDF
+        DFFFCDA076FED9B18FB3E6CDB6B5ECD9C7B2E9D3C099DFBEA2A4CF9F715AD09E
+        746CCF9F7382C99A6EFCDBDBDBFF696E6CF900000000000000006B706EFEDBDA
+        D8FFCE9E71FFE6CCB4CBECDBCBCDF0E1D3C6F1E4D7C0F0E2D5E5D1A1786ECF9F
+        737ACF9D728BCE9E71FFE2E2E2FF6B706EFE0000000000000000666B69FFD9DA
+        DAFFBF9066FFE2C6ACF9F1E4D9FBF4E9E0FBF4EBE3FAF3E9E0FFEDDDCEF0D4A7
+        80D7CF9E72E5CAA381FFD8D9D9FF666B69FF00000000000000007A7E7C76A6A8
+        A7FAC4AF9EF9CE9F72FEF1E2D6E7F7EEE7EBF8F2ECF0F5EBE3FCF0E0D1DCDBB8
+        97C2CE9E71FECABAADF9A1A4A3F77D817F6F0000000000000000000000006A6E
+        6CF5DADADAFFC5A68AFACF9F72FEEBD8C7EDF5EBE2EBF3E9DFFCE3C8AEDECE9F
+        72FDC5A88EF9DBDBDBFF696D6BF3000000000000000000000000000000007C81
+        7F356C716FFEDBDBDAFFC1A996F9C5976DF1CFA175FACE9F72FFC29368F1C2AD
+        9BF9DEDEDEFF6B706EFD81858431000000000000000000000000000000000000
+        00007578773E6C6F6DF8CACCCBFEDCDBDAFFD9D6D4FED9D5D1FFDAD8D7FFC9CA
+        CAFE6B6E6CF7787C7A3A00000000000000000000000000000000000000000000
+        00000000000000000000757876A96C706FF56D7170FE6B706EFF6A6F6DF4787C
+        7A97000000000000000000000000000000000000000000000000
+      }
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = ObjectsSearchButtonClick
+      OnChange = ObjectsSearchChange
+      OnEditingDone = ObjectsSearchEditingDone
+      OnKeyPress = ObjectsSearchKeyPress
+      PasswordChar = #0
+      Spacing = 2
+      TabOrder = 2
+    end
   end
   object MainToolBar: TToolBar
     Left = 0
     Height = 34
     Top = 0
-    Width = 1254
+    Width = 1312
     AutoSize = True
     ButtonHeight = 32
     ButtonWidth = 32
@@ -1227,9 +1280,12 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 795
-    Width = 1254
+    Top = 793
+    Width = 1312
     Panels = <    
+      item
+        Width = 50
+      end    
       item
         Width = 50
       end>
@@ -1237,11 +1293,11 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 761
+    Height = 759
     Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 761
+    ClientHeight = 759
     ClientWidth = 202
     TabOrder = 4
     object pnMinimap: TPanel
@@ -1266,12 +1322,12 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 555
+      Height = 553
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 555
+      ClientHeight = 553
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox

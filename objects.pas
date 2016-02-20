@@ -24,9 +24,9 @@ unit objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, FileUtil, fpjson, editor_types,
+  Classes, SysUtils, fgl, typinfo, FileUtil, fpjson, editor_types,
   filesystem_base, editor_graphics, editor_classes, h3_txt,
-  lists_manager, vcmi_json;
+  lists_manager, vcmi_json, contnrs, gset;
 
 type
 
@@ -220,11 +220,56 @@ type
     property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
   end;
 
+  { TSizeIntCompare }
+
+  TSizeIntCompare = class
+  public
+    class function c(a,b: SizeInt): boolean;
+  end;
+
+  { TSearchIndexBusket }
+
+  TSearchIndexBusket = class
+  public
+    type
+      TBusketData = specialize gset.TSet<SizeInt, TSizeIntCompare>;
+    var
+      data: TBusketData;
+    constructor Create();
+    destructor Destroy; override;
+
+    procedure AddItem(AHandle: SizeInt);
+
+    procedure SaveToList(AFullList:TObjTemplatesList; ATarget:TObjTemplatesList);
+
+    procedure IntersectToList(ATarget:TObjTemplatesList);
+  end;
+
+  { TSearchIndex }
+
+  TSearchIndex = class
+  private
+    FHash: TFPHashObjectList; //contains TSearchIndexBusket
+
+    FIndexSize: SizeInt;
+  public
+    constructor Create(AIndexSize: SizeInt);
+    destructor Destroy; override;
+
+    procedure AddToIndex(AKeyWord: String; AHandle: SizeInt);
+
+    procedure Find(AKeyWord: String; AFullList:TObjTemplatesList; ATarget:TObjTemplatesList);
+  end;
+
   { TObjectsManager }
 
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
     FObjTypes: TObjTypes;
+
+    FAllTemplates: TObjTemplatesList; //for use in index
+
+    FSearchIndex: TSearchIndex;
 
     FLegacyObjTypes: TLegacyIdMap;
 
@@ -251,6 +296,8 @@ type
   private
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
+
+    procedure FillWithAllObjects(ATarget: TObjTemplatesList);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -263,7 +310,12 @@ type
 
     function SelectAll: TObjectsSelection;
 
+    // AKeyWords = space separated words
+    function SelectByKeywords(AKeyWords: string): TObjectsSelection;
+
     function ResolveLegacyID(Typ,SubType: uint32):TObjSubType;
+
+    procedure BuildIndex;
   end;
 
 implementation
@@ -275,6 +327,106 @@ uses
 const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
+
+{ TSizeIntCompare }
+
+class function TSizeIntCompare.c(a, b: SizeInt): boolean;
+begin
+  Result := a < b;
+end;
+
+{ TSearchIndexBusket }
+
+constructor TSearchIndexBusket.Create;
+begin
+  data := TBusketData.Create;
+end;
+
+destructor TSearchIndexBusket.Destroy;
+begin
+  data.Free;
+  inherited Destroy;
+end;
+
+procedure TSearchIndexBusket.AddItem(AHandle: SizeInt);
+begin
+  data.Insert(AHandle);
+end;
+
+procedure TSearchIndexBusket.SaveToList(AFullList: TObjTemplatesList;
+  ATarget: TObjTemplatesList);
+var
+  it: TBusketData.TIterator;
+begin
+  ATarget.Clear;
+  it := data.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      ATarget.Add(AFullList[it.Data]);
+    until not it.Next;
+    it.free;
+  end;
+end;
+
+procedure TSearchIndexBusket.IntersectToList(ATarget: TObjTemplatesList);
+begin
+  //todo:TSearchIndexBusket.IntersectToList
+end;
+
+{ TSearchIndex }
+
+constructor TSearchIndex.Create(AIndexSize: SizeInt);
+begin
+  FIndexSize:=AIndexSize;
+  FHash := TFPHashObjectList.Create(true);;
+end;
+
+destructor TSearchIndex.Destroy;
+begin
+  FHash.Free;
+  inherited Destroy;
+end;
+
+procedure TSearchIndex.AddToIndex(AKeyWord: String; AHandle: SizeInt);
+var
+  busket: TSearchIndexBusket;
+
+  short_key: ShortString;
+  idx: Integer;
+begin
+  short_key := AKeyWord;
+  idx := FHash.FindIndexOf(short_key);
+
+  if idx = -1 then
+  begin
+    busket := TSearchIndexBusket.Create();
+    FHash.Add(short_key, busket);
+  end
+  else
+  begin
+    busket := TSearchIndexBusket(FHash.Items[idx]);
+  end;
+
+  busket.AddItem(AHandle);
+end;
+
+procedure TSearchIndex.Find(AKeyWord: String; AFullList: TObjTemplatesList;
+  ATarget: TObjTemplatesList);
+var
+  short_key: ShortString;
+  idx: Integer;
+begin
+  short_key := AKeyWord;
+
+  idx := FHash.FindIndexOf(short_key);
+
+  if idx >= 0 then
+  begin
+    TSearchIndexBusket(FHash.Items[idx]).SaveToList(AFullList, ATarget);
+  end;
+end;
 
 { TMaskResource }
 
@@ -497,10 +649,14 @@ begin
 
   FObjTypes := TObjTypes.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
+
+  FAllTemplates := TObjTemplatesList.Create(false);
 end;
 
 destructor TObjectsManager.Destroy;
 begin
+  FSearchIndex.Free;
+  FAllTemplates.Free;
   FLegacyObjTypes.Free;
   FObjTypes.Free;
   inherited Destroy;
@@ -510,6 +666,36 @@ procedure TObjectsManager.SetListsManager(AValue: TListsManager);
 begin
   if FListsManager=AValue then Exit;
   FListsManager:=AValue;
+end;
+
+procedure TObjectsManager.FillWithAllObjects(ATarget: TObjTemplatesList);
+var
+ i,j,k: Integer;
+ obj_type: TObjType;
+ obj_subtype: TObjSubType;
+ obj_template: TObjTemplate;
+begin
+  ATarget.Clear;
+  for i := 0 to FObjTypes.Count - 1 do
+  begin
+
+    obj_type := FObjTypes.Items[i];
+
+    for j := 0 to obj_type.Types.Count - 1 do
+    begin
+      obj_subtype := obj_type.Types[j];
+
+      for k := 0 to obj_subtype.Templates.count - 1 do
+      begin
+        obj_template := obj_subtype.Templates[k];
+
+        ATarget.Add(obj_template);
+
+        Assert(Assigned(obj_template.FObjType));
+        Assert(Assigned(obj_template.FObjSubtype));
+      end;
+    end;
+  end;
 end;
 
 procedure TObjectsManager.LoadObjects(AProgressCallback: IProgressCallback;
@@ -572,33 +758,26 @@ begin
 end;
 
 function TObjectsManager.SelectAll: TObjectsSelection;
-var
- i,j,k: Integer;
- obj_type: TObjType;
- obj_subtype: TObjSubType;
- obj_template: TObjTemplate;
 begin
   Result := TObjectsSelection.Create(Self);
+  FillWithAllObjects(Result.FData);
+end;
 
-  for i := 0 to FObjTypes.Count - 1 do
+function TObjectsManager.SelectByKeywords(AKeyWords: string): TObjectsSelection;
+begin
+  AKeyWords := trim(AKeyWords);
+
+  if AKeyWords = '' then
   begin
+    Result := SelectAll;
+  end
+  else
+  begin
+    Result := TObjectsSelection.Create(Self);
 
-    obj_type := FObjTypes.Items[i];
+    //PoC use one keyword
 
-    for j := 0 to obj_type.Types.Count - 1 do
-    begin
-      obj_subtype := obj_type.Types[j];
-
-      for k := 0 to obj_subtype.Templates.count - 1 do
-      begin
-        obj_template := obj_subtype.Templates[k];
-
-        Result.FData.Add(obj_template);
-
-        Assert(Assigned(obj_template.FObjType));
-        Assert(Assigned(obj_template.FObjSubtype));
-      end;
-    end;
+    FSearchIndex.Find(AKeyWords, FAllTemplates, Result.FData);
   end;
 end;
 
@@ -615,6 +794,33 @@ begin
   end
   else
     Result := FLegacyObjTypes.KeyData[full_id];
+end;
+
+procedure TObjectsManager.BuildIndex;
+var
+  idx: SizeInt;
+
+  obj: TObjTemplate;
+
+  tt: TTerrainType;
+begin
+  FillWithAllObjects(FAllTemplates);
+  FSearchIndex := TSearchIndex.Create(FAllTemplates.Count);
+
+  for idx := 0 to FAllTemplates.Count - 1 do
+  begin
+    obj := FAllTemplates[idx];
+
+    //index by terrain name
+
+    for tt in TTerrainType do
+    begin
+      if [tt] * obj.AllowedTerrains = [tt] then
+      begin
+        FSearchIndex.AddToIndex(GetEnumName(TypeInfo(TTerrainType), Integer(tt)), idx);
+      end;
+    end;
+  end;
 end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;
@@ -680,10 +886,10 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
       CellToStr(temp);
       len:= Length(temp);
       v := 0;
-      for i := len to 1 do
+      for i := len downto 1 do
       begin
         if temp[i] = '1' then
-          v := v or 1 shl i;
+          v := v or 1 shl (len - i);
       end;
     end;
 
@@ -705,7 +911,7 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
     str: String;
 
     passable, active: Boolean;
-    mask_conf, visit_conf: TJSONArray;
+    mask_conf, visit_conf, allowedTerrains: TJSONArray;
     //anim: TDef;
     width_tiles: Integer;
     height_tiles: Integer;
@@ -793,7 +999,17 @@ begin
 
       legacy_config.Add('mask', mask_conf);
 
-      //TODO: allowedTerrains
+      allowedTerrains := CreateJSONArray([]);
+
+      for bit_idx := 0 to Integer(TTerrainType.water) do
+      begin
+         if (def.FLandscape and (1 shl bit_idx)) > 0 then
+         begin
+           allowedTerrains.Add(GetEnumName(TypeInfo(TTerrainType), bit_idx));
+         end;
+      end;
+
+      legacy_config.Add('allowedTerrains', allowedTerrains);
 
       visit_conf := CreateJSONArray([]);
       GenerateDefaultVisitableFrom(visit_conf, def.FGroup, TObj(def.Typ) );

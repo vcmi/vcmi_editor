@@ -59,8 +59,6 @@ type
     procedure DoLoadObjects(AMetaClass: AnsiString; ALoader: TLoadObjectProc);
 
     procedure LoadObjects;
-
-
   public
     procedure InitComplete;
 
@@ -151,7 +149,6 @@ begin
 
   FListsManager.LoadSpells(FResourceManager.GameConfig.Spells);
 
-  //stage 2
   ProgressForm.NextStage('Loading terrain graphics ...');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 
@@ -160,6 +157,8 @@ begin
 
   LoadObjects;
 
+  ProgressForm.NextStage('Building objects search index ...');
+  FObjManager.BuildIndex;
 end;
 
 procedure TRootManager.DataModuleDestroy(Sender: TObject);
