@@ -348,7 +348,7 @@ type
 
   { THeroOptions }
 
-  THeroOptions = class(TOwnedObjectOptions, IEditableHeroInfo)
+  THeroOptions = class abstract (TOwnedObjectOptions, IEditableHeroInfo)
   private
     FArmy: TCreatureSet;
     FArtifacts: THeroArtifacts;
@@ -374,7 +374,6 @@ type
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
-    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
     procedure AfterSerialize(Sender: TObject; AData: TJSONData); override;
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
@@ -413,6 +412,31 @@ type
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
   public //manual streaming
      property Sex: THeroSex read FSex write SetSex;
+  end;
+
+  { TNormalHeroOptions }
+
+  TNormalHeroOptions = class(THeroOptions, IEditableHeroInfo)
+  public
+    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  end;
+
+  { TNormalHeroOptions }
+
+  { TRandomHeroOptions }
+
+  TRandomHeroOptions = class(THeroOptions, IEditableHeroInfo)
+  public
+    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+  end;
+
+  { TNormalHeroOptions }
+
+  { TPrisonOptions }
+
+  TPrisonOptions = class(THeroOptions, IEditableHeroInfo)
+  public
+    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
 
   { TCreatureOptions }
@@ -736,7 +760,11 @@ type
   IObjectOptionsVisitor = interface
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);
     procedure VisitSignBottle(AOptions: TSignBottleOptions);
-    procedure VisitHero(AOptions: THeroOptions);
+
+    procedure VisitNormalHero(AOptions: TNormalHeroOptions);
+    procedure VisitRandomHero(AOptions: TRandomHeroOptions);
+    procedure VisitPrison(AOptions: TPrisonOptions);
+
     procedure VisitMonster(AOptions: TCreatureOptions);
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);
@@ -775,8 +803,12 @@ begin
       c := TLocalEventOptions;
     'oceanBottle', 'sign':
       c := TSignBottleOptions;
-    'hero', 'randomHero', 'prison':
-      c := THeroOptions;
+    'hero':
+      c := TNormalHeroOptions;
+    'randomHero':
+      c := TRandomHeroOptions;
+    'prison':
+      c := TPrisonOptions;
     'monster',
     'randomMonster',
     'randomMonsterLevel1',
@@ -856,7 +888,26 @@ begin
   Result := c.Create(AObject);
 end;
 
+{ TPrisonOptions }
 
+procedure TPrisonOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  AVisitor.VisitPrison(self);
+end;
+
+{ TRandomHeroOptions }
+
+procedure TRandomHeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  AVisitor.VisitRandomHero(self);
+end;
+
+{ TNormalHeroOptions }
+
+procedure TNormalHeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  AVisitor.VisitNormalHero(self);
+end;
 
 { THeroArtifacts }
 
@@ -1674,11 +1725,6 @@ begin
 end;
 
 { THeroOptions }
-
-procedure THeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
-begin
-  AVisitor.VisitHero(Self);
-end;
 
 procedure THeroOptions.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin

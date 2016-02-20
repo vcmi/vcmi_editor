@@ -54,7 +54,7 @@ type
   protected
     procedure Load(); override;
   public
-    procedure VisitHero(AOptions: THeroOptions); override;
+    procedure ReadHero(AOptions: THeroOptions); override;
 
   end;
 
@@ -250,12 +250,11 @@ begin
   Result := ListsManager.HeroClasses[hero_class].Name;
 end;
 
-procedure THeroOptionsFrame.VisitHero(AOptions: THeroOptions);
+procedure THeroOptionsFrame.ReadHero(AOptions: THeroOptions);
 begin
   FOptions := AOptions;
-  inherited VisitHero(AOptions); //continue dispatch
+  inherited ReadHero(AOptions);
 
-  Load();
 end;
 
 end.

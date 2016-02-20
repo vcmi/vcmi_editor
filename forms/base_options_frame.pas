@@ -46,10 +46,6 @@ type
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
     procedure SaveResourceSet(AParentControl: TWinControl; ADest: TResourceSet);
 
-    procedure VisitNormalHero({%H-}AOptions: THeroOptions);virtual;
-    procedure VisitRandomHero({%H-}AOptions: THeroOptions);virtual;
-    procedure VisitPrison({%H-}AOptions: THeroOptions);virtual;
-
     procedure VisitNormalTown({%H-}AOptions: TTownOptions);virtual;
     procedure VisitRandomTown({%H-}AOptions: TTownOptions);virtual;
 
@@ -76,7 +72,9 @@ type
   public //IObjectOptionsVisitor
     procedure VisitLocalEvent({%H-}AOptions: TLocalEventOptions); virtual;
     procedure VisitSignBottle({%H-}AOptions: TSignBottleOptions);virtual;
-    procedure VisitHero(AOptions: THeroOptions);virtual;
+    procedure VisitNormalHero({%H-}AOptions: TNormalHeroOptions);virtual;
+    procedure VisitRandomHero({%H-}AOptions: TRandomHeroOptions);virtual;
+    procedure VisitPrison({%H-}AOptions: TPrisonOptions);virtual;
     procedure VisitMonster({%H-}AOptions: TCreatureOptions);virtual;
     procedure VisitSeerHut({%H-}AOptions: TSeerHutOptions);virtual;
     procedure VisitWitchHut({%H-}AOptions: TWitchHutOptions);virtual;
@@ -97,6 +95,8 @@ type
     procedure VisitHeroPlaceholder({%H-}AOptions: THeroPlaceholderOptions);virtual;
 
     procedure VisitOwnedObject({%H-}AOptions: TOwnedObjectOptions);virtual;
+
+    procedure VisitHero({%H-}AOptions: THeroOptions);virtual;
   public //map options
 
     procedure VisitHeroDefinition({%H-}AOptions: THeroDefinition); virtual;
@@ -314,29 +314,29 @@ begin
 
 end;
 
-procedure TBaseOptionsFrame.VisitNormalHero(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
 begin
-
+  VisitHero(AOptions);
 end;
 
-procedure TBaseOptionsFrame.VisitRandomHero(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitRandomHero(AOptions: TRandomHeroOptions);
 begin
-
+  VisitHero(AOptions);
 end;
 
-procedure TBaseOptionsFrame.VisitPrison(AOptions: THeroOptions);
+procedure TBaseOptionsFrame.VisitPrison(AOptions: TPrisonOptions);
 begin
-
+  VisitHero(AOptions);
 end;
 
 procedure TBaseOptionsFrame.VisitNormalTown(AOptions: TTownOptions);
 begin
-
+ //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitRandomTown(AOptions: TTownOptions);
 begin
-
+ //do nothing
 end;
 
 procedure TBaseOptionsFrame.HandleStringGridKeyDown(Sender: TObject;
@@ -464,15 +464,6 @@ begin
   //do nothing
 end;
 
-procedure TBaseOptionsFrame.VisitHero(AOptions: THeroOptions);
-begin
-  case AOptions.MapObject.GetID of
-    TYPE_HERO: VisitNormalHero(AOptions);
-    TYPE_PRISON: VisitPrison(AOptions);
-    TYPE_RANDOMHERO: VisitRandomHero(AOptions);
-  end;
-end;
-
 procedure TBaseOptionsFrame.VisitHeroPlaceholder(
   AOptions: THeroPlaceholderOptions);
 begin
@@ -493,6 +484,11 @@ procedure TBaseOptionsFrame.VisitOwnedObject(AOptions: TOwnedObjectOptions
   );
 begin
   //do nothing
+end;
+
+procedure TBaseOptionsFrame.VisitHero(AOptions: THeroOptions);
+begin
+   //do nothing
 end;
 
 procedure TBaseOptionsFrame.VisitHeroDefinition(AOptions: THeroDefinition);

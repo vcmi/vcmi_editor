@@ -129,16 +129,19 @@ type
     procedure ApplyDefaults; override;
     procedure ReloadDefaults; override;
     procedure UpdateControls(); override;
-    procedure VisitNormalHero(AOptions: THeroOptions); override;
-    procedure VisitRandomHero(AOptions: THeroOptions); override;
-    procedure VisitPrison(AOptions: THeroOptions); override;
+
 
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure Commit; override;
 
-    procedure VisitHero(AOptions: THeroOptions); override;
+    procedure VisitNormalHero(AOptions: TNormalHeroOptions); override;
+    procedure VisitRandomHero(AOptions: TRandomHeroOptions); override;
+    procedure VisitPrison(AOptions: TPrisonOptions); override;
+
+    procedure ReadHero(AOptions: THeroOptions); virtual;
+
     procedure VisitHeroDefinition(AOptions: THeroDefinition); override;
   end;
 
@@ -510,13 +513,14 @@ begin
 
 end;
 
-procedure THeroFrame.VisitNormalHero(AOptions: THeroOptions);
+procedure THeroFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
 begin
   inherited VisitNormalHero(AOptions);
   edHeroClass.Enabled:=False;
+  ReadHero(AOptions);
 end;
 
-procedure THeroFrame.VisitRandomHero(AOptions: THeroOptions);
+procedure THeroFrame.VisitRandomHero(AOptions: TRandomHeroOptions);
 begin
   inherited VisitRandomHero(AOptions);
 
@@ -527,15 +531,19 @@ begin
   lbType.Visible:=False;
   edType.Visible:=False;
   Placeholder2.Visible:=False;
+
+  ReadHero(AOptions);
 end;
 
-procedure THeroFrame.VisitPrison(AOptions: THeroOptions);
+procedure THeroFrame.VisitPrison(AOptions: TPrisonOptions);
 begin
   inherited VisitPrison(AOptions);
 
   lbOwner.Visible:=False;
   edOwner.Visible := False;
   Placeholder3.Visible:=False;
+
+  ReadHero(AOptions);
 end;
 
 procedure THeroFrame.UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox;
@@ -583,7 +591,7 @@ begin
   end;
 end;
 
-procedure THeroFrame.VisitHero(AOptions: THeroOptions);
+procedure THeroFrame.ReadHero(AOptions: THeroOptions);
 begin
   FOptions := AOptions;
   FHeroOptions := AOptions;
@@ -591,8 +599,6 @@ begin
   AvailableForPlaceholder.Visible:=false;
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
-
-  inherited VisitHero(AOptions);//process normal, random, prison
 
   InstanceType:=AOptions.&Type;
 

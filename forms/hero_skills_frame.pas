@@ -58,16 +58,16 @@ type
     procedure Load;
   protected
 
-    procedure VisitNormalHero(AOptions: THeroOptions);override;
-    procedure VisitRandomHero(AOptions: THeroOptions);override;
-    procedure VisitPrison(AOptions: THeroOptions);override;
-
     procedure UpdateControls();override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure Commit; override;
-    procedure VisitHero(AOptions: THeroOptions); override;
+
+    procedure VisitNormalHero(AOptions: TNormalHeroOptions);override;
+    procedure VisitRandomHero(AOptions: TRandomHeroOptions);override;
+    procedure VisitPrison(AOptions: TPrisonOptions);override;
+
     procedure VisitHeroDefinition(AOptions: THeroDefinition); override;
   end;
 
@@ -237,7 +237,7 @@ begin
   edSecondarySkills.Enabled := cbCustomise.Checked;
 end;
 
-procedure THeroSkillsFrame.VisitNormalHero(AOptions: THeroOptions);
+procedure THeroSkillsFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
 begin
   inherited VisitNormalHero(AOptions);
 
@@ -245,14 +245,20 @@ begin
   begin
     FDefaultSkills.Assign(ListsManager.Heroes[AOptions.&type].Skills);
   end;
+
+  FObject := AOptions.SecondarySkills;
+  Load;
 end;
 
-procedure THeroSkillsFrame.VisitRandomHero(AOptions: THeroOptions);
+procedure THeroSkillsFrame.VisitRandomHero(AOptions: TRandomHeroOptions);
 begin
   inherited VisitRandomHero(AOptions);
+
+  FObject := AOptions.SecondarySkills;
+  Load;
 end;
 
-procedure THeroSkillsFrame.VisitPrison(AOptions: THeroOptions);
+procedure THeroSkillsFrame.VisitPrison(AOptions: TPrisonOptions);
 begin
   inherited VisitPrison(AOptions);
 
@@ -260,6 +266,9 @@ begin
   begin
     FDefaultSkills.Assign(ListsManager.Heroes[AOptions.&type].Skills);
   end;
+
+  FObject := AOptions.SecondarySkills;
+  Load;
 end;
 
 constructor THeroSkillsFrame.Create(TheOwner: TComponent);
@@ -290,13 +299,6 @@ begin
   begin
     FObject.Clear;
   end;
-end;
-
-procedure THeroSkillsFrame.VisitHero(AOptions: THeroOptions);
-begin
-  inherited VisitHero(AOptions);
-  FObject := AOptions.SecondarySkills;
-  Load;
 end;
 
 procedure THeroSkillsFrame.VisitHeroDefinition(AOptions: THeroDefinition);

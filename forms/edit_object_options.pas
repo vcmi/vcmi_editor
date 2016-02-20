@@ -63,10 +63,16 @@ type
     procedure VisitDwelling(AOptions: TObjectOptions);
     procedure VisitGuardedObject(AOptions: TObjectOptions);
     procedure VisitArmedObject(AOptions: TObjectOptions);
+
+    procedure VisitHero(AOptions: THeroOptions);//+
   public//IObjectOptionsVisitor
     procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
     procedure VisitSignBottle(AOptions: TSignBottleOptions); //+
-    procedure VisitHero(AOptions: THeroOptions);//+
+
+    procedure VisitNormalHero(AOptions: TNormalHeroOptions);//+
+    procedure VisitRandomHero(AOptions: TRandomHeroOptions);//+
+    procedure VisitPrison(AOptions: TPrisonOptions);//+
+
     procedure VisitMonster(AOptions: TCreatureOptions);//+
     procedure VisitSeerHut(AOptions: TSeerHutOptions);
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
@@ -288,6 +294,21 @@ end;
 procedure TEditObjectOptions.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
   FActiveEditors.AddFrame(TMessageFrame,AOptions,tsCommon);
+end;
+
+procedure TEditObjectOptions.VisitNormalHero(AOptions: TNormalHeroOptions);
+begin
+  VisitHero(AOptions);
+end;
+
+procedure TEditObjectOptions.VisitRandomHero(AOptions: TRandomHeroOptions);
+begin
+  VisitHero(AOptions);
+end;
+
+procedure TEditObjectOptions.VisitPrison(AOptions: TPrisonOptions);
+begin
+  VisitHero(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);

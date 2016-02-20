@@ -193,10 +193,16 @@ type
      procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);//+
 
      procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4); //+
+
+     procedure ReadHero(AOptions: THeroOptions);//+
    public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
-     procedure VisitHero(AOptions: THeroOptions);//+
+
+     procedure VisitPrison(AOptions: TPrisonOptions);
+     procedure VisitNormalHero(AOptions: TNormalHeroOptions);
+     procedure VisitRandomHero(AOptions: TRandomHeroOptions);
+
      procedure VisitMonster(AOptions: TCreatureOptions);//+
      procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
@@ -984,7 +990,7 @@ begin
   AOptions.Radius := FSrc.ReadDWord;
 end;
 
-procedure TMapReaderH3m.VisitHero(AOptions: THeroOptions);
+procedure TMapReaderH3m.ReadHero(AOptions: THeroOptions);
 var
   exper: UInt64;
   patrol: Byte;
@@ -1122,7 +1128,20 @@ begin
   end;
 end;
 
+procedure TMapReaderH3m.VisitPrison(AOptions: TPrisonOptions);
+begin
+  ReadHero(AOptions);
+end;
 
+procedure TMapReaderH3m.VisitNormalHero(AOptions: TNormalHeroOptions);
+begin
+  ReadHero(AOptions);
+end;
+
+procedure TMapReaderH3m.VisitRandomHero(AOptions: TRandomHeroOptions);
+begin
+  ReadHero(AOptions);
+end;
 
 procedure TMapReaderH3m.VisitMonster(AOptions: TCreatureOptions);
 var

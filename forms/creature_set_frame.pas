@@ -53,14 +53,12 @@ type
     FCellAmounts: array of TCustomSpinEdit;
 
     FAllowRandom: Boolean;
+
+    procedure ReadHero(AOptions: THeroOptions);
   protected
     procedure UpdateControls; override;
 
     procedure Load(ASrc: TCreatureSet);
-
-    procedure VisitNormalHero(AOptions: THeroOptions); override;
-    procedure VisitPrison(AOptions: THeroOptions); override;
-    procedure VisitRandomHero(AOptions: THeroOptions); override;
 
     procedure VisitNormalTown(AOptions: TTownOptions); override;
     procedure VisitRandomTown(AOptions: TTownOptions); override;
@@ -74,7 +72,11 @@ type
     procedure VisitResource(AOptions: TResourceOptions); override;
     procedure VisitPandorasBox(AOptions: TPandorasOptions); override;
     procedure VisitLocalEvent(AOptions: TLocalEventOptions); override;
-    procedure VisitHero(AOptions: THeroOptions); override;
+
+    procedure VisitNormalHero(AOptions: TNormalHeroOptions); override;
+    procedure VisitPrison(AOptions: TPrisonOptions); override;
+    procedure VisitRandomHero(AOptions: TRandomHeroOptions); override;
+
     procedure VisitTown(AOptions: TTownOptions); override;
   end;
 
@@ -164,22 +166,25 @@ begin
   UpdateControls;
 end;
 
-procedure TCreatureSetFrame.VisitNormalHero(AOptions: THeroOptions);
+procedure TCreatureSetFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
 begin
   inherited VisitNormalHero(AOptions);
   FAllowRandom := False;
+  ReadHero(AOptions);
 end;
 
-procedure TCreatureSetFrame.VisitPrison(AOptions: THeroOptions);
+procedure TCreatureSetFrame.VisitPrison(AOptions: TPrisonOptions);
 begin
   inherited VisitPrison(AOptions);
   FAllowRandom := False;
+  ReadHero(AOptions);
 end;
 
-procedure TCreatureSetFrame.VisitRandomHero(AOptions: THeroOptions);
+procedure TCreatureSetFrame.VisitRandomHero(AOptions: TRandomHeroOptions);
 begin
   inherited VisitRandomHero(AOptions);
   FAllowRandom := True;
+  ReadHero(AOptions);
 end;
 
 procedure TCreatureSetFrame.VisitNormalTown(AOptions: TTownOptions);
@@ -309,9 +314,8 @@ begin
   Load(AOptions.Guards);
 end;
 
-procedure TCreatureSetFrame.VisitHero(AOptions: THeroOptions);
+procedure TCreatureSetFrame.ReadHero(AOptions: THeroOptions);
 begin
-  inherited VisitHero(AOptions);
   Load(AOptions.Army);
   edTightFormation.Visible := true;
 end;
