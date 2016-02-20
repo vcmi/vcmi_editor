@@ -49,18 +49,13 @@ type
   private
     FOptions: THeroOptions;
 
-    procedure Load();
-
     function GetHeroClass():AnsiString;
     function GetHeroClassName():TLocalizedString;
-
   protected
-
-    procedure UpdateControls(); override;
+    procedure Load(); override;
   public
     procedure VisitHero(AOptions: THeroOptions); override;
 
-    procedure Commit; override;
   end;
 
 implementation
@@ -130,8 +125,6 @@ begin
 
     class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
 
-    FClassSkills.Assign(class_info.PrimarySkills);
-
     ListsManager.FillWithHeroesOfClass(edType.Items, class_info.Identifier);
 
     hero_type :=  FOptions.&type;
@@ -192,27 +185,13 @@ begin
 
     definition := Map.PredefinedHeroes.FindItem(info.Identifier);
 
+    InstanceType:=info.Identifier;
   end;
 
   FHeroMapDefaults := definition;
 
-  if Assigned(definition) then
-  begin
-    FMapSkills.Assign(definition.PrimarySkills);
-  end
-  else begin
-    FMapSkills.Clear;
-  end;
-
-  if FMapSkills.IsDefault then
-  begin
-    FDefaultSkills.Assign(FClassSkills);
-  end
-  else begin
-    FDefaultSkills.Assign(FMapSkills);
-  end;
-
   cbPortraitChange(cbPortrait);
+  cbExperienceChange(cbExperience);
   cbNameChange(cbName);
   cbSexChange(cbSex);
   cbBiographyChange(cbBiography);
@@ -223,34 +202,13 @@ end;
 
 procedure THeroOptionsFrame.Load;
 begin
-    cbExperience.Checked := FOptions.Experience <> 0;
+  edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
 
-    edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
+  edHeroClassChange(edHeroClass); //also loads type
 
-    edHeroClassChange(edHeroClass); //also loads type
+  inherited;
 
-
-    //TODO: load portrait
-
-    if cbExperience.Checked then
-    begin
-      edExperience.Text := IntToStr(FOptions.Experience);
-    end
-    else
-    begin
-      edExperience.Text := '0';
-    end;
-
-    case FOptions.PatrolRadius of
-      -1: edPatrol.ItemIndex := 0 ;
-      0: edPatrol.ItemIndex := 1;
-    else
-      begin
-        edPatrol.Text:=IntToStr(FOptions.PatrolRadius);
-      end;
-    end;
-
-    UpdateControls();
+  UpdateControls();
 end;
 
 function THeroOptionsFrame.GetHeroClass: AnsiString;
@@ -292,37 +250,12 @@ begin
   Result := ListsManager.HeroClasses[hero_class].Name;
 end;
 
-procedure THeroOptionsFrame.UpdateControls;
-begin
-  inherited;
-end;
-
 procedure THeroOptionsFrame.VisitHero(AOptions: THeroOptions);
 begin
   FOptions := AOptions;
   inherited VisitHero(AOptions); //continue dispatch
 
   Load();
-end;
-
-procedure THeroOptionsFrame.Commit;
-begin
-  inherited Commit;
-
-  if edType.Visible then
-  begin
-    FOptions.&type := edType.SelectedInfo.Identifier;
-  end;
-
-  if edPatrol.ItemIndex >=0 then
-  begin
-    FOptions.PatrolRadius := edPatrol.ItemIndex-1;
-  end
-  else
-  begin
-    FOptions.PatrolRadius := StrToIntDef(edPatrol.Text, -1);
-  end;
-
 end;
 
 end.

@@ -303,7 +303,6 @@ procedure THeroSkillsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
   inherited VisitHeroDefinition(AOptions);
   FObject := AOptions.Skills;
-
   Load;
 end;
 

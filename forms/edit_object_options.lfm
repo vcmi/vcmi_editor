@@ -1,29 +1,29 @@
 object EditObjectOptions: TEditObjectOptions
   Left = 441
-  Height = 541
+  Height = 696
   Top = 148
   Width = 567
   Caption = 'EditObjectOptions'
-  ClientHeight = 541
+  ClientHeight = 696
   ClientWidth = 567
   Constraints.MinHeight = 200
   Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.4.5.0'
+  LCLVersion = '1.6.1.0'
   object pcMain: TPageControl
     Left = 0
-    Height = 501
+    Height = 656
     Top = 0
     Width = 567
-    ActivePage = tsBuildings
+    ActivePage = tsCommon
     Align = alClient
     BorderSpacing.Bottom = 40
-    TabIndex = 4
+    TabIndex = 0
     TabOrder = 0
     object tsCommon: TTabSheet
       Caption = 'Main options'
-      ClientHeight = 473
+      ClientHeight = 628
       ClientWidth = 559
       object lbNothingToEdit: TLabel
         Left = 12
@@ -52,7 +52,7 @@ object EditObjectOptions: TEditObjectOptions
   object btOk: TButton
     Left = 397
     Height = 25
-    Top = 509
+    Top = 664
     Width = 75
     Action = actSave
     Anchors = [akRight, akBottom]
@@ -62,7 +62,7 @@ object EditObjectOptions: TEditObjectOptions
   object btCancel: TButton
     Left = 485
     Height = 25
-    Top = 509
+    Top = 664
     Width = 75
     Action = actDontSave
     Anchors = [akRight, akBottom]

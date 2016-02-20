@@ -92,7 +92,6 @@ type
     FHeroOptions: THeroOptions;
     FHeroDefinition: THeroDefinition;
 
-    procedure Load;
     procedure Save;
 
     procedure LoadAvilableFor;
@@ -107,7 +106,7 @@ type
     FCustomPortrait: AnsiString;
     FCustomExperience: UInt64;
 
-    FCustomSkills, FDefaultSkills, FClassSkills, FMapSkills:  THeroPrimarySkills;
+    FCustomSkills: THeroPrimarySkills;
 
     FHeroTypeDefaults, FHeroMapDefaults: IHeroInfo;
 
@@ -116,6 +115,7 @@ type
     function GetDefaultName: TLocalizedString;
     function GetDefaultSex: THeroSex;
     function GetDefaultPortrait: AnsiString;
+    function GetDefaultSkills: THeroPrimarySkills;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
@@ -124,7 +124,10 @@ type
     procedure LoadSkills;
     procedure ResetSkills;
 
+    procedure Load; virtual;
   protected
+    procedure ApplyDefaults; override;
+    procedure ReloadDefaults; override;
     procedure UpdateControls(); override;
     procedure VisitNormalHero(AOptions: THeroOptions); override;
     procedure VisitRandomHero(AOptions: THeroOptions); override;
@@ -203,7 +206,7 @@ begin
   end
   else
   begin
-    FCustomSkills.Assign(FDefaultSkills);
+    FCustomSkills.Assign(GetDefaultSkills);
   end;
   cbSkillsChange(cbSkills);
 
@@ -290,9 +293,23 @@ end;
 
 procedure THeroFrame.CommitHeroOptions;
 begin
+  if edType.Visible then
+  begin
+    FHeroOptions.&type := edType.SelectedIdentifier();
+  end;
+
   if edOwner.Visible then
   begin
     FHeroOptions.Owner := TPlayer(edOwner.ItemIndex);
+  end;
+
+  if edPatrol.ItemIndex >=0 then
+  begin
+    FHeroOptions.PatrolRadius := edPatrol.ItemIndex-1;
+  end
+  else
+  begin
+    FHeroOptions.PatrolRadius := StrToIntDef(edPatrol.Text, -1);
   end;
 end;
 
@@ -351,6 +368,19 @@ begin
     Result := FOptions.GetHeroIdentifier();
 end;
 
+function THeroFrame.GetDefaultSkills: THeroPrimarySkills;
+begin
+  Result := nil;//todo: maybe static object?
+  if Assigned(FHeroMapDefaults) and (not FHeroMapDefaults.GetPrimarySkills.IsDefault) then
+  begin
+    Result := FHeroMapDefaults.GetPrimarySkills;
+  end
+  else if Assigned(FHeroTypeDefaults) then
+  begin
+    Result := FHeroTypeDefaults.GetPrimarySkills;
+  end;
+end;
+
 procedure THeroFrame.CustomiseChange(Sender: TObject);
 begin
   UpdateControls();
@@ -400,7 +430,7 @@ procedure THeroFrame.cbExperienceChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
 
-  if cbBiography.State = cbChecked then
+  if cbExperience.State = cbChecked then
   begin
     if FCustomExperience = 0 then
     begin
@@ -457,11 +487,27 @@ begin
 end;
 
 procedure THeroFrame.ResetSkills;
+var
+  src: THeroPrimarySkills;
 begin
-  Attack.Value     := FDefaultSkills.Attack;
-  Defence.Value    := FDefaultSkills.Defence;
-  SpellPower.Value := FDefaultSkills.Spellpower;
-  Knowledge.Value  := FDefaultSkills.Knowledge;
+  src := GetDefaultSkills();
+
+  Attack.Value     := src.Attack;
+  Defence.Value    := src.Defence;
+  SpellPower.Value := src.Spellpower;
+  Knowledge.Value  := src.Knowledge;
+end;
+
+procedure THeroFrame.ApplyDefaults;
+begin
+  inherited ApplyDefaults;
+end;
+
+procedure THeroFrame.ReloadDefaults;
+begin
+  inherited ReloadDefaults;
+
+
 end;
 
 procedure THeroFrame.VisitNormalHero(AOptions: THeroOptions);
@@ -511,17 +557,11 @@ begin
     edOwner.Items.Add(ListsManager.PlayerName[p]);
   end;
   FCustomSkills := THeroPrimarySkills.Create;
-  FDefaultSkills := THeroPrimarySkills.Create;
-  FClassSkills := THeroPrimarySkills.Create;
-  FMapSkills := THeroPrimarySkills.Create;
 end;
 
 destructor THeroFrame.Destroy;
 begin
-  FMapSkills.Free;
-  FClassSkills.Free;
   FCustomSkills.Free;
-  FDefaultSkills.Free;
   inherited Destroy;
 end;
 
@@ -554,11 +594,22 @@ begin
 
   inherited VisitHero(AOptions);//process normal, random, prison
 
+  InstanceType:=AOptions.&Type;
+
   Load;
 
   if edOwner.Visible then
   begin
     edOwner.ItemIndex := Integer(FHeroOptions.Owner);
+  end;
+
+  case FHeroOptions.PatrolRadius of
+    -1: edPatrol.ItemIndex := 0 ;
+    0: edPatrol.ItemIndex := 1;
+  else
+    begin
+      edPatrol.Text:=IntToStr(FHeroOptions.PatrolRadius);
+    end;
   end;
 
 end;
@@ -582,17 +633,15 @@ begin
   edHeroClass.Enabled := false;
   edType.Enabled:=false;
 
+  InstanceType:=AOptions.Identifier;
+
   h_info := ListsManager.Heroes[AOptions.Identifier];
   c_info := ListsManager.HeroClasses[h_info.&Class];
 
   FHeroTypeDefaults := h_info;
   FHeroMapDefaults := nil;
 
-  FClassSkills.Assign(c_info.PrimarySkills);
-  FDefaultSkills.Assign(FClassSkills);
-  FMapSkills.Clear;
-
-  edHeroClass.FillFromList(ListsManager.HeroClassInfos, h_info.&Class);
+  edHeroClass.FillFromList(ListsManager.HeroClassInfos, c_info.Identifier);
   edType.FillFromList(ListsManager.HeroInfos, h_info.Identifier);
 
   Load();

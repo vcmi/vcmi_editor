@@ -37,8 +37,10 @@ type
   TBaseOptionsFrame = class(TFrame,IObjectOptionsVisitor)
   private
     FListsManager: TListsManager;
+    FMainIdentifier: AnsiString;
     FMap: TVCMIMap;
     procedure SetListsManager(AValue: TListsManager);
+    procedure SetMainIdentifier(AValue: AnsiString);
     procedure SetMap(AValue: TVCMIMap);
   protected
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
@@ -58,6 +60,11 @@ type
 
     procedure ReadOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
     procedure WriteOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
+
+    property InstanceType: AnsiString read FMainIdentifier write SetMainIdentifier;
+
+    procedure ApplyDefaults(); virtual;
+    procedure ReloadDefaults(); virtual;
 
     procedure UpdateControls(); virtual;
 
@@ -232,6 +239,14 @@ begin
   FListsManager := AValue;
 end;
 
+procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
+begin
+  FMainIdentifier:=AValue;
+
+  ReloadDefaults();
+  ApplyDefaults();
+end;
+
 procedure TBaseOptionsFrame.SetMap(AValue: TVCMIMap);
 begin
   if FMap=AValue then Exit;
@@ -390,6 +405,16 @@ begin
   else begin
     AOptions.Owner := TPlayer(AEditor.ItemIndex-1);
   end;
+end;
+
+procedure TBaseOptionsFrame.ApplyDefaults;
+begin
+
+end;
+
+procedure TBaseOptionsFrame.ReloadDefaults;
+begin
+
 end;
 
 procedure TBaseOptionsFrame.UpdateControls;
