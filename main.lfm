@@ -2034,17 +2034,20 @@ object fMain: TfMain
       Caption = 'Create map ...'
       ImageIndex = 0
       OnExecute = actCreateMapExecute
+      ShortCut = 16462
     end
     object actOpenMap: TAction
       Caption = 'Open map'
       ImageIndex = 1
       OnExecute = actOpenMapExecute
+      ShortCut = 16463
     end
     object actSaveMap: TAction
       Caption = 'Save map'
       ImageIndex = 2
       OnExecute = actSaveMapExecute
       OnUpdate = actSaveMapUpdate
+      ShortCut = 16467
     end
     object actUndo: TAction
       Caption = 'Undo'
@@ -2074,6 +2077,7 @@ object fMain: TfMain
       ImageIndex = 5
       OnExecute = actPropertiesExecute
       OnUpdate = actPropertiesUpdate
+      ShortCut = 32781
     end
     object actDelete: TAction
       Caption = 'Delete'

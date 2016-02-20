@@ -1049,6 +1049,7 @@ begin
   sbObjects.Max := Max(0, FObjectRows - 1);
 
   sbObjects.PageSize := ObjectsView.Height div OBJ_CELL_SIZE;
+  sbObjects.Position:=0;
 
   FViewObjectRowsH := sbObjects.PageSize;
   InvalidateObjPos;
