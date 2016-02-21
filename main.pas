@@ -265,7 +265,9 @@ type
     const
       OBJ_PER_ROW = 3;
       OBJ_CELL_SIZE = 60;
-
+    var
+      FObjectsPerRow: Integer;
+      FObjectCellSize: Integer;
   private
     FZbuffer: TZBuffer;
 
@@ -365,6 +367,7 @@ type
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
   public
+    constructor Create(TheOwner: TComponent); override;
     procedure MoveObject(AObject: TMapObject; l,x,y: integer);
     procedure DeleteObject(AObject: TMapObject);
   end;
@@ -810,6 +813,9 @@ var
   dir: String;
   map_filename: String;
 begin
+  FObjectCellSize:=OBJ_CELL_SIZE;
+  FObjectsPerRow:=OBJ_PER_ROW;
+
   FZbuffer := TZBuffer.Create;
   pnHAxis.DoubleBuffered := True;
   pnVAxis.DoubleBuffered := True;
@@ -964,7 +970,7 @@ end;
 
 function TfMain.GetObjIdx(col, row: integer): integer;
 begin
-   result := col + OBJ_PER_ROW * (row + FObjectsVPos);
+   result := col + FObjectsPerRow * (row + FObjectsVPos);
 end;
 
 procedure TfMain.HorisontalAxisPaint(Sender: TObject);
@@ -1048,7 +1054,7 @@ begin
   sbObjects.Min := 0;
   sbObjects.Max := Max(0, FObjectRows - 1);
 
-  sbObjects.PageSize := ObjectsView.Height div OBJ_CELL_SIZE;
+  sbObjects.PageSize := ObjectsView.Height div FObjectCellSize;
   sbObjects.Position:=0;
 
   FViewObjectRowsH := sbObjects.PageSize;
@@ -1641,8 +1647,8 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  col := x div OBJ_CELL_SIZE;
-  row := y div OBJ_CELL_SIZE;
+  col := x div FObjectCellSize;
+  row := y div FObjectCellSize;
 
   o_idx := GetObjIdx(col, row);
 
@@ -1700,16 +1706,16 @@ begin
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
-    for col := 0 to OBJ_PER_ROW - 1 do
+    for col := 0 to FObjectsPerRow - 1 do
     begin
       o_idx := GetObjIdx(col, row);
 
       if o_idx >= FObjectCount then
         break;
-      cx := col * OBJ_CELL_SIZE;
-      cy := row * OBJ_CELL_SIZE;
+      cx := col * FObjectCellSize;
+      cy := row * FObjectCellSize;
 
-      editor_gl.CurrentContextState.RenderRect(cx,cy,OBJ_CELL_SIZE,OBJ_CELL_SIZE);
+      editor_gl.CurrentContextState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize);
     end;
   end;
 
@@ -1721,17 +1727,17 @@ begin
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
-    for col := 0 to OBJ_PER_ROW - 1 do
+    for col := 0 to FObjectsPerRow - 1 do
     begin
       o_idx := GetObjIdx(col, row);
 
       if o_idx >= FObjectCount then
         break;
-      cx := col * OBJ_CELL_SIZE;
-      cy := row * OBJ_CELL_SIZE;
+      cx := col * FObjectCellSize;
+      cy := row * FObjectCellSize;
 
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.Def.RenderIcon(cx,cy, OBJ_CELL_SIZE, FCurrentPlayer);
+      o_def.Def.RenderIcon(cx,cy, FObjectCellSize, FCurrentPlayer);
 
     end;
   end;
@@ -2128,6 +2134,11 @@ procedure TfMain.DragCanceled;
 begin
   inherited DragCanceled;
   FMapDragging:=false;
+end;
+
+constructor TfMain.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
 end;
 
 procedure TfMain.MoveObject(AObject: TMapObject; l, x, y: integer);
