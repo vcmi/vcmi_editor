@@ -1833,7 +1833,7 @@ var
     special_victory_condition.&type:=ObjType;
     special_victory_condition.subType:=ObjSubtype;
     special_victory_condition.Value := Amount;
-    special_victory_condition.ConditionType:=TWinLossCondition.have;
+    special_victory_condition.ConditionType:=TWinLossCondition.have_0;
   end;
 
 var
@@ -1944,12 +1944,12 @@ begin
         special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        child_condition.ConditionType:=TWinLossCondition.haveBuilding_0;
         child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_1);
         child_condition.Position.Assign(position);
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        child_condition.ConditionType:=TWinLossCondition.haveBuilding_0;
         child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_2);
         child_condition.Position.Assign(position);
 
@@ -1959,7 +1959,7 @@ begin
       TVictoryCondition.BUILDGRAIL:
       begin
         ReadPosition(special_victory_condition.Position);
-        special_victory_condition.ConditionType:=TWinLossCondition.haveBuilding;
+        special_victory_condition.ConditionType:=TWinLossCondition.haveBuilding_0;
         special_victory_condition.&type:='grail';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,285];
@@ -1967,7 +1967,7 @@ begin
       end;
       TVictoryCondition.BEATHERO:
       begin
-        special_victory_condition.ConditionType:=TWinLossCondition.destroy;
+        special_victory_condition.ConditionType:=TWinLossCondition.destroy_0;
         special_victory_condition.&type:=TYPE_HERO;
 
         ReadPosition(special_victory_condition.Position);
@@ -1977,7 +1977,7 @@ begin
       end;
       TVictoryCondition.CAPTURECITY:
       begin
-        special_victory_condition.ConditionType:=TWinLossCondition.have;
+        special_victory_condition.ConditionType:=TWinLossCondition.have_0;
         special_victory_condition.&type:=TYPE_TOWN;
         ReadPosition(special_victory_condition.Position);
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,250];
@@ -1985,7 +1985,7 @@ begin
       end;
       TVictoryCondition.BEATMONSTER:
       begin
-        special_victory_condition.ConditionType:=TWinLossCondition.destroy;
+        special_victory_condition.ConditionType:=TWinLossCondition.destroy_0;
         special_victory_condition.&type:=TYPE_MONSTER;
 
         ReadPosition(special_victory_condition.Position);
@@ -1998,11 +1998,11 @@ begin
         special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.&type:='creatureGeneratorCommon';
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.&type:='creatureGeneratorSpecial';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,289];
@@ -2013,11 +2013,11 @@ begin
         special_victory_condition.LogicalOperator:=TLogicalOperator.allOf;
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.&type:='mine';
 
         child_condition := special_victory_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.&type:='abandonedMine';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,291];
@@ -2025,7 +2025,7 @@ begin
       end;
       TVictoryCondition.TRANSPORTITEM:
       begin
-        special_victory_condition.ConditionType:=TWinLossCondition.have;
+        special_victory_condition.ConditionType:=TWinLossCondition.have_0;
         special_victory_condition.&type:=TYPE_ARTIFACT;
         special_victory_condition.subType:=ReadID1(@FMapEnv.lm.ArtifactIndexToString);
         special_victory_condition.Value:=1;
@@ -2070,7 +2070,7 @@ begin
         special_defeat_condition.LogicalOperator:=TLogicalOperator.noneOf;
 
         child_condition := special_defeat_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.Position.Assign(position);
         child_condition.&type:='hero';
 
@@ -2081,7 +2081,7 @@ begin
         ReadPosition(position);
 
         child_condition := special_defeat_condition.AddSubCondition;
-        child_condition.ConditionType:=TWinLossCondition.have;
+        child_condition.ConditionType:=TWinLossCondition.have_0;
         child_condition.Position.Assign(position);
         child_condition.&type:='town';
 

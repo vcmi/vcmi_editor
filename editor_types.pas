@@ -65,7 +65,7 @@ type
 
   TCustomID = type integer;
 
-  TWinLossCondition = (have, haveBuilding,  destroy,  daysPassed,  isHuman,  standardWin,  daysWithoutTown,  constValue);
+  TWinLossCondition = (have_0, haveBuilding_0,  destroy_0,  daysPassed,  isHuman,  standardWin,  daysWithoutTown,  constValue);
 
   TIdentifier = type AnsiString;
 

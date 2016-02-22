@@ -119,6 +119,8 @@ type
   public
     //all except abilities
     procedure FillWithAllIds(AList: TLogicalIDCondition);
+
+
   end;
 
   {$push}
