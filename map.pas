@@ -364,7 +364,7 @@ type
     property L:integer read FL write SetL;
 
     property &Type: AnsiString read FType write SetType;
-    property SubType: AnsiString read FSubtype write SetSubtype;
+    property Subtype: AnsiString read FSubtype write SetSubtype;
 
     property Template: TMapObjectTemplate read FTemplate;
   public
