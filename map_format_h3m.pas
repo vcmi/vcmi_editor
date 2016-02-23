@@ -1429,12 +1429,12 @@ begin
   begin
     if IsAtLeastAB() then
     begin
-      Attr.GenerateHeroAtMainTown := FSrc.ReadBoolean;
+      Attr.MainTown.GenerateHero := FSrc.ReadBoolean;
       SkipNotImpl(1); //todo: in VCMI it is GenerateHero
     end
     else
     begin
-      Attr.GenerateHeroAtMainTown := True;
+      Attr.MainTown.GenerateHero  := True;
     end;
 
     main_town_pos := TPosition.Create;

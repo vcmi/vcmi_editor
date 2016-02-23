@@ -135,7 +135,7 @@ begin
   end;
   edMainTown.ItemIndex := selected_idx;
 
-  edGenerateHero.Checked := FObject.GenerateHeroAtMainTown;
+  edGenerateHero.Checked := FObject.MainTown.GenerateHero;
 
   selected_idx := 0;
   edMainHero.AddItem(rsNone, nil);
@@ -215,7 +215,7 @@ begin
   else
     FObject.MainTown.MapObject := nil;
 
-  FObject.GenerateHeroAtMainTown := edGenerateHero.Checked;
+  FObject.MainTown.GenerateHero := edGenerateHero.Checked;
 
   if Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
     FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TPlayerHero).Identifier

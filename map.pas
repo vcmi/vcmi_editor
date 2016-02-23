@@ -101,11 +101,13 @@ type
 
   TMainTownInfo = class (TPersistent)
   private
+    FGenerateHero: boolean;
     FMapObject: TMapObject;
     function GetL: integer;
     function GetType: AnsiString;
     function GetX: integer;
     function GetY: integer;
+    procedure SetGenerateHero(AValue: boolean);
     procedure SetMapObject(AValue: TMapObject);
   public
     property MapObject: TMapObject read FMapObject write SetMapObject;
@@ -114,6 +116,8 @@ type
     property x: integer read GetX default -1;
     property y: integer read GetY default -1;
     property l: integer read GetL default -1;
+
+    property GenerateHero: boolean read FGenerateHero write SetGenerateHero;
   end;
 
   { TPlayerInfo }
@@ -126,20 +130,12 @@ type
     FAITactics: TAITactics;
     FAllowedFactions: TLogicalIDCondition;
     FHeroes: TPlayerHeroes;
-    FGenerateHeroAtMainTown: boolean;
-    FRandomFaction: boolean;
 
     FMainTown: TMainTownInfo;
-    FRandomHero: Boolean;
     FMainHero: String;
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
-    procedure SetAITactics(AValue: TAITactics);
-    procedure SetCanPlay(AValue: TPlayableBy);
-    procedure SetGenerateHeroAtMainTown(AValue: boolean);
-    procedure SetRandomFaction(AValue: boolean);
-    procedure SetRandomHero(AValue: Boolean);
 
   public
     constructor Create(AColor: TPlayerColor; AOwner: IReferenceNotify);
@@ -159,15 +155,13 @@ type
   published
     property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
 
-    property CanPlay: TPlayableBy read FCanPlay write SetCanPlay default TPlayableBy.None;
+    property CanPlay: TPlayableBy read FCanPlay write FCanPlay default TPlayableBy.None;
 
     property MainTown: TMainTownInfo read FMainTown write FMainTown stored HasMainTown;
 
-    property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
-
     property MainHero: String read FMainHero write FMainHero;
   public
-    property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
+    property AITactics: TAITactics read FAITactics write FAITactics; //not used in vcmi (yet)
   public //special streaming
     property Heroes: TPlayerHeroes read FHeroes;
   end;
@@ -757,6 +751,12 @@ begin
     Result := FMapObject.Y
   else
     Result := -1;
+end;
+
+procedure TMainTownInfo.SetGenerateHero(AValue: boolean);
+begin
+  if FGenerateHero=AValue then Exit;
+  FGenerateHero:=AValue;
 end;
 
 procedure TMainTownInfo.SetMapObject(AValue: TMapObject);
@@ -1629,39 +1629,9 @@ begin
 
 end;
 
-procedure TPlayerInfo.SetAITactics(AValue: TAITactics);
-begin
-  if FAITactics = AValue then Exit;
-  FAITactics := AValue;
-end;
-
 function TPlayerInfo.HasMainTown: boolean;
 begin
   Result := Assigned(FMainTown.MapObject);
-end;
-
-procedure TPlayerInfo.SetCanPlay(AValue: TPlayableBy);
-begin
-  if FCanPlay=AValue then Exit;
-  FCanPlay:=AValue;
-end;
-
-procedure TPlayerInfo.SetGenerateHeroAtMainTown(AValue: boolean);
-begin
-  if FGenerateHeroAtMainTown = AValue then Exit;
-  FGenerateHeroAtMainTown := AValue;
-end;
-
-procedure TPlayerInfo.SetRandomFaction(AValue: boolean);
-begin
-  if FRandomFaction = AValue then Exit;
-  FRandomFaction := AValue;
-end;
-
-procedure TPlayerInfo.SetRandomHero(AValue: Boolean);
-begin
-  if FRandomHero = AValue then Exit;
-  FRandomHero := AValue;
 end;
 
 { TPlayerInfos }
