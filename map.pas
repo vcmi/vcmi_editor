@@ -83,12 +83,9 @@ type
   TPlayerTown = class(TNamedCollectionItem)
   private
     FMapObject: TMapObject;
-    function GetType: AnsiString;
     procedure SetMapObject(AValue: TMapObject);
   public
     property MapObject: TMapObject read FMapObject write SetMapObject;
-  published
-    property &type:AnsiString read GetType;
   end;
 
 
@@ -98,6 +95,25 @@ type
 
   TPlayerTowns = class (TPlayerTownCollection)
 
+  end;
+
+  { TMainTownInfo }
+
+  TMainTownInfo = class (TPersistent)
+  private
+    FMapObject: TMapObject;
+    function GetL: integer;
+    function GetType: AnsiString;
+    function GetX: integer;
+    function GetY: integer;
+    procedure SetMapObject(AValue: TMapObject);
+  public
+    property MapObject: TMapObject read FMapObject write SetMapObject;
+  published
+    property &type:AnsiString read GetType;
+    property x: integer read GetX default -1;
+    property y: integer read GetY default -1;
+    property l: integer read GetL default -1;
   end;
 
   { TPlayerInfo }
@@ -113,7 +129,7 @@ type
     FGenerateHeroAtMainTown: boolean;
     FRandomFaction: boolean;
 
-    FMainTown: string;
+    FMainTown: TMainTownInfo;
     FRandomHero: Boolean;
     FMainHero: String;
     FTowns: TPlayerTowns;
@@ -131,6 +147,7 @@ type
 
     property Color: TPlayerColor read FColor;
 
+    property Towns: TPlayerTowns read FTowns;
   public // ISerializeSpecial
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
@@ -144,7 +161,7 @@ type
 
     property CanPlay: TPlayableBy read FCanPlay write SetCanPlay default TPlayableBy.None;
 
-    property MainTown: String read FMainTown write FMainTown stored HasMainTown;
+    property MainTown: TMainTownInfo read FMainTown write FMainTown stored HasMainTown;
 
     property GenerateHeroAtMainTown: boolean read FGenerateHeroAtMainTown write SetGenerateHeroAtMainTown stored HasMainTown;
 
@@ -152,7 +169,6 @@ type
   public
     property AITactics: TAITactics read FAITactics write SetAITactics; //not used in vcmi (yet)
   public //special streaming
-    property Towns: TPlayerTowns read FTowns;
     property Heroes: TPlayerHeroes read FHeroes;
   end;
 
@@ -707,6 +723,47 @@ implementation
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
 
+{ TMainTownInfo }
+
+function TMainTownInfo.GetL: integer;
+begin
+  if Assigned(FMapObject) then
+    Result := FMapObject.L
+  else
+    Result := -1;
+end;
+
+function TMainTownInfo.GetType: AnsiString;
+begin
+  if Assigned(FMapObject) and (FMapObject.&Type = TYPE_TOWN) then
+  begin
+    Result := FMapObject.Subtype;
+  end
+  else
+    Result := '';
+end;
+
+function TMainTownInfo.GetX: integer;
+begin
+  if Assigned(FMapObject) then
+    Result := FMapObject.X
+  else
+    Result := -1;
+end;
+
+function TMainTownInfo.GetY: integer;
+begin
+  if Assigned(FMapObject) then
+    Result := FMapObject.Y
+  else
+    Result := -1;
+end;
+
+procedure TMainTownInfo.SetMapObject(AValue: TMapObject);
+begin
+  FMapObject:=AValue;
+end;
+
 { TTeam }
 
 procedure TTeam.AssignTo(Dest: TPersistent);
@@ -787,16 +844,6 @@ begin
 end;
 
 { TPlayerTown }
-
-function TPlayerTown.GetType: AnsiString;
-begin
-  if Assigned(FMapObject) and (FMapObject.&Type = TYPE_TOWN) then
-  begin
-    Result := FMapObject.Subtype;
-  end
-  else
-    Result := '';
-end;
 
 procedure TPlayerTown.SetMapObject(AValue: TMapObject);
 begin
@@ -1551,10 +1598,12 @@ begin
   FTowns.FPOAttachObserver(Self);
 
   FCanPlay:=TPlayableBy.PlayerOrAI;
+  FMainTown := TMainTownInfo.Create;
 end;
 
 destructor TPlayerInfo.Destroy;
 begin
+  FMainTown.Free;
   FTowns.Free;
   FHeroes.Free;
   FAllowedFactions.Free;
@@ -1572,7 +1621,6 @@ begin
   Result := AHandler.ObjectToJSON(Self);
 
   TJSONObject(Result).Add('heroes', AHandler.StreamCollection(Heroes));
-  TJSONObject(Result).Add('towns', AHandler.StreamCollection(Towns));
 end;
 
 procedure TPlayerInfo.FPOObservedChanged(ASender: TObject;
@@ -1589,7 +1637,7 @@ end;
 
 function TPlayerInfo.HasMainTown: boolean;
 begin
-  Result := FMainTown <> '';
+  Result := Assigned(FMainTown.MapObject);
 end;
 
 procedure TPlayerInfo.SetCanPlay(AValue: TPlayableBy);

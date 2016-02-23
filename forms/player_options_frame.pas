@@ -130,7 +130,7 @@ begin
   begin
     edMainTown.AddItem(FObject.Towns[i].MapObject.DisplayName, FObject.Towns[i]);
 
-    if(FObject.MainTown = FObject.Towns[i].Identifier) then
+    if(FObject.MainTown.MapObject = FObject.Towns[i].MapObject) then
       selected_idx := i+1;
   end;
   edMainTown.ItemIndex := selected_idx;
@@ -211,9 +211,9 @@ begin
   edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
 
   if Assigned(edMainTown.Items.Objects[edMainTown.ItemIndex]) then
-    FObject.MainTown:=(edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).Identifier
+    FObject.MainTown.MapObject := (edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).MapObject
   else
-    FObject.MainTown := '';
+    FObject.MainTown.MapObject := nil;
 
   FObject.GenerateHeroAtMainTown := edGenerateHero.Checked;
 
