@@ -382,14 +382,14 @@ type
     function HasOptions: boolean;
   end;
 
-  { TObjPriorityCompare }
+  { TBlitOrderCompare }
 
-  TObjPriorityCompare = class
+  TBlitOrderCompare = class
   public
     class function c(a,b: TMapObject): boolean;
   end;
 
-  TMapObjectQueue = specialize TPriorityQueue<TMapObject, TObjPriorityCompare>;
+  TMapObjectQueue = specialize TPriorityQueue<TMapObject, TBlitOrderCompare>;
 
   { TMapObjects }
 
@@ -1220,34 +1220,32 @@ begin
   inherited Create;
 end;
 
-{ TObjPriorityCompare }
+{ TBlitOrderCompare }
 
-class function TObjPriorityCompare.c(a, b: TMapObject): boolean;
+class function TBlitOrderCompare.c(a, b: TMapObject): boolean;
 begin
-
-  if a.Template.ZIndex > b.Template.ZIndex then
-  begin
-    Exit(True);
-  end;
 
   if a.Template.ZIndex < b.Template.ZIndex then
   begin
-    Exit(False);
+    Exit(True);
   end;
 
-  if a.Y > b.Y then
+  if a.Template.ZIndex > b.Template.ZIndex then
   begin
-    Exit(True);
+    Exit(False);
   end;
 
   if a.Y < b.Y then
   begin
+    Exit(True);
+  end;
+
+  if a.Y > b.Y then
+  begin
     Exit(False);
   end;
 
-
-  Exit(a.X < b.X);
-
+  Exit(a.X > b.X);
 end;
 
 { TMapObject }
