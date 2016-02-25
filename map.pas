@@ -1245,7 +1245,7 @@ begin
     Exit(False);
   end;
 
-  Exit(a.X > b.X);
+  Exit(a.X < b.X);
 end;
 
 { TMapObject }

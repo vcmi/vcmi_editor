@@ -94,7 +94,7 @@ type
     property RawRandom: integer Read GetRawRandom write SetRawRandom;
   published
     property &type: AnsiString read FType write SetType;
-    property Amount: Integer read FAmount write SetAmount nodefault;
+    property Amount: Integer read FAmount write SetAmount default 0;
 
     property Level: Integer read FLevel write FLevel default 0;
     property Upgraded: Boolean Read FUpgraded write FUpgraded default false;
