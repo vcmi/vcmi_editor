@@ -1235,12 +1235,12 @@ begin
     Exit(False);
   end;
 
-  if a.Y < b.Y then
+  if a.Y > b.Y then
   begin
     Exit(True);
   end;
 
-  if a.Y > b.Y then
+  if a.Y < b.Y then
   begin
     Exit(False);
   end;
