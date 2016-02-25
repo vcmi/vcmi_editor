@@ -618,7 +618,6 @@ begin
   if SaveMapAsDialog.Execute then
   begin
     SaveMap(SaveMapAsDialog.FileName);
-    FMapFilename := SaveMapAsDialog.FileName;
   end;
 end;
 
