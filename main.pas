@@ -207,6 +207,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormResize(Sender: TObject);
     procedure HorisontalAxisPaint(Sender: TObject);
     procedure hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -962,6 +963,12 @@ begin
 
 end;
 
+procedure TfMain.FormResize(Sender: TObject);
+begin
+  InvalidateMapDimensions;
+  InvalidateObjects;
+end;
+
 function TfMain.getMapHeight: Integer;
 begin
   Result := 0;
@@ -1519,7 +1526,7 @@ end;
 
 procedure TfMain.MapViewResize(Sender: TObject);
 begin
-  InvalidateMapDimensions;
+
 end;
 
 procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1766,7 +1773,7 @@ end;
 
 procedure TfMain.ObjectsViewResize(Sender: TObject);
 begin
-  InvalidateObjects;
+
 end;
 
 procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);

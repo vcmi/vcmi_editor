@@ -1017,6 +1017,7 @@ object fMain: TfMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
+  OnResize = FormResize
   Position = poDefault
   LCLVersion = '1.6.1.0'
   object pnMap: TPanel
