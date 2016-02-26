@@ -1086,8 +1086,8 @@ begin
     for j := 0 to mask_w - 1 do
     begin
       case line[j+1] of
-        MASK_ACTIVABLE: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
-        MASK_BLOCKED: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
+        MASK_ACTIVABLE, MASK_TRIGGER: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
+        MASK_BLOCKED, MASK_HIDDEN: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
       end;
     end;
   end;
