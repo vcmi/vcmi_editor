@@ -283,9 +283,11 @@ type
 {$m+}
   { TMapObjectTemplate }
 
-  TMapObjectTemplate = class(TObject, ISerializeNotify)
+  TMapObjectTemplate = class(TObject, ISerializeNotify, IFPObserver)
   private
     FDef: TDef;
+
+    FIsVisitable: Boolean;
 
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
@@ -300,6 +302,8 @@ type
     procedure AnimationChanged;
 
     procedure CompactMask;
+
+    procedure UpdateIsVisitable;
   public
     constructor Create;
     destructor Destroy; override;
@@ -311,6 +315,10 @@ type
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
 
     procedure RenderOverlay(obj_x,obj_y: integer);
+
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+
+    property Visitable: Boolean read FIsVisitable;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -1017,15 +1025,45 @@ begin
   //end;
 end;
 
+procedure TMapObjectTemplate.UpdateIsVisitable;
+var
+  s: String;
+  c: Char;
+begin
+  FIsVisitable:=false;
+  for s in FMask do
+  begin
+    for c in s do
+    begin
+      if (c = MASK_ACTIVABLE) or (c = MASK_TRIGGER) then
+      begin
+        FIsVisitable := true;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+procedure TMapObjectTemplate.FPOObservedChanged(ASender: TObject;
+  Operation: TFPObservedOperation; Data: Pointer);
+begin
+  if ASender = FMask then
+  begin
+    UpdateIsVisitable;
+  end;
+end;
+
 constructor TMapObjectTemplate.Create;
 begin
   FMask := TStringList.Create;
+  FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
   SetDef(RootManager.GraphicsManager.GetGraphics('default'));
 end;
 
 destructor TMapObjectTemplate.Destroy;
 begin
+  FMask.FPODetachObserver(Self);
   FMask.Free;
   FVisitableFrom.Free;
   inherited Destroy;
@@ -1052,7 +1090,7 @@ end;
 procedure TMapObjectTemplate.BeforeDeSerialize(Sender: TObject; AData: TJSONData
   );
 begin
-
+  FMask.BeginUpdate;
 end;
 
 procedure TMapObjectTemplate.AfterSerialize(Sender: TObject; AData: TJSONData);
@@ -1064,6 +1102,7 @@ procedure TMapObjectTemplate.AfterDeSerialize(Sender: TObject; AData: TJSONData
   );
 begin
   CompactMask;
+  FMask.EndUpdate;
 end;
 
 procedure TMapObjectTemplate.RenderOverlay(obj_x, obj_y: integer);
@@ -1277,6 +1316,18 @@ begin
   begin
     Exit(False);
   end;
+
+  if a.Options.ZIndex < b.Options.ZIndex then
+    Exit(True);
+
+  if a.Options.ZIndex > b.Options.ZIndex then
+    Exit(False);
+
+  if a.Template.Visitable and not b.Template.Visitable then
+    Exit(false);
+
+  if not a.Template.Visitable and b.Template.Visitable then
+    Exit(true);
 
   Exit(a.X < b.X);
 end;

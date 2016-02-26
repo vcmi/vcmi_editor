@@ -118,7 +118,6 @@ var
   inst_info: TCreatureInstInfo;
   customised: Boolean;
   creature_level: Integer;
-  shift: Integer;
 begin
   FOptions := ASrc;
 

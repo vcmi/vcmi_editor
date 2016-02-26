@@ -71,6 +71,7 @@ type
 
     class function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
 
+    class function ZIndex: Integer; virtual;
   public
     property Owner: TPlayer read GetOwner write SetOwner;
   end;
@@ -427,6 +428,7 @@ type
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     class function MustBeOwned: Boolean; override;
+    class function ZIndex: Integer; override;
   end;
 
   { TRandomHeroOptions }
@@ -435,6 +437,7 @@ type
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     class function MustBeOwned: Boolean; override;
+    class function ZIndex: Integer; override;
   end;
 
   { TPrisonOptions }
@@ -754,6 +757,8 @@ type
     procedure SetTypeID(AValue: AnsiString);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+
+    class function ZIndex: Integer; override;
   published
     property &Type: AnsiString read FTypeID write SetTypeID;
     property Power: UInt8 read FPower write SetPower default 0;
@@ -913,6 +918,11 @@ begin
    Result := GetClassByID(Id, SubId).Create(AObject);
 end;
 
+class function TObjectOptions.ZIndex: Integer;
+begin
+  Result := 0;
+end;
+
 procedure TObjectOptions.SetOwner(AValue: TPlayer);
 begin
   if not (AValue in [TPlayer.RED..TPlayer.PINK,TPlayer.NONE]) then
@@ -972,6 +982,11 @@ begin
   Result:=true;
 end;
 
+class function TRandomHeroOptions.ZIndex: Integer;
+begin
+  Result:=-100;
+end;
+
 { TNormalHeroOptions }
 
 procedure TNormalHeroOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -982,6 +997,11 @@ end;
 class function TNormalHeroOptions.MustBeOwned: Boolean;
 begin
   Result:=true;
+end;
+
+class function TNormalHeroOptions.ZIndex: Integer;
+begin
+  Result:=-100;
 end;
 
 { THeroArtifacts }
@@ -1238,6 +1258,11 @@ end;
 procedure THeroPlaceholderOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitHeroPlaceholder(Self);
+end;
+
+class function THeroPlaceholderOptions.ZIndex: Integer;
+begin
+  Result:=-100;
 end;
 
 procedure THeroPlaceholderOptions.SetPower(AValue: UInt8);
