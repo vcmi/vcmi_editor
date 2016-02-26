@@ -206,6 +206,8 @@ type
     procedure StartDrawingRects;
     procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 
+    procedure RenderSolidRect(x, y: Integer; dimx, dimy: integer; color: TRBGAColor);
+
     procedure StartDrawingSprites;
 
     procedure RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
@@ -560,8 +562,32 @@ begin
 
   glDrawArrays(GL_LINE_LOOP,0,4);
 
-//  CheckGLErrors('RenderRect');
+end;
 
+procedure TLocalState.RenderSolidRect(x, y: Integer; dimx, dimy: integer;
+  color: TRBGAColor);
+var
+  vertex_data: packed array[1..12] of GLfloat;
+begin
+  SetFragmentColor(color);
+
+  ApplyTranslation;
+
+  vertex_data[1] := x;   vertex_data[2] := y;
+  vertex_data[3] := x+dimx; vertex_data[4] := y;
+  vertex_data[5] := x+dimx; vertex_data[6] := y+dimy;
+
+  vertex_data[7] := x+dimx; vertex_data[8] := y+dimy;
+  vertex_data[9] := x;   vertex_data[10] := y+dimy;
+  vertex_data[11] := x;  vertex_data[12] := y;
+
+  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+
+  ApplyTranslation;
+
+  glDrawArrays(GL_TRIANGLES,6,6);  //todo: use triangle strip
 end;
 
 procedure TLocalState.StopDrawing;

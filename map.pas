@@ -28,7 +28,7 @@ uses
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, logical_expression, vcmi_json, locale_manager,
-  vcmi_fpjsonrtti;
+  editor_gl, vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -309,6 +309,8 @@ type
     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
+
+    procedure RenderOverlay(obj_x,obj_y: integer);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -351,6 +353,8 @@ type
     procedure RenderStatic(); inline;
     procedure RenderStatic(X,Y: integer); inline;
     procedure RenderAnim(); inline;
+
+    procedure RenderOverlay; inline;
 
     procedure RenderSelectionRect; inline;
 
@@ -656,6 +660,8 @@ type
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
     procedure RenderObjects(Left, Right, Top, Bottom: Integer);
+
+    procedure RenderObjectsOverlay(Left, Right, Top, Bottom: Integer);
 
     property CurrentLevelIndex: Integer read GetCurrentLevelIndex write SetCurrentLevelIndex;
 
@@ -1060,6 +1066,33 @@ begin
   CompactMask;
 end;
 
+procedure TMapObjectTemplate.RenderOverlay(obj_x, obj_y: integer);
+const
+  ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
+  BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
+var
+  mask_w, mask_h, i, j: Integer;
+  line: String;
+begin
+  mask_h := Mask.Count;
+  mask_w := Length(Mask[0]);
+
+  CurrentContextState.SetTranslation((obj_x - mask_w + 1 ) * TILE_SIZE, (obj_y - mask_h + 1) * TILE_SIZE);
+
+  for i := 0 to mask_h - 1 do
+  begin
+    line := Mask[i];
+
+    for j := 0 to mask_w - 1 do
+    begin
+      case line[j+1] of
+        MASK_ACTIVABLE: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
+        MASK_BLOCKED: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
+      end;
+    end;
+  end;
+end;
+
 { THeroDefinition }
 
 procedure THeroDefinition.SetExperience(const AValue: UInt64);
@@ -1325,6 +1358,11 @@ begin
   end;
 
   Render(FLastFrame,(x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+end;
+
+procedure TMapObject.RenderOverlay;
+begin
+  Template.RenderOverlay(x, y);
 end;
 
 procedure TMapObject.RenderSelectionRect;
@@ -2084,6 +2122,27 @@ begin
   end;
 
   FQueue.Free;
+end;
+
+procedure TVCMIMap.RenderObjectsOverlay(Left, Right, Top, Bottom: Integer);
+var
+  i: Integer;
+  o: TMapObject;
+begin
+  for i := 0 to FObjects.Count - 1 do
+  begin
+    o := FObjects.Items[i];
+    if o.L <> CurrentLevelIndex then
+      Continue;
+
+    if (o.X < Left)
+      or (o.Y < Top)
+      or (o.X - 8 > Right)
+      or (o.y - 6 > Bottom)
+      then Continue; //todo: use visisblity mask
+
+    o.RenderOverlay;
+  end;
 end;
 
 procedure TVCMIMap.SaveToStream(ADest: TStream; AWriter: IMapWriter);

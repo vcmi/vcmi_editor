@@ -80,6 +80,7 @@ type
 
   TfMain = class(TForm)
     actDelete: TAction;
+    actViewPassability: TAction;
     actVictoryLossConditions: TAction;
     actPlayerOptions: TAction;
     actProperties: TAction;
@@ -101,6 +102,8 @@ type
     btnSub: TSpeedButton;
     btnSwamp: TSpeedButton;
     btnWater: TSpeedButton;
+    MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
     ObjectsSearch: TEditButton;
     gbBrush: TGroupBox;
     gbTerrain: TGroupBox;
@@ -181,6 +184,7 @@ type
     procedure actUndoUpdate(Sender: TObject);
     procedure actVictoryLossConditionsExecute(Sender: TObject);
     procedure actVictoryLossConditionsUpdate(Sender: TObject);
+    procedure actViewPassabilityExecute(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
     procedure btnBrush2Click(Sender: TObject);
@@ -674,6 +678,11 @@ end;
 procedure TfMain.actVictoryLossConditionsUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FMap);
+end;
+
+procedure TfMain.actViewPassabilityExecute(Sender: TObject);
+begin
+  MapView.Invalidate;
 end;
 
 procedure TfMain.AnimTimerTimer(Sender: TObject);
@@ -1430,7 +1439,7 @@ begin
     FMapViewState.Init;
   end;
 
-  CurrentContextState := FMapViewState;
+  editor_gl.CurrentContextState := FMapViewState;
 
   FMapViewState.UsePalettedTextures();
 
@@ -1468,18 +1477,25 @@ begin
   FMapViewState.SetUseFlag(true);
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
+  if actViewPassability.Checked then
+  begin
+    FMapViewState.StartDrawingRects;
+    FMapViewState.UseNoTextures();
+    FMap.RenderObjectsOverlay(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  end;
 
   if FMapDragging then
   begin
     Assert(Assigned(FDragging));
 
+    FMapViewState.StartDrawingSprites;
+    FMapViewState.UsePalettedTextures();
+
     FDragging.Render(FMouseTileX,FMouseTileY);
   end;
 
+  FMapViewState.SetUseFlag(false);
   FMapViewState.StartDrawingRects;
-
-  //todo: render passability
-
   FMapViewState.UseNoTextures();
 
   if Assigned(FSelectedObject) then

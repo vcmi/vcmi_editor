@@ -2019,6 +2019,13 @@ object fMain: TfMain
         Action = actVictoryLossConditions
       end
     end
+    object MenuItem13: TMenuItem
+      Caption = 'View'
+      object MenuItem14: TMenuItem
+        Action = actViewPassability
+        AutoCheck = True
+      end
+    end
     object menuPlayer: TMenuItem
       Caption = 'Player'
     end
@@ -2094,6 +2101,11 @@ object fMain: TfMain
       Caption = 'Victory-loss conditions ...'
       OnExecute = actVictoryLossConditionsExecute
       OnUpdate = actVictoryLossConditionsUpdate
+    end
+    object actViewPassability: TAction
+      AutoCheck = True
+      Caption = 'Passability overlay'
+      OnExecute = actViewPassabilityExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties
