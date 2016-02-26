@@ -69,17 +69,6 @@ uses
 
 type
 
-  TVFSDir = (DATA, SPRITES, CONFIG);
-const
-  VFS_PATHS: array [TVFSDir] of string = ('DATA/','SPRITES/','CONFIG/');
-
-  VFS_FILTERS: array [TVFSDir] of TResourceTypes = (
-    [TResourceType.Text],
-    [TResourceType.Animation, TResourceType.Json],
-    [TResourceType.Json,TResourceType.Text]);
-
-type
-
   { TFilesystemConfigItem }
 
   TFilesystemConfigItem = class(TCollectionItem)
@@ -289,7 +278,7 @@ type
 
     FGamePath: TStringList;
 
-    FCurrentFilter:TResourceTypes;
+
     FCurrentVFSPath: string;
     FCurrentRelPath: string;
     FCurrentRootPath: string;
@@ -298,7 +287,6 @@ type
 
     function GetPrivateConfigPath: string;
 
-    procedure SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
     procedure SetCurrentVFSPath(ACurrentVFSPath: string);
 
     function MakeFullPath(const ARootPath: string; const RelPath: string):string;
@@ -371,7 +359,7 @@ const
   GAME_PATH_CONFIG = 'gamepath.txt';
 
   RES_TO_EXT: array[TResourceType] of string = (
-    '.TXT','.JSON','.DEF', '.MSK'
+    '.TXT', '.JSON', '.DEF', '.MSK'
   );
 
   CONFIG = 'config';
@@ -1171,12 +1159,6 @@ begin
   FCurrentVFSPath := SetDirSeparators(ACurrentVFSPath);
 end;
 
-procedure TFSManager.SetCurrentVFSPath(ACurrentVFSPath: TVFSDir);
-begin
-  SetCurrentVFSPath(VFS_PATHS[ACurrentVFSPath]);
-  FCurrentFilter := VFS_FILTERS[ACurrentVFSPath];
-end;
-
 function TFSManager.MakeFullPath(const ARootPath: string; const RelPath: string
   ): string;
 begin
@@ -1190,16 +1172,15 @@ var
   fltr: TResourceType;
   temp: string;
 begin
-  Result := (FCurrentFilter = []); //empty filter = all files match
-  if Result then
-    Exit;
+  Result := False;
+
   temp  := Trim(UpperCase(AExt));
-  for fltr in FCurrentFilter do
+  for fltr in TResourceType do
   begin
     if temp = RES_TO_EXT[fltr] then
     begin
       Result := True;
-      AType:=  fltr;
+      AType :=  fltr;
       Exit;
     end;
   end;
@@ -1316,8 +1297,6 @@ begin
   vfs_path := APath.Identifier;
 
   SetCurrentVFSPath(vfs_path);
-
-  FCurrentFilter := [TResourceType.Text,TResourceType.Animation,TResourceType.Json];
 
   for i := 0 to APath.Items.Count - 1 do
   begin

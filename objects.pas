@@ -501,7 +501,7 @@ end;
 
 constructor TMaskResource.Create(APath: AnsiString);
 begin
-  inherited Create(TResourceType.Mask, APath);
+  inherited Create(TResourceType.Mask, 'SPRITES/'+APath);
 end;
 
 procedure TMaskResource.LoadFromStream(AStream: TStream);

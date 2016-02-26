@@ -1225,9 +1225,9 @@ end;
 
 procedure TMapReaderH3m.ReadObjMask(obj: TLegacyMapObjectTemplate);
 type
-   TFlag = (None=0,Block, Active);
+   TFlag = (None=0, Visible, Block, Active);
 const
-  FLAG_CHARS: array [TFlag] of char = (MASK_NOT_VISIBLE, MASK_BLOCKED,MASK_ACTIVABLE);
+  FLAG_CHARS: array [TFlag] of char = (MASK_NOT_VISIBLE, MASK_VISIBLE, MASK_BLOCKED, MASK_ACTIVABLE);
 
 var
   mask_flags: array[0..5,0..7] of TFlag;
@@ -1235,8 +1235,34 @@ var
   i: Integer;
   j: Byte;
   s: String;
+
+  msk: TMaskResource;
+
+  mask_width, mask_height: Integer;
 begin
+  mask_width := 8;
+  mask_height:= 6;
+
+  msk := TMaskResource.Create(obj.Animation);
+  try
+    if FMapEnv.lm.ResourceLoader.TryLoadResource(msk, msk.Typ, msk.Path) then
+    begin
+      mask_width := Max(1, Min(msk.Width, 8));
+      mask_height := Max(1, Min(msk.Height, 6));
+    end;
+  finally
+    msk.Free;
+  end;
+
   FillChar(mask_flags,SizeOf(mask_flags),#0);
+
+  for i := 5 downto 6 - mask_height do
+  begin
+    for j := 7 downto 8 - mask_width do
+    begin
+      mask_flags[i,j] := TFlag.Visible;
+    end;
+  end;
 
   for i := Low(mask_flags) to High(mask_flags) do
   begin
