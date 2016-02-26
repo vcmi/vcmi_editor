@@ -1054,7 +1054,6 @@ object fMain: TfMain
       OnMouseUp = MapViewMouseUp
       OnMouseWheel = MapViewMouseWheel
       OnPaint = MapViewPaint
-      OnResize = MapViewResize
     end
     object hScrollBar: TScrollBar
       Left = 18
@@ -1170,7 +1169,6 @@ object fMain: TfMain
         OnMouseDown = ObjectsViewMouseDown
         OnMouseWheel = ObjectsViewMouseWheel
         OnPaint = ObjectsViewPaint
-        OnResize = ObjectsViewResize
       end
     end
     object pnObjectsSearch: TPanel
@@ -1308,7 +1306,7 @@ object fMain: TfMain
     Width = 1312
     Panels = <    
       item
-        Width = 50
+        Width = 300
       end    
       item
         Width = 50
@@ -2026,6 +2024,10 @@ object fMain: TfMain
         Action = actViewPassability
         AutoCheck = True
       end
+      object MenuItem15: TMenuItem
+        Action = actViewGrid
+        AutoCheck = True
+      end
     end
     object menuPlayer: TMenuItem
       Caption = 'Player'
@@ -2107,6 +2109,11 @@ object fMain: TfMain
       AutoCheck = True
       Caption = 'Passability overlay'
       OnExecute = actViewPassabilityExecute
+    end
+    object actViewGrid: TAction
+      AutoCheck = True
+      Caption = 'Grid'
+      OnExecute = actViewGridExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

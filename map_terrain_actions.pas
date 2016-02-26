@@ -211,7 +211,7 @@ begin
     cx := r.FTopLeft.X * TILE_SIZE;
     cy := r.FTopLeft.Y * TILE_SIZE;
 
-    editor_gl.CurrentContextState.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
+    editor_gl.CurrentContextState.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE, RECT_COLOR);
     editor_gl.CurrentContextState.StopDrawing;
   end;
 end;

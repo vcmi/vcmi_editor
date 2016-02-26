@@ -26,7 +26,8 @@ unit map_actions;
 interface
 
 uses
-  Classes, SysUtils, Math, Map, gset, undo_base, editor_types, undo_map;
+  Classes, SysUtils, Math, Map, gset, undo_base, editor_types, undo_map,
+  editor_gl;
 
 type
 
@@ -100,6 +101,9 @@ type
     procedure SetSize(AValue: Integer);
     procedure Settt(AValue: TTerrainType);
   protected
+  const
+    RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
+  protected
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
     procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
@@ -140,7 +144,7 @@ type
 
 implementation
 
-uses editor_gl, editor_consts;
+uses editor_consts;
 
 operator+(a, b: TMapCoord): TMapCoord;
 begin
@@ -347,7 +351,7 @@ begin
 
     editor_gl.CurrentContextState.StartDrawingRects;
     dim := TILE_SIZE * Size;
-    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim, RECT_COLOR);
     editor_gl.CurrentContextState.StopDrawing;
 
 end;
@@ -415,7 +419,7 @@ begin
       repeat
         cx := it.Data.X * TILE_SIZE;
         cy := it.Data.Y * TILE_SIZE;
-        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim, RECT_COLOR);
       until not it.next ;
       FreeAndNil(it);
       editor_gl.CurrentContextState.StopDrawing;

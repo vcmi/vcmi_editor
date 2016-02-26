@@ -80,6 +80,7 @@ type
 
   TfMain = class(TForm)
     actDelete: TAction;
+    actViewGrid: TAction;
     actViewPassability: TAction;
     actVictoryLossConditions: TAction;
     actPlayerOptions: TAction;
@@ -104,6 +105,7 @@ type
     btnWater: TSpeedButton;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
     ObjectsSearch: TEditButton;
     gbBrush: TGroupBox;
     gbTerrain: TGroupBox;
@@ -184,6 +186,7 @@ type
     procedure actUndoUpdate(Sender: TObject);
     procedure actVictoryLossConditionsExecute(Sender: TObject);
     procedure actVictoryLossConditionsUpdate(Sender: TObject);
+    procedure actViewGridExecute(Sender: TObject);
     procedure actViewPassabilityExecute(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
@@ -227,7 +230,6 @@ type
     procedure MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure MapViewPaint(Sender: TObject);
-    procedure MapViewResize(Sender: TObject);
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ObjectsSearchButtonClick(Sender: TObject);
@@ -245,7 +247,6 @@ type
     procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ObjectsViewPaint(Sender: TObject);
-    procedure ObjectsViewResize(Sender: TObject);
     procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure pbObjectsResize(Sender: TObject);
@@ -352,6 +353,7 @@ type
     procedure PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
 
     procedure RenderCursor;
+    procedure RenderGrid;
 
     procedure LoadMap(AFileName: string);
     procedure SaveMap(AFileName: string);
@@ -679,6 +681,11 @@ end;
 procedure TfMain.actVictoryLossConditionsUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FMap);
+end;
+
+procedure TfMain.actViewGridExecute(Sender: TObject);
+begin
+  MapView.Invalidate;
 end;
 
 procedure TfMain.actViewPassabilityExecute(Sender: TObject);
@@ -1478,17 +1485,20 @@ begin
   FMapViewState.SetUseFlag(false);
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
-  //glEnable (GL_BLEND);
-  //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   FMapViewState.SetUseFlag(true);
   FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  FMapViewState.SetUseFlag(false);
 
   if actViewPassability.Checked then
   begin
     FMapViewState.StartDrawingRects;
     FMapViewState.UseNoTextures();
     FMap.RenderObjectsOverlay(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  end;
+
+  if actViewGrid.Checked then
+  begin
+    RenderGrid();
   end;
 
   if FMapDragging then
@@ -1522,11 +1532,6 @@ begin
   //glDisable(GL_ALPHA_TEST);
 
   c.SwapBuffers;
-end;
-
-procedure TfMain.MapViewResize(Sender: TObject);
-begin
-
 end;
 
 procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1685,6 +1690,8 @@ begin
 end;
 
 procedure TfMain.ObjectsViewPaint(Sender: TObject);
+const
+  GRID_COLOR: TRBGAColor = (r:200; g:200; b:200; a:255);
 var
   c: TOpenGLControl;
   row: Integer;
@@ -1737,7 +1744,7 @@ begin
       cx := col * FObjectCellSize;
       cy := row * FObjectCellSize;
 
-      editor_gl.CurrentContextState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize);
+      editor_gl.CurrentContextState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize, GRID_COLOR);
     end;
   end;
 
@@ -1769,11 +1776,6 @@ begin
   glDisable(GL_SCISSOR_TEST);
 
   c.SwapBuffers;
-end;
-
-procedure TfMain.ObjectsViewResize(Sender: TObject);
-begin
-
 end;
 
 procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
@@ -1894,6 +1896,30 @@ end;
 procedure TfMain.RenderCursor;
 begin
   FActiveBrush.RenderCursor(fmap, FMouseTileX, FMouseTileY);
+end;
+
+procedure TfMain.RenderGrid;
+const
+  GRID_COLOR: TRBGAColor = (r:255; g:255; b:255; a:125);
+var
+  i, j: Integer;
+begin
+  FMapViewState.SetUseFlag(false);
+  FMapViewState.StartDrawingRects;
+  FMapViewState.UseNoTextures();
+
+//  FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV
+
+  for i := FMapHPos to FMapHPos + FViewTilesH do
+  begin
+
+    for j := FMapVPos to FMapVPos + FViewTilesV do
+    begin
+      FMapViewState.RenderRect(i*TILE_SIZE,j*TILE_SIZE, TILE_SIZE, TILE_SIZE, GRID_COLOR);
+    end;
+
+  end;
+
 end;
 
 procedure TfMain.SaveMap(AFileName: string);

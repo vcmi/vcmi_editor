@@ -886,6 +886,8 @@ begin
 end;
 
 procedure TDef.RenderBorder(TileX, TileY: Integer);
+const
+  RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
 var
   cx: Integer;
   cy: Integer;
@@ -894,7 +896,7 @@ begin
   cy := (TileY+1) * TILE_SIZE;
 
   editor_gl.CurrentContextState.StartDrawingRects;
-  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height);
+  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height, RECT_COLOR);
   editor_gl.CurrentContextState.StopDrawing;
 end;
 
