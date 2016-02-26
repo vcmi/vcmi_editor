@@ -1992,12 +1992,12 @@ end;
 
 procedure TfMain.ResetFocus;
 begin
-  if ObjectsSearch.Focused then
-  begin
-    ObjectsSearch.EditingDone;
-  end;
-
-  FocusControl(nil);
+  //if ObjectsSearch.Focused then
+  //begin
+  //  ObjectsSearch.EditingDone;
+  //end;
+  //
+  //FocusControl(nil);
 end;
 
 procedure TfMain.DoObjectsSearch;
