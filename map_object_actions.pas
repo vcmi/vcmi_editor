@@ -31,17 +31,42 @@ uses
   editor_str_consts;
 
 type
+  TObjectOwnershipTrait = (NoFree, FreeIfDone, FreeIfUndone);
+
+  { TBaseObjectAction }
+
+  TBaseObjectAction = class abstract(TMapUndoItem)
+  strict protected
+    procedure FreeTargets; virtual;
+  public
+    destructor Destroy; override;
+    class function GetOwnershipTrait: TObjectOwnershipTrait; virtual;
+  end;
 
   { TObjectAction }
 
-  TObjectAction = class(TMapUndoItem)
+  TObjectAction = class abstract (TBaseObjectAction)
   strict private
     FTargetObject: TMapObject;
     procedure SetTargetObject(AValue: TMapObject);
-  protected
-    procedure FreeTarget;
+  strict protected
+    procedure FreeTargets; override; final;
   public
     property TargetObject: TMapObject read FTargetObject write SetTargetObject;
+  end;
+
+  { TMultiObjectAction }
+
+  TMultiObjectAction = class abstract(TBaseObjectAction)
+  strict private
+    FTargets: TMapObjectList;
+  strict protected
+    procedure FreeTargets; override; final;
+  public
+    constructor Create(AMap: TVCMIMap); override;
+    destructor Destroy; override;
+
+    property Targets: TMapObjectList read FTargets;
   end;
 
   { TAddObject }
@@ -60,7 +85,6 @@ type
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
-    destructor Destroy; override;
     procedure Execute; override;
     function GetDescription: string; override;
     procedure Redo; override;
@@ -73,17 +97,18 @@ type
     property L:Integer read FL write SetL;
     property CurrentPlayer: TPlayer read FCurrentPlayer write SetCurrentPlayer;
 
+    class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
   end;
 
 
   { TDeleteObject }
   TDeleteObject = class(TObjectAction)
   public
-    destructor Destroy; override;
     procedure Execute; override;
     function GetDescription: string; override;
     procedure Redo; override;
     procedure Undo; override;
+    class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
   end;
 
   { TMoveObject }
@@ -110,6 +135,58 @@ type
 
 implementation
 
+{ TBaseObjectAction }
+
+procedure TBaseObjectAction.FreeTargets;
+begin
+
+end;
+
+destructor TBaseObjectAction.Destroy;
+var
+  ot: TObjectOwnershipTrait;
+begin
+  ot := GetOwnershipTrait();
+
+  case ot of
+    TObjectOwnershipTrait.FreeIfDone:
+      if State = TUndoItemState.ReDone then
+        FreeTargets;
+    TObjectOwnershipTrait.FreeIfUndone:
+      if State = TUndoItemState.UnDone then
+        FreeTargets;
+  end;
+
+  inherited Destroy;
+end;
+
+class function TBaseObjectAction.GetOwnershipTrait: TObjectOwnershipTrait;
+begin
+  Result := TObjectOwnershipTrait.NoFree;
+end;
+
+{ TMultiObjectAction }
+
+procedure TMultiObjectAction.FreeTargets;
+var
+  o:TMapObject;
+begin
+  for o in FTargets do
+    o.Free;
+end;
+
+constructor TMultiObjectAction.Create(AMap: TVCMIMap);
+begin
+  inherited Create(AMap);
+  FTargets := TMapObjectList.Create();
+end;
+
+destructor TMultiObjectAction.Destroy;
+begin
+  inherited Destroy;
+  FTargets.Free; //used by inherited Destroy
+end;
+
 { TObjectAction }
 
 procedure TObjectAction.SetTargetObject(AValue: TMapObject);
@@ -118,7 +195,7 @@ begin
   FTargetObject:=AValue;
 end;
 
-procedure TObjectAction.FreeTarget;
+procedure TObjectAction.FreeTargets;
 begin
   FreeAndNil(FTargetObject);
 end;
@@ -153,15 +230,6 @@ procedure TAddObject.SetY(AValue: Integer);
 begin
   if FY=AValue then Exit;
   FY:=AValue;
-end;
-
-destructor TAddObject.Destroy;
-begin
-  if State = TUndoItemState.UnDone then
-  begin
-    FreeTarget();
-  end;
-  inherited Destroy;
 end;
 
 procedure TAddObject.Execute;
@@ -199,16 +267,12 @@ begin
   TargetObject.Collection := nil;
 end;
 
-{ TDeleteObject }
-
-destructor TDeleteObject.Destroy;
+class function TAddObject.GetOwnershipTrait: TObjectOwnershipTrait;
 begin
-  if State = TUndoItemState.ReDone then
-  begin
-    FreeTarget();
-  end;
-  inherited Destroy;
+  Result:=TObjectOwnershipTrait.FreeIfUndone;
 end;
+
+{ TDeleteObject }
 
 procedure TDeleteObject.Execute;
 begin
@@ -228,6 +292,11 @@ end;
 procedure TDeleteObject.Undo;
 begin
   TargetObject.Collection := FMap.Objects;
+end;
+
+class function TDeleteObject.GetOwnershipTrait: TObjectOwnershipTrait;
+begin
+  Result:=TObjectOwnershipTrait.FreeIfDone;
 end;
 
 { TMoveObject }

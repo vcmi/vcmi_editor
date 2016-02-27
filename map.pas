@@ -403,6 +403,13 @@ type
 
   TMapObjectQueue = specialize TPriorityQueue<TMapObject, TBlitOrderCompare>;
 
+  { TMapObjectList }
+
+  TMapObjectList = class(specialize TFPGObjectList<TMapObject>)
+  public
+    constructor Create();
+  end;
+
   { TMapObjects }
 
   TMapObjectCollection = specialize TGNamedCollection<TMapObject>;
@@ -730,6 +737,13 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
+
+{ TMapObjectList }
+
+constructor TMapObjectList.Create;
+begin
+  inherited Create(False); //map objects are owned by collection so do not try to free them automatically
+end;
 
 { TMainTownInfo }
 
