@@ -94,12 +94,8 @@ type
 
   TMapBrush = class abstract (TComponent)
   strict private
-    FSize: Integer;
-    FTT: TTerrainType;
     FDragging: Boolean;
     FSelection: TCoordSet;
-    procedure SetSize(AValue: Integer);
-    procedure Settt(AValue: TTerrainType);
   protected
   const
     RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
@@ -125,9 +121,6 @@ type
 
     procedure RenderCursor(AMap: TVCMIMap; X,Y: integer); virtual;
     procedure RenderSelection(); virtual;
-
-    property TT: TTerrainType read FTT write Settt;
-    property Size: Integer read FSize write SetSize;
 
   end;
 
@@ -311,20 +304,6 @@ begin
 end;
 
 { TMapBrush }
-
-procedure TMapBrush.SetSize(AValue: Integer);
-begin
-  if FSize=AValue then Exit;
-  FSize:=AValue;
-  Clear;
-end;
-
-procedure TMapBrush.Settt(AValue: TTerrainType);
-begin
-  if FTT=AValue then Exit;
-  FTT:=AValue;
-  Clear;
-end;
 
 procedure TMapBrush.FillActionObjectTiles(AObject: TMultiTileMapAction);
 var

@@ -28,9 +28,14 @@ interface
 
 uses
   Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects,
-  editor_str_consts;
+  editor_str_consts, map_actions;
 
 type
+  TMapObjectBrush = class (TMapBrush)
+
+  end;
+
+
   TObjectOwnershipTrait = (NoFree, FreeIfDone, FreeIfUndone);
 
   { TBaseObjectAction }

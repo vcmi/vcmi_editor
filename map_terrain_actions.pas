@@ -56,12 +56,21 @@ type
   { TTerrainBrush }
 
   TTerrainBrush = class abstract (TMapBrush)
+  private
+    FSize: Integer;
+    FTT: TTerrainType;
+    procedure SetSize(AValue: Integer);
+    procedure SetTT(AValue: TTerrainType);
   protected
     function GetMode: TTerrainBrushMode; virtual; abstract;
   public
     property Mode: TTerrainBrushMode read GetMode;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
     procedure RenderCursor(AMap: TVCMIMap;X,Y: integer); override;
+
+    property TT: TTerrainType read FTT write SetTT;
+
+    property Size: Integer read FSize write SetSize;
   end;
 
 
@@ -162,6 +171,18 @@ begin
 end;
 
 { TTerrainBrush }
+
+procedure TTerrainBrush.SetTT(AValue: TTerrainType);
+begin
+  FTT:=AValue;
+  Clear;
+end;
+
+procedure TTerrainBrush.SetSize(AValue: Integer);
+begin
+  FSize:=AValue;
+  Clear;
+end;
 
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
