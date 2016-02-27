@@ -27,20 +27,21 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects;
+  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects,
+  editor_str_consts;
 
 type
 
-   { TObjectAction }
+  { TObjectAction }
 
   TObjectAction = class(TMapUndoItem)
-  private
+  strict private
     FTargetObject: TMapObject;
     procedure SetTargetObject(AValue: TMapObject);
   protected
-
+    procedure FreeTarget;
   public
-    property  TargetObject: TMapObject read FTargetObject write SetTargetObject;
+    property TargetObject: TMapObject read FTargetObject write SetTargetObject;
   end;
 
   { TAddObject }
@@ -76,7 +77,6 @@ type
 
 
   { TDeleteObject }
-  //todo: cleaup unused map templates
   TDeleteObject = class(TObjectAction)
   public
     destructor Destroy; override;
@@ -118,6 +118,11 @@ begin
   FTargetObject:=AValue;
 end;
 
+procedure TObjectAction.FreeTarget;
+begin
+  FreeAndNil(FTargetObject);
+end;
+
 { TAddObject }
 
 procedure TAddObject.SetTemplate(AValue: TObjTemplate);
@@ -154,7 +159,7 @@ destructor TAddObject.Destroy;
 begin
   if State = TUndoItemState.UnDone then
   begin
-    FreeAndNil(FTargetObject);
+    FreeTarget();
   end;
   inherited Destroy;
 end;
@@ -181,7 +186,7 @@ end;
 
 function TAddObject.GetDescription: string;
 begin
-  Result := 'Add object';
+  Result := rsAddObjectDescription;
 end;
 
 procedure TAddObject.Redo;
@@ -200,7 +205,7 @@ destructor TDeleteObject.Destroy;
 begin
   if State = TUndoItemState.ReDone then
   begin
-    FreeAndNil(FTargetObject);
+    FreeTarget();
   end;
   inherited Destroy;
 end;
@@ -212,17 +217,17 @@ end;
 
 function TDeleteObject.GetDescription: string;
 begin
-  Result := 'Delete object';
+  Result := rsDeleteObjectDescription;
 end;
 
 procedure TDeleteObject.Redo;
 begin
-  FTargetObject.Collection := nil;
+  TargetObject.Collection := nil;
 end;
 
 procedure TDeleteObject.Undo;
 begin
-  FTargetObject.Collection := FMap.Objects;
+  TargetObject.Collection := FMap.Objects;
 end;
 
 { TMoveObject }
@@ -255,7 +260,7 @@ end;
 
 function TMoveObject.GetDescription: string;
 begin
-  Result := 'Move object';
+  Result := rsMoveObjectDescription;
 end;
 
 procedure TMoveObject.Redo;

@@ -1353,7 +1353,7 @@ begin
     end
     else
     begin
-        FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
+      FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
     end;
 
   end;
