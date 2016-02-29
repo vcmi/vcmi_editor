@@ -1040,8 +1040,8 @@ begin
   vScrollBar.PageSize := FViewTilesV;
   hScrollBar.PageSize := FViewTilesH;
 
-  hScrollBar.LargeChange := FViewTilesH;
-  vScrollBar.LargeChange := FViewTilesV;
+  hScrollBar.LargeChange := Max(1,FViewTilesH);
+  vScrollBar.LargeChange := Max(1,FViewTilesV);
 
   factor := Double(getMapHeight) / Double(getMapWidth);
 
