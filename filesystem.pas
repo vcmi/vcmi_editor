@@ -317,6 +317,7 @@ type
     procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
 
     procedure LoadFSConfig;
+    procedure GenerateGamepath;
     procedure ScanFilesystem;
 
     procedure AddModPathsTo(sl:TStrings);
@@ -892,6 +893,25 @@ begin
   end;
 end;
 
+procedure TFSManager.GenerateGamepath;
+{$IFDEF WIN32}
+var
+  s: String;
+{$ENDIF}
+begin
+  FGamePath.Append(ExtractFilePath(ParamStr(0)));
+  {$IFDEF WIN32}
+
+    s:= GetEnvironmentVariable('HOMEDRIVE') + GetEnvironmentVariable('HOMEPATH');
+
+    s := IncludeTrailingPathDelimiter(s);
+
+    FGamePath.Append(s + 'Documents\My Games\vcmi');
+
+  {$ENDIF}
+
+end;
+
 procedure TFSManager.LoadGameConfig;
 var
   res: TJsonResource;
@@ -1424,15 +1444,14 @@ procedure TFSManager.ScanFilesystem;
 var
   s: String;
   i: Integer;
-
 begin
-  s := GetPrivateConfigPath+GAME_PATH_CONFIG;
+  s := ExtractFilePath(ParamStr(0))+GAME_PATH_CONFIG;
   if FileExistsUTF8(s) then
   begin
     FGamePath.LoadFromFile(s);
   end
   else begin
-    FGamePath.Append(ExtractFilePath(ParamStr(0)));
+    GenerateGamepath;
   end;
 
   for i := 0 to FGamePath.Count - 1 do
