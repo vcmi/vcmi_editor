@@ -1273,7 +1273,6 @@ var
   obj_template: TJSONObject;
   base: TJSONObject;
 begin
-  DebugLn([#9,#9,AName]);
   obj_template := Item as TJSONObject;
 
   if Assigned(data) then
@@ -1292,7 +1291,6 @@ var
   base: TJSONObject;
   idx: Integer;
 begin
-  DebugLn([#9,AName]);
   obj_subtype := Item as TJSONObject;
 
   if Assigned(data) then
@@ -1336,8 +1334,6 @@ var
 begin
   FProgress.Advance(1);
   //AName = object type id
-
-  DebugLn([AName]);
 
   obj_type  := Item as TJSONObject;
 

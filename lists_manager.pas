@@ -1741,11 +1741,7 @@ begin
 
       info.Identifier := iter.Key;
 
-      DebugLn(['Loading creature ',iter.Key]);
-
       FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
-
-      DebugLn(['Index ',info.Index]);
     end;
 
   finally
