@@ -80,6 +80,7 @@ type
 
   TfMain = class(TForm)
     actDelete: TAction;
+    actAnimateObjects: TAction;
     actViewGrid: TAction;
     actViewPassability: TAction;
     actVictoryLossConditions: TAction;
@@ -106,6 +107,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem16: TMenuItem;
     ObjectsSearch: TEditButton;
     gbBrush: TGroupBox;
     gbTerrain: TGroupBox;
@@ -169,6 +171,7 @@ type
     pnMap:   TPanel;
     hScrollBar: TScrollBar;
     vScrollBar: TScrollBar;
+    procedure actAnimateObjectsExecute(Sender: TObject);
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
@@ -536,6 +539,11 @@ begin
     frm.Free;
   end;
 
+end;
+
+procedure TfMain.actAnimateObjectsExecute(Sender: TObject);
+begin
+  //
 end;
 
 procedure TfMain.actDeleteExecute(Sender: TObject);
@@ -1482,7 +1490,7 @@ begin
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   FMapViewState.SetUseFlag(true);
-  FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV, actAnimateObjects.Checked);
   FMapViewState.SetUseFlag(false);
 
   if actViewPassability.Checked then
@@ -2162,6 +2170,8 @@ begin
     Caption := 'VCMI editor';
 
   UpdateWidgets;
+
+  AnimTimer.Enabled := actAnimateObjects.Checked;
 end;
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);

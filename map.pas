@@ -674,7 +674,7 @@ type
 
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
-    procedure RenderObjects(Left, Right, Top, Bottom: Integer);
+    procedure RenderObjects(Left, Right, Top, Bottom: Integer; animate: Boolean);
 
     procedure RenderObjectsOverlay(Left, Right, Top, Bottom: Integer);
 
@@ -2154,7 +2154,8 @@ begin
 
 end;
 
-procedure TVCMIMap.RenderObjects(Left, Right, Top, Bottom: Integer);
+procedure TVCMIMap.RenderObjects(Left, Right, Top, Bottom: Integer;
+  animate: Boolean);
 var
   i: Integer;
   o: TMapObject;
@@ -2182,7 +2183,10 @@ begin
   while not FQueue.IsEmpty do
   begin
     o := FQueue.Top;
-    o.RenderAnim;
+    if animate then
+      o.RenderAnim
+    else
+      o.RenderStatic;
     FQueue.Pop;
   end;
 

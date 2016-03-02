@@ -4,8 +4,8 @@ object fMain: TfMain
   Top = 13
   Width = 1312
   Caption = 'VCMI editor'
-  ClientHeight = 0
-  ClientWidth = 0
+  ClientHeight = 816
+  ClientWidth = 1312
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1021,23 +1021,23 @@ object fMain: TfMain
   Position = poDefault
   LCLVersion = '1.6.1.0'
   object pnMap: TPanel
-    Left = 0
-    Height = 0
-    Top = 0
-    Width = 0
+    Left = 202
+    Height = 759
+    Top = 34
+    Width = 906
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 0
-    ClientWidth = 0
+    ClientHeight = 759
+    ClientWidth = 906
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
-      Left = 0
-      Height = 0
-      Top = 0
-      Width = 0
+      Left = 23
+      Height = 720
+      Top = 23
+      Width = 867
       Align = alClient
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
@@ -1056,10 +1056,10 @@ object fMain: TfMain
       OnPaint = MapViewPaint
     end
     object hScrollBar: TScrollBar
-      Left = 0
+      Left = 18
       Height = 16
-      Top = -16
-      Width = 0
+      Top = 743
+      Width = 870
       Align = alBottom
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
@@ -1069,9 +1069,9 @@ object fMain: TfMain
       OnScroll = hScrollBarScroll
     end
     object vScrollBar: TScrollBar
-      Left = -16
-      Height = 0
-      Top = 0
+      Left = 890
+      Height = 720
+      Top = 23
       Width = 16
       Align = alRight
       Kind = sbVertical
@@ -1082,17 +1082,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 0
-      Top = 0
+      Height = 720
+      Top = 23
       Width = 23
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 0
+      ClientHeight = 720
       ClientWidth = 23
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 0
+        Height = 720
         Top = 0
         Width = 23
         Align = alClient
@@ -1100,22 +1100,22 @@ object fMain: TfMain
       end
     end
     object pnHAxis: TPanel
-      Left = 2
+      Left = 23
       Height = 23
       Top = 0
-      Width = 0
+      Width = 865
       Align = alTop
       BorderSpacing.Left = 23
       BorderSpacing.Right = 18
       BevelOuter = bvNone
       ClientHeight = 23
-      ClientWidth = 0
+      ClientWidth = 865
       TabOrder = 4
       object HorisontalAxis: TPaintBox
         Left = 0
         Height = 23
         Top = 0
-        Width = 0
+        Width = 865
         Align = alClient
         ParentColor = False
         OnPaint = HorisontalAxisPaint
@@ -1123,28 +1123,28 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = -204
-    Height = 0
-    Top = 0
+    Left = 1108
+    Height = 759
+    Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 0
+    ClientHeight = 759
     ClientWidth = 204
     TabOrder = 1
     object pnObjects: TPanel
       Left = 0
-      Height = 0
-      Top = 0
+      Height = 736
+      Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 0
+      ClientHeight = 736
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 0
+        Height = 736
         Top = 0
         Width = 16
         Align = alRight
@@ -1156,7 +1156,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 0
+        Height = 736
         Top = 0
         Width = 188
         Align = alClient
@@ -1239,9 +1239,9 @@ object fMain: TfMain
   end
   object MainToolBar: TToolBar
     Left = 0
-    Height = 290
+    Height = 34
     Top = 0
-    Width = 0
+    Width = 1312
     AutoSize = True
     ButtonHeight = 32
     ButtonWidth = 32
@@ -1253,57 +1253,57 @@ object fMain: TfMain
       Action = actCreateMap
     end
     object ToolButton2: TToolButton
-      Left = 1
-      Top = 34
+      Left = 37
+      Top = 2
       Action = actOpenMap
     end
     object ToolButton3: TToolButton
-      Left = 1
-      Top = 66
+      Left = 73
+      Top = 2
       Action = actSaveMap
     end
     object ToolButton4: TToolButton
-      Left = 1
+      Left = 109
       Height = 32
-      Top = 98
+      Top = 2
       Width = 5
       Caption = 'ToolButton4'
       Style = tbsDivider
     end
     object ToolButton5: TToolButton
-      Left = 1
-      Top = 130
+      Left = 114
+      Top = 2
       Action = actUndo
     end
     object ToolButton6: TToolButton
-      Left = 1
-      Top = 162
+      Left = 150
+      Top = 2
       Action = actRedo
     end
     object ToolButton7: TToolButton
-      Left = 1
+      Left = 186
       Height = 32
-      Top = 194
+      Top = 2
       Width = 10
       Caption = 'ToolButton7'
       Style = tbsDivider
     end
     object ToolButton18: TToolButton
-      Left = 1
-      Top = 226
+      Left = 196
+      Top = 2
       Action = actProperties
     end
     object ToolButton19: TToolButton
-      Left = 1
-      Top = 258
+      Left = 232
+      Top = 2
       Action = actDelete
     end
   end
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = -23
-    Width = 0
+    Top = 793
+    Width = 1312
     Panels = <    
       item
         Width = 300
@@ -1315,17 +1315,17 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 0
-    Top = 0
+    Height = 759
+    Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 0
+    ClientHeight = 759
     ClientWidth = 202
     TabOrder = 4
     object pnMinimap: TPanel
       Left = 1
       Height = 204
-      Top = 0
+      Top = 1
       Width = 200
       Align = alTop
       BevelOuter = bvNone
@@ -1344,18 +1344,18 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 0
-      Top = 0
+      Height = 553
+      Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 0
+      ClientHeight = 553
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
         Left = 5
         Height = 50
-        Top = 0
+        Top = 162
         Width = 190
         Align = alTop
         BorderSpacing.Around = 5
@@ -1530,7 +1530,7 @@ object fMain: TfMain
       object gbTerrain: TGroupBox
         Left = 5
         Height = 152
-        Top = 0
+        Top = 5
         Width = 190
         Align = alTop
         BorderSpacing.Around = 5
@@ -1639,7 +1639,7 @@ object fMain: TfMain
       object RoadType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 1
+        Top = 241
         Width = 190
         Align = alTop
         AutoFill = True
@@ -1660,7 +1660,7 @@ object fMain: TfMain
       object RiverType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 1
+        Top = 217
         Width = 190
         Align = alTop
         AutoFill = True
@@ -2028,6 +2028,10 @@ object fMain: TfMain
         Action = actViewGrid
         AutoCheck = True
       end
+      object MenuItem16: TMenuItem
+        Action = actAnimateObjects
+        AutoCheck = True
+      end
     end
     object menuPlayer: TMenuItem
       Caption = 'Player'
@@ -2114,6 +2118,12 @@ object fMain: TfMain
       AutoCheck = True
       Caption = 'Grid'
       OnExecute = actViewGridExecute
+    end
+    object actAnimateObjects: TAction
+      AutoCheck = True
+      Caption = 'Objects animation'
+      Checked = True
+      OnExecute = actAnimateObjectsExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties
