@@ -1202,7 +1202,7 @@ begin
 
       FCurrentObject.Template.Animation:=template.Animation;
       //todo: separate legacy editor animations OBJECTS vs EOBJCTS
-      //FCurrentObject.Template.EditorAnimation;
+      FCurrentObject.Template.EditorAnimation := template.Animation;
 
       FCurrentObject.Template.Mask.Assign(template.Mask);
 
