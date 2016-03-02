@@ -6,18 +6,20 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, editor_classes;
+  StdCtrls, ActnList, editor_classes;
 
 type
 
   { TProgressForm }
 
   TProgressForm = class(TForm,IProgressCallback)
+    act: TActionList;
+    actClose: TAction;
     CloseButton: TButton;
     lbDetail: TLabel;
     Errors: TMemo;
     pbDetail: TProgressBar;
-    procedure CloseButtonClick(Sender: TObject);
+    procedure actCloseExecute(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
   private
@@ -65,14 +67,14 @@ begin
   CloseButton.Enabled := FCompleted;
 end;
 
-procedure TProgressForm.CloseButtonClick(Sender: TObject);
-begin
-  Close
-end;
-
 procedure TProgressForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   CloseAction := caHide; //???
+end;
+
+procedure TProgressForm.actCloseExecute(Sender: TObject);
+begin
+  Close;
 end;
 
 function TProgressForm.GetMax: Integer;
