@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 265
+  Left = 331
   Height = 836
-  Top = 13
+  Top = 17
   Width = 1312
   Caption = 'VCMI editor'
   ClientHeight = 816
@@ -1471,7 +1471,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '1'
-          GroupIndex = 1
+          GroupIndex = 6
           OnClick = btnBrush1Click
         end
         object btnBrush2: TSpeedButton
@@ -1483,7 +1483,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '2'
-          GroupIndex = 2
+          GroupIndex = 6
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
@@ -1495,7 +1495,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '4'
-          GroupIndex = 3
+          GroupIndex = 6
           OnClick = btnBrush4Click
         end
         object btnBrushArea: TSpeedButton
@@ -1509,7 +1509,7 @@ object fMain: TfMain
           Caption = '□'
           Font.Height = -16
           Font.Style = [fsBold]
-          GroupIndex = 4
+          GroupIndex = 6
           OnClick = btnBrushAreaClick
           ParentFont = False
         end

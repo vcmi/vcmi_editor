@@ -340,8 +340,9 @@ type
     procedure InvalidateMapContent;
 
     procedure SetMapPosition(APosition:TPoint);
-
     procedure SetMapViewMouse(x,y: integer);
+
+    procedure SetBrushTerrain(tt: TTerrainType);
 
     procedure InvalidateObjects;
     procedure InvalidateObjPos;
@@ -742,32 +743,32 @@ end;
 
 procedure TfMain.btnDirtClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.dirt;
+  SetBrushTerrain(TTerrainType.dirt);
 end;
 
 procedure TfMain.btnGrassClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.grass;
+  SetBrushTerrain(TTerrainType.grass);
 end;
 
 procedure TfMain.btnLavaClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.lava;
+  SetBrushTerrain(TTerrainType.lava);
 end;
 
 procedure TfMain.btnRockClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.rock;
+  SetBrushTerrain(TTerrainType.rock);
 end;
 
 procedure TfMain.btnRoughClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.rough;
+  SetBrushTerrain(TTerrainType.rough);
 end;
 
 procedure TfMain.btnSandClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.sand;
+  SetBrushTerrain(TTerrainType.sand);
 end;
 
 procedure TfMain.btnSelectClick(Sender: TObject);
@@ -777,22 +778,22 @@ end;
 
 procedure TfMain.btnSnowClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.snow;
+  SetBrushTerrain(TTerrainType.snow);
 end;
 
 procedure TfMain.btnSubClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.subterra;
+  SetBrushTerrain(TTerrainType.subterra);
 end;
 
 procedure TfMain.btnSwampClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.swamp;
+  SetBrushTerrain(TTerrainType.swamp);
 end;
 
 procedure TfMain.btnWaterClick(Sender: TObject);
 begin
-  (FActiveBrush as TTerrainBrush).TT := TTerrainType.water;
+  SetBrushTerrain(TTerrainType.water);
 end;
 
 function TfMain.CheckUnsavedMap: boolean;
@@ -2127,6 +2128,12 @@ begin
   FMouseTileX := FMapHPos + ofs_x;
   FMouseTileY := FMapVPos + ofs_y;
 
+end;
+
+procedure TfMain.SetBrushTerrain(tt: TTerrainType);
+begin
+  FFixedTerrainBrush.TT := tt;
+  FAreaTerrainBrush.TT:=tt;
 end;
 
 procedure TfMain.SetupPlayerSelection;
