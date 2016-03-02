@@ -11,7 +11,7 @@ object NewMapForm: TNewMapForm
   Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.0.7.0'
+  LCLVersion = '1.6.1.0'
   object pnButtons: TPanel
     Left = 0
     Height = 43
@@ -27,8 +27,7 @@ object NewMapForm: TNewMapForm
       Height = 23
       Top = 11
       Width = 59
-      Caption = 'Create'
-      ModalResult = 1
+      Action = actCreate
       TabOrder = 0
     end
     object btCancel: TButton
@@ -36,25 +35,25 @@ object NewMapForm: TNewMapForm
       Height = 23
       Top = 11
       Width = 59
-      Caption = 'Cancel'
-      ModalResult = 2
+      Action = actCancel
       TabOrder = 1
     end
   end
   object edWidth: TSpinEdit
     Left = 16
-    Height = 21
+    Height = 23
     Top = 24
     Width = 110
     Increment = 36
     MaxValue = 1024
     MinValue = 36
+    OnChange = edWidthChange
     TabOrder = 1
     Value = 36
   end
   object edHeight: TSpinEdit
     Left = 152
-    Height = 21
+    Height = 23
     Top = 24
     Width = 110
     Increment = 36
@@ -65,23 +64,23 @@ object NewMapForm: TNewMapForm
   end
   object lbWidth: TLabel
     Left = 17
-    Height = 14
+    Height = 15
     Top = 8
-    Width = 29
+    Width = 32
     Caption = 'Width'
     ParentColor = False
   end
   object lbHeight: TLabel
     Left = 152
-    Height = 14
+    Height = 15
     Top = 8
-    Width = 32
+    Width = 36
     Caption = 'Height'
     ParentColor = False
   end
   object edLevels: TSpinEdit
     Left = 16
-    Height = 21
+    Height = 23
     Top = 104
     Width = 112
     MaxValue = 2
@@ -91,18 +90,33 @@ object NewMapForm: TNewMapForm
   end
   object lbLevels: TLabel
     Left = 16
-    Height = 14
+    Height = 15
     Top = 88
-    Width = 31
+    Width = 32
     Caption = 'Levels'
     ParentColor = False
   end
   object cbSquare: TCheckBox
     Left = 16
-    Height = 17
+    Height = 19
     Top = 56
-    Width = 77
+    Width = 83
     Caption = 'Square map'
+    OnChange = cbSquareChange
     TabOrder = 4
+  end
+  object act: TActionList
+    left = 208
+    top = 96
+    object actCreate: TAction
+      Caption = 'Create'
+      OnExecute = actCreateExecute
+      ShortCut = 16397
+    end
+    object actCancel: TAction
+      Caption = 'Cancel'
+      OnExecute = actCancelExecute
+      ShortCut = 27
+    end
   end
 end

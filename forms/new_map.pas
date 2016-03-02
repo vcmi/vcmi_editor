@@ -25,13 +25,16 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Spin, Map;
+  StdCtrls, Spin, ActnList, Map;
 
 type
 
   { TNewMapForm }
 
   TNewMapForm = class(TForm)
+    act: TActionList;
+    actCreate: TAction;
+    actCancel: TAction;
     btOk: TButton;
     btCancel: TButton;
     cbSquare: TCheckBox;
@@ -42,8 +45,12 @@ type
     edWidth: TSpinEdit;
     edHeight: TSpinEdit;
     edLevels: TSpinEdit;
+    procedure actCancelExecute(Sender: TObject);
+    procedure actCreateExecute(Sender: TObject);
+    procedure cbSquareChange(Sender: TObject);
+    procedure edWidthChange(Sender: TObject);
   private
-    { private declarations }
+    procedure UpdateControls;
   public
     { public declarations }
 
@@ -53,13 +60,52 @@ type
 
 implementation
 
+uses math;
+
 {$R *.lfm}
 
 { TNewMapForm }
 
+procedure TNewMapForm.cbSquareChange(Sender: TObject);
+begin
+  UpdateControls;
+end;
+
+procedure TNewMapForm.actCreateExecute(Sender: TObject);
+begin
+  ModalResult:=mrOK;
+end;
+
+procedure TNewMapForm.actCancelExecute(Sender: TObject);
+begin
+  ModalResult:=mrCancel;
+end;
+
+procedure TNewMapForm.edWidthChange(Sender: TObject);
+begin
+  if cbSquare.Checked then
+  begin
+    edHeight.Value := edWidth.Value;
+  end;
+end;
+
+procedure TNewMapForm.UpdateControls;
+var
+  dim: Integer;
+begin
+  edHeight.Enabled := not cbSquare.Checked;
+
+  if cbSquare.Checked then
+  begin
+    dim := Max(edWidth.Value, edHeight.Value);
+    edWidth.Value := dim;
+    edHeight.Value:= dim;
+  end;
+end;
+
 function TNewMapForm.Execute(out AParams: TMapCreateParams): boolean;
 begin
-  Result := ShowModal = btOk.ModalResult;
+  Result := ShowModal() = mrOK;
 
   if Result then
   begin
