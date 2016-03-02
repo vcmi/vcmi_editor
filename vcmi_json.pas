@@ -25,7 +25,7 @@ unit vcmi_json;
 interface
 
 uses
-  Classes, SysUtils, contnrs, fpjson, fgl, RegExpr, vcmi_fpjsonrtti, typinfo, filesystem_base,
+  Classes, SysUtils, fpjson, fgl, RegExpr, vcmi_fpjsonrtti, typinfo, filesystem_base,
   editor_classes, editor_types, editor_rtti;
 
 type

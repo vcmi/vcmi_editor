@@ -699,7 +699,6 @@ var
   version: Boolean;
   i: Integer;
   info: TCreatureInstInfo;
-  random_type: Integer;
 begin
   version := IsAtLeastAB();
 

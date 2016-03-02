@@ -79,7 +79,7 @@ var
 implementation
 
 uses
-  Math, editor_utils, editor_consts;
+  editor_utils, editor_consts;
 
 {$R *.lfm}
 

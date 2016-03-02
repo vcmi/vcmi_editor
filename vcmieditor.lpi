@@ -24,7 +24,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="38"/>
+      <BuildNr Value="41"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -60,6 +60,9 @@
             </Options>
           </Linking>
           <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx5024="True"/>
+            </CompilerMessages>
             <CustomOptions Value="-dRELEASE"/>
           </Other>
         </CompilerOptions>
@@ -602,6 +605,9 @@
       <ConfigFile>
         <StopAfterErrCount Value="10"/>
       </ConfigFile>
+      <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-dDEBUG"/>
     </Other>
   </CompilerOptions>

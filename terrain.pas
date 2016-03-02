@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, contnrs,
-   fgl, gvector,
+   fgl,
   editor_types, editor_graphics, vcmi_json,
   filesystem_base, editor_classes, transitions;
 
