@@ -97,7 +97,7 @@ begin
   end;
 
   DebugLogger.LogName := log_name;
-  DebugLogger.CloseLogFileBetweenWrites := True;
+  DebugLogger.CloseLogFileBetweenWrites := False;
 
   FHiddenForm := TRootForm.Create(Self);
 
