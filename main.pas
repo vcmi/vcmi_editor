@@ -2238,6 +2238,7 @@ begin
   action_item := TDeleteObject.Create(FMap);
   action_item.TargetObject :=AObject;
   FUndoManager.ExecuteItem(action_item);
+  InvalidateMapContent;
 end;
 
 procedure TfMain.VerticalAxisPaint(Sender: TObject);
