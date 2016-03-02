@@ -821,16 +821,15 @@ var
 
   it: TSearchIndexBusket.TBusketData.TIterator;
 begin
-  data := TSearchIndexBusket.TBusketData.Create;
-
   AInput := UTF8Trim(UTF8LowerCase(AInput));
-
 
   if AInput = '' then
   begin
     Result := SelectAll;
     Exit;
   end;
+
+  data := TSearchIndexBusket.TBusketData.Create;
 
   keywords := TStringList.Create;
   keywords.Sorted:=true;
