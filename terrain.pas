@@ -219,11 +219,11 @@ type
 
   TTerrainManager = class (TGraphicsCosnumer)
   private
-    FTerrainDefs: array [TTerrainType] of TDef;
+    FTerrainDefs: array [TTerrainType] of TDefAnimation;
 
-    FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TDef;
+    FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TDefAnimation;
 
-    FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TDef;
+    FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TDefAnimation;
 
     FPatternConfig: TTerrainPatternConfig;
 

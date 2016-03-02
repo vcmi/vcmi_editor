@@ -69,9 +69,9 @@ type
   TDefEntries = specialize gvector.TVector<TDefEntry>;
 
 
-  { TDef }
+  { TDefAnimation }
 
-  TDef = class
+  TDefAnimation = class
   private
     FLoaded: Boolean;
     FPaletteID: GLuint;
@@ -112,7 +112,7 @@ type
     property Loaded: Boolean read FLoaded write SetLoaded;
   end;
 
-  TDefMapBase = specialize fgl.TFPGMap<string,TDef>;
+  TDefMapBase = specialize fgl.TFPGMap<string,TDefAnimation>;
 
   { TDefMap }
 
@@ -139,18 +139,18 @@ type
     procedure IncreaseBuffer(ANewSize: SizeInt);
     procedure IncreaseDefBuffer(ANewSize: SizeInt);
   private
-    FCurrentDef: TDef;
+    FCurrentDef: TDefAnimation;
     FMode: TGraphicsLoadMode;
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
 
-    procedure SetCurrentDef(AValue: TDef);
+    procedure SetCurrentDef(AValue: TDefAnimation);
   public
     procedure LoadFromStream(AStream: TStream);//IResource
   public
     constructor Create;
     destructor Destroy; override;
 
-    property CurrentDef: TDef read FCurrentDef write SetCurrentDef;
+    property CurrentDef: TDefAnimation read FCurrentDef write SetCurrentDef;
     property Mode: TGraphicsLoadMode read FMode write FMode;
   end;
 
@@ -161,26 +161,26 @@ type
     FNameToDefMap: TDefMap;
     FDefLoader: TDefFormatLoader;
 
-    FHeroFlagDefs: array[TPlayerColor] of TDef;
+    FHeroFlagDefs: array[TPlayerColor] of TDefAnimation;
 
     FBuffer: TMemoryStream;
 
-    procedure LoadDef(const AResourceName:string; ADef: TDef; ALoadComplete: Boolean);
+    procedure LoadDef(const AResourceName:string; ADef: TDefAnimation; ALoadComplete: Boolean);
 
-    function DoGetGraphics (const AResourceName:string; ALoadComplete: Boolean): TDef;
+    function DoGetGraphics (const AResourceName:string; ALoadComplete: Boolean): TDefAnimation;
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     //complete load
-    function GetGraphics (const AResourceName:string): TDef;
+    function GetGraphics (const AResourceName:string): TDefAnimation;
     //load first frame
-    function GetPreloadedGraphics(const AResourceName:string): TDef;
+    function GetPreloadedGraphics(const AResourceName:string): TDefAnimation;
     //load all expect first
-    procedure LoadGraphics(Adef: TDef);
+    procedure LoadGraphics(Adef: TDefAnimation);
 
-    function GetHeroFlagDef(APlayer: TPlayer): TDef;
+    function GetHeroFlagDef(APlayer: TPlayer): TDefAnimation;
   end;
 
   { TGraphicsCosnumer }
@@ -264,7 +264,7 @@ const
 
   //DEF_TYPE_MAP_OBJECT = $43;
 
-function CompareDefs(const d1,d2: TDef): integer;
+function CompareDefs(const d1,d2: TDefAnimation): integer;
 begin
   Result := PtrInt(d1) - PtrInt(d2);
 end;
@@ -688,7 +688,7 @@ begin
   end;
 end;
 
-procedure TDefFormatLoader.SetCurrentDef(AValue: TDef);
+procedure TDefFormatLoader.SetCurrentDef(AValue: TDefAnimation);
 begin
   if FCurrentDef = AValue then Exit;
   FCurrentDef := AValue;
@@ -747,30 +747,30 @@ begin
   inherited Destroy;
 end;
 
-function TGraphicsManager.GetGraphics(const AResourceName: string): TDef;
+function TGraphicsManager.GetGraphics(const AResourceName: string): TDefAnimation;
 begin
   Result := DoGetGraphics(AResourceName, True);
 end;
 
 function TGraphicsManager.GetPreloadedGraphics(const AResourceName: string
-  ): TDef;
+  ): TDefAnimation;
 begin
   Result := DoGetGraphics(AResourceName, False);
 end;
 
-procedure TGraphicsManager.LoadGraphics(Adef: TDef);
+procedure TGraphicsManager.LoadGraphics(Adef: TDefAnimation);
 begin
   FDefLoader.CurrentDef := ADef;
   FDefLoader.Mode := TGraphicsLoadMode.LoadRest;
   ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+ADef.ResourceID);
 end;
 
-function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TDef;
+function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TDefAnimation;
 begin
   Result := FHeroFlagDefs[APlayer];
 end;
 
-procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDef;
+procedure TGraphicsManager.LoadDef(const AResourceName: string; ADef: TDefAnimation;
   ALoadComplete: Boolean);
 begin
   FDefLoader.CurrentDef := ADef;
@@ -785,7 +785,7 @@ begin
 end;
 
 function TGraphicsManager.DoGetGraphics(const AResourceName: string;
-  ALoadComplete: Boolean): TDef;
+  ALoadComplete: Boolean): TDefAnimation;
 var
   res_index: Integer;
 begin
@@ -801,7 +801,7 @@ begin
     end;
   end
   else begin
-    Result := TDef.Create;
+    Result := TDefAnimation.Create;
     LoadDef(AResourceName,Result, ALoadComplete);
     FNameToDefMap.Add(AResourceName,Result);
     Result.ResourceID := AResourceName;
@@ -824,18 +824,18 @@ procedure TDefMap.Deref(Item: Pointer);
 begin
   //inherited Deref(Item);
   Finalize(string(Item^));
-  TDef(Pointer(PByte(Item)+KeySize)^).Free;
+  TDefAnimation(Pointer(PByte(Item)+KeySize)^).Free;
 end;
 
-{ TDef }
+{ TDefAnimation }
 
-constructor TDef.Create;
+constructor TDefAnimation.Create;
 begin
   entries := TDefEntries.Create;
   FTexturesBinded := false;
 end;
 
-destructor TDef.Destroy;
+destructor TDefAnimation.Destroy;
 begin
   MayBeUnBindTextures;
 
@@ -843,31 +843,31 @@ begin
   inherited Destroy;
 end;
 
-function TDef.GetFrameCount: Integer;
+function TDefAnimation.GetFrameCount: Integer;
 begin
   Result := entries.Size;
 end;
 
-procedure TDef.MayBeUnBindTextures;
+procedure TDefAnimation.MayBeUnBindTextures;
 begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := False;
 end;
 
-procedure TDef.SetLoaded(AValue: Boolean);
+procedure TDefAnimation.SetLoaded(AValue: Boolean);
 begin
   if FLoaded=AValue then Exit;
   FLoaded:=AValue;
 end;
 
-procedure TDef.SetResourceID(AValue: AnsiString);
+procedure TDefAnimation.SetResourceID(AValue: AnsiString);
 begin
   if FResourceID=AValue then Exit;
   FResourceID:=AValue;
 end;
 
-procedure TDef.RenderIcon(X, Y: Integer; dim: integer; color: TPlayer);
+procedure TDefAnimation.RenderIcon(X, Y: Integer; dim: integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
@@ -885,7 +885,7 @@ begin
   editor_gl.CurrentContextState.RenderSpriteIcon(Sprite, dim);
 end;
 
-procedure TDef.RenderBorder(TileX, TileY: Integer);
+procedure TDefAnimation.RenderBorder(TileX, TileY: Integer);
 const
   RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
 var
@@ -900,7 +900,7 @@ begin
   editor_gl.CurrentContextState.StopDrawing;
 end;
 
-procedure TDef.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
+procedure TDefAnimation.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
 var
   mir: UInt8;
   Sprite: TGLSprite;
@@ -921,7 +921,7 @@ begin
   editor_gl.CurrentContextState.RenderSpriteMirrored(Sprite,mir);
 end;
 
-procedure TDef.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
+procedure TDefAnimation.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
@@ -940,7 +940,7 @@ begin
 
 end;
 
-class procedure TDef.SetPalyerColor(color: TPlayer);
+class procedure TDefAnimation.SetPalyerColor(color: TPlayer);
 begin
   if color = TPlayer.NONE then
   begin
@@ -952,7 +952,7 @@ begin
 
 end;
 
-procedure TDef.UnBindTextures;
+procedure TDefAnimation.UnBindTextures;
 var
   SpriteIndex: SizeInt;
 begin

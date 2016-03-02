@@ -49,7 +49,7 @@ type
 
   TLegacyMapObjectTemplate = class (TCollectionItem)
   private
-    FDef: TDef;
+    FDef: TDefAnimation;
   private
     FType: AnsiString;
     FAllowedTerrains: TTerrainTypes;

@@ -285,7 +285,7 @@ type
 
   TMapObjectTemplate = class(TObject, ISerializeNotify, IFPObserver)
   private
-    FDef: TDef;
+    FDef: TDefAnimation;
 
     FIsVisitable: Boolean;
 
@@ -297,7 +297,7 @@ type
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
     procedure SetzIndex(AValue: Integer);
-    procedure SetDef(AValue:TDef);
+    procedure SetDef(AValue:TDefAnimation);
 
     procedure AnimationChanged;
 
@@ -331,6 +331,7 @@ type
 
   TMapObject = class (TNamedCollectionItem, IMapObject)
   strict private
+    FIsHero: Boolean;
     FLastFrame: Integer;
     FLastTick: DWord;
     FOptions: TObjectOptions;
@@ -991,7 +992,7 @@ begin
   FzIndex:=AValue;
 end;
 
-procedure TMapObjectTemplate.SetDef(AValue: TDef);
+procedure TMapObjectTemplate.SetDef(AValue: TDefAnimation);
 begin
   FDef := AValue;
   RootManager.GraphicsManager.LoadGraphics(FDef);
@@ -1396,6 +1397,11 @@ procedure TMapObject.Render(Frame: integer; Ax, Ay: integer);
 var
   owner : TPlayer;
 begin
+  if FIsHero and (FTemplate.EditorAnimation = '') then
+  begin
+    Frame := 2;
+  end;
+
   owner := GetPlayer;
   Template.FDef.RenderO(Frame, Ax,Ay,GetPlayer);
 
@@ -1469,6 +1475,8 @@ begin
   FType:=AValue;
   TypeChanged;
   UpdateIdentifier;
+
+  FIsHero := AValue = TYPE_HERO;
 end;
 
 procedure TMapObject.SetX(AValue: integer);

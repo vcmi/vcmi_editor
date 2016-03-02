@@ -92,7 +92,7 @@ type
 
   TObjTemplate = class (TNamedCollectionItem)
   private
-    FDef: TDef;
+    FDef: TDefAnimation;
 
     FObjType:TObjType;
     FObjSubtype: TObjSubType;
@@ -114,7 +114,7 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property Def: TDef read FDef;
+    property Def: TDefAnimation read FDef;
 
     property ObjType: TObjType read FObjType;
     property ObjSubType: TObjSubType read FObjSubtype;
@@ -1031,7 +1031,7 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
 
     passable, active: Boolean;
     mask_conf, visit_conf, allowedTerrains: TJSONArray;
-    //anim: TDef;
+    //anim: TDefAnimation;
     width_tiles: Integer;
     height_tiles: Integer;
 
