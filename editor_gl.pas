@@ -25,7 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, matrix, GL, glext40, LazLoggerBase;
+  Classes, SysUtils, math, matrix, GL, glext40;
 
 type
   TRBGAColor = packed record
@@ -238,6 +238,8 @@ var
   CurrentContextState:TLocalState = nil;
 
 implementation
+
+uses LazLoggerBase;
 
 
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer; AInternalFormat: GLEnum); inline;

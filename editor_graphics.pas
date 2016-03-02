@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
-  editor_utils, filesystem_base, editor_gl, LazLoggerBase;
+  editor_utils, filesystem_base, editor_gl;
 
 const
 
