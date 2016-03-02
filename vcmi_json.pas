@@ -193,7 +193,6 @@ type
 
 
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
-  procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
 
   procedure ParseObjectId(AID: AnsiString; out AModId: AnsiString; out AObjectId: AnsiString);
 
@@ -263,19 +262,6 @@ begin
     end;
   end;
 
-end;
-
-procedure InheritJson(ABase: TJSONObject; ADest: TJSONObject);
-var
-  temp: TJSONObject;
-begin
-  temp := ABase.Clone as TJSONObject;
-
-  MergeJsonStruct(Adest, temp);
-
-  ADest.Assign(temp);
-
-  temp.Free;
 end;
 
 procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject);
@@ -448,8 +434,22 @@ begin
 end;
 
 procedure TJSONObjectHelper.InheritFrom(ABase: TJSONObject);
+var
+  temp: TJSONObject;
+  s: String;
+
 begin
-  InheritJson(ABase, self);
+  temp := ABase.Clone as TJSONObject;
+
+  MergeJsonStruct(Self, temp);
+
+  while temp.Count > 0 do
+  begin
+    s := temp.Names[0];
+    Self.Add(s, temp.Extract(0));
+  end;
+
+  temp.Free;
 end;
 
 procedure TJSONObjectHelper.Assign(AValue: TJSONObject);

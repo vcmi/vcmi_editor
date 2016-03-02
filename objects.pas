@@ -778,15 +778,10 @@ begin
   destreamer.AfterReadObject := @OnObjectDestream;
   try
     FConfig.Load(AProgressCallback, APaths,ResourceLoader, FCombinedConfig);
-    AProgressCallback.Advance(1);
     AddFactions(FCombinedConfig);
-    AProgressCallback.Advance(1);
     AddHeroClasses(FCombinedConfig);
-    AProgressCallback.Advance(1);
     AddCreatures(FCombinedConfig);
-    AProgressCallback.Advance(1);
     AddArtifacts(FCombinedConfig);
-    AProgressCallback.Advance(1);
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
     for i := 0 to FFullIdToDefMap.Count - 1 do
@@ -1340,6 +1335,7 @@ var
   base: TJSONObject;
   idx: Integer;
 begin
+  FProgress.Advance(1);
   //AName = object type id
 
   DebugLn([AName]);
@@ -1372,6 +1368,7 @@ end;
 
 procedure TObjectsManager.HandleInteritance(AConfig: TJSONObject);
 begin
+  FProgress.Max:=AConfig.Count;
   AConfig.Iterate(@HandleInteritanceObjectType, nil);
 end;
 

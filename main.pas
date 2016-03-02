@@ -896,9 +896,8 @@ begin
 
   if Paramcount > 0 then
   begin
-    //stage 4
     RootManager.ProgressForm.NextStage('Loading map ...');
-
+    RootManager.ProgressForm.SetMax(1);
     try
       dir := GetCurrentDirUTF8();
       dir := IncludeTrailingPathDelimiter(dir);
@@ -912,6 +911,7 @@ begin
       end;
     end;
     SetActiveBrush(FIdleBrush);
+    RootManager.ProgressForm.Advance(1);
   end
   else
   begin
