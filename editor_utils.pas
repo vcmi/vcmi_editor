@@ -52,6 +52,7 @@ type
   function NormalizeModId(AModId: TModId): TModId;
 
   function NormalizeResourceName(const AName: string): string;
+  function NormalizeKeyWord(const AName: string): string;
 
   function StripScope(const AIdentifier: string): string;
 
@@ -113,6 +114,11 @@ begin
   Result := SetDirSeparators(AName);
   Result := UpperCase(Result);
   Result := ExtractFileNameWithoutExt(Result);
+end;
+
+function NormalizeKeyWord(const AName: string): string;
+begin
+  result := UTF8LowerCase(UTF8Trim(AName));
 end;
 
 function StripScope(const AIdentifier: string): string;

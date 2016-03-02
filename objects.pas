@@ -705,7 +705,7 @@ begin
 
   FAllTemplates := TObjTemplatesList.Create(false);
 
-  FTextTokenizer := TRegExpr.Create('\s+');
+  FTextTokenizer := TRegExpr.Create('[_\-\s\.:]+');
   FTextTokenizer.Compile
 end;
 
@@ -773,7 +773,7 @@ begin
   AProgressCallback.Max:=8;
 
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
   destreamer := TVCMIJSONDestreamer.Create(nil);
   destreamer.AfterReadObject := @OnObjectDestream;
   try
@@ -909,23 +909,28 @@ begin
       keywords.Add(s);
     end;
 
-    obj_type := obj.ObjType;
-
-    if obj_type.Name <> '' then
+    if obj.Meta <> '' then
     begin
-      keyword := UTF8LowerCase(UTF8Trim(obj_type.Name));
-
-      FTextTokenizer.Split(keyword, keywords);
+      keyword := NormalizeKeyWord(obj.Meta);
+      FTextTokenizer.Split(keyword, keywords)
     end;
+
+    obj_type := obj.ObjType;
+    if obj_type.Name <> '' then
+      keyword := obj_type.Name
+    else
+      keyword := obj_type.Identifier;
+    keyword := NormalizeKeyWord(keyword);
+    FTextTokenizer.Split(keyword, keywords);
 
     obj_subtype := obj.ObjSubType;
-
     if obj_subtype.Name <> '' then
-    begin
-      keyword := UTF8LowerCase(UTF8Trim(obj_subtype.Name));
+      keyword := obj_subtype.Name
+    else
+      keyword := obj_subtype.Identifier;
+    keyword := NormalizeKeyWord(keyword);
+    FTextTokenizer.Split(keyword, keywords);
 
-      FTextTokenizer.Split(keyword, keywords);
-    end;
 
     for i := 0 to keywords.Count - 1 do
     begin
@@ -1270,14 +1275,14 @@ procedure TObjectsManager.HandleInteritanceObjectTemplate(
   const AName: TJSONStringType; Item: TJSONData; Data: TObject;
   var Continue: Boolean);
 var
-  obj_template: TJSONObject;
-  base: TJSONObject;
+  obj_template: TVCMIJsonObject;
+  base: TVCMIJsonObject;
 begin
-  obj_template := Item as TJSONObject;
+  obj_template := Item as TVCMIJsonObject;
 
   if Assigned(data) then
   begin
-    base := data as TJSONObject;
+    base := data as TVCMIJsonObject;
 
     obj_template.InheritFrom(base);
   end;
@@ -1287,15 +1292,15 @@ procedure TObjectsManager.HandleInteritanceObjectSubType(
   const AName: TJSONStringType; Item: TJSONData; Data: TObject;
   var Continue: Boolean);
 var
-  obj_subtype: TJSONObject;
+  obj_subtype: TVCMIJsonObject;
   base: TJSONObject;
   idx: Integer;
 begin
-  obj_subtype := Item as TJSONObject;
+  obj_subtype := Item as TVCMIJsonObject;
 
   if Assigned(data) then
   begin
-    obj_subtype.InheritFrom(data as TJSONObject);
+    obj_subtype.InheritFrom(data as TVCMIJsonObject);
   end;
 
   base := nil;
@@ -1382,7 +1387,7 @@ begin
     if not faction.HasTown then
       Continue;
 
-    town_type := TJSONObject.Create;
+    town_type := CreateJSONObject([]);
     if(faction.Index >= 0) then
       town_type.Add('index', faction.Index);
 
@@ -1405,7 +1410,7 @@ begin
   for i := 0 to ListsManager.HeroClassInfos.Count - 1 do
   begin
     hcinfo := ListsManager.HeroClassInfos[i];
-    hc := TJSONObject.Create;
+    hc := CreateJSONObject([]);
     if hcinfo.Index >=0 then
       hc.Add('index', hcinfo.Index);
 
@@ -1428,7 +1433,7 @@ begin
   begin
     cr_info := ListsManager.CreatureInfos[i];
 
-    cr := TJSONObject.Create;
+    cr := CreateJSONObject([]);
     if cr_info.Index >= 0 then
       cr.Add('index', cr_info.Index);
     cr_info.Graphics.AddTemplates(cr);
@@ -1449,7 +1454,7 @@ begin
   for i := 0 to ListsManager.ArtifactInfos.Count - 1 do
   begin
     info := ListsManager.ArtifactInfos[i];
-    ar := TJSONObject.Create;
+    ar := CreateJSONObject([]);
     if info.Index >= 0 then
       ar.Add('index', info.Index);
 

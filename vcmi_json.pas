@@ -50,6 +50,8 @@ type
      function Clone: TJSONData; override;
      procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
      property Meta: AnsiString read FMeta;
+
+     procedure InheritFrom(ABase:TVCMIJsonObject);
   end;
 
   { TVCMIJsonArray }
@@ -186,11 +188,8 @@ type
   TJSONObjectHelper = class helper for TJSONObject
   public
     function GetOrCreateObject(AName: AnsiString): TJSONObject;
-    procedure InheritFrom(ABase:TJSONObject);
     procedure Assign(AValue: TJSONObject);
   end;
-
-
 
   procedure MergeJson(ASrc: TJSONData; ADest: TJSONData);
 
@@ -209,8 +208,8 @@ uses
 var
   rexp_oid: TRegExpr;
 
-procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject); forward;
-procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray); forward;
+procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject); forward;
+procedure MergeJsonStruct(ASrc: TVCMIJsonArray; ADest: TVCMIJsonArray); forward;
 
 procedure DoSetMeta(ATarget: TJSONData; AValue: AnsiString);
 begin
@@ -245,7 +244,7 @@ begin
 
   case ASrc.JSONType of
     jtNull: assert(false);
-    jtArray: MergeJsonStruct(ASrc as TJSONArray, ADest as TJSONArray) ;
+    jtArray: MergeJsonStruct(ASrc as TVCMIJsonArray, ADest as TVCMIJsonArray) ;
     jtBoolean: ADest.AsBoolean := ASrc.AsBoolean ;
     jtNumber:begin
       case TJSONNumber(ASrc).NumberType of
@@ -254,7 +253,7 @@ begin
         ntInteger: ADest.AsInteger := ASrc.AsInteger;
       end;
     end;
-    jtObject:MergeJsonStruct(ASrc as TJSONObject, ADest as TJSONObject) ;
+    jtObject:MergeJsonStruct(ASrc as TVCMIJsonObject, ADest as TVCMIJsonObject) ;
     jtString:ADest.AsString := ASrc.AsString;
   else
     begin
@@ -264,7 +263,7 @@ begin
 
 end;
 
-procedure MergeJsonStruct(ASrc: TJSONObject; ADest: TJSONObject);
+procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject);
 var
   src_idx, dest_idx: Integer;
   name: TJSONStringType;
@@ -295,7 +294,7 @@ begin
   end;
 end;
 
-procedure MergeJsonStruct(ASrc: TJSONArray; ADest: TJSONArray);
+procedure MergeJsonStruct(ASrc: TVCMIJsonArray; ADest: TVCMIJsonArray);
 var
   idx: SizeInt;
 begin
@@ -401,6 +400,28 @@ begin
     end;
 end;
 
+procedure TVCMIJsonObject.InheritFrom(ABase: TVCMIJsonObject);
+var
+  temp: TVCMIJsonObject;
+  s, old_meta: String;
+begin
+  old_meta := Meta;
+  temp := ABase.Clone as TVCMIJsonObject;
+
+  MergeJsonStruct(Self, temp);
+  Clear;
+
+  while temp.Count > 0 do
+  begin
+    s := temp.Names[0];
+    Self.Add(s, temp.Extract(0));
+  end;
+
+  temp.Free;
+
+  SetMeta(old_meta, True);
+end;
+
 { TVCMIJsonString }
 
 procedure TVCMIJsonString.SetMeta(AValue: AnsiString);
@@ -425,7 +446,7 @@ begin
 
   if idx < 0 then
   begin
-    Result := TJSONObject.Create;
+    Result := CreateJSONObject([]);
     add(AName, Result);
   end
   else begin
@@ -433,29 +454,16 @@ begin
   end;
 end;
 
-procedure TJSONObjectHelper.InheritFrom(ABase: TJSONObject);
-var
-  temp: TJSONObject;
-  s: String;
-
-begin
-  temp := ABase.Clone as TJSONObject;
-
-  MergeJsonStruct(Self, temp);
-
-  while temp.Count > 0 do
-  begin
-    s := temp.Names[0];
-    Self.Add(s, temp.Extract(0));
-  end;
-
-  temp.Free;
-end;
 
 procedure TJSONObjectHelper.Assign(AValue: TJSONObject);
 var
   iter: TJSONEnum;
 begin
+  if (Self is TVCMIJsonObject) and (AValue is TVCMIJsonObject) then
+  begin
+    TVCMIJsonObject(Self).FMeta:=TVCMIJsonObject(AValue).Meta;
+  end;
+
   Self.Clear;
 
   for iter in AValue do
@@ -608,7 +616,7 @@ var
 begin
   if ACollection is INamedCollection then
   begin
-    o := TJSONObject.Create;
+    o := CreateJSONObject([]);
     for elem in ACollection do
     begin
       o.Add(TNamedCollectionItem(Elem).Identifier, ObjectToJsonEx(elem));
@@ -617,7 +625,7 @@ begin
   end
   else if ACollection is IArrayCollection then
   begin
-    a:=TJSONArray.Create;
+    a:=CreateJSONArray([]);
     for elem in ACollection do
     begin
       a.Add(ObjectToJsonEx(elem));
@@ -722,14 +730,16 @@ begin
     if new_item.UseMeta and (item is TVCMIJsonObject) then
     begin
       meta := TVCMIJsonObject(Item).Meta;
+      new_item.Meta:=Meta;
     end
     else if new_item.UseMeta and (item is TVCMIJsonArray) then
     begin
       meta := TVCMIJsonObject(Item).Meta;
+      new_item.Meta:=Meta;
     end
     else
     begin
-       new_item.Identifier := AName;
+      new_item.Identifier := AName;
     end;
 
     if meta <> '' then

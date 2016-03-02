@@ -94,13 +94,16 @@ type
   TNamedCollectionItem = class(TCollectionItem)
   private
     FIdentifier: AnsiString;
+    FMeta: AnsiString;
     procedure SetIdentifier(AValue: AnsiString);
+    procedure SetMeta(AValue: AnsiString);
   protected
     procedure AssignTo(Dest: TPersistent); override;
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;
   public
     property Identifier: AnsiString read FIdentifier write SetIdentifier;
+    property Meta: AnsiString read FMeta write SetMeta;
 
     class function UseMeta: boolean; virtual;
   end;
@@ -451,6 +454,11 @@ begin
   if Assigned(Collection) then
     (Collection as THashedCollection).ItemIdentifierChanged(Self, FIdentifier, AValue);
   FIdentifier:=AValue;
+end;
+
+procedure TNamedCollectionItem.SetMeta(AValue: AnsiString);
+begin
+  FMeta:=AValue;
 end;
 
 procedure TNamedCollectionItem.AssignTo(Dest: TPersistent);

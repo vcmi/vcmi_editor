@@ -140,7 +140,7 @@ begin
   map_level := AMap.MapLevels[Level];
   for row := 0 to map_level.Height - 1 do
   begin
-    ARowArray := TJSONArray.Create;
+    ARowArray := CreateJSONArray([]);
     for col := 0 to map_level.Width - 1 do
     begin
       StreamTile(ARowArray, map_level.Tile[Col,Row]);
@@ -154,11 +154,11 @@ var
   level_array: TJSONArray;
   i: Integer;
 begin
-  result := TJSONArray.Create;
+  result := CreateJSONArray([]);
 
   for i := 0 to AMap.MapLevels.Count - 1 do
   begin
-    level_array := TJSONArray.Create;
+    level_array := CreateJSONArray([]);
     StreamTilesLevel(level_array,AMap,i);
     TJSONArray(result).Add(level_array);
   end;

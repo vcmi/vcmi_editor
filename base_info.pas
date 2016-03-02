@@ -78,7 +78,7 @@ implementation
 constructor TMapObjectInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FMapObject := TJSONObject.Create;
+  FMapObject := CreateJSONObject([]);
 end;
 
 destructor TMapObjectInfo.Destroy;
@@ -117,7 +117,6 @@ end;
 
 procedure TBaseInfo.SetName(const AValue: TLocalizedString);
 begin
-  if FName = AValue then Exit;
   FName := AValue;
 end;
 

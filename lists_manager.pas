@@ -994,7 +994,7 @@ begin
   if Map <> '' then
   begin
     templates := ASubtypeConfig.GetOrCreateObject('templates');
-    templates.Add('default', TJSONObject.Create(['animation', Map]));
+    templates.Add('default', CreateJSONObject(['animation', Map]));
   end;
 end;
 
@@ -1346,7 +1346,7 @@ var
   AConfig: TJsonResource;
   Path: String;
 begin
-  Result := TJSONObject.Create;
+  Result := CreateJSONObject([]);
   try
     for Path in APaths do
     begin
@@ -1524,7 +1524,7 @@ var
   iter: TJSONEnum;
 begin
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
@@ -1537,7 +1537,7 @@ begin
 
     for f in [0..9] do
     begin
-      o := TJSONObject.Create();
+      o := CreateJSONObject([]);
 
       o.Strings['name'] := faction_names.Value[0,f];
 
@@ -1699,7 +1699,7 @@ var
   name_count: integer;
 begin
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
 
   legacy_data := TJsonObjectList.Create(true);
   crtraits := TTextResource.Create(CREATURE_TRAITS);
@@ -1718,7 +1718,7 @@ begin
 
     for i in [0..TextDataConfig.Creature-1] do
     begin
-      o := TJSONObject.Create();
+      o := CreateJSONObject([]);
 
       while trim(crtraits.Value[0,i+shift]) = '' do
       begin
@@ -1804,7 +1804,7 @@ var
   info: TArtifactInfo;
 begin
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
 
   legacy_data := TJsonObjectList.Create(true);
   artraits := TTextResource.Create(ARTIFACT_TRAITS);
@@ -1814,7 +1814,7 @@ begin
 
     for i in [0..TextDataConfig.Artifact-1] do
     begin
-      o := TJSONObject.Create();
+      o := CreateJSONObject([]);
 
       o.GetOrCreateObject('text').Strings['name'] := artraits.Value[0,i+2];
 
@@ -1996,7 +1996,7 @@ begin
       row +=3;
 
       repeat
-        spell_config := TJSONObject.Create;
+        spell_config := CreateJSONObject([]);
         loc_name := sptrairs.Value[0,row];
         spell_config.Strings['name'] := loc_name;
         spell_config.Integers['level'] := StrToIntDef(sptrairs.Value[2,row],0);
@@ -2040,7 +2040,7 @@ var
   info: THeroInfo;
 begin
   FConfig := TModdedConfigs.Create;
-  FCombinedConfig := TJSONObject.Create;
+  FCombinedConfig := CreateJSONObject([]);
 
   legacy_data := TJsonObjectList.Create(true);
   hotraits := TTextResource.Create(HERO_TRAITS);
@@ -2052,7 +2052,7 @@ begin
 
     for i in [0..TextDataConfig.Hero-1] do
     begin
-      o := TJSONObject.Create();
+      o := CreateJSONObject([]);
 
       o.GetOrCreateObject('texts').Strings['name'] := hotraits.Value[0,i+2];
       o.GetOrCreateObject('texts').Strings['biography'] := herobios.Value[0,i];

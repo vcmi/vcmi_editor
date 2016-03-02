@@ -666,7 +666,7 @@ Function TStreamChildrenHelper.StreamChildren(AComponent : TComponent; AStreamer
 
 begin
   FStreamer:=AStreamer;
-  Result:=TJSONArray.Create;
+  Result:=CreateJSONArray([]);
   try
     FChildren:=Result;
     THackComponent(AComponent).GetChildren(@StreamChild,AComponent);
@@ -761,7 +761,7 @@ begin
   Result:=Nil;
   If (AObject=Nil) then
     Exit;
-  Result:=TJSONObject.Create;
+  Result:=CreateJSONObject([]);
   try
     If Assigned(FBeforeStreamObject) then
       FBeforeStreamObject(Self,AObject,Result);
@@ -819,7 +819,7 @@ begin
   Result:=Nil;
   If VarIsArray(Data) then
     begin
-    A:=TJSONArray.Create;
+    A:=CreateJSONArray([]);
     try
       For I:=VarArrayLowBound(Data,1) to VarArrayHighBound(Data,1) do
         A.Add(StreamVariant(Data[i]));
@@ -942,7 +942,7 @@ Var
   I : Integer;
 
 begin
-  Result:=TJSONArray.Create;
+  Result:= CreateJSONArray([]);
   try
     For I:=0 to AStrings.Count-1 do
       Result.Add(AStrings[i]);
@@ -960,7 +960,7 @@ Var
   O : TJSONData;
 
 begin
-  Result:=TJSONObject.Create;
+  Result:=CreateJSONObject([]);
   try
     For I:=0 to AStrings.Count-1 do
       begin
@@ -991,7 +991,7 @@ function TJSONStreamer.StreamCollection(const ACollection: TCollection
 var
   I: Integer;
 begin
-  Result:=TJSONArray.Create;
+  Result:=CreateJSONArray([]);
   try
     For I:=0 to ACollection.Count-1 do
       TJSONArray(Result).Add(ObjectToJsonEx(ACollection.Items[i]));
@@ -1055,7 +1055,7 @@ begin
         begin
         PT:=GetTypeData(PT)^.CompType;
         S:=GetOrdProp(AObject,PI);
-        Result:=TJSONArray.Create;
+        Result:=CreateJSONArray([]);
         try
           for i:=0 to 31 do
             if (i in TSet(S)) then
