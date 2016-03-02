@@ -312,7 +312,7 @@ type
 
     function SelectAll: TObjectsSelection;
 
-    // AKeyWords = space separated words
+    // AInput = space separated words
     function SelectByKeywords(AInput: string): TObjectsSelection;
 
     function ResolveLegacyID(Typ,SubType: uint32):TObjSubType;
@@ -777,11 +777,16 @@ begin
   destreamer := TVCMIJSONDestreamer.Create(nil);
   destreamer.AfterReadObject := @OnObjectDestream;
   try
-    FConfig.Load(APaths,ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgressCallback, APaths,ResourceLoader, FCombinedConfig);
+    AProgressCallback.Advance(1);
     AddFactions(FCombinedConfig);
+    AProgressCallback.Advance(1);
     AddHeroClasses(FCombinedConfig);
+    AProgressCallback.Advance(1);
     AddCreatures(FCombinedConfig);
+    AProgressCallback.Advance(1);
     AddArtifacts(FCombinedConfig);
+    AProgressCallback.Advance(1);
     MergeLegacy(FCombinedConfig, FFullIdToDefMap);
 
     for i := 0 to FFullIdToDefMap.Count - 1 do

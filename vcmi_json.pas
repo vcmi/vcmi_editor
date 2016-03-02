@@ -130,6 +130,7 @@ type
   TJsonResource = class (TBaseResource,IResource)
   private
     FRoot: TJSONObject;
+    destreamer: TVCMIJSONDestreamer;
   public
     constructor Create(APath: AnsiString);
     destructor Destroy; override;
@@ -166,17 +167,16 @@ type
        TMap = specialize TObjectMap<TModId, TModdedConfig>;
      var
        FMap: TMap;
-  public
-    constructor Create;
-    destructor Destroy; override;
-  private
-    procedure Preload(APaths: TModdedConfigPaths; ALoader:IResourceLoader);
+
+    procedure Preload(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALoader:IResourceLoader);
     procedure ExtractPatches;
     procedure ApplyPatches;
     procedure CombineTo(ADest: TJSONObject);
-
   public
-    procedure Load(APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
   end;
 
 
@@ -469,46 +469,32 @@ end;
 constructor TJsonResource.Create(APath: AnsiString);
 begin
   inherited Create(TResourceType.Json, APath);
+  destreamer := TVCMIJSONDestreamer.Create(nil);
 end;
 
 procedure TJsonResource.DestreamTo(AObject: TObject; AFieldName: string);
-var
-  destreamer: TVCMIJSONDestreamer;
 begin
-  destreamer := TVCMIJSONDestreamer.Create(nil);
-  try
-
-    if AFieldName = '' then
-    begin
-      destreamer.JSONToObject(FRoot,AObject);
-    end
-    else begin
-      destreamer.JSONToObject(FRoot.Objects[AFieldName],AObject);
-    end;
-
-  finally
-    destreamer.Free;
+  if AFieldName = '' then
+  begin
+    destreamer.JSONToObject(FRoot,AObject);
+  end
+  else begin
+    destreamer.JSONToObject(FRoot.Objects[AFieldName],AObject);
   end;
 end;
 
 destructor TJsonResource.Destroy;
 begin
   FreeAndNil(FRoot);
+  destreamer.Free;
 end;
 
 procedure TJsonResource.LoadFromStream(AStream: TStream);
-var
-  destreamer: TVCMIJSONDestreamer;
 begin
-  destreamer := TVCMIJSONDestreamer.Create(nil);
-  try
-    FreeAndNil(FRoot);
-    FRoot := destreamer.JSONStreamToJSONObject(AStream,'');
+  FreeAndNil(FRoot);
+  FRoot := destreamer.JSONStreamToJSONObject(AStream,'');
 
-    Assert(FRoot is TVCMIJsonObject);
-  finally
-    destreamer.Free;
-  end;
+  Assert(FRoot is TVCMIJsonObject);
 end;
 
 { TVCMIJSONStreamer }
@@ -1093,14 +1079,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TModdedConfigs.Preload(APaths: TModdedConfigPaths;
-  ALoader: IResourceLoader);
+procedure TModdedConfigs.Preload(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths; ALoader: IResourceLoader);
 var
   AModdedPath: TModdedConfigPath;
   i: SizeInt;
 
   current: TJsonResource;
-  APath: String;
+  APath, s: String;
   item: TModdedConfig;
 
   meta: TJSONStringType;
@@ -1118,12 +1104,19 @@ begin
     for APath in AModdedPath.Config do
     begin
       current := TJsonResource.Create(APath);
+
       try
-        current.Load(ALoader);
-        MergeJson(current.Root, item.Config);
-      finally
-        current.Free;
+         current.Load(ALoader);
+         MergeJson(current.Root, item.Config);
+      except
+        on e: Exception do
+        begin
+          s := 'Error loading file '+APath +' '+e.Message;
+          AProgess.AddError(s);
+        end;
       end;
+
+      current.Free;
     end;
 
     if AModdedPath.ModID = MODID_CORE then
@@ -1250,10 +1243,10 @@ begin
   end;
 end;
 
-procedure TModdedConfigs.Load(APaths: TModdedConfigPaths;
-  ALoader: IResourceLoader; ADest: TJSONObject);
+procedure TModdedConfigs.Load(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths; ALoader: IResourceLoader; ADest: TJSONObject);
 begin
-  Preload(APaths,ALoader);
+  Preload(AProgess, APaths, ALoader);
   ExtractPatches;
   ApplyPatches;
   CombineTo(ADest);

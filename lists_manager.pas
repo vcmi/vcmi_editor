@@ -521,12 +521,12 @@ type
 
     procedure PreLoad;
 
-    procedure LoadFactions(APaths: TModdedConfigPaths);
-    procedure LoadHeroClasses(APaths: TModdedConfigPaths);
-    procedure LoadCreatures(APaths: TModdedConfigPaths);
-    procedure LoadArtifacts(APaths: TModdedConfigPaths);
+    procedure LoadFactions(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
+    procedure LoadHeroClasses(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
+    procedure LoadCreatures(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
+    procedure LoadArtifacts(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadSpells(APaths: TStrings); //todo: mod support for spells
-    procedure LoadHeroes(APaths: TModdedConfigPaths);
+    procedure LoadHeroes(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
   public
 
     property TextDataConfig: TTextDataConfig read FTextDataConfig;
@@ -1510,7 +1510,8 @@ begin
   LoadSkills;
 end;
 
-procedure TListsManager.LoadFactions(APaths: TModdedConfigPaths);
+procedure TListsManager.LoadFactions(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
@@ -1593,7 +1594,7 @@ begin
 
     end;
 
-    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
 
     MergeLegacy(legacy_data, FCombinedConfig);
 
@@ -1623,7 +1624,8 @@ begin
   end;
 end;
 
-procedure TListsManager.LoadHeroClasses(APaths: TModdedConfigPaths);
+procedure TListsManager.LoadHeroClasses(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
@@ -1659,7 +1661,7 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
 
     MergeLegacy(legacy_data, FCombinedConfig);
 
@@ -1679,7 +1681,8 @@ begin
   end;
 end;
 
-procedure TListsManager.LoadCreatures(APaths: TModdedConfigPaths);
+procedure TListsManager.LoadCreatures(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
@@ -1728,7 +1731,7 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
 
     MergeLegacy(legacy_data, FCombinedConfig);
 
@@ -1753,7 +1756,8 @@ begin
   end;
 end;
 
-procedure TListsManager.LoadArtifacts(APaths: TModdedConfigPaths);
+procedure TListsManager.LoadArtifacts(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths);
 const
   H3_ART_SLOTS : array [0..ARTIFACT_SLOT_COUNT-1] of string =
   (
@@ -1824,7 +1828,7 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
 
     MergeLegacy(legacy_data, FCombinedConfig);
 
@@ -2026,7 +2030,8 @@ begin
 
 end;
 
-procedure TListsManager.LoadHeroes(APaths: TModdedConfigPaths);
+procedure TListsManager.LoadHeroes(AProgess: IProgressCallback;
+  APaths: TModdedConfigPaths);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
@@ -2059,7 +2064,7 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(APaths, ResourceLoader, FCombinedConfig);
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
 
     MergeLegacy(legacy_data, FCombinedConfig);
 

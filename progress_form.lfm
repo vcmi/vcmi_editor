@@ -1,15 +1,17 @@
 object ProgressForm: TProgressForm
   Left = 332
-  Height = 74
+  Height = 320
   Top = 232
   Width = 514
   BorderStyle = bsNone
   Caption = 'ProgressForm'
-  ClientHeight = 74
+  ClientHeight = 320
   ClientWidth = 514
+  FormStyle = fsStayOnTop
+  OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.4.5.0'
+  LCLVersion = '1.6.1.0'
   object pbDetail: TProgressBar
     Left = 16
     Height = 20
@@ -27,5 +29,24 @@ object ProgressForm: TProgressForm
     AutoSize = False
     Caption = 'lbDetail'
     ParentColor = False
+  end
+  object Errors: TMemo
+    Left = 16
+    Height = 192
+    Top = 88
+    Width = 482
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    TabOrder = 1
+  end
+  object CloseButton: TButton
+    Left = 216
+    Height = 25
+    Top = 288
+    Width = 75
+    Caption = 'Close'
+    Enabled = False
+    OnClick = CloseButtonClick
+    TabOrder = 2
   end
 end

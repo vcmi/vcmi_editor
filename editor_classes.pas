@@ -41,6 +41,8 @@ type
     procedure Advance(ADelta: integer);
 
     procedure NextStage(const AStageLabel:string);
+
+    procedure AddError(const ADescription: string);
   end;
 
 
