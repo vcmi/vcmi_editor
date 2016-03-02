@@ -192,6 +192,7 @@ type
     procedure actViewGridExecute(Sender: TObject);
     procedure actViewPassabilityExecute(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
+    procedure ApplicationProperties1IdleEnd(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
     procedure btnBrush2Click(Sender: TObject);
     procedure btnBrush4Click(Sender: TObject);
@@ -373,7 +374,6 @@ type
 
     procedure DoObjectsSearch;
   protected
-    procedure UpdateActions; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
   public
@@ -543,7 +543,7 @@ end;
 
 procedure TfMain.actAnimateObjectsExecute(Sender: TObject);
 begin
-  //
+  AnimTimer.Enabled := actAnimateObjects.Checked;
 end;
 
 procedure TfMain.actDeleteExecute(Sender: TObject);
@@ -705,6 +705,11 @@ procedure TfMain.AnimTimerTimer(Sender: TObject);
 begin
   if Visible and (WindowState<>wsMinimized) then
     MapView.Invalidate;
+end;
+
+procedure TfMain.ApplicationProperties1IdleEnd(Sender: TObject);
+begin
+  UpdateWidgets;
 end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
@@ -917,6 +922,7 @@ begin
 
   MapChanded;
   InvalidateObjects;
+  UpdateWidgets;
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -2003,16 +2009,26 @@ begin
 end;
 
 procedure TfMain.UpdateWidgets;
+var
+  s: String;
 begin
-  btnBrush1.Down:=false;
-  btnBrush2.Down:=false;
-  btnBrush4.Down:=false;
-  btnBrushArea.Down:=false;
-
-  btnSelect.Down:=false;
+  if Assigned(FMap) then
+  begin
+    s := '';
+    if FMap.IsDirty then
+      s := '*';
+    Caption := FMap.Name + s + ' - VCMI editor'
+  end
+  else
+    Caption := 'VCMI editor';
 
   if FActiveBrush = FIdleBrush then
   begin
+    btnBrush1.Down:=false;
+    btnBrush2.Down:=false;
+    btnBrush4.Down:=false;
+    btnBrushArea.Down:=false;
+
     btnSelect.Down := true;
     gbTerrain.Enabled := false;
   end
@@ -2021,16 +2037,31 @@ begin
     btnBrush1.Down := FFixedTerrainBrush.Size = 1;
     btnBrush2.Down := FFixedTerrainBrush.Size = 2;
     btnBrush4.Down := FFixedTerrainBrush.Size = 4;
+    btnBrushArea.Down:=false;
+    btnSelect.Down:=false;
 
     gbTerrain.Enabled := true;
   end
   else if FActiveBrush = FAreaTerrainBrush then
   begin
+    btnBrush1.Down:=false;
+    btnBrush2.Down:=false;
+    btnBrush4.Down:=false;
     btnBrushArea.Down := true;
+
+    btnSelect.Down:=false;
+
     gbTerrain.Enabled := true;
   end
   else begin
+    btnBrush1.Down:=false;
+    btnBrush2.Down:=false;
+    btnBrush4.Down:=false;
+    btnBrushArea.Down:=false;
 
+    btnSelect.Down:=false;
+
+    gbTerrain.Enabled := false;
   end;
 
   if Assigned(FSelectedObject) then
@@ -2153,26 +2184,6 @@ begin
 
 end;
 
-procedure TfMain.UpdateActions;
-var
-  s: String;
-begin
-  inherited UpdateActions;
-
-  if Assigned(FMap) then
-  begin
-    s := '';
-    if FMap.IsDirty then
-      s := '*';
-    Caption := FMap.Name + s + ' - VCMI editor'
-  end
-  else
-    Caption := 'VCMI editor';
-
-  UpdateWidgets;
-
-  AnimTimer.Enabled := actAnimateObjects.Checked;
-end;
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);
 begin

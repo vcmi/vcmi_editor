@@ -2127,6 +2127,7 @@ object fMain: TfMain
     end
   end
   object ApplicationProperties1: TApplicationProperties
+    OnIdleEnd = ApplicationProperties1IdleEnd
     left = 525
     top = 208
   end
