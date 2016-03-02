@@ -886,12 +886,10 @@ var
 
   obj: TObjTemplate;
 
-  keyword: string;
+  keyword, s: string;
 
   keywords: TStringList;
 
-
-  tt: TTerrainType;
   i: Integer;
   obj_type: TObjType;
   obj_subtype: TObjSubType;
@@ -907,13 +905,9 @@ begin
     keywords.Clear;
     obj := FAllTemplates[idx];
 
-    //index by terrain name, temp
-    for tt in TTerrainType do
+    for s in obj.Tags do
     begin
-      if [tt] * obj.AllowedTerrains = [tt] then
-      begin
-        keywords.Add(UTF8LowerCase(GetEnumName(TypeInfo(TTerrainType), Integer(tt))));
-      end;
+      keywords.Add(s);
     end;
 
     obj_type := obj.ObjType;
@@ -1030,7 +1024,7 @@ procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
     str: String;
 
     passable, active: Boolean;
-    mask_conf, visit_conf, allowedTerrains: TJSONArray;
+    mask_conf, visit_conf, allowedTerrains, tags: TJSONArray;
     //anim: TDefAnimation;
     width_tiles: Integer;
     height_tiles: Integer;
@@ -1129,6 +1123,18 @@ begin
       end;
 
       legacy_config.Add('allowedTerrains', allowedTerrains);
+
+      tags := CreateJSONArray([]);
+
+      for bit_idx := 0 to Integer(TTerrainType.water) do
+      begin
+         if (def.FLandEditGroups and (1 shl bit_idx)) > 0 then
+         begin
+           tags.Add(GetEnumName(TypeInfo(TTerrainType), bit_idx));
+         end;
+      end;
+
+      legacy_config.Add('tags', tags);
 
       visit_conf := CreateJSONArray([]);
       GenerateDefaultVisitableFrom(visit_conf, def.FGroup, TObj(def.Typ) );
