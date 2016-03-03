@@ -1337,7 +1337,7 @@ object fMain: TfMain
         Height = 204
         Top = 0
         Width = 200
-        Align = alClient
+        Anchors = [akTop, akLeft, akRight, akBottom]
         OnMouseDown = MinimapMouseDown
         OnPaint = MinimapPaint
       end

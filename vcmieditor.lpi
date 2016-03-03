@@ -345,6 +345,7 @@
         <Filename Value="root_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RootForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit41>
       <Unit42>

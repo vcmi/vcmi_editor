@@ -255,7 +255,7 @@ type
     FRoadDir: UInt8;
     FFlags: UInt8;
     //end binary compatible with H3 part
-    FOwner: TPlayer;
+    //FOwner: TPlayer;
     procedure SetFlags(AValue: UInt8);
     procedure SetRiverDir(AValue: UInt8);
     procedure SetRiverType(AValue: UInt8);
@@ -1795,7 +1795,7 @@ begin
   FRoadType:=0;
   FRoadDir:=0;
   FFlags:=0;
-  FOwner := TPlayer.NONE;
+  //FOwner := TPlayer.NONE;
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);

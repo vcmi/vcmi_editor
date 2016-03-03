@@ -157,8 +157,6 @@ type
     BitmapUniform: GLint;
     FlagColorUniform: GLint;
 
-
-
     CoordsBuffer: GLuint;
     MirroredUVBuffer: GLuint;
 

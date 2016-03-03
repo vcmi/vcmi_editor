@@ -1045,6 +1045,7 @@ end;
 procedure TfMain.InvalidateMapDimensions;
 var
   factor: Double;
+  dim: Integer;
 begin
   FViewTilesV := MapView.Height div TILE_SIZE;
   FViewTilesH := MapView.Width div TILE_SIZE;
@@ -1058,9 +1059,14 @@ begin
   hScrollBar.LargeChange := Max(1,FViewTilesH);
   vScrollBar.LargeChange := Max(1,FViewTilesV);
 
-  factor := Double(getMapHeight) / Double(getMapWidth);
+  dim := max(getMapHeight(), getMapWidth());
 
-  pnMinimap.Height := round(factor * pnMinimap.Width) ;
+  factor := Double(getMapHeight()) / dim;
+  Minimap.Height := round(factor * pnMinimap.Height);
+
+  factor := Double(getMapWidth()) / dim;
+
+  Minimap.Width := round(factor * pnMinimap.Width);
 
   if (FMapHPos + FViewTilesH) > getMapWidth then
   begin
