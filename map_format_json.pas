@@ -217,6 +217,7 @@ procedure TMapReaderJson.DeStreamTile(Encoded: string; Tile: PMapTile);
 var
   terrainCode: String;
   tt: TTerrainType;
+  typ, styp, flip: UInt8;
 begin
 
   if not FTileExpression.Exec(Encoded) then
@@ -227,23 +228,22 @@ begin
   if (FTileExpression.MatchLen[1]=0) or (FTileExpression.MatchLen[2]=0) then
     raise Exception.CreateFmt('Invalid tile format %s',[Encoded]);
 
-  Tile^.Flags := 0;
 
   terrainCode := FTileExpression.Match[1];
   tt := FTerrainTypeMap.KeyData[terrainCode];
-  Tile^.TerType:=tt;
-  Tile^.TerSubType:= StrToInt(FTileExpression.Match[2]);
 
-  Tile^.Flags := ParseFlip(FTileExpression.Match[3][1]);
+  Tile^.SetTerrain(tt,StrToInt(FTileExpression.Match[2]), ParseFlip(FTileExpression.Match[3][1]));
 
   if FTileExpression.MatchLen[4]>0 then
   begin
     Assert(FTileExpression.MatchLen[5]>0);
     Assert(FTileExpression.MatchLen[6]>0);
 
-    Tile^.RoadType:= UInt8(FRoadTypeMap[FTileExpression.Match[5]]);
-    Tile^.RoadDir:= StrToInt( FTileExpression.Match[6]);
-    Tile^.Flags := Tile^.Flags or (ParseFlip(FTileExpression.Match[7][1]) shl 4);
+    typ := UInt8(FRoadTypeMap[FTileExpression.Match[5]]);
+    styp := UInt8(StrToInt( FTileExpression.Match[6]));
+    flip := ParseFlip(FTileExpression.Match[7][1]);
+
+    Tile^.SetRoad(typ, styp, flip);
   end;
 
   if FTileExpression.MatchLen[8]>0 then
@@ -251,9 +251,11 @@ begin
     Assert(FTileExpression.MatchLen[9]>0);
     Assert(FTileExpression.MatchLen[10]>0);
 
-    Tile^.RiverType:= UInt8(FRiverTypeMap[FTileExpression.Match[9]]);
-    Tile^.RiverDir:= StrToInt(FTileExpression.Match[10]);
-    Tile^.Flags := Tile^.Flags or (ParseFlip(FTileExpression.Match[11][1]) shl 2);
+    typ := UInt8(FRiverTypeMap[FTileExpression.Match[9]]);
+    styp := StrToInt(FTileExpression.Match[10]);
+    flip := ParseFlip(FTileExpression.Match[11][1]);
+
+    Tile^.SetRiver(typ, styp, flip);
   end;
 
 end;

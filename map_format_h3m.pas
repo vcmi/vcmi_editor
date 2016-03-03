@@ -2163,17 +2163,6 @@ procedure TMapReaderH3m.ReadTerrain;
         tile := FMap.GetTile(Level,x,y);
 
         FSrc.ReadBuffer(tile^, 7); //7 bytes excluding owner
-//
-//        with tile, FSrc do
-//        begin
-//          TerType := TTerrainType(ReadByte);
-//          TerSubType := ReadByte;
-//          RiverType := ReadByte;
-//          RiverDir := ReadByte;
-//          RoadType := ReadByte;
-//          RoadDir := ReadByte;
-//          Flags := ReadByte;
-//        end;
       end;
     end;
   end;

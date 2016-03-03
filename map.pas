@@ -255,28 +255,26 @@ type
     FRoadDir: UInt8;
     FFlags: UInt8;
     //end binary compatible with H3 part
-    //FOwner: TPlayer;
-    procedure SetFlags(AValue: UInt8);
-    procedure SetRiverDir(AValue: UInt8);
-    procedure SetRiverType(AValue: UInt8);
-    procedure SetRoadDir(AValue: UInt8);
-    procedure SetRoadType(AValue: UInt8);
-    procedure SetTerSubtype(AValue: UInt8);
-    procedure SetTerType(AValue: TTerrainType);
+    FExtFlags: TTileFlag;
+
   public
     constructor Create();
 
     procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
     procedure RenderRoad(mgr: TTerrainManager; X,Y: Integer); inline;
 
-    property TerType: TTerrainType read FTerType write SetTerType;
-    property TerSubType: UInt8 read FTerSubtype write SetTerSubtype;
+    property TerType: TTerrainType read FTerType;
+    property TerSubType: UInt8 read FTerSubtype;
 
-    property RiverType:UInt8 read FRiverType write SetRiverType;
-    property RiverDir:UInt8 read FRiverDir write SetRiverDir;
-    property RoadType:UInt8 read FRoadType write SetRoadType;
-    property RoadDir:UInt8 read FRoadDir write SetRoadDir;
-    property Flags:UInt8 read FFlags write SetFlags;
+    property RiverType:UInt8 read FRiverType;
+    property RiverDir:UInt8 read FRiverDir;
+    property RoadType:UInt8 read FRoadType;
+    property RoadDir:UInt8 read FRoadDir;
+    property Flags:UInt8 read FFlags;
+
+    procedure SetRiver(ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
+    procedure SetRoad(ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
+    procedure SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);inline;
   end;
 
 {$push}
@@ -473,8 +471,8 @@ type
 
     property Map: TVCMIMap read GetMap;
 
-    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
-    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
+    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
+    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
   published
     property Height: Integer read FHeight write SetHeight;
@@ -1810,48 +1808,26 @@ begin
   mgr.RenderRoad(TRoadType(FRoadType),FRoadDir,X,Y,Flags);
 end;
 
-procedure TMapTile.SetFlags(AValue: UInt8);
+procedure TMapTile.SetRiver(ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
 begin
-  if FFlags = AValue then Exit;
-  FFlags := AValue;
+  FRiverType:= ARiverType;
+  FRiverDir:=ARriverDir;
+  FFlags := (FFlags and $F3) or (AMir shl 2);
 end;
 
-procedure TMapTile.SetRiverDir(AValue: UInt8);
+procedure TMapTile.SetRoad(ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
 begin
-  if FRiverDir = AValue then Exit;
-  FRiverDir := AValue;
+  FRoadType:= ARoadType;
+  FRoadDir:=ARoadDir;
+  FFlags := (FFlags and $CF) or (AMir shl 4);
 end;
 
-procedure TMapTile.SetRiverType(AValue: UInt8);
+procedure TMapTile.SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);
 begin
-  if FRiverType = AValue then Exit;
-  FRiverType := AValue;
+  FTerType := TT;
+  FTerSubtype := TS;
+  FFlags := (FFlags and $FC) or (AMir and 3);
 end;
-
-procedure TMapTile.SetRoadDir(AValue: UInt8);
-begin
-  if FRoadDir = AValue then Exit;
-  FRoadDir := AValue;
-end;
-
-procedure TMapTile.SetRoadType(AValue: UInt8);
-begin
-  if FRoadType = AValue then Exit;
-  FRoadType := AValue;
-end;
-
-procedure TMapTile.SetTerSubtype(AValue: UInt8);
-begin
-  if FTerSubtype = AValue then Exit;
-  FTerSubtype := AValue;
-end;
-
-procedure TMapTile.SetTerType(AValue: TTerrainType);
-begin
-  if FTerType = AValue then Exit;
-  FTerType := AValue;
-end;
-
 
 { TMapLevel }
 
@@ -1863,34 +1839,18 @@ end;
 procedure TMapLevel.SetRoad(x, y: integer; ARoadType: uint8; ARoadDir: UInt8;
   AMir: Uint8);
 begin
-  with Tile[x,y]^ do
-  begin
-    RoadType:= ARoadType;
-    RoadDir:=ARoadDir;
-    Flags := (Flags and $CF) or (AMir shl 4);
-  end;
+  Tile[x,y]^.SetRoad(ARoadType, ARoadDir, AMir);
 end;
 
 procedure TMapLevel.SetRiver(x, y: integer; ARiverType: uint8;
   ARriverDir: UInt8; AMir: Uint8);
 begin
-  with Tile[x,y]^ do
-  begin
-    RiverType:= ARiverType;
-    RiverDir:=ARriverDir;
-    Flags := (Flags and $F3) or (AMir shl 2);
-  end;
+  Tile[x,y]^.SetRiver(ARiverType, ARiverType, AMir);
 end;
 
-procedure TMapLevel.SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8;
-  mir: UInt8);
-var
-  t: PMapTile;
+procedure TMapLevel.SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
 begin
-  t := GetTile(X,Y);
-  t^.TerType := TT;
-  t^.TerSubtype := TS;
-  t^.Flags := (t^.Flags and $FC) or (mir and 3);
+  GetTile(X,Y)^.SetTerrain(tt, ts, mir);
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
@@ -1908,11 +1868,12 @@ var
   tt: TTerrainType;
   X: Integer;
   Y: Integer;
+
+  t: PMapTile;
 begin
   Assert(Height>=0, 'Invalid height');
   Assert(Width>=0, 'Invalid width');
   if (Height=0) or (Width=0) or (Index <0) then Exit;
-
 
   tt := Map.FTerrainManager.GetDefaultTerrain(Index);
 
@@ -1922,12 +1883,11 @@ begin
     SetLength(FTiles[X],FHeight);
     for Y := 0 to FHeight - 1 do
     begin
-      FTiles[X][Y].Create();
-      FTiles[X][Y].TerType :=  tt;
-      FTiles[X][Y].TerSubtype := Map.FTerrainManager.GetRandomNormalSubtype(tt);
+      t := @FTiles[X][Y];
+      t^.Create();
+      t^.SetTerrain(tt, Map.FTerrainManager.GetRandomNormalSubtype(tt), 0);
     end;
   end;
-
 end;
 
 procedure TMapLevel.SetIndex(Value: Integer);
