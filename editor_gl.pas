@@ -33,17 +33,17 @@ type
   end;
 
 const
+  //SHADER_VERSION =  '#version 130'#13#10;
   SHADER_VERSION =  '#version 330 core'#13#10;
-
-  COORDS_ATTRIB_LOCATION = 1;
-  UV_ATTRIB_LOCATION = 2;
 
   VERTEX_DEFAULT_SHADER =
   SHADER_VERSION+
   'uniform mat4 projMatrix;'#13#10+
   'uniform mat4 translateMatrix;'#13#10+
-  'layout(location = 1) in vec2 coords;'#13#10+
-  'layout(location = 2) in vec2 uv;'#13#10+
+
+  'in vec2 coords;'#13#10+
+  'in vec2 uv;'#13#10+
+
   'out vec2 UV;'#13#10+
   'void main(){'+
     'UV = uv;'+
@@ -140,6 +140,9 @@ type
        UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
   private
 
+    FCoordAttribLocation: GLint;
+    FUVAttribLocation: GLint;
+
     EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
   private
 
@@ -153,6 +156,8 @@ type
     PaletteUniform: GLint;
     BitmapUniform: GLint;
     FlagColorUniform: GLint;
+
+
 
     CoordsBuffer: GLuint;
     MirroredUVBuffer: GLuint;
@@ -509,6 +514,9 @@ begin
   FlagColorUniform:=glGetUniformLocation(DefaultProgram, PChar('flagColor'));
   BitmapUniform:=glGetUniformLocation(DefaultProgram, PChar('bitmap'));
 
+  FCoordAttribLocation:=glGetAttribLocation(DefaultProgram, PChar('coords'));
+  FUVAttribLocation:=glGetAttribLocation(DefaultProgram, PChar('uv'));
+
   CheckGLErrors('default shader get uniforms');
 
   SetupCoordsBuffer;
@@ -594,8 +602,8 @@ end;
 procedure TLocalState.StopDrawing;
 begin
   glBindVertexArray(0);
-  glDisableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glDisableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
+  glDisableVertexAttribArray(GlobalContextState.FUVAttribLocation);
   SetTranslation(0,0);
 end;
 
@@ -603,16 +611,16 @@ procedure TLocalState.StartDrawingRects;
 begin
   SetTranslation(0,0);
   glBindVertexArray(RectVAO);
-  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  glDisableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glEnableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
+  glDisableVertexAttribArray(GlobalContextState.FUVAttribLocation);
 end;
 
 procedure TLocalState.StartDrawingSprites;
 begin
   SetTranslation(0,0);
   glBindVertexArray(SpriteVAO);
-  glEnableVertexAttribArray(COORDS_ATTRIB_LOCATION);
-  glEnableVertexAttribArray(UV_ATTRIB_LOCATION);
+  glEnableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
+  glEnableVertexAttribArray(GlobalContextState.FUVAttribLocation);
 end;
 
 procedure TLocalState.RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
@@ -729,10 +737,10 @@ begin
   glBindVertexArray(SpriteVAO);
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
-  glVertexAttribPointer(UV_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glVertexAttribPointer(GlobalContextState.FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -745,7 +753,7 @@ begin
    glGenVertexArrays(1,@RectVAO);
    glBindVertexArray(RectVAO);
    glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-   glVertexAttribPointer(COORDS_ATTRIB_LOCATION, 2, GL_FLOAT, GL_FALSE, 0,nil);
+   glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 end;
