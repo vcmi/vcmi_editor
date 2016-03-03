@@ -195,8 +195,9 @@ begin
   FillActionObjectTiles(action);
 
   if not Selection.IsEmpty then
-    AManager.ExecuteItem(action); //execute only if there are changes
-
+    AManager.ExecuteItem(action) //execute only if there are changes
+  else
+    action.Free;
   Clear;
 end;
 
