@@ -33,8 +33,7 @@ type
   end;
 
 const
-  //SHADER_VERSION =  '#version 130'#13#10;
-  SHADER_VERSION =  '#version 330 core'#13#10;
+  SHADER_VERSION =  '#version 130'#13#10;
 
   VERTEX_DEFAULT_SHADER =
   SHADER_VERSION+
