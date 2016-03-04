@@ -20,6 +20,7 @@
 unit Map;
 
 {$I compilersetup.inc}
+{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
@@ -244,7 +245,7 @@ type
 
   PMapTile = ^TMapTile;
 
-  TMapTile = object
+  TMapTile = packed record
   strict private
     //start binary compatible with H3 part
     FTerType: TTerrainType;
@@ -255,10 +256,9 @@ type
     FRoadDir: UInt8;
     FFlags: UInt8;
     //end binary compatible with H3 part
-    FExtFlags: TTileFlag;
-
+    FExtFlags: UInt8; //reserved
   public
-    constructor Create();
+    constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
 
     procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
     procedure RenderRoad(mgr: TTerrainManager; X,Y: Integer); inline;
@@ -1783,17 +1783,17 @@ end;
 
 { TMapTile }
 
-constructor TMapTile.Create;
+constructor TMapTile.Create(ATerType: TTerrainType; ATerSubtype: UInt8);
 begin
-  FTerType := TTerrainType.rock;
-  FTerSubtype := 0;
+  FTerType := ATerType;
+  FTerSubtype := ATerSubtype;
 
   FRiverType:=0;
   FRiverDir:=0;
   FRoadType:=0;
   FRoadDir:=0;
   FFlags:=0;
-  //FOwner := TPlayer.NONE;
+  FExtFlags := 0;
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
@@ -1884,8 +1884,7 @@ begin
     for Y := 0 to FHeight - 1 do
     begin
       t := @FTiles[X][Y];
-      t^.Create();
-      t^.SetTerrain(tt, Map.FTerrainManager.GetRandomNormalSubtype(tt), 0);
+      t^.Create(tt, Map.FTerrainManager.GetRandomNormalSubtype(tt));
     end;
   end;
 end;

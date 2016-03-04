@@ -35,8 +35,6 @@ type
   TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
   TPlayer = (red=0, blue, tan, green, orange, purple, teal, pink, none = 255);
 
-  TTileFlag = (red=0, blue, tan, green, orange, purple, teal, pink, blocked = 253, unflaggable = 254,  none = 255);
-
   TAITactics = (NONE=-1,RANDOM = 0,WARRIOR,BUILDER,EXPLORER);
 
   TDifficulty = (EASY = 0, NORMAL, HARD, EXPERT, IMPOSSIBLE);
