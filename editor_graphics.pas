@@ -112,11 +112,9 @@ type
     property Loaded: Boolean read FLoaded write SetLoaded;
   end;
 
-  TDefMapBase = specialize fgl.TFPGMap<string,TDefAnimation>;
-
   { TDefMap }
 
-  TDefMap = class (TDefMapBase)
+  TDefMap = class (specialize fgl.TFPGMap<string,TDefAnimation>)
   protected
     procedure Deref(Item: Pointer); override;
   public
@@ -822,7 +820,6 @@ end;
 
 procedure TDefMap.Deref(Item: Pointer);
 begin
-  //inherited Deref(Item);
   Finalize(string(Item^));
   TDefAnimation(Pointer(PByte(Item)+KeySize)^).Free;
 end;
