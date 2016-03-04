@@ -598,6 +598,8 @@ type
 
     FIsDirty: boolean;
 
+    FVisibleObjectsQueue : TMapObjectQueue;
+
     //procedure Changed;
     function GetCurrentLevelIndex: Integer; inline;
 
@@ -673,9 +675,8 @@ type
 
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
-    procedure RenderObjects(Left, Right, Top, Bottom: Integer; animate: Boolean);
 
-    procedure RenderObjectsOverlay(Left, Right, Top, Bottom: Integer);
+    procedure SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
 
     property CurrentLevelIndex: Integer read GetCurrentLevelIndex write SetCurrentLevelIndex;
 
@@ -2025,10 +2026,14 @@ begin
   FMods := TLogicalIDCondition.Create(nil);//pass nil owner to avoid circular reference notification
 
   FModUsage := TModUsage.Create(FMods);
+
+  FVisibleObjectsQueue := TMapObjectQueue.Create;
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FVisibleObjectsQueue.Free;
+
   FTriggeredEvents.Free;
 
   FPredefinedHeroes.Free;
@@ -2116,20 +2121,14 @@ begin
       GetTile(FCurrentLevel,i,j)^.RenderRoad(FTerrainManager,i,j);
     end;
   end;
-
-
-
 end;
 
-procedure TVCMIMap.RenderObjects(Left, Right, Top, Bottom: Integer;
-  animate: Boolean);
+procedure TVCMIMap.SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   o: TMapObject;
-
-  FQueue : TMapObjectQueue;
 begin
-  FQueue := TMapObjectQueue.Create;
+  ATarget.Clear;
 
   for i := 0 to FObjects.Count - 1 do
   begin
@@ -2143,41 +2142,14 @@ begin
       or (o.y - 6 > Bottom)
       then Continue; //todo: use visisblity mask
 
-    FQueue.Push(o);
-
+    FVisibleObjectsQueue.Push(o);
   end;
 
-  while not FQueue.IsEmpty do
+  while not FVisibleObjectsQueue.IsEmpty do
   begin
-    o := FQueue.Top;
-    if animate then
-      o.RenderAnim
-    else
-      o.RenderStatic;
-    FQueue.Pop;
-  end;
+    ATarget.Add(FVisibleObjectsQueue.Top);
 
-  FQueue.Free;
-end;
-
-procedure TVCMIMap.RenderObjectsOverlay(Left, Right, Top, Bottom: Integer);
-var
-  i: Integer;
-  o: TMapObject;
-begin
-  for i := 0 to FObjects.Count - 1 do
-  begin
-    o := FObjects.Items[i];
-    if o.L <> CurrentLevelIndex then
-      Continue;
-
-    if (o.X < Left)
-      or (o.Y < Top)
-      or (o.X - 8 > Right)
-      or (o.y - 6 > Bottom)
-      then Continue; //todo: use visisblity mask
-
-    o.RenderOverlay;
+    FVisibleObjectsQueue.Pop;
   end;
 end;
 

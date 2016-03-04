@@ -309,6 +309,9 @@ type
 
     FTemplatesSelection: TObjectsSelection;
 
+    FVisibleObjectsValid: boolean;
+    FVisibleObjects: TMapObjectList;
+
     FObjectCount: integer;
     FObjectRows: integer;
     FObjectReminder: integer;
@@ -336,8 +339,9 @@ type
     procedure InvalidateMapDimensions;
 
     procedure InvalidateMapAxis;
-    procedure InvalidateMap;
     procedure InvalidateMapContent;
+
+    procedure InvalidateVisibleObjects;
 
     procedure SetMapPosition(APosition:TPoint);
     procedure SetMapViewMouse(x,y: integer);
@@ -378,7 +382,6 @@ type
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
   public
-    constructor Create(TheOwner: TComponent); override;
     procedure MoveObject(AObject: TMapObject; l,x,y: integer);
     procedure DeleteObject(AObject: TMapObject);
   end;
@@ -892,6 +895,9 @@ begin
 
   SetupPlayerSelection;
 
+  FVisibleObjects := TMapObjectList.Create();
+  FVisibleObjectsValid:=false;
+
   //load map if specified
 
   if Paramcount > 0 then
@@ -937,6 +943,7 @@ begin
   FUndoManager.Free;
 
   FreeAndNil(FTemplatesSelection);
+  FreeAndNil(FVisibleObjects);
 end;
 
 procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
@@ -980,7 +987,6 @@ begin
     Key := VK_UNKNOWN;
     Exit;
   end;
-
 end;
 
 procedure TfMain.FormResize(Sender: TObject);
@@ -1024,22 +1030,28 @@ end;
 
 procedure TfMain.InvalidateMapAxis;
 begin
-  InvalidateMap;
+  MapView.Invalidate;
+  Minimap.Invalidate;
+  InvalidateVisibleObjects;
   VerticalAxis.Invalidate;
   HorisontalAxis.Invalidate;
 end;
 
 procedure TfMain.InvalidateMapContent;
 begin
+  InvalidateVisibleObjects;
   MapView.Invalidate;
   FMinimap.InvalidateMap;
   Minimap.Invalidate;
 end;
 
-procedure TfMain.InvalidateMap;
+procedure TfMain.InvalidateVisibleObjects;
 begin
-  MapView.Invalidate;
-  Minimap.Invalidate;
+  FVisibleObjectsValid:=false;
+  if not Assigned(FMap) then
+  begin
+    FVisibleObjects.Clear;
+  end;
 end;
 
 procedure TfMain.InvalidateMapDimensions;
@@ -1077,6 +1089,8 @@ begin
   begin
     FMapVPos := Max(0, getMapHeight-FViewTilesV);
   end;
+
+  InvalidateVisibleObjects;
 end;
 
 procedure TfMain.InvalidateObjects;
@@ -1183,8 +1197,8 @@ begin
   FSelectedObject := nil;
 
   FMinimap.Map := FMap;
-  InvalidateMap;
   InvalidateMapDimensions;
+  InvalidateMapContent;
   FUndoManager.Map := FMap;
   SetupLevelSelection;
 end;
@@ -1293,8 +1307,7 @@ begin
     TDragState.dsDragMove: FMapDragging := True ;
   end;
 
-  InvalidateMap;
-
+  MapView.Invalidate;
 end;
 
 procedure TfMain.MapViewMakeCurrent(Sender: TObject; var Allow: boolean);
@@ -1447,6 +1460,8 @@ var
   scissor_w: Integer;
   scissor_h: Integer;
   scissor_y: Integer;
+
+  o: TMapObject;
 begin
   c := TOpenGLControl(Sender);
 
@@ -1468,6 +1483,12 @@ begin
     FMapViewState := TLocalState.Create;
 
     FMapViewState.Init;
+  end;
+
+  if not FVisibleObjectsValid then
+  begin
+    FMap.SelectVisibleObjects(FVisibleObjects, FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+    FVisibleObjectsValid := True;
   end;
 
   editor_gl.CurrentContextState := FMapViewState;
@@ -1503,14 +1524,26 @@ begin
   FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   FMapViewState.SetUseFlag(true);
-  FMap.RenderObjects(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV, actAnimateObjects.Checked);
+
+  for o in FVisibleObjects do
+  begin
+    if actAnimateObjects.Checked then
+      o.RenderAnim
+    else
+      o.RenderStatic;
+  end;
+
   FMapViewState.SetUseFlag(false);
 
   if actViewPassability.Checked then
   begin
     FMapViewState.StartDrawingRects;
     FMapViewState.UseNoTextures();
-    FMap.RenderObjectsOverlay(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+
+    for o in FVisibleObjects do
+    begin
+      o.RenderOverlay;
+    end;
   end;
 
   if actViewGrid.Checked then
@@ -2212,11 +2245,6 @@ procedure TfMain.DragCanceled;
 begin
   inherited DragCanceled;
   FMapDragging:=false;
-end;
-
-constructor TfMain.Create(TheOwner: TComponent);
-begin
-  inherited Create(TheOwner);
 end;
 
 procedure TfMain.MoveObject(AObject: TMapObject; l, x, y: integer);
