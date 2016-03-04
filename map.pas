@@ -250,7 +250,7 @@ type
     FRoadDir: UInt8;
     FFlags: UInt8;
     //end binary compatible with H3 part
-    FExtFlags: UInt8; //reserved
+    FOwner: TPlayer;
 
     FBlockingCount: UInt32; //anount of objects blocking this tile
     FFlaggableID: Int32; //Internal id of flaggable object in this tile.
@@ -275,9 +275,13 @@ type
     procedure SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);inline;
 
     procedure BlockingObjectAdded(AObject: TMapObject);
+    procedure BlockingObjectChanged(AObject: TMapObject);
     procedure BlockingObjectRemoved(AObject: TMapObject);
 
     function IsBlocked: boolean; inline;
+
+    property FlaggableID:Int32 read FFlaggableID;
+    property Owner:TPlayer read FOwner;
   end;
 
   TTiles = array of array of TMapTile; //X, Y
@@ -315,6 +319,7 @@ type
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8); inline;
 
     procedure ObjectAdded(AObject:TMapObject); inline;
+    procedure ObjectChanged(AObject:TMapObject); inline;
     procedure ObjectRemoved(AObject:TMapObject); inline;
   published
     property Height: Integer read FHeight write SetHeight;
@@ -367,7 +372,7 @@ type
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
 
-    procedure AddRemoveToTiles(ATiles:TTiles; Add: Boolean);
+    procedure OnOwnerChanged(ATiles:TTiles; op: TFPObservedOperation);
 
     procedure RenderOverlay();
 
@@ -1130,7 +1135,7 @@ begin
   FMask.EndUpdate;
 end;
 
-procedure TMapObjectTemplate.AddRemoveToTiles(ATiles: TTiles; Add: Boolean);
+procedure TMapObjectTemplate.OnOwnerChanged(ATiles: TTiles; op: TFPObservedOperation);
 var
   i, j, x, y: Integer;
   line: String;
@@ -1153,10 +1158,11 @@ begin
         case line[j] of
           MASK_ACTIVABLE, MASK_BLOCKED, MASK_HIDDEN:
           begin
-            if add then
-              t^.BlockingObjectAdded(FOwner)
-            else
-              t^.BlockingObjectRemoved(FOwner);
+            case op of
+              TFPObservedOperation.ooAddItem: t^.BlockingObjectAdded(FOwner);
+              TFPObservedOperation.ooDeleteItem: t^.BlockingObjectRemoved(FOwner);
+              TFPObservedOperation.ooChange: t^.BlockingObjectChanged(FOwner);
+            end;
           end;
         end;
       end;
@@ -1606,14 +1612,18 @@ begin
 end;
 
 procedure TMapObject.SetPlayer(AValue: TPlayer);
+var
+  old: TPlayer;
 begin
   if FPlayer = AValue then
     Exit;
+  old := FPlayer;
+  FPlayer:=AValue;
+
   if Assigned(Collection) then
   begin
-    GetMap.NotifyOwnerChanged(self, FPlayer, AValue);
+    GetMap.NotifyOwnerChanged(self, old, FPlayer);
   end;
-  FPlayer:=AValue;
 end;
 
 function TMapObject.GetID: AnsiString;
@@ -1832,9 +1842,9 @@ begin
   FRoadType:=0;
   FRoadDir:=0;
   FFlags:=0;
-  FExtFlags := 0;
   FBlockingCount := 0;
   FFlaggableID := -1;
+  FOwner:=TPlayer.none;
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
@@ -1877,6 +1887,15 @@ begin
   if (FFlaggableID = -1) and (AObject.Options.CanBeOwned) then
   begin
     FFlaggableID:=AObject.ID;
+    FOwner:=AObject.GetPlayer;
+  end;
+end;
+
+procedure TMapTile.BlockingObjectChanged(AObject: TMapObject);
+begin
+  if FFlaggableID = AObject.ID then
+  begin
+    FOwner:=AObject.GetPlayer;
   end;
 end;
 
@@ -1884,6 +1903,7 @@ procedure TMapTile.BlockingObjectRemoved(AObject: TMapObject);
 begin
   if FFlaggableID = AObject.ID then
   begin
+    FOwner:=TPlayer.none;
     FFlaggableID := -1;
   end;
   dec(FBlockingCount);
@@ -1920,12 +1940,17 @@ end;
 
 procedure TMapLevel.ObjectAdded(AObject: TMapObject);
 begin
-  AObject.Template.AddRemoveToTiles(FTiles, True);
+  AObject.Template.OnOwnerChanged(FTiles, TFPObservedOperation.ooAddItem);
+end;
+
+procedure TMapLevel.ObjectChanged(AObject: TMapObject);
+begin
+  AObject.Template.OnOwnerChanged(FTiles, TFPObservedOperation.ooChange);
 end;
 
 procedure TMapLevel.ObjectRemoved(AObject: TMapObject);
 begin
-  AObject.Template.AddRemoveToTiles(FTiles, False);
+  AObject.Template.OnOwnerChanged(FTiles, TFPObservedOperation.ooDeleteItem);
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
@@ -2333,6 +2358,11 @@ begin
     else begin
       DebugLn(['invalid player color', Integer(ANewOwner)]);
     end;
+  end;
+
+  if FTrackObjectChanges then
+  begin
+    FLevels[AObject.L].ObjectChanged(AObject);
   end;
 end;
 

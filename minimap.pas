@@ -24,7 +24,7 @@ unit minimap;
 interface
 
 uses
-  Classes, SysUtils, math, Graphics, Map, editor_types, ExtCtrls, LCLProc, IntfGraphics;
+  Classes, SysUtils, math, Graphics, Map, editor_types, editor_utils, editor_consts, ExtCtrls, LCLProc, IntfGraphics;
 
 type
 
@@ -139,10 +139,11 @@ var
   tile_size: Integer;
 
   tile: PMapTile;
-  tile_rect: TRect;
 
   TempImage: TLazIntfImage;
   left, top, right, bottom, w, h: Integer;
+  id: Int32;
+  c: TPlayer;
 begin
   if not Assigned(FMap) then
     Exit;
@@ -176,7 +177,24 @@ begin
         begin
           for y := top to bottom do
           begin
-            if tile^.IsBlocked then
+            id := tile^.FlaggableID;
+
+            if id >= 0 then
+            begin
+              c := tile^.Owner;
+
+              if c = TPlayer.none then
+              begin
+                TempImage.Colors[x,y] := RGBAColorToFpColor (NEWTRAL_PLAYER_COLOR);
+              end
+              else
+              begin
+                TempImage.Colors[x,y] := RGBAColorToFpColor (PLAYER_FLAG_COLORS[TPlayerColor(c)]);
+              end;
+
+              //TempImage.Colors[x,y] := RGBAColorToFpColor (pl FTerrainBlockColors[tile^.TerType]);
+            end
+            else if tile^.IsBlocked then
             begin
               TempImage.Colors[x,y] := TColorToFPColor(FTerrainBlockColors[tile^.TerType]);
             end

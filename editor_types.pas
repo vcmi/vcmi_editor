@@ -124,6 +124,11 @@ type
 
   end;
 
+type
+  TRBGAColor = packed record
+    r,g,b,a : UInt8;
+  end;
+
 implementation
 
 end.

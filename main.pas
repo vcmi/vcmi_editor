@@ -598,6 +598,7 @@ begin
   edit_form := TEditObjectOptions.Create(Self);
   try
     edit_form.EditObject(FSelectedObject);
+    InvalidateMapContent;
   finally
     edit_form.Free;
   end;

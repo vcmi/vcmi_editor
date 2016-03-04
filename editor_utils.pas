@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, Classes, types, editor_types, editor_consts, LazUTF8, fpjson, gmap;
+  sysutils, Classes, types, editor_types, editor_consts, LazUTF8, fpjson, gmap, FPimage;
 
 type
 
@@ -58,6 +58,8 @@ type
 
   procedure GenerateDefaultVisitableFrom(ADest: TStrings; AGroup: UInt8; Atyp: Tobj);
   procedure GenerateDefaultVisitableFrom(ADest: TJSONArray; AGroup: UInt8; Atyp: Tobj);
+
+  function RGBAColorToFpColor(const c: TRBGAColor): TFPColor;
 
 implementation
 
@@ -203,6 +205,14 @@ begin
   finally
     tmp.Free;
   end;
+end;
+
+function RGBAColorToFpColor(const c: TRBGAColor): TFPColor;
+begin
+  Result.Red:=c.r + c.r shl 8;
+  Result.Green:=c.g + c.g shl 8;
+  Result.Blue:= c.b + c.b shl 8;
+  Result.Alpha:=c.a + c.a shl 8;
 end;
 
 { TStringCompare }

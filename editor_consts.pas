@@ -232,6 +232,23 @@ const
   MAP_FORMAT_MAJOR = 1;
   MAP_FORMAT_MINOR = 0;
 
+
+const
+
+  NEWTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
+
+  PLAYER_FLAG_COLORS: array[TPlayerColor] of TRBGAColor = (
+    //(r: 128; g: 128; b:128; a: 255),//NONE
+    (r: 255; g: 0;   b:0;   a: 255),//RED
+    (r: 0;   g: 0;   b:255; a: 255),//BLUE
+    (r: 120; g: 180; b:140; a: 255),//TAN
+    (r: 0;   g: 255; b:0;   a: 255),//GREEN
+    (r: 255; g: 165; b:0;   a: 255),//ORANGE
+    (r: 128; g: 0;   b:128; a: 255),//PURPLE
+    (r: 0;   g: 255; b:255; a: 255),//TEAL
+    (r: 255; g: 192; b:203; a: 255) //PINK
+  );
+
 implementation
 
 end.

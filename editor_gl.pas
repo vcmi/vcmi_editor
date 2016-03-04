@@ -25,12 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, matrix, GL, glext40;
-
-type
-  TRBGAColor = packed record
-    r,g,b,a : UInt8;
-  end;
+  Classes, SysUtils, math, matrix, GL, glext40, editor_types;
 
 const
   SHADER_VERSION =  '#version 130'#13#10;
@@ -761,7 +756,6 @@ begin
   begin
     glUniform4f(GlobalContextState.FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
   end;
-
 end;
 
 procedure TLocalState.SetFragmentColor(AColor: TRBGAColor);
