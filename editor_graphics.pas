@@ -867,7 +867,7 @@ end;
 
 procedure TDefAnimation.RenderBorder(TileX, TileY: Integer);
 const
-  RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
+  RECT_COLOR: TRBGAColor = (r:50; g:50; b:50; a:255);
 var
   cx: Integer;
   cy: Integer;
@@ -875,8 +875,9 @@ begin
   cx := (TileX+1) * TILE_SIZE;
   cy := (TileY+1) * TILE_SIZE;
 
+  editor_gl.CurrentContextState.SetFragmentColor(RECT_COLOR);
   editor_gl.CurrentContextState.StartDrawingRects;
-  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height, RECT_COLOR);
+  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height);
   editor_gl.CurrentContextState.StopDrawing;
 end;
 

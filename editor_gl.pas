@@ -201,7 +201,7 @@ type
     procedure Init;
 
     procedure StartDrawingRects;
-    procedure RenderRect(x, y: Integer; dimx, dimy: integer; color: TRBGAColor);
+    procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 
     procedure RenderSolidRect(x, y: Integer; dimx, dimy: integer; color: TRBGAColor);
 
@@ -531,20 +531,21 @@ end;
 
 procedure TLocalState.Init;
 begin
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DITHER);
+
   SetupSpriteVAO;
   SetupRectVAO;
   CheckGLErrors('VAO');
 end;
 
-procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer;
-  color: TRBGAColor);
+procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
 var
   vertex_data: packed array[1..8] of GLfloat;
 begin
   SetTranslation(x,y);
 
-  SetFragmentColor(color);
-//  glLineWidth(1);
+  glLineWidth(1.5);
 
   vertex_data[1] := 0;
   vertex_data[2] := 0;
@@ -562,7 +563,7 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glDrawArrays(GL_LINE_LOOP,0,4);
-
+  glLineWidth(1);
 end;
 
 procedure TLocalState.RenderSolidRect(x, y: Integer; dimx, dimy: integer;

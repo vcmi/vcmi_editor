@@ -243,7 +243,6 @@ type
     procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
-    procedure ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure LevelMenuClick(Sender: TObject);
@@ -1476,9 +1475,6 @@ begin
     Exit;
   end;
 
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_DITHER);
-
   if not Assigned(FMapViewState) then
   begin
     FMapViewState := TLocalState.Create;
@@ -1495,7 +1491,6 @@ begin
   editor_gl.CurrentContextState := FMapViewState;
 
   FMapViewState.UsePalettedTextures();
-
 
   glEnable(GL_SCISSOR_TEST);
   glScissor(0, 0, MapView.Width, MapView.Height);
@@ -1614,7 +1609,6 @@ begin
     pos.y := Max(pos.y, 0);
 
     SetMapPosition(pos);
-
   end;
 end;
 
@@ -1653,11 +1647,6 @@ begin
   end;
 end;
 
-procedure TfMain.ObjectsViewMakeCurrent(Sender: TObject; var Allow: boolean);
-begin
-
-end;
-
 procedure TfMain.PlayerMenuClick(Sender: TObject);
 var
   m, mc : TMenuItem;
@@ -1677,11 +1666,9 @@ begin
     else begin
       mc.Checked := False;
     end;
-
   end;
 
   InvalidateObjects;
-
 end;
 
 procedure TfMain.LevelMenuClick(Sender: TObject);
@@ -1697,7 +1684,6 @@ begin
 
     if mc=m then
     begin
-
       DoSetMapLevelIndex(M.Tag);
       mc.Checked := True;
     end
@@ -1738,7 +1724,6 @@ begin
     DragManager.DragStart(self, True,0); //after state change
     FActiveBrush := FIdleBrush;
   end;
-
 end;
 
 procedure TfMain.ObjectsViewPaint(Sender: TObject);
@@ -1784,6 +1769,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 
   FObjectsViewState.StartDrawingRects;
+  FObjectsViewState.SetFragmentColor(GRID_COLOR);
 
   for row := 0 to FViewObjectRowsH + 1 do
   begin
@@ -1796,7 +1782,7 @@ begin
       cx := col * FObjectCellSize;
       cy := row * FObjectCellSize;
 
-      editor_gl.CurrentContextState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize, GRID_COLOR);
+      FObjectsViewState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize);
     end;
   end;
 
@@ -1819,7 +1805,6 @@ begin
 
       o_def := FTemplatesSelection.Objcts[o_idx];
       o_def.Def.RenderIcon(cx,cy, FObjectCellSize, FCurrentPlayer);
-
     end;
   end;
   FObjectsViewState.StopDrawing;
@@ -1959,19 +1944,15 @@ begin
   FMapViewState.SetUseFlag(false);
   FMapViewState.StartDrawingRects;
   FMapViewState.UseNoTextures();
-
-//  FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV
+  FMapViewState.SetFragmentColor(GRID_COLOR);
 
   for i := FMapHPos to FMapHPos + FViewTilesH do
   begin
-
     for j := FMapVPos to FMapVPos + FViewTilesV do
     begin
-      FMapViewState.RenderRect(i*TILE_SIZE,j*TILE_SIZE, TILE_SIZE, TILE_SIZE, GRID_COLOR);
+      FMapViewState.RenderRect(i*TILE_SIZE,j*TILE_SIZE, TILE_SIZE, TILE_SIZE);
     end;
-
   end;
-
 end;
 
 procedure TfMain.SaveMap(AFileName: string);

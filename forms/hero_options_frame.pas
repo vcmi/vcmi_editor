@@ -24,8 +24,8 @@ unit hero_options_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ComboEx, EditBtn,
-  ComCtrls, Graphics, Dialogs, hero_frame, gui_helpers, object_options,
+  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls,
+  Graphics, Dialogs, hero_frame, gui_helpers, object_options,
   editor_types, base_info, editor_consts, lists_manager, editor_classes, Map;
 
 type

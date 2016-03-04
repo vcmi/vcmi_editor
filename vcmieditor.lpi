@@ -23,8 +23,8 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <RevisionNr Value="2"/>
-      <BuildNr Value="42"/>
+      <RevisionNr Value="3"/>
+      <BuildNr Value="46"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -51,6 +51,7 @@
           <Linking>
             <Debugging>
               <GenerateDebugInfo Value="False"/>
+              <StripSymbols Value="True"/>
             </Debugging>
             <LinkSmart Value="True"/>
             <Options>
@@ -63,7 +64,9 @@
             <CompilerMessages>
               <IgnoredMessages idx5024="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dRELEASE"/>
+            <CustomOptions Value="-CfSSE
+-OpCOREI
+-dRELEASE"/>
           </Other>
         </CompilerOptions>
       </Item2>
@@ -100,6 +103,8 @@
               <ShowHints Value="False"/>
               <ShoLineNum Value="True"/>
             </Verbosity>
+            <CustomOptions Value="-CfSSE
+-OpCOREI"/>
           </Other>
         </CompilerOptions>
       </Item3>
@@ -609,7 +614,9 @@
       <CompilerMessages>
         <IgnoredMessages idx5024="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-dDEBUG"/>
+      <CustomOptions Value="-CfSSE
+-OpCOREI
+-dDEBUG"/>
     </Other>
   </CompilerOptions>
   <Debugging>

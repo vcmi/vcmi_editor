@@ -98,7 +98,7 @@ type
     FSelection: TCoordSet;
   protected
   const
-    RECT_COLOR: TRBGAColor = (r:0; g:0; b:0; a:255);
+    RECT_COLOR: TRBGAColor = (r:50; g:50; b:50; a:255);
   protected
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
@@ -328,10 +328,13 @@ begin
   cx := X * TILE_SIZE;
   cy := Y * TILE_SIZE;
 
-    editor_gl.CurrentContextState.StartDrawingRects;
-    dim := TILE_SIZE * Size;
-    editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim, RECT_COLOR);
-    editor_gl.CurrentContextState.StopDrawing;
+  editor_gl.CurrentContextState.StartDrawingRects;
+
+  editor_gl.CurrentContextState.SetFragmentColor(RECT_COLOR);
+
+  dim := TILE_SIZE * Size;
+  editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
+  editor_gl.CurrentContextState.StopDrawing;
 
 end;
 

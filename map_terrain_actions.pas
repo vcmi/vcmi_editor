@@ -233,8 +233,8 @@ begin
 
     cx := r.FTopLeft.X * TILE_SIZE;
     cy := r.FTopLeft.Y * TILE_SIZE;
-
-    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE, RECT_COLOR);
+    State.SetFragmentColor(RECT_COLOR);
+    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
     State.StopDrawing;
   end;
 end;
@@ -292,11 +292,12 @@ begin
     if Assigned(it) then
     begin
       State.StartDrawingRects;
+      State.SetFragmentColor(RECT_COLOR);
       dim := TILE_SIZE;
       repeat
         cx := it.Data.X * TILE_SIZE;
         cy := it.Data.Y * TILE_SIZE;
-        State.RenderRect(cx,cy,dim,dim, RECT_COLOR);
+        State.RenderRect(cx,cy,dim,dim);
       until not it.next ;
       FreeAndNil(it);
       State.StopDrawing;
