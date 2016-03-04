@@ -1554,6 +1554,7 @@ begin
   if FMapDragging then
   begin
     Assert(Assigned(FDragging));
+    FMapViewState.SetUseFlag(true);
 
     FMapViewState.StartDrawingSprites;
     FMapViewState.UsePalettedTextures();

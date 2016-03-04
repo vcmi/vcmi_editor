@@ -65,6 +65,7 @@ type
 
     property MapObject: IMapObject read FObject;
 
+    class function CanBeOwned: Boolean; virtual;
     class function MustBeOwned: Boolean; virtual;
 
     class function GetClassByID(ID: AnsiString; SubID: AnsiString): TObjectOptionsClass;
@@ -272,6 +273,7 @@ type
   TOwnedObjectOptions = class (TObjectOptions)
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    class function CanBeOwned: Boolean; override;
   published
     property Owner default TPlayer.none;
   end;
@@ -696,6 +698,8 @@ type
 
     procedure SetSameAsTown(AValue: string);
     property SameAsTown: string read FSameAsTown write SetSameAsTown;
+
+    class function CanBeOwned: Boolean; override;
   published
     property Owner default TPlayer.none;
   end;
@@ -757,6 +761,8 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
     class function ZIndex: Integer; override;
+    class function CanBeOwned: Boolean; override;
+    class function MustBeOwned: Boolean; override;
   published
     property &Type: AnsiString read FTypeID write SetTypeID;
     property Power: UInt8 read FPower write SetPower default 0;
@@ -811,6 +817,11 @@ end;
 procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   //do nothing here
+end;
+
+class function TObjectOptions.CanBeOwned: Boolean;
+begin
+  Result := MustBeOwned;
 end;
 
 class function TObjectOptions.MustBeOwned: Boolean;
@@ -1263,6 +1274,16 @@ begin
   Result:=-100;
 end;
 
+class function THeroPlaceholderOptions.CanBeOwned: Boolean;
+begin
+  Result:=True;
+end;
+
+class function THeroPlaceholderOptions.MustBeOwned: Boolean;
+begin
+  Result:=True;
+end;
+
 procedure THeroPlaceholderOptions.SetPower(AValue: UInt8);
 begin
   FPower := AValue;
@@ -1278,6 +1299,11 @@ end;
 procedure TOwnedObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitOwnedObject(Self);
+end;
+
+class function TOwnedObjectOptions.CanBeOwned: Boolean;
+begin
+  Result:=True;
 end;
 
 { TQuestGuardOptions }
@@ -1335,6 +1361,11 @@ procedure TBaseRandomDwellingOptions.SetSameAsTown(AValue: string);
 begin
   if FSameAsTown=AValue then Exit;
   FSameAsTown:=AValue;
+end;
+
+class function TBaseRandomDwellingOptions.CanBeOwned: Boolean;
+begin
+  Result:=True;
 end;
 
 { TCreatureInstInfo }

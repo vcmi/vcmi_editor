@@ -251,6 +251,10 @@ type
     FFlags: UInt8;
     //end binary compatible with H3 part
     FExtFlags: UInt8; //reserved
+
+    FBlockingCount: UInt32; //anount of objects blocking this tile
+    FFlaggableID: Int32; //Internal id of flaggable object in this tile.
+
   public
     constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
 
@@ -269,18 +273,75 @@ type
     procedure SetRiver(ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
     procedure SetRoad(ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
     procedure SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);inline;
+
+    procedure BlockingObjectAdded(AObject: TMapObject);
+    procedure BlockingObjectRemoved(AObject: TMapObject);
+
+    function IsBlocked: boolean; inline;
   end;
+
+  TTiles = array of array of TMapTile; //X, Y
 
 {$push}
 {$m+}
+  { TMapLevel }
+
+  TMapLevel = class(TNamedCollectionItem)
+  strict private
+    FHeight: Integer;
+    FTerrain: TFilename;
+    FTiles: TTiles;
+    FWidth: Integer;
+    function GetMap: TVCMIMap;
+    function GetTile(X, Y: Integer): PMapTile; inline;
+    procedure SetHeight(AValue: Integer);
+    procedure SetTerrain(AValue: TFilename);
+
+    procedure SetWidth(AValue: Integer);
+
+    procedure Resize;
+  protected
+    procedure SetIndex(Value: Integer); override;
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+
+    property Tile[X, Y: Integer]: PMapTile read GetTile;
+
+    property Map: TVCMIMap read GetMap;
+
+    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
+    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
+    procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8); inline;
+
+    procedure ObjectAdded(AObject:TMapObject); inline;
+    procedure ObjectRemoved(AObject:TMapObject); inline;
+  published
+    property Height: Integer read FHeight write SetHeight;
+    property Width: Integer read FWidth write SetWidth;
+    property Index;
+  end;
+
+  { TMapLevels }
+
+  TMapLevelsCollection = specialize TGNamedCollection<TMapLevel>;
+
+  TMapLevels = class(TMapLevelsCollection)
+  private
+   FOwner: TVCMIMap;
+  public
+   constructor Create(AOwner: TVCMIMap);
+  end;
+
   { TMapObjectTemplate }
 
   TMapObjectTemplate = class(TObject, ISerializeNotify, IFPObserver)
+  strict private
+    mask_w, mask_h: Integer;
+    FOwner: TMapObject;
   private
     FDef: TDefAnimation;
-
     FIsVisitable: Boolean;
-
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
     FMask: TStrings;
@@ -295,9 +356,9 @@ type
 
     procedure CompactMask;
 
-    procedure UpdateIsVisitable;
+    procedure UpdateCache;
   public
-    constructor Create;
+    constructor Create(AOwner: TMapObject);
     destructor Destroy; override;
 
     procedure Assign(AOther: TObjTemplate);
@@ -306,7 +367,9 @@ type
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
 
-    procedure RenderOverlay(obj_x,obj_y: integer);
+    procedure AddRemoveToTiles(ATiles:TTiles; Add: Boolean);
+
+    procedure RenderOverlay();
 
     Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
 
@@ -430,53 +493,6 @@ type
     lm: TListsManager;
     om: TObjectsManager;
     i18n: TLocaleManager;
-  end;
-
-  { TMapLevel }
-
-  TMapLevel = class(TNamedCollectionItem)
-  strict private
-    FHeight: Integer;
-    FTerrain: TFilename;
-
-    FTiles: array of array of TMapTile; //X, Y
-    FWidth: Integer;
-    function GetMap: TVCMIMap;
-    function GetTile(X, Y: Integer): PMapTile; inline;
-    procedure SetHeight(AValue: Integer);
-    procedure SetTerrain(AValue: TFilename);
-
-    procedure SetWidth(AValue: Integer);
-
-    procedure Resize;
-  protected
-    procedure SetIndex(Value: Integer); override;
-  public
-    constructor Create(ACollection: TCollection); override;
-    destructor Destroy; override;
-
-    property Tile[X, Y: Integer]: PMapTile read GetTile;
-
-    property Map: TVCMIMap read GetMap;
-
-    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
-    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
-    procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
-  published
-    property Height: Integer read FHeight write SetHeight;
-    property Width: Integer read FWidth write SetWidth;
-    property Index;
-  end;
-
-  { TMapLevels }
-
-  TMapLevelsCollection = specialize TGNamedCollection<TMapLevel>;
-
-  TMapLevels = class(TMapLevelsCollection)
-  private
-    FOwner: TVCMIMap;
-  public
-    constructor Create(AOwner: TVCMIMap);
   end;
 
   { THeroDefinition }
@@ -1030,11 +1046,14 @@ begin
   //end;
 end;
 
-procedure TMapObjectTemplate.UpdateIsVisitable;
+procedure TMapObjectTemplate.UpdateCache;
 var
   s: String;
   c: Char;
 begin
+  mask_h := Mask.Count;
+  mask_w := Length(Mask[0]);
+
   FIsVisitable:=false;
   for s in FMask do
   begin
@@ -1054,12 +1073,13 @@ procedure TMapObjectTemplate.FPOObservedChanged(ASender: TObject;
 begin
   if ASender = FMask then
   begin
-    UpdateIsVisitable;
+    UpdateCache;
   end;
 end;
 
-constructor TMapObjectTemplate.Create;
+constructor TMapObjectTemplate.Create(AOwner: TMapObject);
 begin
+  FOwner := AOwner;
   FMask := TStringList.Create;
   FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
@@ -1110,18 +1130,49 @@ begin
   FMask.EndUpdate;
 end;
 
-procedure TMapObjectTemplate.RenderOverlay(obj_x, obj_y: integer);
+procedure TMapObjectTemplate.AddRemoveToTiles(ATiles: TTiles; Add: Boolean);
+var
+  i, j, x, y: Integer;
+  line: String;
+
+  t: PMapTile;
+begin
+  for i := 1 to mask_h do
+  begin
+    line := Mask[i-1];
+    y := FOwner.Y - mask_h + i;
+
+    for j := 1 to mask_w do
+    begin
+      x := FOwner.X - mask_w + j;
+
+      if (x>0) and (y>0) and (x < length(ATiles)) and (y < length(ATiles[x])) then
+      begin
+        t := @ATiles[x,y];
+
+        case line[j] of
+          MASK_ACTIVABLE, MASK_BLOCKED, MASK_HIDDEN:
+          begin
+            if add then
+              t^.BlockingObjectAdded(FOwner)
+            else
+              t^.BlockingObjectRemoved(FOwner);
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TMapObjectTemplate.RenderOverlay();
 const
   ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
   BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
 var
-  mask_w, mask_h, i, j: Integer;
+  i, j: Integer;
   line: String;
 begin
-  mask_h := Mask.Count;
-  mask_w := Length(Mask[0]);
-
-  CurrentContextState.SetTranslation((obj_x - mask_w + 1 ) * TILE_SIZE, (obj_y - mask_h + 1) * TILE_SIZE);
+  CurrentContextState.SetTranslation((FOwner.X - mask_w + 1 ) * TILE_SIZE, (FOwner.Y - mask_h + 1) * TILE_SIZE);
 
   for i := 0 to mask_h - 1 do
   begin
@@ -1355,7 +1406,7 @@ end;
 constructor TMapObject.Create(ACollection: TCollection);
 begin
   FLastFrame := 0;
-  FTemplate := TMapObjectTemplate.Create;
+  FTemplate := TMapObjectTemplate.Create(Self);
   FOptions := TObjectOptions.Create(Self);
   FPlayer:=TPlayer.none;
   inherited Create(ACollection);
@@ -1423,7 +1474,7 @@ end;
 
 procedure TMapObject.RenderOverlay;
 begin
-  Template.RenderOverlay(x, y);
+  Template.RenderOverlay();
 end;
 
 procedure TMapObject.RenderSelectionRect;
@@ -1782,6 +1833,8 @@ begin
   FRoadDir:=0;
   FFlags:=0;
   FExtFlags := 0;
+  FBlockingCount := 0;
+  FFlaggableID := -1;
 end;
 
 procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
@@ -1817,6 +1870,30 @@ begin
   FFlags := (FFlags and $FC) or (AMir and 3);
 end;
 
+procedure TMapTile.BlockingObjectAdded(AObject: TMapObject);
+begin
+  inc(FBlockingCount);
+
+  if (FFlaggableID = -1) and (AObject.Options.CanBeOwned) then
+  begin
+    FFlaggableID:=AObject.ID;
+  end;
+end;
+
+procedure TMapTile.BlockingObjectRemoved(AObject: TMapObject);
+begin
+  if FFlaggableID = AObject.ID then
+  begin
+    FFlaggableID := -1;
+  end;
+  dec(FBlockingCount);
+end;
+
+function TMapTile.IsBlocked: boolean;
+begin
+  Result := FBlockingCount > 0;
+end;
+
 { TMapLevel }
 
 destructor TMapLevel.Destroy;
@@ -1839,6 +1916,16 @@ end;
 procedure TMapLevel.SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
 begin
   GetTile(X,Y)^.SetTerrain(tt, ts, mir);
+end;
+
+procedure TMapLevel.ObjectAdded(AObject: TMapObject);
+begin
+  AObject.Template.AddRemoveToTiles(FTiles, True);
+end;
+
+procedure TMapLevel.ObjectRemoved(AObject: TMapObject);
+begin
+  AObject.Template.AddRemoveToTiles(FTiles, False);
 end;
 
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
@@ -1973,8 +2060,6 @@ begin
 
   FDifficulty := TDifficulty.NORMAL;
 
-  FIsDirty := False;
-
   FAllowedAbilities := TLogicalIDCondition.Create(Self);
   AttachTo(FAllowedAbilities);
 
@@ -2007,6 +2092,8 @@ begin
   FModUsage := TModUsage.Create(FMods);
 
   FVisibleObjectsQueue := TMapObjectQueue.Create;
+
+  FIsDirty := False;
 end;
 
 destructor TVCMIMap.Destroy;
@@ -2048,27 +2135,21 @@ begin
   end;
 end;
 
-procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
-  Operation: TFPObservedOperation; Data: Pointer);
-
+procedure TVCMIMap.FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
 var
   o : TMapObject;
 begin
   FIsDirty := true;
-
-  //case Operation of
-  //  ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
-  //end;
 
   if FTrackObjectChanges and (ASender = FObjects) then
   begin
     o := TMapObject(Data);
     case Operation of
       ooAddItem: begin
-        DebugLn('Add ', o.Identifier);
+        FLevels[o.L].ObjectAdded(o);
       end;
       ooDeleteItem: begin
-        DebugLn('Delete ', o.Identifier);
+        FLevels[o.L].ObjectRemoved(o);
       end;
     end;
   end;
@@ -2256,8 +2337,18 @@ begin
 end;
 
 procedure TVCMIMap.Loaded;
+var
+  i: Integer;
+  o: TMapObject;
 begin
+  for i  := 0 to FObjects.Count  - 1 do
+  begin
+    o := FObjects[i];
+    FLevels[o.L].ObjectAdded(o);
+  end;
+
   FTrackObjectChanges := True;
+  FIsDirty := False;
 end;
 
 function TVCMIMap.GetHeroName(AObject: TMapObject): TLocalizedString;

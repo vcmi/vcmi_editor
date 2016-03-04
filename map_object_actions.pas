@@ -239,7 +239,7 @@ end;
 
 procedure TAddObject.Execute;
 begin
-  TargetObject := FMap.Objects.Add;
+  TargetObject := TMapObject.Create(nil);
 
   TargetObject.&Type:=Template.ObjType.Identifier;
   TargetObject.Subtype:=Template.ObjSubType.Identifier;
@@ -249,6 +249,8 @@ begin
   TargetObject.L := l;
   TargetObject.X := X;
   TargetObject.Y := Y;
+
+  TargetObject.Collection := FMap.Objects; //add object with valid configuration
 
   if IsPublishedProp(TargetObject.Options, 'Owner') then
   begin
