@@ -24,7 +24,7 @@ unit minimap;
 interface
 
 uses
-  Classes, SysUtils, Graphics, Map, editor_types, ExtCtrls;
+  Classes, SysUtils, math, Graphics, Map, editor_types, ExtCtrls, LCLProc, IntfGraphics;
 
 type
 
@@ -121,25 +121,27 @@ end;
 procedure TMinimap.MayBeUpdateImg;
 var
   level: Integer;
-  ctx: TCanvas;
 
-  row, col: Integer;
+  row, col, x, y: Integer;
   tile_size: Integer;
 
   tile: PMapTile;
   tile_rect: TRect;
+
+  TempImage: TLazIntfImage;
+  left, top, right, bottom, w, h: Integer;
 begin
   if not Assigned(FMap) then
     Exit;
   if FMapImgValid then
     Exit;
   level := FMap.CurrentLevelIndex;
-  ctx := FMapImg.Canvas;
-  FMapImg.BeginUpdate(True);
-  ctx.Lock;
+
+  TempImage := FMapImg.CreateIntfImage;
+
   try
-    ctx.Brush.Color := clWhite;
-    ctx.FillRect(0, 0, FMapImg.Width,FMapImg.Height);
+    w :=  FMapImg.Width;
+    h :=  FMapImg.Height;
 
     FScale := Double(FMapImg.Width) / Double(Fmap.CurrentLevel.Width);
 
@@ -150,21 +152,25 @@ begin
       for col := 0 to FMap.CurrentLevel.Width - 1 do
       begin
         tile := FMap.GetTile(level,col,row);
-        tile_rect := Rect(
-          trunc(col*FScale),
-          trunc(row*FScale),
-          trunc(col*FScale) + tile_size,
-          trunc(row*FScale) + tile_size);
 
-        ctx.Brush.Color := FterrainColors[tile^.TerType];
+        left := trunc(col*FScale);
+        top := trunc(row*FScale);
 
-        ctx.FillRect(tile_rect);
+        right := Min(left + tile_size, w-1);
+        bottom := Min(top + tile_size, h-1);
 
+        for x := left to right do
+        begin
+          for y := top to bottom do
+          begin
+            TempImage.Colors[x,y] := TColorToFPColor(FterrainColors[tile^.TerType]);
+          end;
+        end;
       end;
     end;
+    FMapImg.LoadFromIntfImage(TempImage);
   finally
-    ctx.Unlock;
-    FMapImg.EndUpdate(True);
+    TempImage.Free;
   end;
 
   FMapImgValid := True;
