@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, Math, Map, gvector, gset, undo_map, undo_base, editor_types,
-  terrain, map_actions, transitions;
+  terrain, map_actions, transitions, editor_gl;
 
 type
   TTerrainBrushMode = (none, fixed, area, fill);
@@ -81,6 +81,7 @@ type
     procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
     function GetMode: TTerrainBrushMode; override;
   public
+    procedure RenderSelection(State: TLocalState); override;
   end;
 
   { TAreaTerrainBrush }
@@ -93,7 +94,7 @@ type
     procedure AddTile(AMap: TVCMIMap;X,Y: integer);override;
     function GetMode: TTerrainBrushMode; override;
   public
-    procedure RenderSelection(); override;
+    procedure RenderSelection(State: TLocalState); override;
     procedure TileMouseDown(AMap: TVCMIMap;X,Y: integer);override;
     procedure TileMouseUp(AMap: TVCMIMap;X,Y: integer);override;
   end;
@@ -161,7 +162,7 @@ type
 implementation
 
 uses
-  editor_gl, editor_consts, editor_str_consts;
+  editor_consts, editor_str_consts;
 
 { TTileCompareByCoord }
 
@@ -220,21 +221,21 @@ begin
   Result := TTerrainBrushMode.area;
 end;
 
-procedure TAreaTerrainBrush.RenderSelection;
+procedure TAreaTerrainBrush.RenderSelection(State: TLocalState);
 var
   cx,cy: Integer;
   r:TMapRect;
 begin
   if Dragging then
   begin
-    editor_gl.CurrentContextState.StartDrawingRects;
+    State.StartDrawingRects;
     r.SetFromCorners(FStartCoord,FEndCooord);
 
     cx := r.FTopLeft.X * TILE_SIZE;
     cy := r.FTopLeft.Y * TILE_SIZE;
 
-    editor_gl.CurrentContextState.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE, RECT_COLOR);
-    editor_gl.CurrentContextState.StopDrawing;
+    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE, RECT_COLOR);
+    State.StopDrawing;
   end;
 end;
 
@@ -278,6 +279,29 @@ end;
 function TFixedTerrainBrush.GetMode: TTerrainBrushMode;
 begin
   Result := TTerrainBrushMode.fixed;
+end;
+
+procedure TFixedTerrainBrush.RenderSelection(State: TLocalState);
+var
+  it: TCoordSet.TIterator;
+  dim,cx,cy: Integer;
+begin
+  if Dragging then
+  begin
+    it := Selection.Min;
+    if Assigned(it) then
+    begin
+      State.StartDrawingRects;
+      dim := TILE_SIZE;
+      repeat
+        cx := it.Data.X * TILE_SIZE;
+        cy := it.Data.Y * TILE_SIZE;
+        State.RenderRect(cx,cy,dim,dim, RECT_COLOR);
+      until not it.next ;
+      FreeAndNil(it);
+      State.StopDrawing;
+    end;
+  end;
 end;
 
 { TInvalidTiles }

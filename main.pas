@@ -1572,7 +1572,7 @@ begin
     FSelectedObject.RenderSelectionRect;
   end;
 
-  FActiveBrush.RenderSelection;
+  FActiveBrush.RenderSelection(FMapViewState);
 
   glDisable(GL_SCISSOR_TEST);
 

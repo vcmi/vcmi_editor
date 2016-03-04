@@ -120,7 +120,7 @@ type
     procedure TileMouseMove(AMap: TVCMIMap; X,Y: integer);virtual;
 
     procedure RenderCursor(AMap: TVCMIMap; X,Y: integer); virtual;
-    procedure RenderSelection(); virtual;
+    procedure RenderSelection(State: TLocalState); virtual;
 
   end;
 
@@ -383,27 +383,9 @@ begin
 
 end;
 
-procedure TMapBrush.RenderSelection;
-var
-  it: TCoordSet.TIterator;
-  dim,cx,cy: Integer;
+procedure TMapBrush.RenderSelection(State: TLocalState);
 begin
-  if Dragging then
-  begin
-    it := Selection.Min;
-    if Assigned(it) then
-    begin
-      editor_gl.CurrentContextState.StartDrawingRects;
-      dim := TILE_SIZE;
-      repeat
-        cx := it.Data.X * TILE_SIZE;
-        cy := it.Data.Y * TILE_SIZE;
-        editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim, RECT_COLOR);
-      until not it.next ;
-      FreeAndNil(it);
-      editor_gl.CurrentContextState.StopDrawing;
-    end;
-  end;
+
 end;
 
 { TMapCoord }
