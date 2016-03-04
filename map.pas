@@ -440,14 +440,11 @@ type
     i18n: TLocaleManager;
   end;
 
-  ///WIP, MULTILEVEL MAP
-
   { TMapLevel }
 
   TMapLevel = class(TNamedCollectionItem)
   strict private
     FHeight: Integer;
-    FObjects: TFilename;
     FTerrain: TFilename;
 
     FTiles: array of array of TMapTile; //X, Y
@@ -455,7 +452,6 @@ type
     function GetMap: TVCMIMap;
     function GetTile(X, Y: Integer): PMapTile; inline;
     procedure SetHeight(AValue: Integer);
-    procedure SetObjects(AValue: TFilename);
     procedure SetTerrain(AValue: TFilename);
 
     procedure SetWidth(AValue: Integer);
@@ -1906,12 +1902,6 @@ begin
   if FHeight = AValue then Exit;
   FHeight := AValue;
   Resize();
-end;
-
-procedure TMapLevel.SetObjects(AValue: TFilename);
-begin
-  if FObjects=AValue then Exit;
-  FObjects:=AValue;
 end;
 
 procedure TMapLevel.SetTerrain(AValue: TFilename);
