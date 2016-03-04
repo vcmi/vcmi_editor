@@ -1268,7 +1268,7 @@ begin
   end;
 
   q := TMapObjectQueue.Create;
-  FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+  FMap.SelectObjectsOnTile(FVisibleObjects, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
   try
     if not q.IsEmpty then
     begin
@@ -1348,7 +1348,7 @@ begin
 
       q := TMapObjectQueue.Create;
       try
-        FMap.SelectObjectsOnTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+        FMap.SelectObjectsOnTile(FVisibleObjects, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
 
         if Assigned(FSelectedObject)
           and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))

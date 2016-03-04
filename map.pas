@@ -687,7 +687,7 @@ type
     property TerrainManager: TTerrainManager read FTerrainManager;
     property ListsManager: TListsManager read FListsManager;
 
-    procedure SelectObjectsOnTile(Level, X, Y: Integer; dest: TMapObjectQueue);
+    class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
@@ -2159,21 +2159,20 @@ begin
   FIsDirty := False;
 end;
 
-procedure TVCMIMap.SelectObjectsOnTile(Level, X, Y: Integer;
-  dest: TMapObjectQueue);
+class procedure TVCMIMap.SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
 var
   o: TMapObject;
   i: Integer;
 begin
   //TODO: use mask
 
-  for i := 0 to FObjects.Count - 1 do
+  for i := 0 to ASource.Count - 1 do
   begin
-    o := FObjects[i];
+    o := ASource[i];
 
     if o.CoversTile(Level,x,y) then
     begin
-      dest.Push(o);
+      ATarget.Push(o);
     end;
   end;
 end;
