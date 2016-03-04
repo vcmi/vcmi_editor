@@ -157,8 +157,10 @@ begin
 
   LoadObjects;
 
+  ProgressForm.SetMax(1);
   ProgressForm.NextStage('Building objects search index ...');
   FObjManager.BuildIndex;
+  ProgressForm.Advance(1);
 end;
 
 procedure TRootManager.DataModuleDestroy(Sender: TObject);

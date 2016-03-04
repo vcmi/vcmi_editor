@@ -5,7 +5,7 @@ unit progress_form;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
+  Classes, SysUtils, FileUtil, LazLoggerBase, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, ActnList, editor_classes;
 
 type
@@ -96,6 +96,9 @@ begin
   Errors.Visible := true;
 
   Errors.Append(ADescription);
+
+  DebugLn(ADescription);
+
   FHasErrors:=True;
 end;
 
