@@ -571,7 +571,6 @@ type
     FMods: TLogicalIDCondition;
     FTriggeredEvents: TTriggeredEvents;
 
-
     FLevelLimit: Integer;
     FName: TLocalizedString;
     FObjects: TMapObjects;
@@ -585,6 +584,8 @@ type
     FRumors: TRumors;
 
     FIsDirty: boolean;
+
+    FTrackObjectChanges: Boolean;
 
     FVisibleObjectsQueue : TMapObjectQueue;
 
@@ -1914,11 +1915,6 @@ begin
   AObserved.FPOAttachObserver(Self);
 end;
 
-//procedure TVCMIMap.Changed;
-//begin
-//  FIsDirty := True;
-//end;
-//
 constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
 var
   lvl: TMapLevel;
@@ -1965,6 +1961,7 @@ end;
 
 constructor TVCMIMap.CreateEmpty(env: TMapEnvironment);
 begin
+  FTrackObjectChanges := false;
   FTerrainManager := env.tm;
   FListsManager := env.lm;
 
@@ -2053,12 +2050,28 @@ end;
 
 procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
   Operation: TFPObservedOperation; Data: Pointer);
+
+var
+  o : TMapObject;
 begin
   FIsDirty := true;
 
   //case Operation of
   //  ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
   //end;
+
+  if FTrackObjectChanges and (ASender = FObjects) then
+  begin
+    o := TMapObject(Data);
+    case Operation of
+      ooAddItem: begin
+        DebugLn('Add ', o.Identifier);
+      end;
+      ooDeleteItem: begin
+        DebugLn('Delete ', o.Identifier);
+      end;
+    end;
+  end;
 end;
 
 function TVCMIMap.GetCurrentLevelIndex: Integer;
@@ -2240,13 +2253,11 @@ begin
       DebugLn(['invalid player color', Integer(ANewOwner)]);
     end;
   end;
-
-
 end;
 
 procedure TVCMIMap.Loaded;
 begin
-
+  FTrackObjectChanges := True;
 end;
 
 function TVCMIMap.GetHeroName(AObject: TMapObject): TLocalizedString;
