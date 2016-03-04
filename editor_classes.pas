@@ -207,11 +207,9 @@ type
     property Level: TSkillLevel read FLevel write FLevel nodefault;
   end;
 
-  THeroSecondarySkillsCollection = specialize TGNamedCollection<THeroSecondarySkill>;
-
   { THeroSecondarySkills }
 
-  THeroSecondarySkills = class(THeroSecondarySkillsCollection)
+  THeroSecondarySkills = class(specialize TGNamedCollection<THeroSecondarySkill>)
   end;
 
   IHeroInfo = interface

@@ -470,7 +470,7 @@ begin
     FreeAndNil(Fmap);
     raise;
   end;
-
+  Result.Loaded;
   FMap := nil;
 end;
 

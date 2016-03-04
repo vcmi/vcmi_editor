@@ -245,6 +245,7 @@ begin
 
   FJsonBuffer.Clear;
   FFreeList.Clear;
+  Result.Loaded;
 end;
 
 { TMapWriterZIP }

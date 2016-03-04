@@ -103,9 +103,7 @@ type
 
   { TCreatureSet }
 
-  TCreatureInstInfoCollection = specialize TGArrayCollection<TCreatureInstInfo>;
-
-  TCreatureSet = class (TCreatureInstInfoCollection)
+  TCreatureSet = class (specialize TGArrayCollection<TCreatureInstInfo>)
   private
     FOwner: IMapObject;
     FTightFormation: Boolean;

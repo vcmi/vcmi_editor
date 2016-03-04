@@ -69,11 +69,9 @@ type
 
   end;
 
-  TPrimSkillInfoCollection = specialize TGNamedCollection<TPrimSkillInfo>;
-
   { TPrimSkillInfos }
 
-  TPrimSkillInfos = class (TPrimSkillInfoCollection)
+  TPrimSkillInfos = class (specialize TGNamedCollection<TPrimSkillInfo>)
   public
 
   end;
@@ -85,11 +83,9 @@ type
     function GetFullID: AnsiString; override;
   end;
 
-  TSkillInfoCollection = specialize TGNamedCollection<TSkillInfo>;
-
   { TSkillInfos }
 
-  TSkillInfos = class (TSkillInfoCollection)
+  TSkillInfos = class (specialize TGNamedCollection<TSkillInfo>)
   public
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
@@ -111,11 +107,9 @@ type
     property SpellType: TSpellType read FType write SetType;
   end;
 
-  TSpellInfoCollection =  specialize TGNamedCollection<TSpellInfo>;
-
   { TSpellInfos }
 
-  TSpellInfos = class (TSpellInfoCollection)
+  TSpellInfos = class (specialize TGNamedCollection<TSpellInfo>)
   public
     //all except abilities
     procedure FillWithAllIds(AList: TLogicalIDCondition);
@@ -194,9 +188,7 @@ type
 
   { TTownBuildings }
 
-  TTownBuildingCollection = specialize TGNamedCollection<TTownBuilding>;
-
-  TTownBuildings = class(TTownBuildingCollection)
+  TTownBuildings = class(specialize TGNamedCollection<TTownBuilding>)
   end;
 
   { TTownInfo }
@@ -248,9 +240,7 @@ type
 
   { TFactionInfos }
 
-  TFactionInfoCollection = specialize TGNamedCollection<TFactionInfo>;
-
-  TFactionInfos = class (TFactionInfoCollection)
+  TFactionInfos = class (specialize TGNamedCollection<TFactionInfo>)
   public
     procedure FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
     procedure FillWithTownIds(AList: TStrings; AIncludeMods: Boolean);
@@ -269,11 +259,9 @@ type
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills;
   end;
 
-  THeroClassInfoCollection = specialize TGNamedCollection<THeroClassInfo>;
-
   { THeroClassInfos }
 
-  THeroClassInfos = class(THeroClassInfoCollection)
+  THeroClassInfos = class(specialize TGNamedCollection<THeroClassInfo>)
   public
   end;
 
@@ -339,11 +327,9 @@ type
     property Graphics: TCreatureGraphics read FGraphics;
   end;
 
-  TCreatureInfoCollection = specialize TGNamedCollection<TCreatureInfo>;
-
   { TCreatureInfos }
 
-  TCreatureInfos = class(TCreatureInfoCollection)
+  TCreatureInfos = class(specialize TGNamedCollection<TCreatureInfo>)
   public
   end;
 
@@ -384,11 +370,9 @@ type
     property &type:TArtifactTypes read FType write SetType;
   end;
 
-  TArtifactInfoCollection = specialize TGNamedCollection<TArtifactInfo>;
-
   { TArtifactInfos }
 
-  TArtifactInfos = class(TArtifactInfoCollection)
+  TArtifactInfos = class(specialize TGNamedCollection<TArtifactInfo>)
   public
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
@@ -451,11 +435,9 @@ type
     property Skills: THeroSecondarySkills read FSkills;
   end;
 
-  THeroInfoCollection = specialize TGNamedCollection<THeroInfo>;
-
   { THeroInfos }
 
-  THeroInfos = class(THeroInfoCollection)
+  THeroInfos = class(specialize TGNamedCollection<THeroInfo>)
   private
     FOwner:TListsManager;
   public

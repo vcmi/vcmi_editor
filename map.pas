@@ -74,9 +74,7 @@ type
 
   { TPlayerHeroes }
 
-  TPlayerHeroCollection = specialize TGNamedCollection<TPlayerHero>;
-
-  TPlayerHeroes = class (TPlayerHeroCollection)
+  TPlayerHeroes = class (specialize TGNamedCollection<TPlayerHero>)
   end;
 
   { TPlayerTown }
@@ -90,11 +88,9 @@ type
   end;
 
 
-  TPlayerTownCollection = specialize TGNamedCollection<TPlayerTown>;
-
   { TPlayerTowns }
 
-  TPlayerTowns = class (TPlayerTownCollection)
+  TPlayerTowns = class (specialize TGNamedCollection<TPlayerTown>)
 
   end;
 
@@ -210,11 +206,9 @@ type
     property Members: TPlayers read FMembers;
   end;
 
-  TTeamCollection = specialize TGArrayCollection<TTeam>;
-
   { TTeamSettings }
 
-  TTeamSettings = class (TTeamCollection)
+  TTeamSettings = class (specialize TGArrayCollection<TTeam>)
   public
     constructor Create;
   end;
@@ -411,9 +405,7 @@ type
 
   { TMapObjects }
 
-  TMapObjectCollection = specialize TGNamedCollection<TMapObject>;
-
-  TMapObjects = class (TMapObjectCollection)
+  TMapObjects = class(specialize TGNamedCollection<TMapObject>)
   strict private
     FMap: TVCMIMap;
     FNextIdentifier: Integer;
@@ -687,6 +679,8 @@ type
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
+
+    procedure Loaded;
 
     //actual hero Name
     function GetHeroName(AObject: TMapObject): TLocalizedString;
@@ -1448,10 +1442,6 @@ end;
 
 procedure TMapObject.SetL(AValue: integer);
 begin
-  if not GetMap.IsOnMap(AValue, FX,FY) then exit;
-
-  if FL = AValue then Exit;
-
   FL := AValue;
 end;
 
@@ -1968,6 +1958,8 @@ begin
 
   TriggeredEvents.AddStandardDefeat();
   TriggeredEvents.AddStandardVictory();
+
+  Loaded;
 end;
 
 
@@ -2062,9 +2054,11 @@ end;
 procedure TVCMIMap.FPOObservedChanged(ASender: TObject;
   Operation: TFPObservedOperation; Data: Pointer);
 begin
-  case Operation of
-    ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
-  end;
+  FIsDirty := true;
+
+  //case Operation of
+  //  ooChange,ooAddItem,ooDeleteItem: FIsDirty := true ;
+  //end;
 end;
 
 function TVCMIMap.GetCurrentLevelIndex: Integer;
@@ -2247,6 +2241,11 @@ begin
     end;
   end;
 
+
+end;
+
+procedure TVCMIMap.Loaded;
+begin
 
 end;
 

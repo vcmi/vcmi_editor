@@ -339,16 +339,20 @@ end;
 
 procedure TMoveObject.Redo;
 begin
+  TargetObject.Collection := nil;
   TargetObject.L:=L;
   TargetObject.X:=X;
   TargetObject.Y:=Y;
+  TargetObject.Collection := FMap.Objects;
 end;
 
 procedure TMoveObject.Undo;
 begin
+  TargetObject.Collection := nil;
   TargetObject.L:=FOldL;
   TargetObject.X:=FOldX;
   TargetObject.Y:=FOldY;
+  TargetObject.Collection := FMap.Objects;
 end;
 
 
