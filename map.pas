@@ -329,9 +329,7 @@ type
 
   { TMapLevels }
 
-  TMapLevelsCollection = specialize TGNamedCollection<TMapLevel>;
-
-  TMapLevels = class(TMapLevelsCollection)
+  TMapLevels = class(specialize TGNamedCollection<TMapLevel>)
   private
    FOwner: TVCMIMap;
   public

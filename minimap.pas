@@ -24,9 +24,12 @@ unit minimap;
 interface
 
 uses
-  Classes, SysUtils, math, Graphics, Map, editor_types, editor_utils, editor_consts, ExtCtrls, LCLProc, IntfGraphics;
+  Classes, SysUtils, math, fgl, Graphics, Map, editor_types, editor_utils, editor_consts, editor_classes, ExtCtrls,
+  LCLProc, IntfGraphics;
 
 type
+
+  TBitmaps = specialize TFPGObjectList<TBitmap>;
 
   { TMinimap }
 
@@ -38,12 +41,12 @@ type
 
     FMapImg : TBitmap;
 
+    FMapImgs: TBitmaps;
+
     FMapImgValid: Boolean;
-    FMapDimentionsValid: boolean;
 
     FScale: Double;
 
-    procedure MayBeResizeImg;
     procedure MayBeUpdateImg;
 
     procedure SetMap(AValue: TVCMIMap);
@@ -55,11 +58,9 @@ type
 
     procedure Paint(pb: TPaintBox; ARadarRect: TRect);
 
-    procedure InvalidateDimensions;
     procedure InvalidateLevel; //todo:InvalidateLevel
 
     procedure InvalidateMap;
-    //procedure InvalidateAxis;
   end;
 
 implementation
@@ -96,17 +97,16 @@ begin
   FTerrainBlockColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
 
   FMapImg := TBitmap.Create;
+
+  FMapImgs := TBitmaps.Create(True);
 end;
 
 destructor TMinimap.Destroy;
 begin
+  FMapImgs.Free;
+
   FMapImg.Free;
   inherited Destroy;
-end;
-
-procedure TMinimap.InvalidateDimensions;
-begin
-  FMapDimentionsValid := False;
 end;
 
 procedure TMinimap.InvalidateLevel;
@@ -119,18 +119,6 @@ begin
   FMapImgValid := False;
 end;
 
-procedure TMinimap.MayBeResizeImg;
-begin
-  if not Assigned(FMap) then
-    Exit;
-  if not FMapDimentionsValid then
-  begin
-
-  end;
-
-  FMapDimentionsValid := True;
-end;
-
 procedure TMinimap.MayBeUpdateImg;
 var
   level: Integer;
@@ -141,7 +129,7 @@ var
   tile: PMapTile;
 
   TempImage: TLazIntfImage;
-  left, top, right, bottom, w, h: Integer;
+  left, top, right, bottom, imgWidth, imgHeight, levelWidth, levelHeight: Integer;
   id: Int32;
   c: TPlayer;
 begin
@@ -154,24 +142,27 @@ begin
   TempImage := FMapImg.CreateIntfImage;
 
   try
-    w :=  FMapImg.Width;
-    h :=  FMapImg.Height;
+    imgWidth :=  FMapImg.Width;
+    imgHeight :=  FMapImg.Height;
 
-    FScale := Double(FMapImg.Width) / Double(Fmap.CurrentLevel.Width);
+    levelWidth := Fmap.CurrentLevel.Width;
+    levelHeight := FMap.CurrentLevel.Height;
+
+    FScale := imgWidth / levelWidth;
 
     tile_size := trunc(FScale)+1;
 
-    for row := 0 to FMap.CurrentLevel.Height - 1 do
+    for row := 0 to levelHeight - 1 do
     begin
-      for col := 0 to FMap.CurrentLevel.Width - 1 do
+      for col := 0 to levelWidth - 1 do
       begin
         tile := FMap.GetTile(level,col,row);
 
         left := trunc(col*FScale);
         top := trunc(row*FScale);
 
-        right := Min(left + tile_size, w-1);
-        bottom := Min(top + tile_size, h-1);
+        right := Min(left + tile_size, imgWidth-1);
+        bottom := Min(top + tile_size, imgHeight-1);
 
         for x := left to right do
         begin
@@ -191,8 +182,6 @@ begin
               begin
                 TempImage.Colors[x,y] := RGBAColorToFpColor (PLAYER_FLAG_COLORS[TPlayerColor(c)]);
               end;
-
-              //TempImage.Colors[x,y] := RGBAColorToFpColor (pl FTerrainBlockColors[tile^.TerType]);
             end
             else if tile^.IsBlocked then
             begin
@@ -221,7 +210,6 @@ begin
   if not Assigned(FMap) then
     Exit;
   //TODO: more accurate painting
-  //todo: paint selection
   //todo: invalidate map only on change
 
   if (FMapImg.Width<>pb.Width) or (FMapImg.Height<>pb.Height) then
@@ -245,9 +233,6 @@ begin
     scaled_radar.Bottom:=round(FScale*scaled_radar.Bottom);
 
     pb.Canvas.Frame(scaled_radar);
-
-
-
   finally
     pb.Canvas.Changed;
   end;
@@ -255,12 +240,22 @@ begin
 end;
 
 procedure TMinimap.SetMap(AValue: TVCMIMap);
+var
+  i: Integer;
+  level_bitmap: TBitmap;
 begin
-  //if FMap = AValue then Exit;
   FMap := AValue;
 
+  FMapImgs.Clear;
+
+  for i := 0 to FMap.MapLevels.Count - 1 do
+  begin
+    level_bitmap := TBitmap.Create;
+
+    FMapImgs.Add(level_bitmap);
+  end;
+
   FMapImgValid := False;
-  FMapDimentionsValid := False;
 end;
 
 end.
