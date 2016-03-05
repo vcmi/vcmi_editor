@@ -30,8 +30,8 @@ unit map_format_zip;
 interface
 
 uses
-  Classes, SysUtils, fgl, contnrs, editor_types, map, map_format, terrain,
-  vcmi_json, vcmi_fpjsonrtti, fpjson, lists_manager, map_format_json,
+  Classes, SysUtils, contnrs, map, map_format, terrain,
+  vcmi_json, fpjson, lists_manager, map_format_json,
   editor_consts, zipper;
 
 type

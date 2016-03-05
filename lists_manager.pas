@@ -576,7 +576,6 @@ const
   HERO_BIOS         = 'data\herobios';
 
   TEXT_DATA_CONFIG  = 'config\defaultMods';
-  SPELL_INFO_NAME   = 'config\spell_info';
 
 const
   NEWTRAL_PLAYER_NAME = 'No player';

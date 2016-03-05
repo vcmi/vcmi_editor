@@ -628,6 +628,8 @@ begin
   TopMargin := ASprite.TopMargin;
 
   //todo: use indexes
+  x := 0;
+  y := 0;
 
   case mir of
     0:begin

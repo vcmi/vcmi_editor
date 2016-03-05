@@ -25,9 +25,9 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, strutils, typinfo, Forms, Controls, Graphics,
-  Dialogs, StdCtrls, ComboEx, EditBtn, ComCtrls, base_options_frame,
-  gui_helpers, object_options, editor_consts, editor_types, base_info,
-  lists_manager, editor_rtti, editor_classes, Map, LCLType, ExtCtrls, Spin,
+  Dialogs, StdCtrls, ComboEx, base_options_frame,
+  gui_helpers, object_options, editor_consts, editor_types,
+  lists_manager, editor_classes, Map, LCLType, ExtCtrls, Spin,
   rttiutils;
 
 type
@@ -334,7 +334,7 @@ end;
 function THeroFrame.GetDefaultExperience: UInt64;
 begin
   if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetExperience > 0) then
-     FHeroMapDefaults.GetExperience()
+    Result := FHeroMapDefaults.GetExperience()
   else if Assigned(FHeroTypeDefaults) then
     Result := FHeroTypeDefaults.GetExperience()
   else
@@ -354,7 +354,7 @@ end;
 function THeroFrame.GetDefaultSex: THeroSex;
 begin
   if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetSex() <> THeroSex.default) then
-     FHeroMapDefaults.GetSex()
+    Result := FHeroMapDefaults.GetSex()
   else if Assigned(FHeroTypeDefaults) then
     Result := FHeroTypeDefaults.GetSex()
   else

@@ -5,7 +5,7 @@ unit creature_set_frame;
 interface
 
 uses
-  Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, Spin, base_options_frame, gui_helpers, object_options,
   lists_manager, editor_str_consts;
 

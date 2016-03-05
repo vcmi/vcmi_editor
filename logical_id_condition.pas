@@ -25,7 +25,7 @@ unit logical_id_condition;
 interface
 
 uses
-  Classes, SysUtils, fpjson, editor_types, editor_utils, editor_classes;
+  Classes, SysUtils, fpjson, editor_classes;
 
 type
   { TLogicalIDCondition }

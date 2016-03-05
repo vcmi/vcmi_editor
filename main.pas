@@ -31,7 +31,7 @@ uses
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
   map_road_river_actions, map_object_actions, undo_map, object_options,
   player_options_form, edit_triggered_events, player_selection_form,
-  gpriorityqueue, types;
+  types;
 
 type
   TAxisKind = (Vertical,Horizontal);

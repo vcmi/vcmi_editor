@@ -323,8 +323,8 @@ type
 implementation
 
 uses
-  LazLoggerBase, CsvDocument, editor_consts, editor_utils,
-  root_manager, math;
+  LazLoggerBase, editor_consts, editor_utils,
+  root_manager;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';

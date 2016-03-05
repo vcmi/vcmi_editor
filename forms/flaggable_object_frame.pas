@@ -31,7 +31,6 @@ type
 
 implementation
 
-uses Math, editor_types;
 
 {$R *.lfm}
 

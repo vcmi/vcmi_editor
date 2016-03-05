@@ -25,7 +25,7 @@ unit position;
 interface
 
 uses
-  SysUtils, fpjson, vcmi_json, editor_classes;
+  SysUtils, fpjson, vcmi_json;
 
 type
   { TPosition }

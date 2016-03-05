@@ -29,7 +29,7 @@ interface
 uses
   Classes, SysUtils, Controls, StdCtrls, CheckLst,
 
-  editor_types, base_info, logical_id_condition, editor_str_consts,
+  base_info, logical_id_condition, editor_str_consts,
   editor_classes;
 
 type

@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, CheckLst,
-  StdCtrls,editor_types, gui_helpers, base_options_frame, object_options;
+  StdCtrls, gui_helpers, base_options_frame, object_options;
 
 type
 

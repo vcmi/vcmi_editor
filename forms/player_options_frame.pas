@@ -26,7 +26,7 @@ unit player_options_frame;
 interface
 
 uses
-  Classes, SysUtils, math, FileUtil, Forms, Controls, StdCtrls, ExtCtrls,
+  Classes, SysUtils, FileUtil, Forms, Controls, StdCtrls, ExtCtrls,
   CheckLst, map, lists_manager, editor_types, editor_str_consts, editor_classes,
   base_info, gui_helpers;
 

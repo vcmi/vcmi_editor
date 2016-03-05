@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, map_actions,
-  editor_classes, transitions, road_transitions;
+  transitions, road_transitions;
 
 const
   INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);

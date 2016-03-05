@@ -271,6 +271,7 @@ function TZlibInputStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 var
   new_position: Int64;
 begin
+  new_position := FPosition;
   case Origin of
     soBeginning:begin
       new_position := Offset;

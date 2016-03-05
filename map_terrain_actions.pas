@@ -668,7 +668,7 @@ begin
               nativeTilesCntNorm:=ifthen(invalid.NativeTiles.IsEmpty, MaxInt, invalid.NativeTiles.Size);
 
               if (nativeTilesCntNorm > invalidNativeTilesCnt)
-                or ((nativeTilesCntNorm = invalidNativeTilesCnt) and (invalid.ForeignTiles.Size < invalidForeignTilesCnt) ) then
+                or ((nativeTilesCntNorm = invalidNativeTilesCnt) and (SizeInt(invalid.ForeignTiles.Size) < invalidForeignTilesCnt) ) then
               begin
                 invalidNativeTilesCnt := nativeTilesCntNorm;
                 invalidForeignTilesCnt:=invalid.ForeignTiles.Size;
@@ -678,7 +678,7 @@ begin
                 SuitableTiles.Insert(TestTile);
 
               end
-              else if (nativeTilesCntNorm = invalidNativeTilesCnt) and (invalid.ForeignTiles.Size = invalidForeignTilesCnt) then
+              else if (nativeTilesCntNorm = invalidNativeTilesCnt) and (SizeInt(invalid.ForeignTiles.Size) = invalidForeignTilesCnt) then
               begin
                 SuitableTiles.Insert(TestTile);
               end;

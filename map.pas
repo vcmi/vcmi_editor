@@ -28,7 +28,7 @@ uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
-  logical_event_condition, logical_expression, vcmi_json, locale_manager,
+  logical_event_condition, vcmi_json, locale_manager,
   editor_gl, vcmi_fpjsonrtti;
 
 const

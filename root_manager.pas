@@ -174,8 +174,7 @@ begin
   Result := FResourceManager;
 end;
 
-procedure TRootManager.GetConvertedModConfig(AMetaClass: string;
-  AConverted: TModdedConfigPaths);
+procedure TRootManager.GetConvertedModConfig(AMetaClass: string; AConverted: TModdedConfigPaths);
 var
   i: Integer;
   mod_config: TBaseConfig;
