@@ -105,6 +105,7 @@ type
   TInvalidTiles = class
   public
     ForeignTiles, NativeTiles: TTileSet;
+    centerPosValid: boolean;
     constructor Create();
     destructor Destroy; override;
 
@@ -311,6 +312,7 @@ constructor TInvalidTiles.Create;
 begin
   ForeignTiles := TTileSet.Create;
   NativeTiles := TTileSet.Create;
+  centerPosValid:=false;
 end;
 
 destructor TInvalidTiles.Destroy;
@@ -545,7 +547,7 @@ var
 
     // Special validity check for rock & water
 
-    if valid and (centerTile.TerType<>curTile.TerType) and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
+    if valid and (curTile.TerType in [TTerrainType.water, TTerrainType.rock]) then
     begin
       for pName in WATER_ROCK_P do
       begin
@@ -590,15 +592,17 @@ var
   tiles: TInvalidTiles;
   centerTile:TTileTerrainInfo;
 
-  procedure UpdateTerrain(tile:TTileTerrainInfo; RequiresValidation: Boolean);
+  procedure UpdateTerrain(tile:TTileTerrainInfo);
   begin
     tile.TerType:=centerTile.TerType;
-    if RequiresValidation then
-      FInQueue.Insert(tile)
-    else
-      FOutQueue.Insert(tile);
-    InvalidateTerrainViews(tile.X,tile.Y);
 
+    FOutQueue.Delete(tile);//force new info in queue
+    FInQueue.Delete(tile);
+
+    FInQueue.Insert(tile);
+    FOutQueue.Insert(tile);
+
+    InvalidateTerrainViews(tile.X,tile.Y);
   end;
 const
   SHIFTS: array[1..8] of TMapCoord = (
@@ -619,11 +623,12 @@ var
   invalidForeignTilesCnt,invalidNativeTilesCnt,nativeTilesCntNorm: Integer;
   j: Integer;
 
-  invalid: TInvalidTiles;
-  tileRequiresValidation: Boolean;
+  centerPosValid, addToSuitableTiles, putSuitableTile: Boolean;
 
   currentCoord: TMapCoord;
   delta: TMapCoord;
+  testTiles: TInvalidTiles;
+
 begin
    while not FInQueue.IsEmpty do
    begin
@@ -636,12 +641,13 @@ begin
      if Assigned(it)  then
      begin
        repeat
-          UpdateTerrain(it.data, true);
+          UpdateTerrain(it.data);
        until not it.Next;
      end;
-
      FreeAndNil(it);
+     FreeAndNil(tiles);
 
+     tiles := GetInvalidTiles(centerTile);
      it:=tiles.NativeTiles.Find(centerTile);
 
      if Assigned(it) then
@@ -651,6 +657,7 @@ begin
 
        invalidForeignTilesCnt:=MaxInt;
        invalidNativeTilesCnt:=0;
+       centerPosValid := false;
 
         for i := 0 to rect.FWidth - 1 do
         begin
@@ -661,39 +668,71 @@ begin
             if TestTile.TerType <> centerTile.TerType then
             begin
               TestTile.TerType:=centerTile.TerType;
+              FOutQueue.Delete(TestTile);
               FOutQueue.Insert(TestTile);
 
-              invalid := GetInvalidTiles(TestTile);
+              testTiles := GetInvalidTiles(TestTile);
 
-              nativeTilesCntNorm:=ifthen(invalid.NativeTiles.IsEmpty, MaxInt, invalid.NativeTiles.Size);
+              nativeTilesCntNorm:=ifthen(testTiles.NativeTiles.IsEmpty, MaxInt, testTiles.NativeTiles.Size);
 
-              if (nativeTilesCntNorm > invalidNativeTilesCnt)
-                or ((nativeTilesCntNorm = invalidNativeTilesCnt) and (SizeInt(invalid.ForeignTiles.Size) < invalidForeignTilesCnt) ) then
+    					putSuitableTile  := false;
+    					addToSuitableTiles := false;
+
+              if testTiles.centerPosValid then
               begin
-                invalidNativeTilesCnt := nativeTilesCntNorm;
-                invalidForeignTilesCnt:=invalid.ForeignTiles.Size;
+                if not centerPosValid then
+                begin
+                  centerPosValid := true;
+                  putSuitableTile := true;
+                end
+                else
+                begin
+                  if testTiles.ForeignTiles.Size < invalidForeignTilesCnt then
+                  begin
+                    putSuitableTile := true;
+                  end
+                  else
+                  begin
+                    addToSuitableTiles := true;
+                  end;
+                end;
+              end
+              else if not centerPosValid then
+              begin
+                 if (nativeTilesCntNorm > invalidNativeTilesCnt)
+                   or ((nativeTilesCntNorm = invalidNativeTilesCnt) and (tiles.ForeignTiles.Size < invalidForeignTilesCnt)) then
+                 begin
+                   putSuitableTile := true;
+                 end
+                 else if (nativeTilesCntNorm = invalidNativeTilesCnt) and (tiles.ForeignTiles.Size = invalidForeignTilesCnt) then
+                 begin
+                   addToSuitableTiles := true;
+                 end;
+              end;
+
+              if putSuitableTile then
+              begin
+                invalidNativeTilesCnt:=nativeTilesCntNorm;
+                invalidForeignTilesCnt:=tiles.ForeignTiles.Size;
                 SuitableTiles.Free;
                 SuitableTiles := TTileSet.Create;
+                addToSuitableTiles := true;
+              end;
 
-                SuitableTiles.Insert(TestTile);
-
-              end
-              else if (nativeTilesCntNorm = invalidNativeTilesCnt) and (SizeInt(invalid.ForeignTiles.Size) = invalidForeignTilesCnt) then
+              if addToSuitableTiles then
               begin
                 SuitableTiles.Insert(TestTile);
               end;
 
-              invalid.Free;
+              FreeAndNil(testTiles);
               FOutQueue.Delete(TestTile);
             end;
           end;
         end;
 
-        tileRequiresValidation := invalidForeignTilesCnt > 0;
-
         if SuitableTiles.Size = 1 then
         begin
-          UpdateTerrain(SuitableTiles.NMin^.Data, tileRequiresValidation);
+          UpdateTerrain(SuitableTiles.NMin^.Data);
         end
         else
         begin
@@ -714,15 +753,32 @@ begin
 
              if Assigned(it2) then
              begin
-                UpdateTerrain(it2^.Data, tileRequiresValidation);
+                UpdateTerrain(it2^.Data);
                 Break;
              end;
           end;
         end;
         SuitableTiles.Free;
      end
-     else begin
+     else
+     begin
+        it := tiles.NativeTiles.Min;
+
+        if Assigned(it) then
+        begin
+          repeat
+             it2 := FInQueue.NFind(it.Data);
+
+             if not Assigned(it2) then
+             begin
+               FInQueue.Insert(it.Data);
+             end;
+          until not it.next ;
+        end;
+
         FInQueue.Delete(centerTile);
+
+        FOutQueue.Delete(centerTile);
         FOutQueue.Insert(centerTile);
      end;
      FreeAndNil(it);
@@ -906,6 +962,8 @@ var
   nativeTestStrongOk: Boolean;
   dirtTestOk: Boolean;
   sandTestOK: Boolean;
+
+  widthTooHigh, widthTooLess, heightTooHigh, heightTooLess: Boolean;
 begin
   Result.result:=false;
   Result.flip:=0;
@@ -933,7 +991,27 @@ begin
 
     if not FMap.IsOnMap(Level, cx,cy) then
     begin
-      cur_tinfo := info;
+			widthTooHigh := currentPos.x >= FMap.MapLevels[Level].Width;
+			widthTooLess := currentPos.x < 0;
+			heightTooHigh := currentPos.y >= FMap.MapLevels[Level].Height;
+			heightTooLess := currentPos.y < 0;
+
+ 			if ((widthTooHigh and heightTooHigh)
+         or (widthTooHigh and heightTooLess)
+         or (widthTooLess and heightTooHigh)
+         or (widthTooLess and heightTooLess)) then
+
+ 				cur_tinfo := info
+ 			else if widthTooHigh then
+        cur_tinfo := GetTileInfo(currentPos.x - 1, currentPos.y)
+ 			else if heightTooHigh then
+        cur_tinfo := GetTileInfo(currentPos.x, currentPos.y-1)
+ 			else if widthTooLess then
+ 				cur_tinfo := GetTileInfo(currentPos.x+1, currentPos.y)
+ 			else if heightTooLess then
+        cur_tinfo := GetTileInfo(currentPos.x, currentPos.y-1)
+      else
+        cur_tinfo := info;
     end
     else
     begin
