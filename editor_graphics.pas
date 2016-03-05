@@ -81,7 +81,7 @@ type
 
     procedure RenderIcon(X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
     procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
-    procedure RenderO (const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
+    procedure RenderO(const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;
 
@@ -851,6 +851,10 @@ procedure TDefAnimation.RenderIcon(X, Y: Integer; dim: integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
+  if entries.Size = 0 then
+  begin
+    Exit;
+  end;
   Sprite.TextureID := entries[0].TextureId;
   Sprite.PaletteID := FPaletteID;
   Sprite.Height := height;
@@ -886,6 +890,11 @@ var
   mir: UInt8;
   Sprite: TGLSprite;
 begin
+  if SpriteIndex > entries.Size then
+  begin
+    Exit;
+  end;
+
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;
@@ -906,6 +915,10 @@ procedure TDefAnimation.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: 
 var
   Sprite: TGLSprite;
 begin
+  if SpriteIndex > entries.Size then
+  begin
+    Exit;
+  end;
   Sprite.Height := height;
   Sprite.Width := width;
   Sprite.TextureID := entries[SpriteIndex].TextureId;

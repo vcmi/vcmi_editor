@@ -115,6 +115,7 @@ type
   TGLSprite = record
     TextureID: GLuint;
     PaletteID: Gluint;
+
     Width: Int32;
     Height: Int32;
 
