@@ -223,8 +223,8 @@ begin
   try
     pb.Canvas.Changing;
     pb.Canvas.Draw(0,0,FMapImg);
-    pb.Canvas.Pen.Style := psDash;
-    pb.Canvas.Pen.Color := clBlack;
+    pb.Canvas.Pen.Style := psDot;
+    pb.Canvas.Pen.Color := clGray;
 
     scaled_radar := ARadarRect;
     scaled_radar.Right:=round(FScale*scaled_radar.Right);
