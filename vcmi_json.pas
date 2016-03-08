@@ -78,6 +78,7 @@ type
       Data: TObject; var Continue: Boolean);
 
     procedure CollectionArrayCallback(Item: TJSONData; Data: TObject; var Continue: Boolean);
+
   protected
     procedure DoPreparePropName(var PropName: AnsiString); override;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); override;
@@ -812,17 +813,25 @@ Var
 
   value: TJSONStringType;
   idx: SizeInt;
+  Meta: TJSONStringType;
 begin
   PI:=PropInfo;
   TI:=PropInfo^.PropType;
 
-  if (TI = TypeInfo(TIdentifier)) and (PropData is TVCMIJsonString) then
+  if (TI = TypeInfo(TIdentifier)) then
   begin
-    str_data := TVCMIJsonString(PropData);
 
-    value := str_data.AsString;
+    value := '';
+    Meta := '';
 
-    if str_data.Meta <> '' then
+    if Assigned(PropData) and (PropData is TVCMIJsonString) then
+    begin
+      str_data := TVCMIJsonString(PropData);
+      value := str_data.AsString;
+      Meta := str_data.Meta;
+    end;
+
+    if Meta <> '' then
     begin
       //DebugLn(['Loading ident: ', value, '; meta: ', str_data.Meta]);
 
@@ -830,13 +839,14 @@ begin
 
       if idx = 0 then
       begin
-        value := str_data.Meta +':'+value;
+        value := Meta +':'+value;
       end;
-
     end;
 
     SetStrProp(AObject,PI,value);
   end
+  else if not Assigned(PropData) then
+    //SetDefault(AObject, PropInfo)
   else
   begin
     inherited DoRestoreProperty(AObject, PropInfo, PropData);
@@ -957,8 +967,9 @@ begin
   begin
     (AObject as ISerializeSpecial).Deserialize(Self, JSON);
   end
-  else begin
-    JSONToObject(JSON as TJSONObject, AObject);
+  else if JSON is TJSONObject then
+  begin
+    JSONToObject(TJSONObject(JSON), AObject);
   end;
 
   if AObject is ISerializeNotify then

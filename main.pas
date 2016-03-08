@@ -595,17 +595,14 @@ end;
 
 procedure TfMain.actPropertiesExecute(Sender: TObject);
 var
-  edit_form: TEditObjectOptions;
+  action_item : TEditObject;
 begin
   Assert(Assigned(FSelectedObject), 'actPropertiesExecute: No object selected');
-  edit_form := TEditObjectOptions.Create(Self);
-  try
-    edit_form.EditObject(FSelectedObject);
-    InvalidateMapContent;
-    FMinimap.InvalidateMap;
-  finally
-    edit_form.Free;
-  end;
+
+  action_item := TEditObject.Create(FMap);
+  action_item.TargetObject := FSelectedObject;
+
+  FUndoManager.ExecuteItem(action_item);
 end;
 
 procedure TfMain.actPropertiesUpdate(Sender: TObject);

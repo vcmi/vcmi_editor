@@ -27,8 +27,8 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects,
-  editor_str_consts, map_actions, editor_gl, editor_consts, map_rect, gset;
+  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects, editor_str_consts, map_actions,
+  editor_gl, editor_consts, map_rect, vcmi_json, edit_object_options, vcmi_fpjsonrtti, gset, fpjson;
 
 type
   { TMapObjectBrush }
@@ -80,6 +80,7 @@ type
   strict protected
     procedure FreeTargets; override; final;
   public
+    function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
     property TargetObject: TMapObject read FTargetObject write SetTargetObject;
   end;
 
@@ -130,12 +131,32 @@ type
 
 
   { TDeleteObject }
+
   TDeleteObject = class(TObjectAction)
   public
     procedure Execute; override;
     function GetDescription: string; override;
     procedure Redo; override;
     procedure Undo; override;
+    class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
+  end;
+
+  { TEditObject }
+
+  TEditObject = class(TObjectAction)
+  private
+    FOldOptions, FNewOptions: TJSONData;
+    FStreamer: TVCMIJSONStreamer;
+    FDestreamer: TVCMIJSONDestreamer;
+  public
+    constructor Create(AMap: TVCMIMap); override;
+    destructor Destroy; override;
+
+    procedure Execute; override;
+    procedure Redo; override;
+    procedure Undo; override;
+
+    function GetDescription: string; override;
     class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
   end;
 
@@ -156,12 +177,68 @@ type
     procedure Redo; override;
     procedure Undo; override;
 
+    function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
+
     property X:Integer read FX write SetX;
     property Y:Integer read FY write SetY;
     property L:Integer read FL write SetL;
   end;
 
 implementation
+
+{ TEditObject }
+
+constructor TEditObject.Create(AMap: TVCMIMap);
+begin
+  inherited Create(AMap);
+  FStreamer := TVCMIJSONStreamer.Create(nil);
+  FDestreamer := TVCMIJSONDestreamer.Create(nil);
+end;
+
+destructor TEditObject.Destroy;
+begin
+  FStreamer.Free;
+  FDestreamer.Free;
+  FreeAndNil(FNewOptions);
+  FreeAndNil(FOldOptions);
+  inherited Destroy;
+end;
+
+procedure TEditObject.Execute;
+var
+  edit_form: TEditObjectOptions;
+begin
+  edit_form := TEditObjectOptions.Create(nil);
+  try
+    FOldOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
+    edit_form.EditObject(TargetObject);
+    FNewOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
+  finally
+    edit_form.Free;
+  end;
+end;
+
+procedure TEditObject.Redo;
+begin
+  TargetObject.Options.Clear;
+  FDestreamer.JSONToObjectEx(FNewOptions, TargetObject.Options);
+end;
+
+procedure TEditObject.Undo;
+begin
+  TargetObject.Options.Clear;
+  FDestreamer.JSONToObjectEx(FOldOptions, TargetObject.Options);
+end;
+
+function TEditObject.GetDescription: string;
+begin
+  Result := rsEditObjectDescription;
+end;
+
+class function TEditObject.GetOwnershipTrait: TObjectOwnershipTrait;
+begin
+  Result:=TObjectOwnershipTrait.NoFree;
+end;
 
 { TMapObjectBrush }
 
@@ -306,6 +383,18 @@ end;
 procedure TObjectAction.FreeTargets;
 begin
   FreeAndNil(FTargetObject);
+end;
+
+function TObjectAction.GetChangedRegion(ALevelIndex: integer): TMapRect;
+begin
+  if ALevelIndex = TargetObject.L then
+  begin
+    Result := TargetObject.GetRegion;
+  end
+  else
+  begin
+    Result.Create();
+  end;
 end;
 
 { TAddObject }
@@ -458,6 +547,25 @@ begin
   TargetObject.X:=FOldX;
   TargetObject.Y:=FOldY;
   TargetObject.Collection := FMap.Objects;
+end;
+
+function TMoveObject.GetChangedRegion(ALevelIndex: integer): TMapRect;
+begin
+  if (ALevelIndex = FL) and (FOldL = FL) then
+  begin
+    Result := TargetObject.GetRegion(FOldX, FOldY);
+    Result.CombineWith(TargetObject.GetRegion(FX, FY));
+  end
+  else if ALevelIndex = FOldL then
+  begin
+    Result := TargetObject.GetRegion(FOldX, FOldY);
+  end
+  else if ALevelIndex = FL then
+  begin
+    Result := TargetObject.GetRegion(FX, FY);
+  end
+  else
+    Result.Create();
 end;
 
 

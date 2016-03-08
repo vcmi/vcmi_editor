@@ -69,6 +69,7 @@ resourcestring
 
   rsAddObjectDescription = 'Add object';
   rsDeleteObjectDescription = 'Delete object';
+  rsEditObjectDescription = 'Edit object';
   rsMoveObjectDescription = 'Move object';
 
 implementation

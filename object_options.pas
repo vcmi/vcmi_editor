@@ -61,6 +61,8 @@ type
   public
     constructor Create(AObject: IMapObject); virtual;
 
+    procedure Clear; virtual;
+
     procedure ApplyVisitor({%H-}AVisitor: IObjectOptionsVisitor); virtual;
 
     property MapObject: IMapObject read FObject;
@@ -130,6 +132,7 @@ type
   public
     property Amount[AType: TResType]: integer read GetAmount write SetAmount;
     function IsEmpty: Boolean;
+    procedure Clear;
   published
     property Wood: integer index TResType.wood read GetAmount write SetAmount default 0;
     property Mercury: integer index TResType.mercury read GetAmount write SetAmount default 0;
@@ -180,6 +183,8 @@ type
   public
     constructor Create(AOwner: IMapObject);
     destructor Destroy; override;
+
+    procedure Clear;
 
     procedure SetKillTarget(AValue: String);
   published
@@ -263,6 +268,8 @@ type
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
+
+    procedure Clear; override;
   published
     property Guards: TCreatureSet read FGuards;
     property GuardMessage:TLocalizedString read FGuardMessage write SetGuardMessage;
@@ -274,6 +281,7 @@ type
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     class function CanBeOwned: Boolean; override;
+    procedure Clear; override;
   published
     property Owner default TPlayer.none;
   end;
@@ -286,6 +294,7 @@ type
     procedure SetText(AValue: TLocalizedString);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Text: TLocalizedString read FText write SetText;
   end;
@@ -317,6 +326,7 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Creatures: TCreatureSet read FCreatures;
 
@@ -341,17 +351,14 @@ type
     FAvailableFor: TPlayers;
     FHumanActivable: boolean;
     FRemoveAfterVisit: Boolean;
-    procedure SetAIActivable(AValue: boolean);
-    procedure SetAvailableFor(AValue: TPlayers);
-    procedure SetHumanActivable(AValue: boolean);
-    procedure SetRemoveAfterVisit(AValue: Boolean);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
-    property HumanActivable: boolean read FHumanActivable write SetHumanActivable default True;
-    property AIActivable: boolean read FAIActivable write SetAIActivable default False;
-    property RemoveAfterVisit: Boolean read FRemoveAfterVisit write SetRemoveAfterVisit default False;
-    property AvailableFor: TPlayers read FAvailableFor write SetAvailableFor default ALL_PLAYERS;
+    property HumanActivable: boolean read FHumanActivable write FHumanActivable default True;
+    property AIActivable: boolean read FAIActivable write FAIActivable default False;
+    property RemoveAfterVisit: Boolean read FRemoveAfterVisit write FRemoveAfterVisit default False;
+    property AvailableFor: TPlayers read FAvailableFor write FAvailableFor default ALL_PLAYERS;
   end;
 
   { THeroOptions }
@@ -385,6 +392,8 @@ type
 
     procedure AfterSerialize(Sender: TObject; AData: TJSONData); override;
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
+
+    procedure Clear; override;
   public//IHeroInfo
     function GetHeroIdentifier: AnsiString;
 
@@ -471,6 +480,7 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property NeverFlees: boolean read FNeverFlees write SetNeverFlees default False;
     property NoGrowing: boolean read FNoGrowing write SetNoGrowing default False;
@@ -497,6 +507,7 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Quest: TQuest read FQuest;
 
@@ -510,12 +521,11 @@ type
   TWitchHutOptions = class(TObjectOptions)
   private
     FAllowedSkills: TLogicalIDCondition;
-
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
-
+    procedure Clear; override;
   published
     property AllowedSkills: TLogicalIDCondition read FAllowedSkills;
   end;
@@ -534,12 +544,11 @@ type
     constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
-    procedure Clear;
+    procedure Clear; override;
   published
     property RewardPrimSkill: AnsiString read FRewardPrimSkill write SetRewardPrimSkill;
     property RewardSkill: AnsiString read FRewardSecSkill write SetRewardSecSkill;
     property RewardSpell: AnsiString read FRewardSpell write SetRewardSpell;
-
   end;
 
   { TGarrisonOptions }
@@ -548,14 +557,14 @@ type
   private
     FArmy: TCreatureSet;
     FRemovableUnits: Boolean;
-    procedure SetRemovableUnits(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Army: TCreatureSet read FArmy;
-    property RemovableUnits: Boolean read FRemovableUnits write SetRemovableUnits;
+    property RemovableUnits: Boolean read FRemovableUnits write FRemovableUnits;
   end;
 
   { TArtifactOptions }
@@ -570,12 +579,12 @@ type
   TSpellScrollOptions = class(TArtifactOptions)
   private
     FSpell: AnsiString;
-    procedure SetSpell(AValue: AnsiString);
   public
     constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
-    property Spell: AnsiString read FSpell write SetSpell;
+    property Spell: AnsiString read FSpell write FSpell;
   end;
 
   { TResourceOptions }
@@ -583,11 +592,11 @@ type
   TResourceOptions = class(TGuardedObjectOptions)
   private
     FAmount: Integer;
-    procedure SetAmount(AValue: Integer);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
-    property Amount: Integer read FAmount write SetAmount;
+    property Amount: Integer read FAmount write FAmount;
   end;
 
   { TTownOptions }
@@ -605,6 +614,7 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Army: TCreatureSet read FArmy;
     property TightFormation: Boolean read GetTightFormation write SetTightFormation;
@@ -623,7 +633,7 @@ type
     destructor Destroy; override;
 
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
-
+    procedure Clear; override;
   published
     property PossibleResources: TStrings read FPossibleResources;
   end;
@@ -638,6 +648,7 @@ type
     class function GetSpellLevel: Integer; virtual; abstract;
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
     property SpellLevel: Integer read GetSpellLevel;
   published
     property Spell: AnsiString read FSpell write SetSpell;
@@ -672,8 +683,9 @@ type
     procedure SetRadius(AValue: Integer);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
-    property Radius: Integer read FRadius write SetRadius;
+    property Radius: Integer read FRadius write FRadius;
   end;
 
   { TBaseRandomDwellingOptions }
@@ -690,6 +702,8 @@ type
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
+
+    procedure Clear; override;
 
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
@@ -745,6 +759,7 @@ type
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
   published
     property Quest: TQuest read FQuest;
   end;
@@ -759,6 +774,7 @@ type
     procedure SetTypeID(AValue: AnsiString);
   public
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure Clear; override;
 
     class function ZIndex: Integer; override;
     class function CanBeOwned: Boolean; override;
@@ -802,9 +818,6 @@ type
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);
   end;
 
-
-
-
 implementation
 
 { TObjectOptions }
@@ -812,6 +825,11 @@ implementation
 constructor TObjectOptions.Create(AObject: IMapObject);
 begin
   FObject := AObject;
+end;
+
+procedure TObjectOptions.Clear;
+begin
+  //do nothing here
 end;
 
 procedure TObjectOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
@@ -1127,6 +1145,14 @@ begin
   Exit(true)
 end;
 
+procedure TResourceSet.Clear;
+var
+  typ: TResType;
+begin
+  for typ in TResType do
+    SetAmount(typ, 0);
+end;
+
 { TAbandonedOptions }
 
 constructor TAbandonedOptions.Create(AObject: IMapObject);
@@ -1144,6 +1170,12 @@ end;
 procedure TAbandonedOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitAbandonedMine(Self);
+end;
+
+procedure TAbandonedOptions.Clear;
+begin
+  inherited Clear;
+  PossibleResources.Clear;
 end;
 
 { TQuest }
@@ -1262,11 +1294,41 @@ begin
   inherited Destroy;
 end;
 
+procedure TQuest.Clear;
+begin
+  FirstVisitText := '';
+  NextVisitText := '';
+  CompletedText := '';
+
+  MissionType := TQuestMission.None;
+  TimeLimit := -1;
+
+  Artifacts.Clear;
+  Army.Clear;
+  Resources.Clear;
+  PrimarySkills.Clear;
+
+  HeroLevel := -1;
+
+  Hero:='';
+
+  Player:=TPlayer.NONE;
+  KillTarget:='';
+end;
+
 { THeroPlaceholderOptions }
 
 procedure THeroPlaceholderOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitHeroPlaceholder(Self);
+end;
+
+procedure THeroPlaceholderOptions.Clear;
+begin
+  inherited Clear;
+  &Type := '';
+  Power:=0;
+  Owner := TPlayer.none;
 end;
 
 class function THeroPlaceholderOptions.ZIndex: Integer;
@@ -1306,11 +1368,23 @@ begin
   Result:=True;
 end;
 
+procedure TOwnedObjectOptions.Clear;
+begin
+  inherited Clear;
+  Owner:=TPlayer.none;
+end;
+
 { TQuestGuardOptions }
 
 procedure TQuestGuardOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitQuestGuard(Self);
+end;
+
+procedure TQuestGuardOptions.Clear;
+begin
+  inherited Clear;
+  Quest.Clear;
 end;
 
 constructor TQuestGuardOptions.Create(AObject: IMapObject);
@@ -1350,6 +1424,16 @@ destructor TBaseRandomDwellingOptions.Destroy;
 begin
   FAllowedFactions.Free;
   inherited Destroy;
+end;
+
+procedure TBaseRandomDwellingOptions.Clear;
+begin
+  inherited Clear;
+  MinLevel:=0;
+  MaxLevel:=7;
+  AllowedFactions.Clear;
+  SameAsTown:='';
+  Owner:=TPlayer.none;
 end;
 
 function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
@@ -1422,6 +1506,13 @@ begin
   inherited Destroy;
 end;
 
+procedure TGuardedObjectOptions.Clear;
+begin
+  inherited Clear;
+  GuardMessage:='';
+  Guards.Clear;
+end;
+
 procedure TGuardedObjectOptions.SetGuardMessage(AValue: TLocalizedString);
 begin
   FGuardMessage := AValue;
@@ -1469,14 +1560,19 @@ end;
 
 { TGrailOptions }
 
+procedure TGrailOptions.SetRadius(AValue: Integer);
+begin
+  Radius:=0;
+end;
+
 procedure TGrailOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitGrail(Self);
 end;
 
-procedure TGrailOptions.SetRadius(AValue: Integer);
+procedure TGrailOptions.Clear;
 begin
-  FRadius := AValue;
+  inherited Clear;
 end;
 
 { TPandorasOptions }
@@ -1557,11 +1653,32 @@ begin
   AVisitor.VisitPandorasBox(Self);
 end;
 
+procedure TPandorasOptions.Clear;
+begin
+  inherited Clear;
+  Creatures.Clear;
+  Experience := 0;
+  Mana := 0;
+  Morale := 0;
+  Luck := 0;
+  Resources.Clear;
+  PrimarySkills.Clear;
+  SecondarySkills.Clear;
+  Artifacts.Clear;
+  Spells.Clear;
+end;
+
 { TShrineOptions }
 
 procedure TShrineOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitShrine(Self);
+end;
+
+procedure TShrineOptions.Clear;
+begin
+  inherited Clear;
+  Spell := '';
 end;
 
 procedure TShrineOptions.SetSpell(AValue: AnsiString);
@@ -1599,6 +1716,16 @@ end;
 procedure TTownOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitTown(Self);
+end;
+
+procedure TTownOptions.Clear;
+begin
+  inherited Clear;
+  Army.Clear;
+  TightFormation:=False;
+  Name:='';
+  Spells.Clear;
+  Buildings.Clear;
 end;
 
 constructor TTownOptions.Create(AObject: IMapObject);
@@ -1639,9 +1766,10 @@ begin
   AVisitor.VisitResource(Self);
 end;
 
-procedure TResourceOptions.SetAmount(AValue: Integer);
+procedure TResourceOptions.Clear;
 begin
-  FAmount := AValue;
+  inherited Clear;
+  Amount:=0;
 end;
 
 { TSpellScrollOptions }
@@ -1651,16 +1779,16 @@ begin
   AVisitor.VisitSpellScroll(Self);
 end;
 
+procedure TSpellScrollOptions.Clear;
+begin
+  inherited Clear;
+  Spell := '';
+end;
+
 constructor TSpellScrollOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FSpell := 'magicArrow';
-end;
-
-procedure TSpellScrollOptions.SetSpell(AValue: AnsiString);
-begin
-  if FSpell = AValue then Exit;
-  FSpell := AValue;
 end;
 
 { TArtifactOptions }
@@ -1677,6 +1805,13 @@ begin
   AVisitor.VisitGarrison(Self);
 end;
 
+procedure TGarrisonOptions.Clear;
+begin
+  inherited Clear;
+  Army.Clear;
+  RemovableUnits:=false;
+end;
+
 constructor TGarrisonOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
@@ -1687,11 +1822,6 @@ destructor TGarrisonOptions.Destroy;
 begin
   FArmy.Free;
   inherited Destroy;
-end;
-
-procedure TGarrisonOptions.SetRemovableUnits(AValue: Boolean);
-begin
-  FRemovableUnits := AValue;
 end;
 
 { TScholarOptions }
@@ -1726,6 +1856,7 @@ end;
 
 procedure TScholarOptions.Clear;
 begin
+  inherited Clear;
   FRewardPrimSkill := '';
   FRewardSecSkill := '';
   FRewardSpell := '';
@@ -1736,6 +1867,12 @@ end;
 procedure TWitchHutOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitWitchHut(Self);
+end;
+
+procedure TWitchHutOptions.Clear;
+begin
+  inherited Clear;
+  AllowedSkills.Clear;
 end;
 
 constructor TWitchHutOptions.Create(AObject: IMapObject);
@@ -1759,6 +1896,14 @@ end;
 procedure TSeerHutOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitSeerHut(self);
+end;
+
+procedure TSeerHutOptions.Clear;
+begin
+  inherited Clear;
+  Quest.Clear;
+  RewardType := TSeerHutReward.nothing;
+  RewardValue := 0;
 end;
 
 procedure TSeerHutOptions.SetRewardType(AValue: TSeerHutReward);
@@ -1796,6 +1941,19 @@ end;
 procedure TCreatureOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitMonster(Self);
+end;
+
+procedure TCreatureOptions.Clear;
+begin
+  inherited Clear;
+  NeverFlees := false;
+  NoGrowing := false;
+  Amount := 0;
+  Character := TCreatureCharacter.compliant;
+
+  RewardMessage := '';
+  RewardResources.Clear;
+  RewardArtifact:='';
 end;
 
 procedure TCreatureOptions.SetNeverFlees(AValue: boolean);
@@ -1867,6 +2025,23 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   Sex:=LoadHeroSex(AData);
+end;
+
+procedure THeroOptions.Clear;
+begin
+  inherited Clear;
+  &type := '';
+  Army.Clear;
+  TightFormation := false;
+  PatrolRadius := -1;
+  Artifacts.Clear;
+  Biography:='';
+  Experience := 0;
+  Name:='';
+  Portrait:='';
+  PrimarySkills.Clear;
+  SecondarySkills.Clear;
+  Sex := THeroSex.default;
 end;
 
 function THeroOptions.GetHeroIdentifier: AnsiString;
@@ -1990,33 +2165,18 @@ end;
 
 { TLocalEventOptions }
 
-procedure TLocalEventOptions.SetAIActivable(AValue: boolean);
-begin
-  if FAIActivable=AValue then Exit;
-  FAIActivable:=AValue;
-end;
-
-procedure TLocalEventOptions.SetAvailableFor(AValue: TPlayers);
-begin
-  if FAvailableFor=AValue then Exit;
-  FAvailableFor:=AValue;
-end;
-
-procedure TLocalEventOptions.SetHumanActivable(AValue: boolean);
-begin
-  if FHumanActivable=AValue then Exit;
-  FHumanActivable:=AValue;
-end;
-
-procedure TLocalEventOptions.SetRemoveAfterVisit(AValue: Boolean);
-begin
-  if FRemoveAfterVisit=AValue then Exit;
-  FRemoveAfterVisit:=AValue;
-end;
-
 procedure TLocalEventOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitLocalEvent(Self);
+end;
+
+procedure TLocalEventOptions.Clear;
+begin
+  inherited Clear;
+  HumanActivable := true;
+  AIActivable:=False;
+  RemoveAfterVisit:=false;
+  AvailableFor := ALL_PLAYERS;
 end;
 
 { TSignBottleOptions }
@@ -2024,6 +2184,12 @@ end;
 procedure TSignBottleOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitSignBottle(Self);
+end;
+
+procedure TSignBottleOptions.Clear;
+begin
+  inherited Clear;
+  Text:='';
 end;
 
 procedure TSignBottleOptions.SetText(AValue: TLocalizedString);

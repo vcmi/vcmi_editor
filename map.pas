@@ -379,6 +379,9 @@ type
     Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
 
     property Visitable: Boolean read FIsVisitable;
+
+    property Width: Integer read mask_w;
+    property Height: Integer read mask_h;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -434,6 +437,11 @@ type
     procedure AssignTemplate(ATemplate: TObjTemplate);
 
     function FormatDisplayName(ACustomName: TLocalizedString): TLocalizedString;
+
+    function GetRegion: TMapRect;
+
+    //ignores position
+    function GetRegion(AX, AY: integer): TMapRect;
   public //IMapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
@@ -1628,6 +1636,20 @@ begin
     Result:=Format('%s::%s @ %d %d %d',[&type, subtype,X,Y,L])
   else
     Result:=Format('%s @ %d %d %d',[ACustomName,X,Y,L]);
+end;
+
+function TMapObject.GetRegion: TMapRect;
+begin
+  Result := GetRegion(x,y);
+end;
+
+function TMapObject.GetRegion(AX, AY: integer): TMapRect;
+begin
+  Result.Create();
+  Result.FTopLeft.X:=AX+1-FTemplate.Width;
+  Result.FTopLeft.Y:=AY+1-FTemplate.Height;
+  Result.FWidth:=FTemplate.Width;
+  Result.FHeight:=FTemplate.Height;
 end;
 
 procedure TMapObject.SetPlayer(AValue: TPlayer);

@@ -141,10 +141,17 @@ procedure TMapRect.CombineWith(Other: TMapRect);
 var
   new_topleft, new_bottomright: TMapCoord;
 begin
-  new_topleft.Reset(Min(FTopLeft.X, Other.FTopLeft.X), Min(FTopLeft.Y, Other.FTopLeft.Y));
-  new_bottomright.Reset(Max(Right(), Other.Right()), Max(Bottom(), Other.Bottom()));
+  if IsEmpty then
+  begin
+    SetFromCorners(Other.TopLeft, Other.BottomRight());
+  end
+  else
+  begin
+    new_topleft.Reset(Min(FTopLeft.X, Other.FTopLeft.X), Min(FTopLeft.Y, Other.FTopLeft.Y));
+    new_bottomright.Reset(Max(Right(), Other.Right()), Max(Bottom(), Other.Bottom()));
 
-  SetFromCorners(new_topleft,new_bottomright);
+    SetFromCorners(new_topleft,new_bottomright);
+  end;
 end;
 
 procedure TMapRect.Clear;

@@ -350,8 +350,8 @@ begin
         Error(SErrUnsupportedObjectData,[JsonTypeName(PropData.JSONType){GetEnumName(TypeInfo(TJSONType),Ord(PropData.JSONType))}]);
       SetObjectProp(AObject,PropInfo,O);
       end;
-    If (O<>Nil) and (PropData.JSONType=jtObject) then
-      JSONToObjectEx(PropData as TJSONObject,O);
+    If (O<>Nil) then
+      JSONToObjectEx(PropData,O);
     end;
 end;
 
@@ -397,7 +397,7 @@ begin
   case TI^.Kind of
     tkUnknown :
       Error(SErrUnknownPropertyKind,[PI^.Name]);
-    tkInteger :
+    tkInteger:
       SetOrdProp(AObject,PI,PropData.AsInteger);
     tkInt64 :
       SetOrdProp(AObject,PI,PropData.AsInt64);
@@ -503,11 +503,13 @@ begin
     Pil:=TPropInfoList.Create(AObject,tkProperties);
     try
       For I:=0 to PIL.Count-1 do
-        begin
+      begin
         J:=JSON.IndexOfName(PreparePropName(Pil.Items[i]^.Name),FCaseInsensitive);
         If (J<>-1) then
-          RestoreProperty(AObject,PIL.Items[i],JSON.Items[J]);
-        end;
+          RestoreProperty(AObject,PIL.Items[i],JSON.Items[J])
+        else
+          //RestoreProperty(AObject,PIL.Items[i],nil)
+      end;
     finally
       FreeAndNil(PIL);
     end;
@@ -600,9 +602,16 @@ Var
   I  : Integer;
   IO : TObject;
   N  : TJSONStringType;
-
 begin
+  if not Assigned(json) then
+  begin
+    AStrings.Clear;
+    Exit;
+  end;
+
   Case JSON.JSONType of
+    jtNull:
+      AStrings.Clear;
     jtString:
       begin
       AStrings.Clear;

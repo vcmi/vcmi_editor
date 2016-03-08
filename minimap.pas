@@ -76,8 +76,6 @@ type
 
     procedure Paint(pb: TPaintBox; ARadarRect: TRect);
 
-    procedure InvalidateMap; deprecated;
-
     procedure InvalidateRegion(ALevel: Integer; ARegion: TMapRect);
   end;
 
@@ -215,7 +213,6 @@ end;
 
 procedure TLevelMinimap.InvalidateRegion(ARegion: TMapRect);
 begin
-  //todo: invalidate map only on change
   FInvalidRegion.CombineWith(ARegion);
 end;
 
@@ -264,12 +261,6 @@ destructor TMinimap.Destroy;
 begin
   FLevelMinimaps.Free;
   inherited Destroy;
-end;
-
-procedure TMinimap.InvalidateMap;
-begin
-  if Assigned(FMap) then
-    FLevelMinimaps[FMap.CurrentLevelIndex].InvalidateAll;
 end;
 
 procedure TMinimap.InvalidateRegion(ALevel: Integer; ARegion: TMapRect);
