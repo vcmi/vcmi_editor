@@ -3,7 +3,7 @@ object RootManager: TRootManager
   OnDestroy = DataModuleDestroy
   OldCreateOrder = False
   Height = 173
-  HorizontalOffset = 393
-  VerticalOffset = 206
+  HorizontalOffset = 394
+  VerticalOffset = 207
   Width = 302
 end

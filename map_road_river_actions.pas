@@ -27,7 +27,7 @@ unit map_road_river_actions;
 interface
 
 uses
-  Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, map_actions,
+  Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, editor_gl, map_actions,
   transitions, road_transitions;
 
 const
@@ -55,7 +55,7 @@ type
     procedure Clear; override;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);override;
 
-    procedure RenderCursor(AMap: TVCMIMap;X,Y: integer); override;
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); override;
 
     property RoadType: TRoadType read FRoadType write SetRoadType;
     property RiverType: TRiverType read FRiverType write SetRiverType;
@@ -306,13 +306,12 @@ begin
   Clear;
 end;
 
-procedure TRoadRiverBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
+procedure TRoadRiverBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
   if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
     and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water])
   then
-    inherited RenderCursor(X, Y,1);
-
+    inherited RenderCursor(State, X, Y, 1);
 end;
 
 { TEditRoadRiver }
@@ -703,7 +702,7 @@ begin
     info.RoadDir:=0;
     info.RoadFlip:=0;
     info.RiverType:=UInt8(RiverType);
-    info.RiverDir:=9;
+    info.RiverDir:=0;
     info.RiverFlip := 0;
 
     FInQueue.Insert(info);

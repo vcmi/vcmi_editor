@@ -28,11 +28,34 @@ interface
 
 uses
   Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects,
-  editor_str_consts, map_actions;
+  editor_str_consts, map_actions, editor_gl, editor_consts, gset;
 
 type
-  TMapObjectBrush = class (TMapBrush)
+  { TMapObjectBrush }
 
+  TMapObjectBrush = class (TMapBrush)
+  strict private
+    FStartCoord: TMapCoord;
+    FEndCooord: TMapCoord;
+
+    FSelectedObjects: TMapObjectSet;
+    FVisibleObjects: TMapObjectList;
+  protected
+    procedure AddTile(AMap: TVCMIMap;AX,AY: integer); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure Clear; override;
+
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
+
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap;X,Y: integer); override;
+    procedure RenderSelection(State: TLocalState); override;
+
+    procedure TileMouseDown(AMap: TVCMIMap; X, Y: integer); override;
+
+    property VisibleObjects: TMapObjectList read FVisibleObjects write FVisibleObjects;
   end;
 
 
@@ -139,6 +162,86 @@ type
   end;
 
 implementation
+
+{ TMapObjectBrush }
+
+procedure TMapObjectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
+begin
+  if Assigned(FVisibleObjects) then
+  begin
+    AMap.SelectObjectsOnTile(FVisibleObjects, AMap.CurrentLevelIndex, Ax, AY, FSelectedObjects);
+  end;
+  FEndCooord.Reset(AX,AY);
+end;
+
+constructor TMapObjectBrush.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FSelectedObjects := TMapObjectSet.Create;
+end;
+
+destructor TMapObjectBrush.Destroy;
+begin
+  FSelectedObjects.Free;
+  inherited Destroy;
+end;
+
+procedure TMapObjectBrush.Clear;
+begin
+  inherited Clear;
+  FreeAndNil(FSelectedObjects);
+  FSelectedObjects := TMapObjectSet.Create;
+end;
+
+procedure TMapObjectBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+begin
+  //do nothing
+end;
+
+procedure TMapObjectBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
+begin
+  //do nothing, default sysytem cursor is enough
+end;
+
+procedure TMapObjectBrush.RenderSelection(State: TLocalState);
+var
+  it: TMapObjectSet.TIterator;
+
+  cx,cy: Integer;
+  r:TMapRect;
+begin
+
+  it := FSelectedObjects.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      it.Data.RenderSelectionRect;
+
+    until not it.Next;
+
+    FreeAndNil(it);
+  end;
+
+
+  if Dragging then
+  begin
+    State.StartDrawingRects;
+    r.SetFromCorners(FStartCoord,FEndCooord);
+
+    cx := r.FTopLeft.X * TILE_SIZE;
+    cy := r.FTopLeft.Y * TILE_SIZE;
+    State.SetFragmentColor(RECT_COLOR);
+    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
+    State.StopDrawing;
+  end;
+end;
+
+procedure TMapObjectBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
+begin
+  inherited TileMouseDown(AMap, X, Y);
+  FStartCoord.Reset(X,Y);
+end;
 
 { TBaseObjectAction }
 

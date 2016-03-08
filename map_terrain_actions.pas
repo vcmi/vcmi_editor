@@ -66,7 +66,7 @@ type
   public
     property Mode: TTerrainBrushMode read GetMode;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
-    procedure RenderCursor(AMap: TVCMIMap;X,Y: integer); override;
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); override;
 
     property TT: TTerrainType read FTT write SetTT;
 
@@ -203,11 +203,10 @@ begin
   Clear;
 end;
 
-procedure TTerrainBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
+procedure TTerrainBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-
   if Mode = TTerrainBrushMode.fixed then
-    inherited RenderCursor(X,Y, Size);
+    inherited RenderCursor(State, X,Y, Size);
 end;
 
 { TAreaTerrainBrush }

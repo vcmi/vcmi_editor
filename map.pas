@@ -25,7 +25,7 @@ unit Map;
 interface
 
 uses
-  Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue,
+  Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue, gset,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, vcmi_json, locale_manager,
@@ -453,6 +453,16 @@ type
     function HasOptions: boolean;
   end;
 
+
+  { TDefaultMapObjectCompare }
+
+  TDefaultMapObjectCompare = class
+  public
+    class function c(a,b: TMapObject): boolean;
+  end;
+
+  TMapObjectSet = specialize TSet<TMapObject, TDefaultMapObjectCompare>;
+
   { TBlitOrderCompare }
 
   TBlitOrderCompare = class
@@ -696,6 +706,7 @@ type
     property ListsManager: TListsManager read FListsManager;
 
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
+    class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet);
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
@@ -747,6 +758,13 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
+
+{ TDefaultMapObjectCompare }
+
+class function TDefaultMapObjectCompare.c(a, b: TMapObject): boolean;
+begin
+  Result := PtrUInt(Pointer(a)) < PtrUInt(Pointer(b));
+end;
 
 { TMapObjectList }
 
@@ -2265,8 +2283,6 @@ var
   o: TMapObject;
   i: Integer;
 begin
-  //TODO: use mask
-
   for i := 0 to ASource.Count - 1 do
   begin
     o := ASource[i];
@@ -2274,6 +2290,22 @@ begin
     if o.CoversTile(Level,x,y) then
     begin
       ATarget.Push(o);
+    end;
+  end;
+end;
+
+class procedure TVCMIMap.SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet);
+var
+  o: TMapObject;
+  i: Integer;
+begin
+  for i := 0 to ASource.Count - 1 do
+  begin
+    o := ASource[i];
+
+    if o.CoversTile(Level,x,y) then
+    begin
+      ATarget.Insert(o);
     end;
   end;
 end;

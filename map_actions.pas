@@ -105,7 +105,7 @@ type
     procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
 
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
-    procedure RenderCursor(X,Y, Size: integer);
+    procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -119,9 +119,8 @@ type
     procedure TileMouseUp(AMap: TVCMIMap; X,Y: integer);virtual;
     procedure TileMouseMove(AMap: TVCMIMap; X,Y: integer);virtual;
 
-    procedure RenderCursor(AMap: TVCMIMap; X,Y: integer); virtual;
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); virtual;
     procedure RenderSelection(State: TLocalState); virtual;
-
   end;
 
   { TIdleMapBrush }
@@ -320,7 +319,7 @@ begin
   end;
 end;
 
-procedure TMapBrush.RenderCursor(X, Y, Size: integer);
+procedure TMapBrush.RenderCursor(State: TLocalState; X, Y, Size: integer);
 var
   dim: Integer;
   cx,cy: Integer;
@@ -328,14 +327,13 @@ begin
   cx := X * TILE_SIZE;
   cy := Y * TILE_SIZE;
 
-  editor_gl.CurrentContextState.StartDrawingRects;
+  State.StartDrawingRects;
 
-  editor_gl.CurrentContextState.SetFragmentColor(RECT_COLOR);
+  State.SetFragmentColor(RECT_COLOR);
 
   dim := TILE_SIZE * Size;
-  editor_gl.CurrentContextState.RenderRect(cx,cy,dim,dim);
-  editor_gl.CurrentContextState.StopDrawing;
-
+  State.RenderRect(cx,cy,dim,dim);
+  State.StopDrawing;
 end;
 
 constructor TMapBrush.Create(AOwner: TComponent);
@@ -381,7 +379,7 @@ begin
   end;
 end;
 
-procedure TMapBrush.RenderCursor(AMap: TVCMIMap; X, Y: integer);
+procedure TMapBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
 
 end;

@@ -298,6 +298,8 @@ type
     FFixedTerrainBrush: TFixedTerrainBrush;
     FAreaTerrainBrush: TAreaTerrainBrush;
     FRoadRiverBrush: TRoadRiverBrush;
+    FObjectBrush: TMapObjectBrush;
+
 
     //selected brush
     FActiveBrush: TMapBrush;
@@ -362,6 +364,7 @@ type
 
     procedure RenderCursor;
     procedure RenderGrid;
+    procedure RenderSelection;
 
     procedure LoadMap(AFileName: string);
     procedure SaveMap(AFileName: string);
@@ -887,6 +890,7 @@ begin
   FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
+  FObjectBrush := TMapObjectBrush.Create(Self);
 
   RoadType.ItemIndex := -1; //this must be done after construction of brushes
   RiverType.ItemIndex:= -1;
@@ -897,6 +901,8 @@ begin
 
   FVisibleObjects := TMapObjectList.Create();
   FVisibleObjectsValid:=false;
+
+  FObjectBrush.VisibleObjects := FVisibleObjects;
 
   //load map if specified
 
@@ -1558,21 +1564,10 @@ begin
     FDragging.Render(FMouseTileX,FMouseTileY);
   end;
 
-  FMapViewState.SetUseFlag(false);
-  FMapViewState.StartDrawingRects;
-  FMapViewState.UseNoTextures();
-
-  if Assigned(FSelectedObject) then
-  begin
-    FSelectedObject.RenderSelectionRect;
-  end;
-
-  FActiveBrush.RenderSelection(FMapViewState);
-
-  glDisable(GL_SCISSOR_TEST);
-
+  RenderSelection;
   RenderCursor;
 
+  glDisable(GL_SCISSOR_TEST);
   glDisable (GL_BLEND);
 
   FMapViewState.StopDrawing;
@@ -1932,7 +1927,7 @@ end;
 
 procedure TfMain.RenderCursor;
 begin
-  FActiveBrush.RenderCursor(fmap, FMouseTileX, FMouseTileY);
+  FActiveBrush.RenderCursor(FMapViewState, fmap, FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.RenderGrid;
@@ -1953,6 +1948,20 @@ begin
       FMapViewState.RenderRect(i*TILE_SIZE,j*TILE_SIZE, TILE_SIZE, TILE_SIZE);
     end;
   end;
+end;
+
+procedure TfMain.RenderSelection;
+begin
+  FMapViewState.SetUseFlag(false);
+  FMapViewState.StartDrawingRects;
+  FMapViewState.UseNoTextures();
+
+  if Assigned(FSelectedObject) then
+  begin
+    FSelectedObject.RenderSelectionRect;
+  end;
+
+  FActiveBrush.RenderSelection(FMapViewState);
 end;
 
 procedure TfMain.SaveMap(AFileName: string);
