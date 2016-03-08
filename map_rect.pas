@@ -39,6 +39,7 @@ type
     constructor Create();
     constructor SetFromCenter(X,Y, Width,Height: integer);
     constructor SetFromCorners(AFirst, ASecond:TMapCoord);
+    constructor SetFromCorners(X1,Y1,X2,Y2:Integer);
 
     function Left(): integer; inline;
     function Right(): integer; inline;
@@ -207,6 +208,15 @@ begin
 
   FWidth := abs(AFirst.X-ASecond.X)+1;
   FHeight := abs(AFirst.Y-ASecond.Y)+1;
+end;
+
+constructor TMapRect.SetFromCorners(X1, Y1, X2, Y2: Integer);
+var
+  AFirst, ASecond: TMapCoord;
+begin
+  AFirst.Reset(x1,y1);
+  ASecond.Reset(x2,y2);
+  SetFromCorners(AFirst, ASecond);
 end;
 
 end.

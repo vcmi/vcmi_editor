@@ -101,6 +101,8 @@ type
     procedure UpdateTile(ATile: PTileRoadInfo; pattern: TSimplePattern; flip: Integer); virtual; abstract;
     function TileHasRoadRiver(ATile: TTileRoadInfo): boolean; virtual; abstract;
     function CanApplyPattern(APattern: TSimplePattern): boolean; virtual; abstract;
+
+    function GetChangedRegion(): TMapRect; override; final;
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
@@ -482,6 +484,11 @@ begin
   Result.RiverType:=tile^.RiverType;
   Result.RiverDir:=tile^.RiverDir;
   Result.RiverFlip:=(tile^.Flags shr 2) mod 4;
+end;
+
+function TEditRoadRiver.GetChangedRegion: TMapRect;
+begin
+  Result.Create(); //no invalidation
 end;
 
 constructor TEditRoadRiver.Create(AMap: TVCMIMap);

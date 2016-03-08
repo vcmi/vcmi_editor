@@ -54,7 +54,7 @@ type
     procedure AddTile(X,Y: integer); virtual; abstract;
     property Level: Integer read FLevel write FLevel;
 
-    function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
+    function GetChangedRegion(ALevelIndex: integer): TMapRect; override; final;
   end;
 
   { TMapBrush }

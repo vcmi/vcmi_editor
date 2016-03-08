@@ -34,6 +34,8 @@ type
   TTerrainBrushMode = (none, fixed, area, fill);
 
 type
+  PTileTerrainInfo  = ^TTileTerrainInfo;
+
   TTileTerrainInfo = record
     X,Y: integer;
     TerType: TTerrainType;
@@ -121,6 +123,8 @@ type
 
     FInvalidated: TTileSet;
 
+    FRegion: TMapRect;
+
     function GetTinfo(x, y: integer): TTileTerrainInfo;
     procedure UndoTile(constref Tile: TTileTerrainInfo);
     //no checking
@@ -146,6 +150,8 @@ type
 
     procedure UpdateTerrainTypes();
     procedure	UpdateTerrainViews();
+  protected
+    function GetChangedRegion(): TMapRect; override; final;
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
@@ -349,6 +355,7 @@ begin
   inherited Create(AMap);
   FOldTileInfos := TTileTerrainInfos.Create;
   FNewTileInfos := TTileTerrainInfos.Create;
+  FRegion.Create();
 end;
 
 destructor TEditTerrain.Destroy;
@@ -366,6 +373,10 @@ var
   i:SizeInt;
 
   it: TTileSet.TIterator;
+
+  minx, maxx, miny, maxy: integer;
+
+  current: PTileTerrainInfo;
 begin
   FInQueue := TTileSet.Create;
   FOutQueue := TTileSet.Create;
@@ -378,7 +389,7 @@ begin
 
   for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
-     FInQueue.Insert(FNewTileInfos[i]);
+    FInQueue.Insert(FNewTileInfos[i]);
   end;
 
   UpdateTerrainTypes();
@@ -387,6 +398,7 @@ begin
   //process out queue
 
   FNewTileInfos.Clear;
+  FRegion.Clear();
 
   Assert(FInQueue.IsEmpty);
 
@@ -394,9 +406,34 @@ begin
 
   if Assigned(it) then
   begin
-    repeat
-      FNewTileInfos.PushBack(it.data);
-    until not it.next ;
+    current := @it.FNode^.Data;
+
+    minx := current^.x;
+    maxx := minx;
+    miny := current^.y;
+    maxy := miny;
+
+    FNewTileInfos.PushBack(current^);
+
+    while it.next do
+    begin
+      current := @it.FNode^.Data;
+
+      if current^.X < minx then
+        minx := current^.X;
+      if current^.Y < miny then
+        miny := current^.Y;
+
+      if current^.X > maxx then
+        maxx := current^.X;
+      if current^.Y > maxy then
+        maxy := current^.Y;
+
+      FNewTileInfos.PushBack(current^);
+    end;
+
+    FRegion.SetFromCorners(minx,miny, maxx, maxy);
+
     FreeAndNil(it);
   end;
 
@@ -875,6 +912,11 @@ begin
     until not it.next;
     FreeAndNil(it);
   end;
+end;
+
+function TEditTerrain.GetChangedRegion: TMapRect;
+begin
+  Result:=FRegion;
 end;
 
 procedure TEditTerrain.Undo;
