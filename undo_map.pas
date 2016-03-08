@@ -24,7 +24,7 @@ unit undo_map;
 interface
 
 uses
-  Classes, SysUtils, Math, undo_base, map, fgl;
+  Classes, SysUtils, Math, undo_base, map, map_rect, fgl;
 
 type
 
@@ -35,20 +35,14 @@ type
     FMap: TVCMIMap;
   public
     constructor Create(AMap: TVCMIMap); virtual;
-  end;
 
-  { TMultiTileMapAction }
-
-  TMultiTileMapAction = class(TMapUndoItem)
-  private
-    FLevel: Integer;
-    procedure SetLevel(AValue: Integer);
-  public
-    procedure AddTile(X,Y: integer); virtual; abstract;
-    property Level: Integer read FLevel write SetLevel;
+    //by default invalidates all tiles
+    function GetChangedRegion(ALevelIndex: integer): TMapRect; virtual;
   end;
 
   TItemStack = specialize TFPGObjectList<TAbstractUndoItem>;
+
+  TOnRegionInvalidated = procedure (ALevel: Integer; ARegion: TMapRect) of object;
 
   { TMapUndoManager }
 
@@ -59,7 +53,10 @@ type
 
     FCurrentPosition: Integer;
     FMap: TVCMIMap;
+    FOnRegionInvalidated: TOnRegionInvalidated;
     procedure SetMap(AValue: TVCMIMap);
+    procedure DoRegionInvalidated(ALevel: Integer; ARegion: TMapRect);
+    procedure CheckInvalidatedRegions(AItem: TAbstractUndoItem);
   public
     constructor Create;
     destructor Destroy; override;
@@ -80,23 +77,22 @@ type
     procedure Clear; override;
 
     property Map: TVCMIMap read FMap write SetMap;
+
+    property OnRegionInvalidated: TOnRegionInvalidated read FOnRegionInvalidated write FOnRegionInvalidated;
   end;
 
 implementation
-
-{ TMultiTileMapAction }
-
-procedure TMultiTileMapAction.SetLevel(AValue: Integer);
-begin
-  if FLevel=AValue then Exit;
-  FLevel:=AValue;
-end;
 
 { TMapUndoItem }
 
 constructor TMapUndoItem.Create(AMap: TVCMIMap);
 begin
   FMap := AMap;
+end;
+
+function TMapUndoItem.GetChangedRegion(ALevelIndex: integer): TMapRect;
+begin
+  Result := FMap.MapLevels[ALevelIndex].GetDimentions;
 end;
 
 { TMapUndoManger }
@@ -124,6 +120,33 @@ begin
   FMap:=AValue;
 end;
 
+procedure TMapUndoManager.DoRegionInvalidated(ALevel: Integer; ARegion: TMapRect);
+begin
+  if Assigned(FOnRegionInvalidated) then
+  begin
+    FOnRegionInvalidated(ALevel, ARegion);
+  end;
+end;
+
+procedure TMapUndoManager.CheckInvalidatedRegions(AItem: TAbstractUndoItem);
+var
+  level_index: Integer;
+  invalid_region: TMapRect;
+begin
+  if not Assigned(FMap) then
+    Exit;
+
+  if not (AItem is TMapUndoItem) then
+    Exit;
+
+  for level_index := 0 to FMap.MapLevels.Count - 1 do
+  begin
+    invalid_region :=  TMapUndoItem(AItem).GetChangedRegion(level_index);
+    if not invalid_region.IsEmpty then
+      DoRegionInvalidated(level_index, invalid_region);
+  end;
+end;
+
 constructor TMapUndoManager.Create;
 begin
   FItemStack := TItemStack.Create(True);
@@ -143,6 +166,7 @@ var
 begin
   SetItemState(AItem,TUndoItemState.Idle);
   AItem.Execute;
+  CheckInvalidatedRegions(AItem);
   SetItemState(AItem,TUndoItemState.ReDone);
   for i := FItemStack.Count - 1 downto Max(FCurrentPosition+1, 0) do
   begin
@@ -155,7 +179,6 @@ end;
 
 function TMapUndoManager.PeekCurrent: TAbstractUndoItem;
 begin
-
   if CanUndo then
   begin
     Result := FItemStack[FCurrentPosition];
@@ -163,7 +186,6 @@ begin
   else begin
     Result := nil;
   end;
-
 end;
 
 function TMapUndoManager.PeekNext: TAbstractUndoItem;
@@ -188,17 +210,25 @@ begin
 end;
 
 procedure TMapUndoManager.Redo;
+var
+  item: TAbstractUndoItem;
 begin
-  PeekNext.Redo;
-  SetItemState(PeekNext,TUndoItemState.ReDone);
+  item := PeekNext;
+  item.Redo;
+  CheckInvalidatedRegions(item);
+  SetItemState(item,TUndoItemState.ReDone);
   Inc(FCurrentPosition);
   FMap.IsDirty:= not IsCheckPoint;
 end;
 
 procedure TMapUndoManager.Undo;
+var
+  item: TAbstractUndoItem;
 begin
-  PeekCurrent.Undo;
-  SetItemState(PeekCurrent,TUndoItemState.UnDone);
+  item := PeekCurrent;
+  item.Undo;
+  CheckInvalidatedRegions(item);
+  SetItemState(item,TUndoItemState.UnDone);
   Dec(FCurrentPosition);
   FMap.IsDirty:= not IsCheckPoint;
 end;

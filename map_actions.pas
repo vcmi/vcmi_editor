@@ -29,9 +29,7 @@ uses
   Classes, SysUtils, Math, Map, gset, undo_base, editor_types, map_rect, undo_map,
   editor_gl;
 
-
 type
-
   { TGLessCoord }
 
   generic TGLessCoord <T> = class
@@ -42,7 +40,22 @@ type
   TCompareCoord = specialize TGLessCoord<TMapCoord>;
 
   TCoordSet = specialize TSet<TMapCoord,TCompareCoord>;
+
 type
+  { TMultiTileMapAction }
+
+  TMultiTileMapAction = class(TMapUndoItem)
+  private
+    FLevel: Integer;
+  protected
+    //by default invalidates all tiles
+    function GetChangedRegion(): TMapRect; virtual;
+  public
+    procedure AddTile(X,Y: integer); virtual; abstract;
+    property Level: Integer read FLevel write FLevel;
+
+    function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
+  end;
 
   { TMapBrush }
 
@@ -89,6 +102,25 @@ type
 implementation
 
 uses editor_consts;
+
+{ TMultiTileMapAction }
+
+function TMultiTileMapAction.GetChangedRegion: TMapRect;
+begin
+  Result := inherited GetChangedRegion(Level);
+end;
+
+function TMultiTileMapAction.GetChangedRegion(ALevelIndex: integer): TMapRect;
+begin
+  if ALevelIndex = Level then
+  begin
+    Result := GetChangedRegion();
+  end
+  else
+  begin
+    Result.Create();
+  end;
+end;
 
 { TGLessCoord }
 

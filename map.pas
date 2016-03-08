@@ -321,6 +321,8 @@ type
     procedure ObjectAdded(AObject:TMapObject); inline;
     procedure ObjectChanged(AObject:TMapObject); inline;
     procedure ObjectRemoved(AObject:TMapObject); inline;
+
+    function GetDimentions: TMapRect;
   published
     property Height: Integer read FHeight write SetHeight;
     property Width: Integer read FWidth write SetWidth;
@@ -1970,6 +1972,13 @@ begin
   AObject.Template.OnOwnerChanged(FTiles, TFPObservedOperation.ooDeleteItem);
 end;
 
+function TMapLevel.GetDimentions: TMapRect;
+begin
+  Result.Create;
+  Result.FWidth:=Width;
+  Result.FHeight:=Height;
+end;
+
 function TMapLevel.GetTile(X, Y: Integer): PMapTile;
 begin
   Result :=@FTiles[x,y];
@@ -2447,9 +2456,7 @@ end;
 
 function TVCMIMap.GetCurrentLevelDimensions: TMapRect;
 begin
-  Result.Create;
-  Result.FWidth:=CurrentLevel.Width;
-  Result.FHeight:=CurrentLevel.Height;
+  Result := CurrentLevel.GetDimentions;
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

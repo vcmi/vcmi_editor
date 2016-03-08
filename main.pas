@@ -29,7 +29,7 @@ uses
   ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
   map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, undo_map, object_options,
+  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect,
   player_options_form, edit_triggered_events, player_selection_form,
   types;
 
@@ -380,6 +380,7 @@ type
     procedure ResetFocus;
 
     procedure DoObjectsSearch;
+
   protected
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
@@ -601,6 +602,7 @@ begin
   try
     edit_form.EditObject(FSelectedObject);
     InvalidateMapContent;
+    FMinimap.InvalidateMap;
   finally
     edit_form.Free;
   end;
@@ -884,6 +886,8 @@ begin
 
   FMinimap := TMinimap.Create(Self);
 
+  FUndoManager.OnRegionInvalidated := @FMinimap.InvalidateRegion;
+
   FMap := TVCMIMap.CreateDefault(FEnv);
 
   FIdleBrush := TIdleMapBrush.Create(Self);
@@ -1047,7 +1051,6 @@ procedure TfMain.InvalidateMapContent;
 begin
   InvalidateVisibleObjects;
   MapView.Invalidate;
-  FMinimap.InvalidateMap;
   Minimap.Invalidate;
 end;
 
