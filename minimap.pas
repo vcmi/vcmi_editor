@@ -100,7 +100,7 @@ var
   tile: PMapTile;
 
   TempImage: TLazIntfImage;
-  left, top, right, bottom, imgWidth, imgHeight, levelWidth, levelHeight: Integer;
+  left, top, right, bottom, imgWidth, imgHeight, levelWidth: Integer;
   id: Int32;
   c: TPlayer;
 begin
@@ -114,7 +114,6 @@ begin
     imgHeight :=  FImage.Height;
 
     levelWidth := FLevel.Width;
-    levelHeight := FLevel.Height;
 
     FScale := imgWidth / levelWidth;
 
