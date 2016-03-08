@@ -24,30 +24,48 @@ unit minimap;
 interface
 
 uses
-  Classes, SysUtils, math, fgl, Graphics, Map, editor_types, editor_utils, editor_consts, editor_classes, ExtCtrls,
-  LCLProc, IntfGraphics;
+  Classes, SysUtils, math, fgl, Graphics, Map, editor_types, map_rect, editor_utils, editor_consts, editor_classes, editor_gl, ExtCtrls,
+  LCLProc, IntfGraphics, OpenGLContext;
 
 type
 
-  TBitmaps = specialize TFPGObjectList<TBitmap>;
+  { TLevelMinimap }
+
+  TLevelMinimap = class
+  private
+    FTerrainColors: array[TTerrainType] of TColor;
+    FTerrainBlockColors: array[TTerrainType] of TColor;
+
+    FScale: Double;
+    FLevel: TMapLevel;
+    FImage : TBitmap;
+
+    FInvalidRegion: TMapRect;
+
+    procedure ValidateImageSize(pb: TPaintBox);
+    procedure ValidateImage;
+  public
+    constructor Create(ALevel: TMapLevel);
+    destructor Destroy; override;
+
+    procedure InvalidateRegion(ARegion: TMapRect);
+    procedure InvalidateAll();
+
+    procedure Paint(pb: TPaintBox; ARadarRect: TRect);
+
+    property Scale: Double read FScale;
+  end;
+
+
+  TLevelMinimaps = specialize TFPGObjectList<TLevelMinimap>;
 
   { TMinimap }
 
   TMinimap = class (TComponent)
   private
-    FTerrainColors: array[TTerrainType] of TColor;
-    FTerrainBlockColors: array[TTerrainType] of TColor;
     FMap: TVCMIMap;
 
-    FMapImg : TBitmap;
-
-    FMapImgs: TBitmaps;
-
-    FMapImgValid: Boolean;
-
-    FScale: Double;
-
-    procedure MayBeUpdateImg;
+    FLevelMinimaps: TLevelMinimaps;
 
     procedure SetMap(AValue: TVCMIMap);
   public
@@ -58,71 +76,24 @@ type
 
     procedure Paint(pb: TPaintBox; ARadarRect: TRect);
 
-    procedure InvalidateLevel; //todo:InvalidateLevel
-
     procedure InvalidateMap;
   end;
 
 implementation
 
+{ TLevelMinimap }
 
-{ TMinimap }
-
-constructor TMinimap.Create(AOwner: TComponent);
+procedure TLevelMinimap.ValidateImageSize(pb: TPaintBox);
 begin
-  inherited Create(AOwner);
-
-  FterrainColors[TTerrainType.dirt] := RGBToColor( 82, 56, 8 );
-  FterrainColors[TTerrainType.sand] := RGBToColor(222, 207, 140);
-  FterrainColors[TTerrainType.grass] := RGBToColor(0, 65, 0 );
-  FterrainColors[TTerrainType.snow] := RGBToColor(181, 199, 198);
-  FTerrainColors[TTerrainType.swamp] := RGBToColor(74, 134, 107);
-
-  FterrainColors[TTerrainType.rough] := RGBToColor(132, 113, 49);
-  FterrainColors[TTerrainType.subterra] := RGBToColor(132, 48, 0);
-  FterrainColors[TTerrainType.lava] := RGBToColor(74, 73, 74);
-  FterrainColors[TTerrainType.water] := RGBToColor (8, 81, 148);
-  FterrainColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
-
-  FTerrainBlockColors[TTerrainType.dirt] := RGBToColor( 57, 40, 8 );
-  FTerrainBlockColors[TTerrainType.sand] := RGBToColor(165, 158, 107);
-  FTerrainBlockColors[TTerrainType.grass] := RGBToColor(0, 48, 0 );
-  FTerrainBlockColors[TTerrainType.snow] := RGBToColor(140, 158, 156);
-  FTerrainBlockColors[TTerrainType.swamp] := RGBToColor(33, 89, 66);
-
-  FTerrainBlockColors[TTerrainType.rough] := RGBToColor(99, 81, 33);
-  FTerrainBlockColors[TTerrainType.subterra] := RGBToColor(90, 8, 0);
-  FTerrainBlockColors[TTerrainType.lava] := RGBToColor(41, 40, 41);
-  FTerrainBlockColors[TTerrainType.water] := RGBToColor (8, 81, 148);
-  FTerrainBlockColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
-
-  FMapImg := TBitmap.Create;
-
-  FMapImgs := TBitmaps.Create(True);
+  if (FImage.Width<>pb.Width) or (FImage.Height<>pb.Height) then
+  begin
+    FImage.SetSize(pb.Width,pb.Height);
+    InvalidateAll();
+  end
 end;
 
-destructor TMinimap.Destroy;
-begin
-  FMapImgs.Free;
-
-  FMapImg.Free;
-  inherited Destroy;
-end;
-
-procedure TMinimap.InvalidateLevel;
-begin
-  //todo
-end;
-
-procedure TMinimap.InvalidateMap;
-begin
-  FMapImgValid := False;
-end;
-
-procedure TMinimap.MayBeUpdateImg;
+procedure TLevelMinimap.ValidateImage;
 var
-  level: Integer;
-
   row, col, x, y: Integer;
   tile_size: Integer;
 
@@ -133,20 +104,17 @@ var
   id: Int32;
   c: TPlayer;
 begin
-  if not Assigned(FMap) then
+  if FInvalidRegion.IsEmpty then
     Exit;
-  if FMapImgValid then
-    Exit;
-  level := FMap.CurrentLevelIndex;
 
-  TempImage := FMapImg.CreateIntfImage;
+  TempImage := FImage.CreateIntfImage;
 
   try
-    imgWidth :=  FMapImg.Width;
-    imgHeight :=  FMapImg.Height;
+    imgWidth :=  FImage.Width;
+    imgHeight :=  FImage.Height;
 
-    levelWidth := Fmap.CurrentLevel.Width;
-    levelHeight := FMap.CurrentLevel.Height;
+    levelWidth := FLevel.Width;
+    levelHeight := FLevel.Height;
 
     FScale := imgWidth / levelWidth;
 
@@ -156,7 +124,7 @@ begin
     begin
       for col := 0 to levelWidth - 1 do
       begin
-        tile := FMap.GetTile(level,col,row);
+        tile := FLevel.Tile[col,row];
 
         left := trunc(col*FScale);
         top := trunc(row*FScale);
@@ -195,34 +163,77 @@ begin
         end;
       end;
     end;
-    FMapImg.LoadFromIntfImage(TempImage);
+    FImage.LoadFromIntfImage(TempImage);
   finally
     TempImage.Free;
   end;
 
-  FMapImgValid := True;
+  FInvalidRegion.Clear();
 end;
 
-procedure TMinimap.Paint(pb: TPaintBox; ARadarRect: TRect);
-var
-  scaled_radar:  TRect;
+constructor TLevelMinimap.Create(ALevel: TMapLevel);
 begin
-  if not Assigned(FMap) then
-    Exit;
-  //TODO: more accurate painting
+  FImage := TBitmap.Create;
+  FLevel := ALevel;
+  FInvalidRegion.Create();
+  FInvalidRegion.FWidth := FLevel.Width;
+  FInvalidRegion.FHeight := FLevel.Height;
+
+  //todo: use json configuration
+  FterrainColors[TTerrainType.dirt] := RGBToColor( 82, 56, 8 );
+  FterrainColors[TTerrainType.sand] := RGBToColor(222, 207, 140);
+  FterrainColors[TTerrainType.grass] := RGBToColor(0, 65, 0 );
+  FterrainColors[TTerrainType.snow] := RGBToColor(181, 199, 198);
+  FTerrainColors[TTerrainType.swamp] := RGBToColor(74, 134, 107);
+
+  FterrainColors[TTerrainType.rough] := RGBToColor(132, 113, 49);
+  FterrainColors[TTerrainType.subterra] := RGBToColor(132, 48, 0);
+  FterrainColors[TTerrainType.lava] := RGBToColor(74, 73, 74);
+  FterrainColors[TTerrainType.water] := RGBToColor (8, 81, 148);
+  FterrainColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
+
+  FTerrainBlockColors[TTerrainType.dirt] := RGBToColor( 57, 40, 8 );
+  FTerrainBlockColors[TTerrainType.sand] := RGBToColor(165, 158, 107);
+  FTerrainBlockColors[TTerrainType.grass] := RGBToColor(0, 48, 0 );
+  FTerrainBlockColors[TTerrainType.snow] := RGBToColor(140, 158, 156);
+  FTerrainBlockColors[TTerrainType.swamp] := RGBToColor(33, 89, 66);
+
+  FTerrainBlockColors[TTerrainType.rough] := RGBToColor(99, 81, 33);
+  FTerrainBlockColors[TTerrainType.subterra] := RGBToColor(90, 8, 0);
+  FTerrainBlockColors[TTerrainType.lava] := RGBToColor(41, 40, 41);
+  FTerrainBlockColors[TTerrainType.water] := RGBToColor (8, 81, 148);
+  FTerrainBlockColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
+end;
+
+destructor TLevelMinimap.Destroy;
+begin
+  FImage.Free;
+  inherited Destroy;
+end;
+
+procedure TLevelMinimap.InvalidateRegion(ARegion: TMapRect);
+begin
   //todo: invalidate map only on change
+  FInvalidRegion.CombineWith(ARegion);
+end;
 
-  if (FMapImg.Width<>pb.Width) or (FMapImg.Height<>pb.Height) then
-  begin
-    FMapImg.SetSize(pb.Width,pb.Height);
-    InvalidateMap;
-  end;
+procedure TLevelMinimap.InvalidateAll;
+begin
+  FInvalidRegion.Clear();
+  FInvalidRegion.FWidth := FLevel.Width;
+  FInvalidRegion.FHeight := FLevel.Height;
+end;
 
-  MayBeUpdateImg;
+procedure TLevelMinimap.Paint(pb: TPaintBox; ARadarRect: TRect);
+var
+  scaled_radar: TRect;
+begin
+  ValidateImageSize(pb);
+  ValidateImage;
 
   try
     pb.Canvas.Changing;
-    pb.Canvas.Draw(0,0,FMapImg);
+    pb.Canvas.Draw(0,0,FImage);
     pb.Canvas.Pen.Style := psDot;
     pb.Canvas.Pen.Color := clGray;
 
@@ -236,26 +247,51 @@ begin
   finally
     pb.Canvas.Changed;
   end;
+end;
 
+
+{ TMinimap }
+
+constructor TMinimap.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FLevelMinimaps := TLevelMinimaps.Create(True);
+end;
+
+destructor TMinimap.Destroy;
+begin
+  FLevelMinimaps.Free;
+  inherited Destroy;
+end;
+
+procedure TMinimap.InvalidateMap;
+begin
+  if Assigned(FMap) then
+    FLevelMinimaps[FMap.CurrentLevelIndex].InvalidateAll;
+end;
+
+procedure TMinimap.Paint(pb: TPaintBox; ARadarRect: TRect);
+begin
+  if Assigned(FMap) then
+    FLevelMinimaps[FMap.CurrentLevelIndex].Paint(pb, ARadarRect);
 end;
 
 procedure TMinimap.SetMap(AValue: TVCMIMap);
 var
   i: Integer;
-  level_bitmap: TBitmap;
+  level_minimap: TLevelMinimap;
 begin
   FMap := AValue;
 
-  FMapImgs.Clear;
+  FLevelMinimaps.Clear;
 
-  for i := 0 to FMap.MapLevels.Count - 1 do
-  begin
-    level_bitmap := TBitmap.Create;
+  if Assigned(FMap) then
+    for i := 0 to FMap.MapLevels.Count - 1 do
+    begin
+      level_minimap := TLevelMinimap.Create(FMap.MapLevels[i]);
 
-    FMapImgs.Add(level_bitmap);
-  end;
-
-  FMapImgValid := False;
+      FLevelMinimaps.Add(level_minimap);
+    end;
 end;
 
 end.

@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, Math, Map, gvector, gset, undo_map, undo_base, editor_types,
-  terrain, map_actions, transitions, editor_gl;
+  terrain, map_actions, transitions, editor_gl, map_rect;
 
 type
   TTerrainBrushMode = (none, fixed, area, fill);
@@ -510,7 +510,7 @@ end;
 
 function TEditTerrain.SafeExtendTileAround(X, Y: integer): TMapRect;
 begin
-  Result := TMapRect.DimOfMap(FMap).Intersect(ExtendTileAround(x,y));
+  Result := FMap.GetCurrentLevelDimensions().Intersect(ExtendTileAround(x,y));
 end;
 
 procedure TEditTerrain.InvalidateTerrainViews(X, Y: integer);
@@ -1008,7 +1008,7 @@ begin
  			else if widthTooLess then
  				cur_tinfo := GetTileInfo(currentPos.x+1, currentPos.y)
  			else if heightTooLess then
-        cur_tinfo := GetTileInfo(currentPos.x, currentPos.y-1)
+        cur_tinfo := GetTileInfo(currentPos.x, currentPos.y+1)
       else
         cur_tinfo := info;
     end

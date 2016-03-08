@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, editor_gl, map_actions,
-  transitions, road_transitions;
+  transitions, road_transitions, map_rect;
 
 const
   INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);
@@ -532,7 +532,7 @@ begin
   begin
     repeat
       r.SetFromCenter(it.data.x,it.data.Y, 3,3);
-      r := TMapRect.DimOfMap(FMap).Intersect(r);
+      r := FMap.GetCurrentLevelDimensions().Intersect(r);
 
       r.Iterate(@CopyTile);
 

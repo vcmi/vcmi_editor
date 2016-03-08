@@ -21,6 +21,9 @@ unit editor_types;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH ADVANCEDRECORDS}
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
@@ -115,9 +118,6 @@ type
 
   TModdedConfigPaths = specialize TVector<TModdedConfigPath>;
 
-  TMapCoord = (x,y,l);
-
-  TMapCoords = array [TMapCoord] of Int32;
 type
   //raised if there are errors in VCMI configuration
   EConfigurationError = class (Exception)
@@ -129,7 +129,56 @@ type
     r,g,b,a : UInt8;
   end;
 
+  { TMapCoord }
+
+  TMapCoord = record
+    X,Y: integer;
+
+    procedure Clear(); inline;
+    procedure Reset(AX,AY: integer); inline;
+  end;
+
+  TMapCoordForEach = procedure (const Coord: TMapCoord; var Stop: Boolean) is nested;
+
+  operator+ (a,b:TMapCoord):TMapCoord; inline;
+  operator- (a,b:TMapCoord):TMapCoord; inline;
+  operator= (a,b:TMapCoord):boolean; inline;
+
+
+
 implementation
+
+
+{ TMapCoord }
+
+procedure TMapCoord.Clear;
+begin
+  Reset(0,0);
+end;
+
+procedure TMapCoord.Reset(AX, AY: integer);
+begin
+  Self.X:=AX;
+  Self.Y:=AY;
+end;
+
+
+operator+(a, b: TMapCoord): TMapCoord;
+begin
+  result.X:=a.x+b.X;
+  result.Y:=a.y+b.y;
+end;
+
+operator-(a, b: TMapCoord): TMapCoord;
+begin
+  result.X:=a.x-b.X;
+  result.Y:=a.y-b.y;
+end;
+
+operator=(a, b: TMapCoord): boolean;
+begin
+  result := (a.X = b.X) and (a.Y = b.Y);
+end;
 
 end.
 

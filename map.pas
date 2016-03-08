@@ -29,7 +29,7 @@ uses
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, vcmi_json, locale_manager,
-  editor_gl, vcmi_fpjsonrtti;
+  editor_gl, map_rect, vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -716,6 +716,7 @@ type
     //actual hero Name
     function GetHeroName(AObject: TMapObject): TLocalizedString;
 
+    function GetCurrentLevelDimensions: TMapRect;
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -2442,6 +2443,13 @@ begin
   info := ListsManager.Heroes[opt.&type];
   if Assigned(info) then
     Result := info.Name;
+end;
+
+function TVCMIMap.GetCurrentLevelDimensions: TMapRect;
+begin
+  Result.Create;
+  Result.FWidth:=CurrentLevel.Width;
+  Result.FHeight:=CurrentLevel.Height;
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;

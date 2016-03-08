@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects,
-  editor_str_consts, map_actions, editor_gl, editor_consts, gset;
+  editor_str_consts, map_actions, editor_gl, editor_consts, map_rect, gset;
 
 type
   { TMapObjectBrush }
