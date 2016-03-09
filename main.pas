@@ -912,11 +912,22 @@ begin
     RootManager.ProgressForm.NextStage('Loading map ...');
     RootManager.ProgressForm.SetMax(1);
     try
-      dir := GetCurrentDirUTF8();
-      dir := IncludeTrailingPathDelimiter(dir);
-      map_filename:= dir + ParamStr(1);
+      map_filename := Trim(ParamStr(1));
+
       if FileExistsUTF8(map_filename) then
+      begin
         LoadMap(map_filename);
+      end
+      else
+      begin
+        dir := GetCurrentDirUTF8();
+        dir := IncludeTrailingPathDelimiter(dir);
+        map_filename:= dir + map_filename;
+        if FileExistsUTF8(map_filename) then
+          LoadMap(map_filename)
+        else
+          map_filename := '';
+      end;
     except
       on e: Exception do
       begin
