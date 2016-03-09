@@ -536,6 +536,7 @@ begin
 
     if frm.Execute(params) then
     begin
+      FMapFilename := '';
       FreeAndNil(FMap);
 
       FMap := TVCMIMap.Create(fenv,params);
