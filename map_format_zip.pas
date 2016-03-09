@@ -271,15 +271,15 @@ end;
 procedure TMapWriterZIP.WriteTerrain(AMap: TVCMIMap);
 var
   i: Integer;
-  buffer: TJSONData;
+  Stream: TMemoryStream;
 begin
   for i := 0 to AMap.MapLevels.Count - 1 do
   begin
-    buffer := CreateJSONArray([]);
-
-    StreamTilesLevel(TJSONArray(buffer), AMap, i);
-
-    AddArchiveEntry(buffer, AMap.MapLevels[i].Identifier + '_terrain.json');
+    Stream := TMemoryStream.Create();
+    StreamTilesLevel(Stream, AMap, i);
+    Stream.Seek(0, soBeginning);
+    FZipper.Entries.AddFileEntry(Stream, AMap.MapLevels[i].Identifier + '_terrain.json');
+    FFreeList.Add(Stream);
   end;
 end;
 
@@ -293,6 +293,7 @@ begin
 
   Stream := TStringStream.Create(json_text);
 
+  Stream.Seek(0, soBeginning);
   FZipper.Entries.AddFileEntry(Stream, AFilename);
 
   FFreeList.Add(Stream);
