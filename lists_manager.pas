@@ -219,21 +219,12 @@ type
 
   TFactionInfo = class(TBaseInfo, ISerializeNotify)
   private
-    FCapitolDefName: AnsiString;
-    FCastleDefName: AnsiString;
     FHasTown: Boolean;
     FTown: TTownInfo;
-    FVillageDefName: AnsiString;
-    procedure SetCapitolDefName(AValue: AnsiString);
-    procedure SetCastleDefName(AValue: AnsiString);
     procedure SetHasTown(AValue: Boolean);
-    procedure SetVillageDefName(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property VillageDefName: AnsiString read FVillageDefName write SetVillageDefName;
-    property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
-    property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
     property HasTown: Boolean read FHasTown write SetHasTown;
 
   public //ISerializeNotify
@@ -1085,28 +1076,10 @@ end;
 
 { TFactionInfo }
 
-procedure TFactionInfo.SetCapitolDefName(AValue: AnsiString);
-begin
-  if FCapitolDefName = AValue then Exit;
-  FCapitolDefName := AValue;
-end;
-
-procedure TFactionInfo.SetCastleDefName(AValue: AnsiString);
-begin
-  if FCastleDefName = AValue then Exit;
-  FCastleDefName := AValue;
-end;
-
 procedure TFactionInfo.SetHasTown(AValue: Boolean);
 begin
   if FHasTown=AValue then Exit;
   FHasTown:=AValue;
-end;
-
-procedure TFactionInfo.SetVillageDefName(AValue: AnsiString);
-begin
-  if FVillageDefName = AValue then Exit;
-  FVillageDefName := AValue;
 end;
 
 constructor TFactionInfo.Create(ACollection: TCollection);
