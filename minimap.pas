@@ -212,7 +212,7 @@ end;
 
 procedure TLevelMinimap.InvalidateRegion(ARegion: TMapRect);
 begin
-  FInvalidRegion.CombineWith(ARegion);
+  FInvalidRegion.CombineWith(ARegion.Intersect(FLevel.GetDimentions));
 end;
 
 procedure TLevelMinimap.InvalidateAll;
