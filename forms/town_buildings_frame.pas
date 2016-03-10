@@ -57,11 +57,16 @@ type
     Buildings: TTreeView;
     Built: TCheckBox;
     Allowed: TCheckBox;
+    img: TImageList;
     Panel1: TPanel;
     procedure AllowedChange(Sender: TObject);
+    procedure BuildingsAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+      Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
     procedure BuildingsCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
       State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure BuildingsDeletion(Sender: TObject; Node: TTreeNode);
+    procedure BuildingsGetImageIndex(Sender: TObject; Node: TTreeNode);
+    procedure BuildingsGetSelectedIndex(Sender: TObject; Node: TTreeNode);
     procedure BuildingsSelectionChanged(Sender: TObject);
     procedure BuiltChange(Sender: TObject);
   private
@@ -81,7 +86,6 @@ type
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure Commit; override;
-    procedure VisitTown(AOptions: TTownOptions); override;
   end;
 
 implementation
@@ -130,6 +134,31 @@ begin
   end;
 end;
 
+procedure TTownBuildingsFrame.BuildingsGetImageIndex(Sender: TObject; Node: TTreeNode);
+var
+  node_data: TBuildingData;
+begin
+  node_data := TBuildingData(Node.Data);
+
+  if node_data.Built then
+  begin
+    Node.ImageIndex:=0;
+  end
+  else if not node_data.Allowed then
+  begin
+    Node.ImageIndex:=1;
+  end
+  else
+  begin
+    Node.ImageIndex:=-1;
+  end;
+end;
+
+procedure TTownBuildingsFrame.BuildingsGetSelectedIndex(Sender: TObject; Node: TTreeNode);
+begin
+  BuildingsGetImageIndex(Sender, Node);
+end;
+
 procedure TTownBuildingsFrame.AllowedChange(Sender: TObject);
 begin
   if FDoUpdateNodeData and Assigned(Buildings.Selected) then
@@ -137,6 +166,14 @@ begin
     TBuildingData(Buildings.Selected.Data).Allowed:= Allowed.Checked;
   end;
   UpdateControls;
+  Buildings.Invalidate;
+end;
+
+procedure TTownBuildingsFrame.BuildingsAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
+  State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+begin
+  PaintImages := true;
+  DefaultDraw := true;
 end;
 
 procedure TTownBuildingsFrame.BuildingsCustomDrawItem(Sender: TCustomTreeView;
@@ -174,9 +211,10 @@ procedure TTownBuildingsFrame.BuiltChange(Sender: TObject);
 begin
   if FDoUpdateNodeData and Assigned(Buildings.Selected) then
   begin
-    TBuildingData(Buildings.Selected.Data).Allowed:= Allowed.Checked and Built.Checked;
+    TBuildingData(Buildings.Selected.Data).Built:= Allowed.Checked and Built.Checked;
   end;
   UpdateControls;
+  Buildings.Invalidate;
 end;
 
 procedure TTownBuildingsFrame.FillBuildings;
@@ -325,10 +363,6 @@ begin
   inherited Commit;
 end;
 
-procedure TTownBuildingsFrame.VisitTown(AOptions: TTownOptions);
-begin
-  inherited VisitTown(AOptions);
-end;
 
 end.
 
