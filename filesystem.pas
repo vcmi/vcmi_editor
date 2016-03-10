@@ -347,7 +347,6 @@ type
 
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
   public
-    property GameConfig: TGameConfig read FGameConfig; deprecated;
     property Configs:TIdToConfigMap read FConfigMap;
   end;
 

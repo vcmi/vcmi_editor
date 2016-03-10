@@ -90,7 +90,7 @@ type
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
 
-  TSpellType = (Adventure, Combat, Ability);
+  TSpellType = (adventure=0, combat=1, ability=2);
 
   { TSpellInfo }
 
@@ -98,13 +98,13 @@ type
   private
     Ftype: TSpellType;
     FLevel: integer;
-    procedure setType(AValue: TSpellType);
+    procedure SetType(AValue: TSpellType);
     procedure SetLevel(AValue: integer);
   protected
     function GetFullID: AnsiString; override;
-  public
-    property Level: integer read FLevel write SetLevel;
-    property SpellType: TSpellType read FType write SetType;
+  published
+    property level: integer read FLevel write SetLevel;
+    property &type: TSpellType read FType write SetType;
   end;
 
   { TSpellInfos }
@@ -483,9 +483,6 @@ type
     procedure LoadSkills;
     procedure LoadTextDataConfig;
 
-    procedure ProcessSpellConfig(Const AName : TJSONStringType; Item: TJSONData;
-      Data: TObject; var Continue: Boolean);
-
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
@@ -508,7 +505,7 @@ type
     procedure LoadHeroClasses(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadCreatures(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadArtifacts(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
-    procedure LoadSpells(APaths: TStrings); //todo: mod support for spells
+    procedure LoadSpells(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadHeroes(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
   public
 
@@ -1176,7 +1173,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if spell.SpellType <> TSpellType.Ability then
+    if spell.&Type <> TSpellType.Ability then
       AList.AnyOf.Add(spell.Identifier);
   end;
 end;
@@ -1190,7 +1187,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if (spell.SpellType <> TSpellType.Ability) and ((ALevel = 0) or (spell.Level = ALevel)) then
+    if (spell.&Type <> TSpellType.Ability) and ((ALevel = 0) or (spell.Level = ALevel)) then
       AList.AddObject(spell.Name, spell);
   end;
 end;
@@ -1966,18 +1963,26 @@ begin
   end;
 end;
 
-procedure TListsManager.LoadSpells(APaths: TStrings);
+procedure TListsManager.LoadSpells(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
 var
   sptrairs: TTextResource;
 
   row: Integer;
 
+  FConfig: TModdedConfigs;
+  FCombinedConfig: TJSONObject;
+
   legacy_config: TJsonObjectList; //index = lecacy ID
   i: integer;
-  spell_config: TJSONObject;
-  spell_info: TJsonResource;
+  spell_config, o: TJSONObject;
   loc_name: String;
+  iter: TJSONEnum;
+  info: TSpellInfo;
 begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := CreateJSONObject([]);
+
+
   sptrairs := TTextResource.Create(SPELL_TRAITS);
   legacy_config := TJsonObjectList.Create(True);
 
@@ -1996,7 +2001,7 @@ begin
         loc_name := sptrairs.Value[0,row];
         spell_config.Strings['name'] := loc_name;
         spell_config.Integers['level'] := StrToIntDef(sptrairs.Value[2,row],0);
-        spell_config.Integers['type'] := i;
+        spell_config.Strings['type'] := GetEnumName(TypeInfo(TSpellType), i-1);
         legacy_config.Add(spell_config);
         inc(row);
       until sptrairs.Value[0,row] = '';
@@ -2004,18 +2009,24 @@ begin
 
     legacy_config.Add(legacy_config[legacy_config.Count-1].Clone as TJSONObject);
 
-    for i := 0 to APaths.Count - 1 do
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(legacy_config, FCombinedConfig);
+
+    for iter in FCombinedConfig do
     begin
-      spell_info := TJsonResource.Create(APaths[i]);
-      try
-        spell_info.Load(ResourceLoader);
-        spell_info.Root.Iterate(@ProcessSpellConfig,legacy_config);
-      finally
-         spell_info.Free;
-      end;
+      info := SpellInfos.Add;
+
+      info.Identifier := iter.Key;
+
+      o := iter.Value as TJSONObject;
+
+      FDestreamer.JSONToObjectEx(o, info);
     end;
 
   finally
+    FCombinedConfig.Free;
+    FConfig.Free;
     legacy_config.Free;
     sptrairs.Free;
   end;
@@ -2090,44 +2101,6 @@ begin
   for p in TPlayerColor do
   begin
     ATarget.Add(PlayerName[p]);
-  end;
-end;
-
-procedure TListsManager.ProcessSpellConfig(const AName: TJSONStringType;
-  Item: TJSONData; Data: TObject; var Continue: Boolean);
-const
-  SPELL_TYPES: array[1..3] of TSpellType =
-    (TSpellType.Adventure,TSpellType.Combat, TSpellType.Ability);
-
-var
-  legacy_config: TJsonObjectList absolute Data;
-
-  info: TSpellInfo;
-  nid: LongInt;
-  lc: TJSONObject;
-  sp_type: TSpellType;
-begin
-  Assert(Data is TJsonObjectList);
-
-  //Aname - spell ID
-  //Item - object spell config
-
-  nid := (Item as TJSONObject).Integers['index'];
-
-  lc := legacy_config.Items[nid];
-
-  sp_type := SPELL_TYPES[lc.Integers['type']];
-  if sp_type <>TSpellType.Ability then
-  begin
-    info := FSpellInfos.Add;
-    info.Identifier := AName;
-    info.Level := lc.Integers['level'];
-    info.Name := lc.Strings['name'];
-    info.SpellType := sp_type;
-    info.Index := nid;
-
-    FNameMap.Insert('spell.'+info.Identifier,nid);
-
   end;
 end;
 
