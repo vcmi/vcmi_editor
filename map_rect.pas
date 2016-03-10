@@ -81,7 +81,7 @@ end;
 
 function TMapRect.Right: integer;
 begin
-  Result := FTopLeft.x + FWidth;
+  Result := FTopLeft.x + FWidth-1;
 end;
 
 function TMapRect.Top: integer;
@@ -91,7 +91,7 @@ end;
 
 function TMapRect.Bottom: integer;
 begin
-  Result := FTopLeft.y + FHeight;
+  Result := FTopLeft.y + FHeight-1;
 end;
 
 function TMapRect.TopLeft: TMapCoord;
@@ -101,20 +101,20 @@ end;
 
 function TMapRect.TopRight: TMapCoord;
 begin
-  Result.X := Top();
-  Result.Y := Right();
+  Result.X := Right();
+  Result.Y := Top();
 end;
 
 function TMapRect.BottomLeft: TMapCoord;
 begin
-  Result.X := Bottom();
-  Result.Y := Left();
+  Result.X := Left();
+  Result.Y := Bottom();
 end;
 
 function TMapRect.BottomRight: TMapCoord;
 begin
-  Result.X := Bottom();
-  Result.Y := Right();
+  Result.X := Right();
+  Result.Y := Bottom();
 end;
 
 function TMapRect.Intersect(Other: TMapRect): TMapRect;
@@ -133,8 +133,8 @@ begin
     Result.FTopLeft.X:= max(Left(),Other.Left());
     Result.FTopLeft.Y:= max(Top(),Other.Top());
 
-    Result.FWidth:= Min(Right(),Other.Right()) - Result.FTopLeft.X;
-    Result.FHeight:= Min(Bottom(),Other.Bottom()) - Result.FTopLeft.Y;
+    Result.FWidth:= Min(Right(),Other.Right()) - Result.Left+1;
+    Result.FHeight:= Min(Bottom(),Other.Bottom()) - Result.Top+1;
   end;
 end;
 
@@ -148,7 +148,7 @@ begin
   end
   else
   begin
-    new_topleft.Reset(Min(FTopLeft.X, Other.FTopLeft.X), Min(FTopLeft.Y, Other.FTopLeft.Y));
+    new_topleft.Reset(Min(Left(), Other.Left()), Min(Top(), Other.Top()));
     new_bottomright.Reset(Max(Right(), Other.Right()), Max(Bottom(), Other.Bottom()));
 
     SetFromCorners(new_topleft,new_bottomright);

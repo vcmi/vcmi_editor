@@ -100,6 +100,8 @@ type
     procedure CommitHeroOptions;
     procedure CommitHeroDefinition;
   protected
+    FEmptySkills:THeroPrimarySkills;
+
     FCustomName: TLocalizedString;
     FCustomFemale: Boolean;
     FCustomBiography: TLocalizedString;
@@ -373,7 +375,7 @@ end;
 
 function THeroFrame.GetDefaultSkills: THeroPrimarySkills;
 begin
-  Result := nil;//todo: maybe static object?
+  Result := FEmptySkills;
   if Assigned(FHeroMapDefaults) and (not FHeroMapDefaults.GetPrimarySkills.IsDefault) then
   begin
     Result := FHeroMapDefaults.GetPrimarySkills;
@@ -555,6 +557,8 @@ end;
 
 constructor THeroFrame.Create(TheOwner: TComponent);
 begin
+  FEmptySkills := THeroPrimarySkills.Create;
+  FEmptySkills.SetZero;
   inherited Create(TheOwner);
 
   ListsManager.FillWithPlayers(edOwner.Items, False);
@@ -564,6 +568,7 @@ end;
 
 destructor THeroFrame.Destroy;
 begin
+  FEmptySkills.Free;
   FCustomSkills.Free;
   inherited Destroy;
 end;

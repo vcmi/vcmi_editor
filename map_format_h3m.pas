@@ -2179,7 +2179,6 @@ procedure TMapReaderH3m.VisitTown(AOptions: TTownOptions);
 var
   cnt: DWord;
   i: Integer;
-  temp: String;
 begin
   with FSrc do
   begin
@@ -2220,8 +2219,8 @@ begin
     cnt := ReadDWord;
     for i := 0 to cnt - 1 do
     begin
-      temp := ReadString;
-      temp := ReadString;
+      SkipString;
+      SkipString;
 
       SkipNotImpl(28);
 
