@@ -72,6 +72,9 @@ resourcestring
   rsEditObjectDescription = 'Edit object';
   rsMoveObjectDescription = 'Move object';
 
+  rsAllSpells = 'All spells';
+  rsSpellsOfLevel = 'Spells of level %d';
+
 implementation
 
 end.

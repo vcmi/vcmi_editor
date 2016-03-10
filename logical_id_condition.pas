@@ -46,12 +46,16 @@ type
     constructor Create(AOwner:  IReferenceNotify);
     destructor Destroy; override;
 
+    procedure Assign(Source: TPersistent); override;
+
     procedure Minimize;
     procedure Clear;
 
     function IsAllowed(AId: AnsiString): Boolean;
 
     function IsPermissive: Boolean;
+
+    procedure SetPermissive(AFullList: TStrings; const AValue: Boolean);
 
   public //ISerializeNotify
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
@@ -129,6 +133,23 @@ begin
   inherited Destroy;
 end;
 
+procedure TLogicalIDCondition.Assign(Source: TPersistent);
+var
+  src:TLogicalIDCondition;
+begin
+  if Source is TLogicalIDCondition then
+  begin
+    src := TLogicalIDCondition(Source);
+    AllOf.Assign(src.AllOf);
+    AnyOf.Assign(src.AnyOf);
+    NoneOf.Assign(src.NoneOf);
+  end
+  else
+  begin
+    inherited Assign(Source);
+  end;
+end;
+
 procedure TLogicalIDCondition.Minimize;
 var
   s: String;
@@ -176,6 +197,36 @@ end;
 function TLogicalIDCondition.IsPermissive: Boolean;
 begin
   Result := (FAnyOf.Count = 0) and (FAllOf.Count = 0);
+end;
+
+procedure TLogicalIDCondition.SetPermissive(AFullList: TStrings; const AValue: Boolean);
+var
+  idx: Integer;
+begin
+  if AValue then
+  begin
+    //anyOf -> noneOf
+
+    for idx := 0 to AFullList.Count - 1 do
+    begin
+      if AnyOf.IndexOf(AFullList[idx]) < 0 then
+      begin
+        NoneOf.Add(AFullList[idx]);
+      end;
+    end;
+  end
+  else
+  begin
+    //noneOf -> anyOf
+
+    for idx := 0 to AFullList.Count - 1 do
+    begin
+      if NoneOf.IndexOf(AFullList[idx]) < 0 then
+      begin
+        AnyOf.Add(AFullList[idx]);
+      end;
+    end;
+  end;
 end;
 
 procedure TLogicalIDCondition.AfterSerialize(Sender: TObject; AData: TJSONData);

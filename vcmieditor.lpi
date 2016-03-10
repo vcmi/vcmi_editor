@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="80">
+    <Units Count="81">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -567,6 +567,13 @@
         <Filename Value="map_rect.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit79>
+      <Unit80>
+        <Filename Value="forms\town_spells_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TownSpellsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit80>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

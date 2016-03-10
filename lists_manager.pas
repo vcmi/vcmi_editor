@@ -114,7 +114,8 @@ type
     //all except abilities
     procedure FillWithAllIds(AList: TLogicalIDCondition);
 
-
+    //all except abilities with level = ALevel if ALevel <> 0; fills with Name and TSpellInfo
+    procedure FillWithAllIds(AList: TStrings; ALevel: integer);
   end;
 
   {$push}
@@ -1177,6 +1178,20 @@ begin
     spell := Items[idx];
     if spell.SpellType <> TSpellType.Ability then
       AList.AnyOf.Add(spell.Identifier);
+  end;
+end;
+
+procedure TSpellInfos.FillWithAllIds(AList: TStrings; ALevel: integer);
+var
+  spell: TSpellInfo;
+  idx: Integer;
+begin
+  AList.Clear;
+  for idx := 0 to Count - 1 do
+  begin
+    spell := Items[idx];
+    if (spell.SpellType <> TSpellType.Ability) and ((ALevel = 0) or (spell.Level = ALevel)) then
+      AList.AddObject(spell.Name, spell);
   end;
 end;
 

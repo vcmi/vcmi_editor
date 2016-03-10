@@ -237,6 +237,7 @@ type
   TBaseIdentifierList = class abstract (TStringList)
   private
     FOwner: IReferenceNotify;
+    procedure DoOwnerNotify(AOldIdentifier, ANewIdentifier: AnsiString);
   protected
     procedure InsertItem(Index: Integer; const S: string; O: TObject); override;
     procedure Put(Index: Integer; const S: string); override;
@@ -282,16 +283,24 @@ end;
 
 { TBaseIdentifierList }
 
+procedure TBaseIdentifierList.DoOwnerNotify(AOldIdentifier, ANewIdentifier: AnsiString);
+begin
+  if Assigned(FOwner) then
+  begin
+    FOwner.NotifyReferenced(AOldIdentifier, ANewIdentifier);
+  end;
+end;
+
 procedure TBaseIdentifierList.InsertItem(Index: Integer; const S: string; O: TObject
   );
 begin
-  FOwner.NotifyReferenced('', s);
+  DoOwnerNotify('', s);
   inherited InsertItem(Index, S, O);
 end;
 
 procedure TBaseIdentifierList.Put(Index: Integer; const S: string);
 begin
-  FOwner.NotifyReferenced(Strings[Index], s);
+  DoOwnerNotify(Strings[Index], s);
   inherited Put(Index, S);
 end;
 
@@ -303,7 +312,7 @@ end;
 
 procedure TBaseIdentifierList.Delete(Index: Integer);
 begin
-  FOwner.NotifyReferenced(Strings[Index], '');
+  DoOwnerNotify(Strings[Index], '');
   inherited Delete(Index);
 end;
 
@@ -312,7 +321,7 @@ var
   s: String;
 begin
   for s in self do
-    FOwner.NotifyReferenced(s, '');
+    DoOwnerNotify(s, '');
 
   inherited Clear;
 end;

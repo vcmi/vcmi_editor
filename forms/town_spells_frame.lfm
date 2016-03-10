@@ -1,0 +1,184 @@
+inherited TownSpellsFrame: TTownSpellsFrame
+  Height = 502
+  Width = 626
+  ClientHeight = 502
+  ClientWidth = 626
+  DesignLeft = 455
+  DesignTop = 201
+  object pnRight: TPanel[0]
+    Left = 0
+    Height = 502
+    Top = 0
+    Width = 267
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 502
+    ClientWidth = 267
+    TabOrder = 0
+    object AllSpells: TListBox
+      Left = 3
+      Height = 470
+      Top = 29
+      Width = 261
+      Align = alClient
+      BorderSpacing.Around = 3
+      Columns = 2
+      ItemHeight = 0
+      MultiSelect = True
+      TabOrder = 0
+    end
+    object cbLevel: TComboBox
+      Left = 3
+      Height = 23
+      Top = 3
+      Width = 261
+      Align = alTop
+      BorderSpacing.Around = 3
+      ItemHeight = 15
+      OnChange = cbLevelChange
+      Style = csDropDownList
+      TabOrder = 1
+    end
+  end
+  object Splitter1: TSplitter[1]
+    Left = 267
+    Height = 502
+    Top = 0
+    Width = 5
+  end
+  object pnLeft: TPanel[2]
+    Left = 272
+    Height = 502
+    Top = 0
+    Width = 354
+    Align = alClient
+    ClientHeight = 502
+    ClientWidth = 354
+    TabOrder = 2
+    object pnPossible: TPanel
+      Left = 1
+      Height = 242
+      Top = 1
+      Width = 352
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 242
+      ClientWidth = 352
+      TabOrder = 0
+      object Possible: TListBox
+        Left = 20
+        Height = 212
+        Top = 30
+        Width = 332
+        Align = alClient
+        BorderSpacing.Left = 20
+        BorderSpacing.Top = 30
+        Columns = 2
+        ItemHeight = 0
+        MultiSelect = True
+        TabOrder = 0
+      end
+      object SpeedButton1: TSpeedButton
+        Left = 0
+        Height = 32
+        Top = 24
+        Width = 16
+        Action = AddAllowed
+      end
+      object SpeedButton2: TSpeedButton
+        Left = 0
+        Height = 32
+        Top = 64
+        Width = 16
+        Action = RemoveAllowed
+      end
+      object lbPossible: TLabel
+        Left = 32
+        Height = 15
+        Top = 8
+        Width = 75
+        Caption = 'Allowed spells'
+        ParentColor = False
+      end
+    end
+    object Splitter2: TSplitter
+      Cursor = crVSplit
+      Left = 1
+      Height = 5
+      Top = 243
+      Width = 352
+      Align = alTop
+      ResizeAnchor = akTop
+    end
+    object pnObligatory: TPanel
+      Left = 1
+      Height = 253
+      Top = 248
+      Width = 352
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 253
+      ClientWidth = 352
+      TabOrder = 2
+      object Obligatory: TListBox
+        Left = 20
+        Height = 223
+        Top = 30
+        Width = 332
+        Align = alClient
+        BorderSpacing.Left = 20
+        BorderSpacing.Top = 30
+        Columns = 2
+        ItemHeight = 0
+        MultiSelect = True
+        TabOrder = 0
+      end
+      object SpeedButton4: TSpeedButton
+        Left = 0
+        Height = 32
+        Top = 64
+        Width = 16
+        Action = RemoveRequired
+      end
+      object SpeedButton5: TSpeedButton
+        Left = 0
+        Height = 32
+        Top = 24
+        Width = 16
+        Action = AddRequired
+      end
+      object lbPossible1: TLabel
+        Left = 32
+        Height = 15
+        Top = 8
+        Width = 79
+        Caption = 'Required spells'
+        ParentColor = False
+      end
+    end
+  end
+  object act: TActionList[3]
+    left = 56
+    top = 64
+    object AddAllowed: TAction
+      Caption = '>'
+      OnExecute = AddAllowedExecute
+      OnUpdate = AddAllowedUpdate
+    end
+    object RemoveAllowed: TAction
+      Caption = '<'
+      OnExecute = RemoveAllowedExecute
+      OnUpdate = RemoveAllowedUpdate
+    end
+    object AddRequired: TAction
+      Caption = '>'
+      OnExecute = AddRequiredExecute
+      OnUpdate = AddRequiredUpdate
+    end
+    object RemoveRequired: TAction
+      Caption = '<'
+      OnExecute = RemoveRequiredExecute
+      OnUpdate = RemoveRequiredUpdate
+    end
+  end
+end

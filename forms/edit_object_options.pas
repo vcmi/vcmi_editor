@@ -29,7 +29,7 @@ uses
   base_options_frame, creature_frame, abandoned_frame, scholar_frame,
   creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
   hero_artifacts_frame, message_frame, hero_options_frame,
-  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame;
+  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame;
 
 type
 
@@ -322,6 +322,7 @@ begin
   FActiveEditors.AddFrame(TTownOptionsFrame, AOptions,tsCommon);
   VisitArmedObject(AOptions);
   FActiveEditors.AddFrame(TTownBuildingsFrame, AOptions, tsBuildings);
+  FActiveEditors.AddFrame(TTownSpellsFrame, AOptions, tsSpells);
 end;
 
 procedure TEditObjectOptions.VisitWitchHut(AOptions: TWitchHutOptions);
