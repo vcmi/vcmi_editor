@@ -1,8 +1,8 @@
 inherited DwellingFrame: TDwellingFrame
-  Height = 374
-  Width = 487
-  ClientHeight = 374
-  ClientWidth = 487
+  Height = 390
+  Width = 525
+  ClientHeight = 390
+  ClientWidth = 525
   Constraints.MinWidth = 330
   DesignLeft = 585
   DesignTop = 184
@@ -14,19 +14,19 @@ inherited DwellingFrame: TDwellingFrame
     Left = 5
     Height = 59
     Top = 0
-    Width = 477
+    Width = 515
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 5
     BorderSpacing.Right = 5
     Caption = 'Level:'
     ClientHeight = 39
-    ClientWidth = 473
+    ClientWidth = 511
     TabOrder = 0
     object edMin: TSpinEdit
       AnchorSideLeft.Control = lbMin
       AnchorSideRight.Control = lbMax
       AnchorSideRight.Side = asrBottom
-      Left = 127
+      Left = 140
       Height = 23
       Top = 0
       Width = 79
@@ -42,7 +42,7 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = gbLevel
       AnchorSideRight.Side = asrBottom
-      Left = 369
+      Left = 407
       Height = 23
       Top = 0
       Width = 94
@@ -61,7 +61,7 @@ inherited DwellingFrame: TDwellingFrame
       Left = 10
       Height = 15
       Top = 3
-      Width = 107
+      Width = 120
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 10
       BorderSpacing.Right = 10
@@ -72,10 +72,10 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideLeft.Control = edMin
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = edMax
-      Left = 216
+      Left = 229
       Height = 15
       Top = 3
-      Width = 143
+      Width = 168
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 10
       BorderSpacing.Right = 10
@@ -92,14 +92,14 @@ inherited DwellingFrame: TDwellingFrame
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 5
-    Height = 305
+    Height = 321
     Top = 64
-    Width = 477
+    Width = 515
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'Faction'
-    ClientHeight = 285
-    ClientWidth = 473
+    ClientHeight = 301
+    ClientWidth = 511
     TabOrder = 1
     object pnRandom: TPanel
       AnchorSideLeft.Control = gbFaction
@@ -109,12 +109,12 @@ inherited DwellingFrame: TDwellingFrame
       Left = 6
       Height = 106
       Top = 6
-      Width = 461
+      Width = 499
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       BevelOuter = bvNone
       ClientHeight = 106
-      ClientWidth = 461
+      ClientWidth = 499
       Constraints.MinHeight = 100
       TabOrder = 0
       object edFaction: TCheckListBox
@@ -127,7 +127,7 @@ inherited DwellingFrame: TDwellingFrame
         Left = 5
         Height = 76
         Top = 25
-        Width = 451
+        Width = 489
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Top = 20
         BorderSpacing.Around = 5
@@ -154,14 +154,14 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideBottom.Control = gbFaction
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 162
+      Height = 178
       Top = 118
-      Width = 463
+      Width = 501
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 162
-      ClientWidth = 463
+      ClientHeight = 178
+      ClientWidth = 501
       Constraints.MinHeight = 100
       TabOrder = 1
       object rbLinked: TRadioButton
@@ -175,9 +175,9 @@ inherited DwellingFrame: TDwellingFrame
       end
       object pnLink: TPanel
         Left = 6
-        Height = 116
+        Height = 132
         Top = 40
-        Width = 451
+        Width = 489
         Anchors = [akTop, akLeft, akRight, akBottom]
         BevelOuter = bvNone
         TabOrder = 1

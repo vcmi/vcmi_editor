@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls, Buttons, ActnList,
-  base_options_frame, object_options, editor_str_consts, logical_id_condition, editor_classes, base_info;
+  base_options_frame, object_options, editor_str_consts, logical_id_condition, editor_classes, base_info, lists_manager;
 
 type
 
@@ -44,6 +44,7 @@ type
     procedure RemoveRequiredExecute(Sender: TObject);
     procedure RemoveRequiredUpdate(Sender: TObject);
   private
+    FMaxLevel: integer;
     FAllSpells: array [0..5] of TIdentifierSet;
     FCache, FObject: TLogicalIDCondition;
 
@@ -135,7 +136,7 @@ begin
 
   cbLevel.Items.Add(rsAllSpells);
 
-  for lvl := 1 to 5 do
+  for lvl := 1 to FMaxLevel do
   begin
     cbLevel.Items.Add(Format(rsSpellsOfLevel,[lvl]));
   end;
@@ -147,8 +148,12 @@ procedure TTownSpellsFrame.FillAllSpells;
 var
   i: Integer;
 begin
-  for i := Low(FAllSpells) to High(FAllSpells) do
+  FAllSpells[0].Clear;
+  for i := 1 to FMaxLevel do
+  begin
     ListsManager.SpellInfos.FillWithAllIds(FAllSpells[i], i);
+    FAllSpells[0].AddStrings(FAllSpells[i]);
+  end;
 end;
 
 procedure TTownSpellsFrame.FillSpells(Alevel: Integer);
@@ -168,6 +173,10 @@ end;
 
 procedure TTownSpellsFrame.Load;
 begin
+  FillSpellLevels;
+  FillAllSpells;
+  FillSpells(0);
+
   FCache.Assign(FObject);
   FCache.SetPermissive(FAllSpells[0], false);
 
@@ -226,7 +235,16 @@ begin
 end;
 
 procedure TTownSpellsFrame.VisitNormalTown(AOptions: TTownOptions);
+var
+  factionId: String;
+  faction: TFactionInfo;
 begin
+  factionId := AOptions.MapObject.GetSubId;
+
+  faction := ListsManager.GetFaction(factionId);
+
+  FMaxLevel:=faction.Town.MageGuild;
+
   inherited VisitNormalTown(AOptions);
   FObject := AOptions.Spells;
   Load;
@@ -234,6 +252,7 @@ end;
 
 procedure TTownSpellsFrame.VisitRandomTown(AOptions: TTownOptions);
 begin
+  FMaxLevel := 5;
   inherited VisitRandomTown(AOptions);
   FObject := AOptions.Spells;
   Load;
@@ -249,9 +268,6 @@ begin
   for i := Low(FAllSpells) to High(FAllSpells) do
     FAllSpells[i] := TIdentifierSet.Create(nil);
 
-  FillSpellLevels;
-  FillAllSpells;
-  FillSpells(0);
 end;
 
 destructor TTownSpellsFrame.Destroy;

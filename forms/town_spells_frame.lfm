@@ -1,23 +1,23 @@
 inherited TownSpellsFrame: TTownSpellsFrame
-  Height = 502
-  Width = 626
-  ClientHeight = 502
-  ClientWidth = 626
+  Height = 524
+  Width = 680
+  ClientHeight = 524
+  ClientWidth = 680
   DesignLeft = 455
   DesignTop = 201
   object pnRight: TPanel[0]
     Left = 0
-    Height = 502
+    Height = 524
     Top = 0
     Width = 267
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 502
+    ClientHeight = 524
     ClientWidth = 267
     TabOrder = 0
     object AllSpells: TListBox
       Left = 3
-      Height = 470
+      Height = 492
       Top = 29
       Width = 261
       Align = alClient
@@ -42,37 +42,38 @@ inherited TownSpellsFrame: TTownSpellsFrame
   end
   object Splitter1: TSplitter[1]
     Left = 267
-    Height = 502
+    Height = 524
     Top = 0
     Width = 5
   end
   object pnLeft: TPanel[2]
     Left = 272
-    Height = 502
+    Height = 524
     Top = 0
-    Width = 354
+    Width = 408
     Align = alClient
-    ClientHeight = 502
-    ClientWidth = 354
+    ClientHeight = 524
+    ClientWidth = 408
     TabOrder = 2
     object pnPossible: TPanel
       Left = 1
       Height = 242
       Top = 1
-      Width = 352
+      Width = 406
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 242
-      ClientWidth = 352
+      ClientWidth = 406
       TabOrder = 0
       object Possible: TListBox
         Left = 20
         Height = 212
         Top = 30
-        Width = 332
+        Width = 383
         Align = alClient
         BorderSpacing.Left = 20
         BorderSpacing.Top = 30
+        BorderSpacing.Right = 3
         Columns = 2
         ItemHeight = 0
         MultiSelect = True
@@ -81,14 +82,14 @@ inherited TownSpellsFrame: TTownSpellsFrame
       object SpeedButton1: TSpeedButton
         Left = 0
         Height = 32
-        Top = 24
+        Top = 30
         Width = 16
         Action = AddAllowed
       end
       object SpeedButton2: TSpeedButton
         Left = 0
         Height = 32
-        Top = 64
+        Top = 72
         Width = 16
         Action = RemoveAllowed
       end
@@ -106,28 +107,30 @@ inherited TownSpellsFrame: TTownSpellsFrame
       Left = 1
       Height = 5
       Top = 243
-      Width = 352
+      Width = 406
       Align = alTop
       ResizeAnchor = akTop
     end
     object pnObligatory: TPanel
       Left = 1
-      Height = 253
+      Height = 275
       Top = 248
-      Width = 352
+      Width = 406
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 253
-      ClientWidth = 352
+      ClientHeight = 275
+      ClientWidth = 406
       TabOrder = 2
       object Obligatory: TListBox
         Left = 20
-        Height = 223
+        Height = 242
         Top = 30
-        Width = 332
+        Width = 383
         Align = alClient
         BorderSpacing.Left = 20
         BorderSpacing.Top = 30
+        BorderSpacing.Right = 3
+        BorderSpacing.Bottom = 3
         Columns = 2
         ItemHeight = 0
         MultiSelect = True
@@ -136,14 +139,14 @@ inherited TownSpellsFrame: TTownSpellsFrame
       object SpeedButton4: TSpeedButton
         Left = 0
         Height = 32
-        Top = 64
+        Top = 72
         Width = 16
         Action = RemoveRequired
       end
       object SpeedButton5: TSpeedButton
         Left = 0
         Height = 32
-        Top = 24
+        Top = 32
         Width = 16
         Action = AddRequired
       end

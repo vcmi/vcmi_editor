@@ -764,6 +764,12 @@ end;
 procedure TTownInfo.SetMageGuild(AValue: Integer);
 begin
   if FMageGuild=AValue then Exit;
+
+  if (AValue <1) or (AValue >5) then
+  begin
+    raise EConfigurationError.CreateFmt('Invalid magic guild level %d',[AValue]);
+  end;
+
   FMageGuild:=AValue;
 end;
 
