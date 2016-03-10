@@ -217,7 +217,7 @@ type
 
   { TFactionInfo }
 
-  TFactionInfo = class(TBaseInfo)
+  TFactionInfo = class(TBaseInfo, ISerializeNotify)
   private
     FCapitolDefName: AnsiString;
     FCastleDefName: AnsiString;
@@ -235,6 +235,12 @@ type
     property CastleDefName: AnsiString read FCastleDefName write SetCastleDefName;
     property CapitolDefName:  AnsiString read FCapitolDefName write SetCapitolDefName;
     property HasTown: Boolean read FHasTown write SetHasTown;
+
+  public //ISerializeNotify
+    procedure BeforeSerialize(Sender:TObject);
+    procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+    procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
   published
     property Town: TTownInfo read FTown;
   end;
@@ -495,6 +501,8 @@ type
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
     function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
     procedure FillArtifactCache;
+
+    procedure Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList; ATarget:THashedCollection);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1113,6 +1121,26 @@ begin
   inherited Destroy;
 end;
 
+procedure TFactionInfo.BeforeSerialize(Sender: TObject);
+begin
+
+end;
+
+procedure TFactionInfo.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TFactionInfo.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TFactionInfo.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+  HasTown := (AData as TJSONObject).IndexOfName('town')>=0;
+end;
+
 { TFactionInfos }
 
 procedure TFactionInfos.FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
@@ -1506,18 +1534,11 @@ end;
 procedure TListsManager.LoadFactions(AProgess: IProgressCallback;
   APaths: TModdedConfigPaths);
 var
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
-
   faction_names, bldgneut, bldgspec, dwelling: TTextResource;
   legacy_data: TJsonObjectList;
   f, build_idx: Integer;
   o, buildings: TJSONObject;
-  info: TFactionInfo;
-  iter: TJSONEnum;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
@@ -1587,24 +1608,7 @@ begin
 
     end;
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_data, FCombinedConfig);
-
-    for iter in FCombinedConfig  do
-    begin
-      info := FFactionInfos.Add;
-      info.Identifier := iter.Key;
-
-      o := iter.Value as TJSONObject;
-
-      FDestreamer.JSONToObjectEx(o, info);
-
-      info.HasTown:=o.IndexOfName('town')>=0;
-
-      DebugLn([info.ID, ' ', info.Name]);
-    end;
-
+    Load(AProgess, APaths, legacy_data, FactionInfos);
 
   finally
     dwelling.Free;
@@ -1612,26 +1616,18 @@ begin
     bldgspec.Free;
     faction_names.Free;
     legacy_data.Free;
-    FCombinedConfig.Free;
-    FConfig.Free;
   end;
 end;
 
 procedure TListsManager.LoadHeroClasses(AProgess: IProgressCallback;
   APaths: TModdedConfigPaths);
 var
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
   hctraits: TTextResource;
 
   legacy_data: TJsonObjectList;
   i: SizeInt;
   o, p_skills: TJSONObject;
-  iter: TJSONEnum;
-  info: THeroClassInfo;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
   hctraits := TTextResource.Create(HERO_CLASS_TRAITS);
   legacy_data := TJsonObjectList.Create(true);
   try
@@ -1643,7 +1639,6 @@ begin
 
       o.Strings['name'] := hctraits.Value[0,i+2];
 
-
       p_skills := CreateJSONObject([]);
       p_skills.Integers['attack'] := StrToInt(hctraits.Value[2,i+2]);
       p_skills.Integers['defence'] := StrToInt(hctraits.Value[3,i+2]);
@@ -1654,46 +1649,25 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_data, FCombinedConfig);
-
-    for iter in FCombinedConfig do
-    begin
-      info := HeroClassInfos.Add;
-
-      info.Identifier := iter.Key;
-
-      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
-    end;
+    Load(AProgess, APaths, legacy_data, HeroClassInfos);
   finally
     legacy_data.Free;
     hctraits.free;
-    FCombinedConfig.Free;
-    FConfig.Free;
   end;
 end;
 
 procedure TListsManager.LoadCreatures(AProgess: IProgressCallback;
   APaths: TModdedConfigPaths);
 var
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
-
   crtraits: TTextResource;
   legacy_data: TJsonObjectList;
 
   i: SizeInt;
-  o: TJSONObject;
-  iter: TJSONEnum;
-  info: TCreatureInfo;
   shift: Integer;
 
   name_count: integer;
+  o: TJSONObject;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
-
   legacy_data := TJsonObjectList.Create(true);
   crtraits := TTextResource.Create(CREATURE_TRAITS);
   try
@@ -1724,22 +1698,8 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_data, FCombinedConfig);
-
-    for iter in FCombinedConfig do
-    begin
-      info := CreatureInfos.Add;
-
-      info.Identifier := iter.Key;
-
-      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
-    end;
-
+    Load(AProgess, APaths, legacy_data, CreatureInfos);
   finally
-    FCombinedConfig.Free;
-    FConfig.Free;
     crtraits.free;
     legacy_data.Free;
   end;
@@ -1789,20 +1749,13 @@ var
   end;
 
 var
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
   legacy_data: TJsonObjectList;
-  iter: TJSONEnum;
   o: TJSONObject;
-  info: TArtifactInfo;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
 
   legacy_data := TJsonObjectList.Create(true);
   artraits := TTextResource.Create(ARTIFACT_TRAITS);
   try
-
     artraits.Load(ResourceLoader);
 
     for i in [0..TextDataConfig.Artifact-1] do
@@ -1817,24 +1770,8 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_data, FCombinedConfig);
-
-    for iter in FCombinedConfig do
-    begin
-      info := ArtifactInfos.Add;
-
-      info.Identifier := iter.Key;
-
-      o := iter.Value as TJSONObject;
-
-      FDestreamer.JSONToObjectEx(o, info);
-    end;
-
+    Load(AProgess, APaths, legacy_data, ArtifactInfos);
   finally
-    FCombinedConfig.Free;
-    FConfig.Free;
     artraits.free;
     legacy_data.Free;
   end;
@@ -1885,6 +1822,38 @@ begin
         ProcessSlotId(slot_id);
       end;
     end;
+  end;
+end;
+
+procedure TListsManager.Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList;
+  ATarget: THashedCollection);
+var
+  FConfig: TModdedConfigs;
+  FCombinedConfig, o: TJSONObject;
+  iter: TJSONEnum;
+  info: TBaseInfo;
+begin
+  FConfig := TModdedConfigs.Create;
+  FCombinedConfig := CreateJSONObject([]);
+
+  try
+    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
+
+    MergeLegacy(ALegacyConfig, FCombinedConfig);
+
+    for iter in FCombinedConfig do
+    begin
+      info := ATarget.Add as TBaseInfo;
+
+      info.Identifier := iter.Key;
+
+      o := iter.Value as TJSONObject;
+
+      FDestreamer.JSONToObjectEx(o, info);
+    end;
+  finally
+    FCombinedConfig.Free;
+    FConfig.Free;
   end;
 end;
 
@@ -1969,20 +1938,11 @@ var
 
   row: Integer;
 
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
-
   legacy_config: TJsonObjectList; //index = lecacy ID
   i: integer;
-  spell_config, o: TJSONObject;
+  spell_config: TJSONObject;
   loc_name: String;
-  iter: TJSONEnum;
-  info: TSpellInfo;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
-
-
   sptrairs := TTextResource.Create(SPELL_TRAITS);
   legacy_config := TJsonObjectList.Create(True);
 
@@ -2009,51 +1969,25 @@ begin
 
     legacy_config.Add(legacy_config[legacy_config.Count-1].Clone as TJSONObject);
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_config, FCombinedConfig);
-
-    for iter in FCombinedConfig do
-    begin
-      info := SpellInfos.Add;
-
-      info.Identifier := iter.Key;
-
-      o := iter.Value as TJSONObject;
-
-      FDestreamer.JSONToObjectEx(o, info);
-    end;
-
+    Load(AProgess, APaths, legacy_config, SpellInfos);
   finally
-    FCombinedConfig.Free;
-    FConfig.Free;
     legacy_config.Free;
     sptrairs.Free;
   end;
-
 end;
 
 procedure TListsManager.LoadHeroes(AProgess: IProgressCallback;
   APaths: TModdedConfigPaths);
 var
-  FConfig: TModdedConfigs;
-  FCombinedConfig: TJSONObject;
   legacy_data: TJsonObjectList;
   hotraits, herobios: TTextResource;
-  iter: TJSONEnum;
-
   i: SizeInt;
   o: TJSONObject;
-  info: THeroInfo;
 begin
-  FConfig := TModdedConfigs.Create;
-  FCombinedConfig := CreateJSONObject([]);
-
   legacy_data := TJsonObjectList.Create(true);
   hotraits := TTextResource.Create(HERO_TRAITS);
   herobios := TTextResource.Create(HERO_BIOS);
   try
-
     hotraits.Load(ResourceLoader);
     herobios.Load(ResourceLoader);
 
@@ -2067,23 +2001,9 @@ begin
       legacy_data.Add(o);
     end;
 
-    FConfig.Load(AProgess, APaths, ResourceLoader, FCombinedConfig);
-
-    MergeLegacy(legacy_data, FCombinedConfig);
-
-    for iter in FCombinedConfig do
-    begin
-      info := FHeroInfos.Add;
-
-      info.Identifier := iter.Key;
-
-      FDestreamer.JSONToObjectEx(iter.Value as TJSONObject, info);
-
-    end;
+    Load(AProgess, APaths, legacy_data, FHeroInfos);
 
   finally
-    FCombinedConfig.Free;
-    FConfig.Free;
     hotraits.free;
     herobios.Free;
     legacy_data.Free;
