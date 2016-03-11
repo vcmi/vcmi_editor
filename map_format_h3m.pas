@@ -2214,10 +2214,7 @@ procedure TMapReaderH3m.VisitTown(AOptions: TTownOptions);
 var
   cnt: DWord;
   i: Integer;
-  has_fort: Boolean;
-
   all_of, none_of: TCustomIDArray;
-
   faction: TFactionInfo;
   b, faction_index: TCustomID;
 begin
@@ -2268,9 +2265,7 @@ begin
     end
     else
     begin
-      has_fort := ReadBoolean;
-
-      //insert default
+      AOptions.HasFort:= ReadBoolean;
     end;
 
     if IsAtLeastAB() then

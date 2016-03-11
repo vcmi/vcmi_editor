@@ -57,8 +57,12 @@ type
     Buildings: TTreeView;
     Built: TCheckBox;
     Allowed: TCheckBox;
+    cbCustomise: TCheckBox;
+    edHasFort: TCheckBox;
     img: TImageList;
-    Panel1: TPanel;
+    pnHeader: TPanel;
+    pnMain: TPanel;
+    pnDetails: TPanel;
     procedure AllowedChange(Sender: TObject);
     procedure BuildingsAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
       Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -69,8 +73,9 @@ type
     procedure BuildingsGetSelectedIndex(Sender: TObject; Node: TTreeNode);
     procedure BuildingsSelectionChanged(Sender: TObject);
     procedure BuiltChange(Sender: TObject);
+    procedure cbCustomiseChange(Sender: TObject);
   private
-    FObject: TLogicalIDCondition;
+    FObject: TTownOptions;
     FConfig: TTownInfo;
 
     FDoUpdateNodeData: Boolean;
@@ -218,8 +223,16 @@ begin
   Buildings.Invalidate;
 end;
 
+procedure TTownBuildingsFrame.cbCustomiseChange(Sender: TObject);
+begin
+  UpdateControls;
+end;
+
 procedure TTownBuildingsFrame.Load;
 begin
+  cbCustomise.Checked := not FObject.Buildings.IsEmpty;
+  edHasFort.Checked:=FObject.HasFort;
+
   FillBuildings;
   LoadBuildings;
 
@@ -296,14 +309,13 @@ var
   node_data: TBuildingData;
   default_allowed: Boolean;
 begin
-
-  default_allowed := FObject.AnyOf.Count = 0;
+  default_allowed := FObject.Buildings.AnyOf.Count = 0;
 
   for node in Buildings.Items do
   begin
     node_data := TBuildingData(node.Data);
-    node_data.Allowed:=(default_allowed or (FObject.AnyOf.IndexOf(node_data.Identifier) >= 0)) and (FObject.NoneOf.IndexOf(node_data.Identifier) < 0);
-    node_data.Built:=node_data.Allowed and (FObject.AllOf.IndexOf(node_data.Identifier) >= 0);
+    node_data.Allowed:=(default_allowed or (FObject.Buildings.AnyOf.IndexOf(node_data.Identifier) >= 0)) and (FObject.Buildings.NoneOf.IndexOf(node_data.Identifier) < 0);
+    node_data.Built:=node_data.Allowed and (FObject.Buildings.AllOf.IndexOf(node_data.Identifier) >= 0);
   end;
 end;
 
@@ -312,6 +324,10 @@ var
   node_data: TBuildingData;
 begin
   inherited UpdateControls;
+
+  pnMain.Enabled := cbCustomise.Checked;
+  edHasFort.Enabled := not cbCustomise.Checked;
+
   if Assigned(Buildings.Selected) then
   begin
     node_data := TBuildingData(Buildings.Selected.Data);
@@ -340,7 +356,7 @@ var
 begin
   inherited VisitNormalTown(AOptions);
 
-  FObject := AOptions.Buildings;
+  FObject := AOptions;
 
   town_type := AOptions.MapObject.GetSubId;
 
@@ -352,7 +368,7 @@ end;
 procedure TTownBuildingsFrame.VisitRandomTown(AOptions: TTownOptions);
 begin
   inherited VisitRandomTown(AOptions);
-  FObject := AOptions.Buildings;
+  FObject := AOptions;
 
   FConfig := ListsManager.RandomFaction.Town;
 
@@ -370,8 +386,37 @@ begin
 end;
 
 procedure TTownBuildingsFrame.Commit;
+var
+  node: TTreeNode;
+  node_data: TBuildingData;
 begin
   inherited Commit;
+
+  FObject.Buildings.Clear;
+
+  if cbCustomise.Checked then
+  begin
+    for node in Buildings.Items do
+    begin
+      node_data := TBuildingData(node.Data);
+
+      if node_data.Building.Mode in [TBuildMode.normal, TBuildMode.grail] then
+      begin
+        if node_data.Built then
+        begin
+          FObject.Buildings.AllOf.Add(node_data.Identifier);
+        end
+        else if not node_data.Allowed then
+        begin
+          FObject.Buildings.NoneOf.Add(node_data.Identifier);
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    FObject.HasFort:=edHasFort.Checked;
+  end;
 end;
 
 

@@ -1,55 +1,95 @@
 inherited TownBuildingsFrame: TTownBuildingsFrame
-  Height = 334
-  Width = 454
-  ClientHeight = 334
-  ClientWidth = 454
-  DesignLeft = 610
-  DesignTop = 179
-  object Buildings: TTreeView[0]
+  Height = 450
+  Width = 550
+  ClientHeight = 450
+  ClientWidth = 550
+  DesignLeft = 533
+  DesignTop = 195
+  object pnMain: TPanel[0]
     Left = 0
-    Height = 334
-    Top = 0
-    Width = 332
+    Height = 418
+    Top = 32
+    Width = 550
     Align = alClient
-    AutoExpand = True
-    DefaultItemHeight = 18
-    Images = img
-    ReadOnly = True
-    ShowRoot = False
+    BevelOuter = bvNone
+    Caption = 'pnMain'
+    ClientHeight = 418
+    ClientWidth = 550
     TabOrder = 0
-    OnAdvancedCustomDrawItem = BuildingsAdvancedCustomDrawItem
-    OnCustomDrawItem = BuildingsCustomDrawItem
-    OnDeletion = BuildingsDeletion
-    OnGetImageIndex = BuildingsGetImageIndex
-    OnGetSelectedIndex = BuildingsGetSelectedIndex
-    OnSelectionChanged = BuildingsSelectionChanged
-    Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+    object pnDetails: TPanel
+      Left = 432
+      Height = 418
+      Top = 0
+      Width = 118
+      Align = alRight
+      ClientHeight = 418
+      ClientWidth = 118
+      TabOrder = 0
+      object Built: TCheckBox
+        Left = 14
+        Height = 19
+        Top = 56
+        Width = 44
+        Caption = 'Built'
+        OnChange = BuiltChange
+        TabOrder = 0
+      end
+      object Allowed: TCheckBox
+        Left = 14
+        Height = 19
+        Top = 24
+        Width = 63
+        Caption = 'Allowed'
+        OnChange = AllowedChange
+        TabOrder = 1
+      end
+    end
+    object Buildings: TTreeView
+      Left = 0
+      Height = 418
+      Top = 0
+      Width = 432
+      Align = alClient
+      AutoExpand = True
+      DefaultItemHeight = 18
+      Images = img
+      ReadOnly = True
+      ShowRoot = False
+      TabOrder = 1
+      OnAdvancedCustomDrawItem = BuildingsAdvancedCustomDrawItem
+      OnCustomDrawItem = BuildingsCustomDrawItem
+      OnDeletion = BuildingsDeletion
+      OnGetImageIndex = BuildingsGetImageIndex
+      OnGetSelectedIndex = BuildingsGetSelectedIndex
+      OnSelectionChanged = BuildingsSelectionChanged
+      Options = [tvoAutoExpand, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+    end
   end
-  object Panel1: TPanel[1]
-    Left = 332
-    Height = 334
+  object pnHeader: TPanel[1]
+    Left = 0
+    Height = 32
     Top = 0
-    Width = 122
-    Align = alRight
-    ClientHeight = 334
-    ClientWidth = 122
+    Width = 550
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 32
+    ClientWidth = 550
     TabOrder = 1
-    object Built: TCheckBox
-      Left = 14
+    object cbCustomise: TCheckBox
+      Left = 8
       Height = 19
-      Top = 56
-      Width = 44
-      Caption = 'Built'
-      OnChange = BuiltChange
+      Top = 8
+      Width = 76
+      Caption = 'Customise'
+      OnChange = cbCustomiseChange
       TabOrder = 0
     end
-    object Allowed: TCheckBox
-      Left = 14
+    object edHasFort: TCheckBox
+      Left = 96
       Height = 19
-      Top = 24
-      Width = 63
-      Caption = 'Allowed'
-      OnChange = AllowedChange
+      Top = 8
+      Width = 62
+      Caption = 'Has fort'
       TabOrder = 1
     end
   end

@@ -605,10 +605,11 @@ type
   private
     FBuildings: TLogicalIDCondition;
     FArmy: TCreatureSet;
+    FHasFort: Boolean;
     FName: TLocalizedString;
     FSpells: TLogicalIDCondition;
     function GetTightFormation: Boolean;
-    procedure SetName(AValue: TLocalizedString);
+    function HasFortStored: Boolean;
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
@@ -618,9 +619,11 @@ type
   published
     property Army: TCreatureSet read FArmy;
     property TightFormation: Boolean read GetTightFormation write SetTightFormation;
-    property Name: TLocalizedString read FName write SetName;
+    property Name: TLocalizedString read FName write FName;
     property Spells: TLogicalIDCondition read FSpells;
     property Buildings: TLogicalIDCondition read FBuildings;
+
+    property HasFort: Boolean read FHasFort write FHasFort stored HasFortStored;
   end;
 
   { TAbandonedOptions }
@@ -1744,14 +1747,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TTownOptions.SetName(AValue: TLocalizedString);
-begin
-  FName := AValue;
-end;
-
 function TTownOptions.GetTightFormation: Boolean;
 begin
   Result := FArmy.TightFormation;
+end;
+
+function TTownOptions.HasFortStored: Boolean;
+begin
+  Result := FBuildings.IsEmpty;
 end;
 
 procedure TTownOptions.SetTightFormation(AValue: Boolean);

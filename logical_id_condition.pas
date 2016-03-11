@@ -53,6 +53,8 @@ type
 
     function IsAllowed(AId: AnsiString): Boolean;
 
+    function IsEmpty: Boolean;
+
     function IsPermissive: Boolean;
 
     procedure SetPermissive(AFullList: TStrings; const AValue: Boolean);
@@ -192,6 +194,11 @@ begin
   Result := (FNoneOf.IndexOf(AId)<0)
     and ((FAllOf.Count = 0) or (FAllOf.IndexOf(AId) >=0))
     and ((FAnyOf.Count = 0) or (FAnyOf.IndexOf(AId) >=0));
+end;
+
+function TLogicalIDCondition.IsEmpty: Boolean;
+begin
+  Result := (FAnyOf.Count = 0) and (FAllOf.Count = 0) and (FNoneOf.Count = 0);
 end;
 
 function TLogicalIDCondition.IsPermissive: Boolean;
