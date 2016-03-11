@@ -1052,6 +1052,7 @@ procedure TMapObjectTemplate.CompactMask;
 var
   stop: Boolean;
   s: AnsiString;
+  i: Integer;
 begin
 
   stop := False;
@@ -1070,12 +1071,12 @@ begin
       stop:=true;
   end;
 
-  //todo: trim left
+  for i := 0 to FMask.Count - 1 do
+  begin
+    s := StringReplace(FMask[i], '0', ' ',[rfReplaceAll]);
 
-  //for i := 0 to FMask.Count - 1 do
-  //begin
-  //  s := FMask[i];
-  //end;
+    FMask[i] := TrimLeft(s);
+  end;
 end;
 
 procedure TMapObjectTemplate.UpdateCache;
