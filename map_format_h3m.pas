@@ -139,6 +139,11 @@ type
    strict private
      type
        TIdToString = function(AId: TCustomID): AnsiString of object;
+
+       TCustomIDArray = array of TCustomID;
+
+     procedure ReadBitmask(var ADest: TCustomIDArray; AMaskSize: SizeInt; ACount: SizeInt; Negate: Boolean = True);
+
      procedure ReadBitmask(ADest: TStrings;AMaskSize: SizeInt; ACount: SizeInt;
        ACallback: TIdToString; Negate: Boolean = True);
 
@@ -580,16 +585,22 @@ begin
   obj.BySlotNumber[slot] := artId;
 end;
 
-procedure TMapReaderH3m.ReadBitmask(ADest: TStrings; AMaskSize: SizeInt;
-  ACount: SizeInt; ACallback: TIdToString; Negate: Boolean);
+procedure TMapReaderH3m.ReadBitmask(var ADest: TCustomIDArray; AMaskSize: SizeInt; ACount: SizeInt; Negate: Boolean);
 var
+  real_count: SizeInt;
+
   byte_idx: SizeInt;
   mask_byte: Byte;
   bit: UInt8;
   flag: Boolean;
   id: TCustomID;
+
 begin
-  ADest.Clear;
+  SetLength(ADest, 0);
+  SetLength(ADest, ACount);
+
+  real_count := 0;
+
   for byte_idx := 0 to AMaskSize - 1 do
   begin
     mask_byte := FSrc.ReadByte;
@@ -601,10 +612,34 @@ begin
       id := byte_idx*8+bit;
       if flag and (id < ACount) then
       begin
-        ADest.Add(ACallback(id));
+        ADest[real_count] := id;
+        inc(real_count);
       end;
     end;
   end;
+
+  SetLength(ADest, real_count);
+
+end;
+
+procedure TMapReaderH3m.ReadBitmask(ADest: TStrings; AMaskSize: SizeInt;
+  ACount: SizeInt; ACallback: TIdToString; Negate: Boolean);
+var
+  tmp: array of TCustomID;
+
+  iter: TCustomID;
+begin
+  ADest.Clear;
+
+  SetLength(tmp, 0);
+
+  ReadBitmask(tmp, AMaskSize, ACount, Negate);
+
+  for iter in tmp do
+  begin
+    ADest.Add(ACallback(iter));
+  end;
+
 end;
 
 procedure TMapReaderH3m.ReadBitmask(ADest: TLogicalIDCondition;
@@ -1970,12 +2005,12 @@ begin
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.haveBuilding_0;
-        child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_1);
+        child_condition.&type := FMapEnv.lm.BuildingIdToString(building_1);
         child_condition.Position.Assign(position);
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.haveBuilding_0;
-        child_condition.&type := FMapEnv.lm.BuildingIndexToString(building_2);
+        child_condition.&type := FMapEnv.lm.BuildingIdToString(building_2);
         child_condition.Position.Assign(position);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,283];
@@ -2179,7 +2214,24 @@ procedure TMapReaderH3m.VisitTown(AOptions: TTownOptions);
 var
   cnt: DWord;
   i: Integer;
+  has_fort: Boolean;
+
+  all_of, none_of: TCustomIDArray;
+
+  faction: TFactionInfo;
+  b, faction_index: TCustomID;
 begin
+
+  if AOptions.MapObject.GetID = TYPE_TOWN then
+  begin
+    faction := FMapEnv.lm.GetFaction(AOptions.MapObject.GetSubId);
+    faction_index := faction.Index;
+  end
+  else
+  begin
+    faction_index := -1;
+  end;
+
   with FSrc do
   begin
     ReadQuestIdentifier;
@@ -2199,12 +2251,24 @@ begin
 
     if ReadBoolean then //custom buildings
     begin
-      ReadBitmask(AOptions.Buildings.AllOf, 6, 48, @FMapEnv.lm.BuildingIndexToString, false);
-      ReadBitmask(AOptions.Buildings.NoneOf, 6, 48, @FMapEnv.lm.BuildingIndexToString, false);
+      ReadBitmask(all_of, 6, 48, false);
+      ReadBitmask(none_of, 6, 48, false);
+
+      AOptions.Buildings.Clear;
+
+      for b in all_of do
+      begin
+        AOptions.Buildings.AllOf.Add(FMapEnv.lm.BuildingIndexToString(faction_index, b));
+      end;
+
+      for b in none_of do
+      begin
+        AOptions.Buildings.NoneOf.Add(FMapEnv.lm.BuildingIndexToString(faction_index, b));
+      end;
     end
     else
     begin
-      SkipNotImpl(1);  //hasfort
+      has_fort := ReadBoolean;
 
       //insert default
     end;
@@ -2238,7 +2302,7 @@ begin
       skip(4); //junk
     end;
     if IsAtLeastSoD() then
-      SkipNotImpl(1); //alignment
+      SkipNotImpl(1); //alignment, connect faction to owner or particular player
     Skip(3); //junk
   end;
 end;

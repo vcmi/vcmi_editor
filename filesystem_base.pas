@@ -66,6 +66,7 @@ type
      procedure LoadFromStream(AStream: TStream); virtual; abstract;
 
     procedure Load(ALoader: IResourceLoader);
+    function TryLoad(ALoader: IResourceLoader): Boolean;
 
   end;
 
@@ -92,6 +93,11 @@ end;
 procedure TBaseResource.Load(ALoader: IResourceLoader);
 begin
   ALoader.LoadResource(Self, Typ, Path);
+end;
+
+function TBaseResource.TryLoad(ALoader: IResourceLoader): Boolean;
+begin
+  Result := ALoader.TryLoadResource(Self, Typ, Path);
 end;
 
 

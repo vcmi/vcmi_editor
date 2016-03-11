@@ -75,6 +75,7 @@ type
 
     FDoUpdateNodeData: Boolean;
 
+    procedure Load;
     procedure FillBuildings;
     procedure LoadBuildings;
   protected
@@ -217,6 +218,16 @@ begin
   Buildings.Invalidate;
 end;
 
+procedure TTownBuildingsFrame.Load;
+begin
+  FillBuildings;
+  LoadBuildings;
+
+  UpdateControls;
+
+  FDoUpdateNodeData := true;
+end;
+
 procedure TTownBuildingsFrame.FillBuildings;
 var
   i: Integer;
@@ -335,17 +346,17 @@ begin
 
   FConfig := ListsManager.GetFaction(town_type).Town;
 
-  FillBuildings;
-  LoadBuildings;
-
-  UpdateControls;
-
-  FDoUpdateNodeData := true;
+  Load;
 end;
 
 procedure TTownBuildingsFrame.VisitRandomTown(AOptions: TTownOptions);
 begin
   inherited VisitRandomTown(AOptions);
+  FObject := AOptions.Buildings;
+
+  FConfig := ListsManager.RandomFaction.Town;
+
+  Load;
 end;
 
 constructor TTownBuildingsFrame.Create(TheOwner: TComponent);

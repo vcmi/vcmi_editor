@@ -195,8 +195,10 @@ const
 
   SPELL_QUANTITY_ACTUAL = 70;
 
-  BUILDING_NAMES: array[0..43] of string =
+  BUILDING_NAMES: array[-5..43] of string =
   (
+    'horde5','horde4','horde3','horde2','horde1',
+
 	  'mageGuild1',       'mageGuild2',       'mageGuild3',       'mageGuild4',       'mageGuild5',
 	  'tavern',           'shipyard',         'fort',             'citadel',          'castle',
 	  'villageHall',      'townHall',         'cityHall',         'capitol',          'marketplace',

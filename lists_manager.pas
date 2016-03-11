@@ -25,7 +25,7 @@ unit lists_manager;
 interface
 
 uses
-  Classes, SysUtils, gmap, fgl, fpjson, filesystem_base, editor_consts,
+  Classes, SysUtils, gmap, gutil, fgl, fpjson, filesystem_base, editor_consts,
   editor_types, editor_utils, vcmi_json, h3_txt, base_info, editor_classes,
   logical_id_condition, logical_expression;
 
@@ -221,11 +221,10 @@ type
   private
     FHasTown: Boolean;
     FTown: TTownInfo;
-    procedure SetHasTown(AValue: Boolean);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property HasTown: Boolean read FHasTown write SetHasTown;
+    property HasTown: Boolean read FHasTown;
 
   public //ISerializeNotify
     procedure BeforeSerialize(Sender:TObject);
@@ -449,6 +448,10 @@ type
   private
     type
       TSlotMap = specialize gmap.TMap<AnsiString, Integer, TStringCompare>;
+
+      TLessInteger = specialize gutil.TLess<Integer>;
+
+      TBuildingCnv = specialize gmap.TMap<Integer, Integer, TLessInteger>;
   strict private
     FDestreamer: TVCMIJSONDestreamer;
 
@@ -461,6 +464,9 @@ type
     FSpellInfos: TSpellInfos;
 
     FFactionInfos: TFactionInfos;
+    FRandomFaction: TFactionInfo;
+    FBuildingCnv:TBuildingCnv;
+    FBuildingCnvSpec: TJSONArray;
 
     FHeroClassInfos: THeroClassInfos;
 
@@ -476,6 +482,7 @@ type
 
     procedure FillSlotIds;
 
+    procedure LoadBuildings;
     procedure LoadPrimSkills;
     procedure LoadSkills;
     procedure LoadTextDataConfig;
@@ -532,8 +539,12 @@ type
     property FactionInfos:TFactionInfos read FFactionInfos;
     function FactionIndexToString (AIndex: TCustomID):AnsiString;
     function GetFaction(const AID: AnsiString): TFactionInfo;
+    property RandomFaction: TFactionInfo read FRandomFaction;
 
-    function BuildingIndexToString (ABuilding: TCustomID): AnsiString;
+    //Buildings
+    function BuildingIdToString (ABuilding: TCustomID): AnsiString; //vcmi id to string
+
+    function BuildingIndexToString (ATown, ABuilding: TCustomID): AnsiString; //h3 id to string
 
     //Hero classes
     property HeroClassInfos:THeroClassInfos read FHeroClassInfos;
@@ -1082,16 +1093,11 @@ end;
 
 { TFactionInfo }
 
-procedure TFactionInfo.SetHasTown(AValue: Boolean);
-begin
-  if FHasTown=AValue then Exit;
-  FHasTown:=AValue;
-end;
-
 constructor TFactionInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FTown := TTownInfo.Create;
+  FHasTown:=false;
 end;
 
 destructor TFactionInfo.Destroy;
@@ -1117,7 +1123,7 @@ end;
 
 procedure TFactionInfo.AfterDeSerialize(Sender: TObject; AData: TJSONData);
 begin
-  HasTown := (AData as TJSONObject).IndexOfName('town')>=0;
+  FHasTown := (AData as TJSONObject).IndexOfName('town')>=0;
 end;
 
 { TFactionInfos }
@@ -1238,6 +1244,9 @@ begin
   FSpellInfos := TSpellInfos.Create();
 
   FFactionInfos := TFactionInfos.Create();
+  FRandomFaction := TFactionInfo.Create(nil);
+  FBuildingCnv := TBuildingCnv.Create;
+  FBuildingCnvSpec := CreateJSONArray([]);
 
   FHeroClassInfos := THeroClassInfos.Create();
 
@@ -1259,7 +1268,6 @@ end;
 destructor TListsManager.Destroy;
 var
   i: SizeInt;
-
 begin
   FSlotIds.Free;
   FHeroInfos.Free;
@@ -1275,6 +1283,9 @@ begin
   FHeroClassInfos.Free;
 
   FFactionInfos.Free;
+  FRandomFaction.Free;
+  FBuildingCnv.Free;
+  FreeAndNil(FBuildingCnvSpec);
 
   FSpellInfos.Free;
 
@@ -1397,10 +1408,45 @@ begin
   Result := FFactionInfos.FindItem(AID);
 end;
 
-function TListsManager.BuildingIndexToString(ABuilding: TCustomID): AnsiString;
+function TListsManager.BuildingIdToString(ABuilding: TCustomID): AnsiString;
 begin
-  //todo: convert buildings
   Result := BUILDING_NAMES[ABuilding];
+end;
+
+function TListsManager.BuildingIndexToString(ATown, ABuilding: TCustomID): AnsiString;
+var
+  vcmi_id: TCustomID;
+  it: TBuildingCnv.TIterator;
+  iter: TJSONEnum;
+  o: TJSONObject;
+begin
+  vcmi_id := ID_INVALID;
+  it := FBuildingCnv.Find(ABuilding);
+
+  if Assigned(it) then
+  begin
+    vcmi_id:=it.Value;
+    FreeAndNil(it);
+  end
+  else if ATown >=0 then
+  begin
+    for iter in FBuildingCnvSpec do
+    begin
+      o := iter.Value as TJSONObject;
+      if (o.Integers['town'] = ATown) and (o.Integers['h3'] = ABuilding) then
+      begin
+        vcmi_id := o.Integers['vcmi'];
+        Break;
+      end;
+    end;
+  end;
+
+  if vcmi_id = ID_INVALID then
+  begin
+    raise Exception.CreateFmt('Building %d not found for faction %d',[ABuilding, ATown]);
+  end;
+  Result := BUILDING_NAMES[vcmi_id];
+
 end;
 
 function TListsManager.HeroClassIndexToString(AIndex: TCustomID): AnsiString;
@@ -1508,6 +1554,7 @@ begin
   LoadTextDataConfig;
   LoadPrimSkills;
   LoadSkills;
+  LoadBuildings;
 end;
 
 procedure TListsManager.LoadFactions(AProgess: IProgressCallback;
@@ -1517,6 +1564,7 @@ var
   legacy_data: TJsonObjectList;
   f, build_idx: Integer;
   o, buildings: TJSONObject;
+  random_faction: TJsonResource;
 begin
   legacy_data := TJsonObjectList.Create(true);
 
@@ -1524,6 +1572,8 @@ begin
   bldgneut := TTextResource.Create('DATA/BLDGNEUT.TXT');
   bldgspec := TTextResource.Create('DATA/BLDGSPEC.TXT');
   dwelling := TTextResource.Create('DATA/DWELLING.TXT');
+
+  random_faction := TJsonResource.Create('config/factions/random.json');
   try
     DebugLn('Loading factions');
     faction_names.Load(ResourceLoader);
@@ -1589,7 +1639,15 @@ begin
 
     Load(AProgess, APaths, legacy_data, FactionInfos);
 
+
+    //todo: cleanup backward compatibility
+    if random_faction.TryLoad(ResourceLoader) then
+    begin
+       FDestreamer.JSONToObjectEx(random_faction.Root.Objects['random'], FRandomFaction);
+    end;
+
   finally
+    random_faction.Free;
     dwelling.Free;
     bldgneut.Free;
     bldgspec.Free;
@@ -1852,6 +1910,38 @@ begin
   for i := 0 to ARTIFACT_SLOT_COUNT - 1 do
   begin
     FSlotIds.Insert(SLOT_IDS[i],i);
+  end;
+end;
+
+procedure TListsManager.LoadBuildings;
+var
+  buildings5: TJsonResource;
+  table: TJSONArray;
+  iter: TJSONEnum;
+  o: TJSONObject;
+begin
+  buildings5 := TJsonResource.Create('config/buildings5.json');
+  try
+    buildings5.Load(ResourceLoader);
+
+    table := buildings5.Root.Arrays['table'];
+
+    for iter in table do
+    begin
+      o := iter.Value as TJSONObject;
+
+      if o.Integers['town'] = -1 then
+      begin
+        FBuildingCnv.Insert(o.Integers['h3'], o.Integers['vcmi']);
+      end
+      else
+      begin
+        FBuildingCnvSpec.Add(o.Clone);
+      end;
+    end;
+
+  finally
+    buildings5.Free;
   end;
 end;
 
