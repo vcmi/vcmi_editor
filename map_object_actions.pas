@@ -27,7 +27,7 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, objects, editor_str_consts, map_actions,
+  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, map_objects, editor_str_consts, map_actions,
   editor_gl, editor_consts, map_rect, vcmi_json, edit_object_options, vcmi_fpjsonrtti, gset, fpjson;
 
 type
@@ -104,13 +104,13 @@ type
   private
     FCurrentPlayer: TPlayer;
     FL: Integer;
-    FTemplate: TObjTemplate;
+    FTemplate: TMapObjectTemplate;
     FX: Integer;
     FY: Integer;
 
     procedure SetCurrentPlayer(AValue: TPlayer);
     procedure SetL(AValue: Integer);
-    procedure SetTemplate(AValue: TObjTemplate);
+    procedure SetTemplate(AValue: TMapObjectTemplate);
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
@@ -119,7 +119,7 @@ type
     procedure Redo; override;
     procedure Undo; override;
 
-    property Template: TObjTemplate read FTemplate write SetTemplate;
+    property Template: TMapObjectTemplate read FTemplate write SetTemplate;
 
     property X:Integer read FX write SetX;
     property Y:Integer read FY write SetY;
@@ -399,7 +399,7 @@ end;
 
 { TAddObject }
 
-procedure TAddObject.SetTemplate(AValue: TObjTemplate);
+procedure TAddObject.SetTemplate(AValue: TMapObjectTemplate);
 begin
   if FTemplate=AValue then Exit;
   FTemplate:=AValue;
@@ -433,8 +433,8 @@ procedure TAddObject.Execute;
 begin
   TargetObject := TMapObject.Create(nil);
 
-  TargetObject.&Type:=Template.ObjType.Identifier;
-  TargetObject.Subtype:=Template.ObjSubType.Identifier;
+  TargetObject.&Type:=Template.MapObjectGroup.Identifier;
+  TargetObject.Subtype:=Template.MapObjectType.Identifier;
 
   TargetObject.Template.Assign(Template);
 

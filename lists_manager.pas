@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, gmap, gutil, fgl, fpjson, filesystem_base, editor_consts,
   editor_types, editor_utils, vcmi_json, h3_txt, base_info, editor_classes,
-  logical_id_condition, logical_expression;
+  logical_id_condition, logical_expression, logical_building_condition;
 
 type
 
@@ -136,27 +136,6 @@ type
   TGuildSpells = class(specialize TGNamedCollection<TGuildSpell>)
   end;
 
-  { TRequiredConditionItem }
-
-  TRequiredConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
-  private
-    FBuilding: AnsiString;
-    procedure SetBuilding(AValue: AnsiString);
-  public
-    constructor Create(ACollection: TCollection); override;
-    destructor Destroy; override;
-  public
-    //ISerializeSpecial
-    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
-    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
-  public
-    property Building: AnsiString read FBuilding write SetBuilding;
-  end;
-
-  TRequiredCondition = class(TLogicalExpression)
-
-  end;
-
   { TTownBuilding }
 
   TTownBuilding = class(TNamedCollectionItem)
@@ -165,7 +144,7 @@ type
     FID: Integer;
     FMode: TBuildMode;
     FName: TLocalizedString;
-    FRequires: TRequiredCondition;
+    FRequires: TBuildingCondition;
     FUpgrades: AnsiString;
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetID(AValue: Integer);
@@ -184,7 +163,7 @@ type
     property Mode: TBuildMode read FMode write SetMode default TBuildMode.normal;
     property Upgrades: AnsiString read FUpgrades write SetUpgrades;
 
-    property Requires: TRequiredCondition read FRequires;
+    property Requires: TBuildingCondition read FRequires;
   end;
 
   { TTownBuildings }
@@ -598,83 +577,7 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
-{ TRequiredConditionItem }
 
-procedure TRequiredConditionItem.SetBuilding(AValue: AnsiString);
-begin
-  if FBuilding=AValue then Exit;
-  FBuilding:=AValue;
-end;
-
-constructor TRequiredConditionItem.Create(ACollection: TCollection);
-begin
-  inherited Create(ACollection);
-end;
-
-destructor TRequiredConditionItem.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TRequiredConditionItem.Serialize(AHandler: TVCMIJSONStreamer
-  ): TJSONData;
-var
-  item: TCollectionItem;
-begin
-  Result := CreateJSONArray([]);
-
-  if SubExpressions.Count > 0 then
-  begin
-     TJSONArray(Result).Add(GetEnumName( TypeInfo(TLogicalOperator), Integer(LogicalOperator)));
-
-     for item in SubExpressions do
-     begin
-       TJSONArray(Result).Add((item as TRequiredConditionItem).Serialize(AHandler));
-     end;
-  end
-  else
-  begin
-    TJSONArray(Result).Add(Building);
-  end;
-
-end;
-
-procedure TRequiredConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer;
-  ASrc: TJSONData);
-var
-  ASrcArray: TJSONArray;
-  instruction_name: TJSONStringType;
-  raw_instruction: Integer;
-  i: Integer;
-  SubExpression: TRequiredConditionItem;
-begin
-  if ASrc.JSONType <> jtArray then
-  begin
-    raise Exception.Create('invalid format for building condition, array required');
-  end;
-
-  ASrcArray :=  TJSONArray(ASrc);
-
-  instruction_name :=  ASrcArray.Strings[0];
-
-  raw_instruction := GetEnumValue(TypeInfo(TLogicalOperator), instruction_name);
-
-  if raw_instruction >=0 then
-  begin
-    LogicalOperator:=TLogicalOperator(raw_instruction);
-
-    for i := 1 to ASrcArray.Count - 1 do
-    begin
-      SubExpression := TRequiredConditionItem(SubExpressions.Add);
-
-      SubExpression.Deserialize(AHandler, ASrcArray.Items[i]);
-    end;
-  end
-  else
-  begin
-    Building:=instruction_name;
-  end;
-end;
 
 { TTownBuilding }
 
@@ -711,7 +614,7 @@ end;
 constructor TTownBuilding.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FRequires := TRequiredCondition.CreateRoot(TRequiredConditionItem);
+  FRequires := TBuildingCondition.CreateRoot(TBuildingConditionItem);
   FMode:=TBuildMode.normal;
 end;
 

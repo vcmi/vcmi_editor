@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, math, fgl, typinfo, FileUtil, map, map_format, terrain,
   stream_adapter, editor_types, object_options, editor_classes, lists_manager,
-  objects, editor_graphics, logical_id_condition,
+  map_objects, editor_graphics, logical_id_condition,
   logical_event_condition, logical_expression, position;
 
 const
@@ -902,7 +902,7 @@ var
   cnt: DWord;
   i: Integer;
   b: Byte;
-  obj_type: TObjSubType;
+  obj_type: TMapObjectType;
   ID: DWord;
   sub_id: DWord;
   group: Byte;
@@ -926,7 +926,7 @@ begin
 
     if Assigned(obj_type) then
     begin
-      obj.&type := obj_type.ObjType.Identifier;
+      obj.&type := obj_type.MapObjectGroup.Identifier;
       obj.subtype:=obj_type.Identifier;
     end
     else

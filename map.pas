@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, Math, fgl, LCLIntf, fpjson, gvector, gpriorityqueue, gset,
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
-  objects, object_options, lists_manager, logical_id_condition,
+  map_objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, vcmi_json, locale_manager,
   editor_gl, map_rect, vcmi_fpjsonrtti;
 
@@ -338,9 +338,9 @@ type
    constructor Create(AOwner: TVCMIMap);
   end;
 
-  { TMapObjectTemplate }
+  { TMapObjectAppearance }
 
-  TMapObjectTemplate = class(TObject, ISerializeNotify, IFPObserver)
+  TMapObjectAppearance = class(TObject, ISerializeNotify, IFPObserver)
   strict private
     mask_w, mask_h: Integer;
     FOwner: TMapObject;
@@ -366,7 +366,7 @@ type
     constructor Create(AOwner: TMapObject);
     destructor Destroy; override;
 
-    procedure Assign(AOther: TObjTemplate);
+    procedure Assign(AOther: TMapObjectTemplate);
     procedure BeforeSerialize(Sender:TObject);
     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
@@ -401,7 +401,7 @@ type
     FPlayer: TPlayer;
     FL: integer;
     FSubtype: AnsiString;
-    FTemplate: TMapObjectTemplate;
+    FTemplate: TMapObjectAppearance;
     FType: AnsiString;
     FX: integer;
     FY: integer;
@@ -434,7 +434,7 @@ type
 
     function GetMap:TVCMIMap;
 
-    procedure AssignTemplate(ATemplate: TObjTemplate);
+    procedure AssignTemplate(ATemplate: TMapObjectTemplate);
 
     function FormatDisplayName(ACustomName: TLocalizedString): TLocalizedString;
 
@@ -457,7 +457,7 @@ type
     property &Type: AnsiString read FType write SetType;
     property Subtype: AnsiString read FSubtype write SetSubtype;
 
-    property Template: TMapObjectTemplate read FTemplate;
+    property Template: TMapObjectAppearance read FTemplate;
   public
     property Options: TObjectOptions read FOptions;
     function HasOptions: boolean;
@@ -1008,35 +1008,35 @@ begin
   end;
 end;
 
-{ TMapObjectTemplate }
+{ TMapObjectAppearance }
 
-procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
+procedure TMapObjectAppearance.SetAnimation(AValue: AnsiString);
 begin
   if FAnimation=AValue then Exit;
   FAnimation:=AValue;
   AnimationChanged;
 end;
 
-procedure TMapObjectTemplate.SetEditorAnimation(AValue: AnsiString);
+procedure TMapObjectAppearance.SetEditorAnimation(AValue: AnsiString);
 begin
   if FEditorAnimation=AValue then Exit;
   FEditorAnimation:=AValue;
   AnimationChanged;
 end;
 
-procedure TMapObjectTemplate.SetzIndex(AValue: Integer);
+procedure TMapObjectAppearance.SetzIndex(AValue: Integer);
 begin
   if FzIndex=AValue then Exit;
   FzIndex:=AValue;
 end;
 
-procedure TMapObjectTemplate.SetDef(AValue: TDefAnimation);
+procedure TMapObjectAppearance.SetDef(AValue: TDefAnimation);
 begin
   FDef := AValue;
   RootManager.GraphicsManager.LoadGraphics(FDef);
 end;
 
-procedure TMapObjectTemplate.AnimationChanged;
+procedure TMapObjectAppearance.AnimationChanged;
 begin
   if FEditorAnimation='' then
   begin
@@ -1048,7 +1048,7 @@ begin
   end;
 end;
 
-procedure TMapObjectTemplate.CompactMask;
+procedure TMapObjectAppearance.CompactMask;
 var
   stop: Boolean;
   s: AnsiString;
@@ -1079,7 +1079,7 @@ begin
   end;
 end;
 
-procedure TMapObjectTemplate.UpdateCache;
+procedure TMapObjectAppearance.UpdateCache;
 var
   s: String;
   c: Char;
@@ -1105,7 +1105,7 @@ begin
   end;
 end;
 
-procedure TMapObjectTemplate.FPOObservedChanged(ASender: TObject;
+procedure TMapObjectAppearance.FPOObservedChanged(ASender: TObject;
   Operation: TFPObservedOperation; Data: Pointer);
 begin
   if ASender = FMask then
@@ -1114,7 +1114,7 @@ begin
   end;
 end;
 
-constructor TMapObjectTemplate.Create(AOwner: TMapObject);
+constructor TMapObjectAppearance.Create(AOwner: TMapObject);
 begin
   FOwner := AOwner;
   FMask := TStringList.Create;
@@ -1123,7 +1123,7 @@ begin
   SetDef(RootManager.GraphicsManager.GetGraphics('default'));
 end;
 
-destructor TMapObjectTemplate.Destroy;
+destructor TMapObjectAppearance.Destroy;
 begin
   FMask.FPODetachObserver(Self);
   FMask.Free;
@@ -1131,7 +1131,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapObjectTemplate.Assign(AOther: TObjTemplate);
+procedure TMapObjectAppearance.Assign(AOther: TMapObjectTemplate);
 begin
   FAnimation := AOther.Animation;
   FEditorAnimation := AOther.EditorAnimation;
@@ -1144,30 +1144,30 @@ begin
   FZIndex := AOther.ZIndex;
 end;
 
-procedure TMapObjectTemplate.BeforeSerialize(Sender: TObject);
+procedure TMapObjectAppearance.BeforeSerialize(Sender: TObject);
 begin
   CompactMask;
 end;
 
-procedure TMapObjectTemplate.BeforeDeSerialize(Sender: TObject; AData: TJSONData
+procedure TMapObjectAppearance.BeforeDeSerialize(Sender: TObject; AData: TJSONData
   );
 begin
   FMask.BeginUpdate;
 end;
 
-procedure TMapObjectTemplate.AfterSerialize(Sender: TObject; AData: TJSONData);
+procedure TMapObjectAppearance.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
 
 end;
 
-procedure TMapObjectTemplate.AfterDeSerialize(Sender: TObject; AData: TJSONData
+procedure TMapObjectAppearance.AfterDeSerialize(Sender: TObject; AData: TJSONData
   );
 begin
   CompactMask;
   FMask.EndUpdate;
 end;
 
-procedure TMapObjectTemplate.OnOwnerChanged(ATiles: TTiles; op: TFPObservedOperation);
+procedure TMapObjectAppearance.OnOwnerChanged(ATiles: TTiles; op: TFPObservedOperation);
 var
   i, j, x, y, shift: Integer;
   line: String;
@@ -1204,7 +1204,7 @@ begin
   end;
 end;
 
-procedure TMapObjectTemplate.RenderOverlay();
+procedure TMapObjectAppearance.RenderOverlay();
 const
   ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
   BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
@@ -1447,7 +1447,7 @@ end;
 constructor TMapObject.Create(ACollection: TCollection);
 begin
   FLastFrame := 0;
-  FTemplate := TMapObjectTemplate.Create(Self);
+  FTemplate := TMapObjectAppearance.Create(Self);
   FOptions := TObjectOptions.Create(Self);
   FPlayer:=TPlayer.none;
   inherited Create(ACollection);
@@ -1630,11 +1630,11 @@ begin
   Result := (Collection as TMapObjects).Map;
 end;
 
-procedure TMapObject.AssignTemplate(ATemplate: TObjTemplate);
+procedure TMapObject.AssignTemplate(ATemplate: TMapObjectTemplate);
 begin
   Template.Assign(ATemplate);
-  &Type:=ATemplate.ObjType.Identifier;
-  Subtype := ATemplate.ObjSubType.Identifier;
+  &Type:=ATemplate.MapObjectGroup.Identifier;
+  Subtype := ATemplate.MapObjectType.Identifier;
 end;
 
 function TMapObject.FormatDisplayName(ACustomName: TLocalizedString

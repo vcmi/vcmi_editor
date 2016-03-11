@@ -28,7 +28,7 @@ uses
   sysutils,
   Interfaces, // this includes the LCL widgetset
   Forms, lazcontrols, main, lod, editor_graphics, Map, editor_types, terrain,
-  undo_base, undo_map, map_actions, zlib_stream, objects, new_map, minimap,
+  undo_base, undo_map, map_actions, zlib_stream, map_objects, new_map, minimap,
   filesystem_base, filesystem, vcmi_json, editor_utils, map_format,
   map_format_h3m, stream_adapter, editor_str_consts,
   vcmi_fpjsonrtti, glext40, map_options, editor_classes, editor_consts,
@@ -45,7 +45,7 @@ uses
   hero_options_frame, player_options_form, 
 player_options_frame, position, hero_spells_frame, hero_skills_frame, 
 town_frame, town_buildings_frame, zipper_ex, edit_triggered_events, 
-locale_manager, player_selection_form, map_rect, town_spells_frame;
+locale_manager, player_selection_form, map_rect, town_spells_frame, logical_building_condition;
 
 {$R *.res}
 

@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit objects;
+unit map_objects;
 
 {$I compilersetup.inc}
 
@@ -85,17 +85,17 @@ type
   {$push}
   {$m+}
 
-  TObjSubType = class;
-  TObjType = class;
+  TMapObjectType = class;
+  TMapObjectGroup = class;
 
-  { TObjTemplate }
+  { TMapObjectTemplate }
 
-  TObjTemplate = class (TNamedCollectionItem)
+  TMapObjectTemplate = class (TNamedCollectionItem)
   private
     FDef: TDefAnimation;
 
-    FObjType:TObjType;
-    FObjSubtype: TObjSubType;
+    FMapObjectGroup:TMapObjectGroup;
+    FMapObjectType: TMapObjectType;
 
   strict private
     FAllowedTerrains: TTerrainTypes;
@@ -116,8 +116,8 @@ type
     destructor Destroy; override;
     property Def: TDefAnimation read FDef;
 
-    property ObjType: TObjType read FObjType;
-    property ObjSubType: TObjSubType read FObjSubtype;
+    property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
+    property MapObjectType: TMapObjectType read FMapObjectType;
 
     class function UseMeta: boolean; override;
   published
@@ -130,59 +130,59 @@ type
     property Tags: TStrings read FTags;
   end;
 
-  { TObjTemplates }
+  { TMapObjectTemplates }
 
-  TObjTemplates = class (specialize TGNamedCollection<TObjTemplate>)
+  TMapObjectTemplates = class (specialize TGNamedCollection<TMapObjectTemplate>)
   private
-    FObjSubType: TObjSubType;
+    FOwner: TMapObjectType;
   public
-    constructor Create(AOwner: TObjSubType);
-    property ObjSubType: TObjSubType read FObjSubType;
+    constructor Create(AOwner: TMapObjectType);
+    property MapObjectType: TMapObjectType read FOwner;
   end;
 
-  TObjTemplatesList = specialize TFPGObjectList<TObjTemplate>;
+  TMapObjectTemplateList = specialize TFPGObjectList<TMapObjectTemplate>;
 
-  { TObjSubType }
+  { TMapObjectType }
 
-  TObjSubType = class (TNamedCollectionItem)
+  TMapObjectType = class (TNamedCollectionItem)
   private
     FName: TLocalizedString;
     FNid: TCustomID;
-    FTemplates: TObjTemplates;
-    FObjType:TObjType;
+    FTemplates: TMapObjectTemplates;
+    FMapObjectGroup:TMapObjectGroup;
     function GetIndexAsID: TCustomID;
     procedure SetIndexAsID(AValue: TCustomID);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
 
-    property ObjType: TObjType read FObjType;
+    property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
 
     class function UseMeta: boolean; override;
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
-    property Templates:TObjTemplates read FTemplates;
+    property Templates:TMapObjectTemplates read FTemplates;
     property Name: TLocalizedString read FName write FName;
   end;
 
-  { TObjSubTypes }
+  { TMapObjectTypes }
 
-  TObjSubTypes = class (specialize TGNamedCollection<TObjSubType>)
+  TMapObjectTypes = class (specialize TGNamedCollection<TMapObjectType>)
   private
-    FOwner: TObjType;
+    FOwner: TMapObjectGroup;
   public
-    constructor Create(AOwner: TObjType);
-    property owner: TObjType read FOwner;
+    constructor Create(AOwner: TMapObjectGroup);
+    property owner: TMapObjectGroup read FOwner;
   end;
 
-  { TObjType }
+  { TMapObjectGroup }
 
-  TObjType = class (TNamedCollectionItem)
+  TMapObjectGroup = class (TNamedCollectionItem)
   private
     FHandler: AnsiString;
     FName: TLocalizedString;
     FNid: TCustomID;
-    FSubTypes: TObjSubTypes;
+    FSubTypes: TMapObjectTypes;
     procedure SetHandler(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
@@ -191,16 +191,16 @@ type
     class function UseMeta: boolean; override;
   published
     property Index: TCustomID read FNid write FNid default ID_INVALID;
-    property Types:TObjSubTypes read FSubTypes;
+    property Types:TMapObjectTypes read FSubTypes;
     property Name: TLocalizedString read FName write FName;
     property Handler: AnsiString read FHandler write SetHandler;
   end;
 
-  TObjTypes = specialize TGNamedCollection<TObjType>;
+  TMapObjectGroups = specialize TGNamedCollection<TMapObjectGroup>;
 
   {$pop}
 
-  TLegacyIdMap = specialize TObjectMap<TLegacyTemplateId, TObjSubType>;
+  TLegacyIdMap = specialize TObjectMap<TLegacyTemplateId, TMapObjectType>;
 
   TObjectsManager = class;
 
@@ -209,21 +209,21 @@ type
   TObjectsSelection = class
   private
     FManager: TObjectsManager;
-    FData: TObjTemplatesList;
+    FData: TMapObjectTemplateList;
     function GetCount: Integer;
-    function GetObjcts(AIndex: Integer): TObjTemplate;
+    function GetObjcts(AIndex: Integer): TMapObjectTemplate;
   public
     constructor Create(AManager: TObjectsManager);
     destructor Destroy; override;
     property Count:Integer read GetCount;
-    property Objcts[AIndex: Integer]: TObjTemplate read GetObjcts;
+    property Objcts[AIndex: Integer]: TMapObjectTemplate read GetObjcts;
   end;
 
   { TObjTemplateCompare }
 
   TObjTemplateCompare = class
   public
-    class function c(a,b: TObjTemplate): boolean;
+    class function c(a,b: TMapObjectTemplate): boolean;
   end;
 
   { TSearchIndexBusket }
@@ -231,14 +231,14 @@ type
   TSearchIndexBusket = class
   public
     type
-      TDataVector = specialize gvector.TVector<TObjTemplate>;
-      TBusketData = specialize gset.TSet<TObjTemplate, TObjTemplateCompare>;
+      TDataVector = specialize gvector.TVector<TMapObjectTemplate>;
+      TBusketData = specialize gset.TSet<TMapObjectTemplate, TObjTemplateCompare>;
     var
       data: TBusketData;
     constructor Create();
     destructor Destroy; override;
 
-    procedure AddItem(AItem: TObjTemplate);
+    procedure AddItem(AItem: TMapObjectTemplate);
     procedure SaveTo(ATarget:TBusketData);
     procedure Intersect(ATarget:TSearchIndexBusket.TBusketData);
   end;
@@ -254,7 +254,7 @@ type
     constructor Create(AIndexSize: SizeInt);
     destructor Destroy; override;
 
-    procedure AddToIndex(AKeyWord: String; AItem: TObjTemplate);
+    procedure AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
 
     procedure Find(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
 
@@ -265,9 +265,9 @@ type
 
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
-    FObjTypes: TObjTypes;
+    FMapObjectGroups: TMapObjectGroups;
 
-    FAllTemplates: TObjTemplatesList; //for use in index
+    FAllTemplates: TMapObjectTemplateList; //for use in index
 
     FSearchIndex: TSearchIndex;
 
@@ -299,7 +299,7 @@ type
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
 
-    procedure FillWithAllObjects(ATarget: TObjTemplatesList);
+    procedure FillWithAllObjects(ATarget: TMapObjectTemplateList);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -308,14 +308,14 @@ type
 
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
 
-    property ObjTypes: TObjTypes read FObjTypes;
+    property MapObjectGroups: TMapObjectGroups read FMapObjectGroups;
 
     function SelectAll: TObjectsSelection;
 
     // AInput = space separated words
     function SelectByKeywords(AInput: string): TObjectsSelection;
 
-    function ResolveLegacyID(Typ,SubType: uint32):TObjSubType;
+    function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
 
     procedure BuildIndex;
   end;
@@ -332,7 +332,7 @@ const
 
 { TObjTemplateCompare }
 
-class function TObjTemplateCompare.c(a, b: TObjTemplate): boolean;
+class function TObjTemplateCompare.c(a, b: TMapObjectTemplate): boolean;
 begin
   Result := PtrInt(a) < PtrInt(b);
 end;
@@ -350,7 +350,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSearchIndexBusket.AddItem(AItem: TObjTemplate);
+procedure TSearchIndexBusket.AddItem(AItem: TMapObjectTemplate);
 begin
   data.Insert(AItem);
 end;
@@ -417,7 +417,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TObjTemplate);
+procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
 var
   busket: TSearchIndexBusket;
 
@@ -515,20 +515,20 @@ begin
 
 end;
 
-{ TObjSubTypes }
+{ TMapObjectTypes }
 
-constructor TObjSubTypes.Create(AOwner: TObjType);
+constructor TMapObjectTypes.Create(AOwner: TMapObjectGroup);
 begin
   inherited Create;
   FOwner := AOwner;
 end;
 
-{ TObjTemplates }
+{ TMapObjectTemplates }
 
-constructor TObjTemplates.Create(AOwner: TObjSubType);
+constructor TMapObjectTemplates.Create(AOwner: TMapObjectType);
 begin
   inherited Create;
-  FObjSubType := AOwner;
+  FOwner := AOwner;
 end;
 
 { TObjectsSelection }
@@ -538,7 +538,7 @@ begin
   Result := FData.Count;
 end;
 
-function TObjectsSelection.GetObjcts(AIndex: Integer): TObjTemplate;
+function TObjectsSelection.GetObjcts(AIndex: Integer): TMapObjectTemplate;
 begin
   Result := FData.Items[AIndex];
 end;
@@ -546,7 +546,7 @@ end;
 constructor TObjectsSelection.Create(AManager: TObjectsManager);
 begin
   FManager := AManager;
-  FData := TObjTemplatesList.Create(False);
+  FData := TMapObjectTemplateList.Create(False);
 end;
 
 destructor TObjectsSelection.Destroy;
@@ -555,67 +555,67 @@ begin
   inherited Destroy;
 end;
 
-{ TObjType }
+{ TMapObjectGroup }
 
-procedure TObjType.SetHandler(AValue: AnsiString);
+procedure TMapObjectGroup.SetHandler(AValue: AnsiString);
 begin
   if FHandler=AValue then Exit;
   FHandler:=AValue;
 end;
 
-constructor TObjType.Create(ACollection: TCollection);
+constructor TMapObjectGroup.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FSubTypes := TObjSubTypes.Create(self);
+  FSubTypes := TMapObjectTypes.Create(self);
   Index:=ID_INVALID;
 end;
 
-destructor TObjType.Destroy;
+destructor TMapObjectGroup.Destroy;
 begin
   FSubTypes.Free;
   inherited Destroy;
 end;
 
-class function TObjType.UseMeta: boolean;
+class function TMapObjectGroup.UseMeta: boolean;
 begin
   Result:=true;
 end;
 
-{ TObjSubType }
+{ TMapObjectType }
 
-function TObjSubType.GetIndexAsID: TCustomID;
+function TMapObjectType.GetIndexAsID: TCustomID;
 begin
   Result := FNid;
 end;
 
-procedure TObjSubType.SetIndexAsID(AValue: TCustomID);
+procedure TMapObjectType.SetIndexAsID(AValue: TCustomID);
 begin
   FNid := AValue;
 end;
 
-constructor TObjSubType.Create(ACollection: TCollection);
+constructor TMapObjectType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   index := ID_INVALID;
-  FTemplates := TObjTemplates.Create(Self);
+  FTemplates := TMapObjectTemplates.Create(Self);
 
-  FObjType :=  (ACollection as TObjSubTypes).Owner;
+  FMapObjectGroup :=  (ACollection as TMapObjectTypes).Owner;
 end;
 
-destructor TObjSubType.Destroy;
+destructor TMapObjectType.Destroy;
 begin
   FTemplates.Free;
   inherited Destroy;
 end;
 
-class function TObjSubType.UseMeta: boolean;
+class function TMapObjectType.UseMeta: boolean;
 begin
   Result:=true;
 end;
 
-{ TObjTemplate }
+{ TMapObjectTemplate }
 
-procedure TObjTemplate.SetAnimation(AValue: AnsiString);
+procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
 begin
   AValue := NormalizeResourceName(AValue);
   if FAnimation=AValue then Exit;
@@ -628,7 +628,7 @@ begin
     FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FAnimation);
 end;
 
-procedure TObjTemplate.SetEditorAnimation(AValue: AnsiString);
+procedure TMapObjectTemplate.SetEditorAnimation(AValue: AnsiString);
 begin
   AValue := NormalizeResourceName(AValue);
 
@@ -638,29 +638,29 @@ begin
   FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
 end;
 
-procedure TObjTemplate.SetZIndex(AValue: Integer);
+procedure TMapObjectTemplate.SetZIndex(AValue: Integer);
 begin
   if FzIndex=AValue then Exit;
   FzIndex:=AValue;
 end;
 
-function TObjTemplate.GetVisitableFrom: TStrings;
+function TMapObjectTemplate.GetVisitableFrom: TStrings;
 begin
   Result := FVisitableFrom;
 end;
 
-function TObjTemplate.GetMask: TStrings;
+function TMapObjectTemplate.GetMask: TStrings;
 begin
   Result := FMask;
 end;
 
-procedure TObjTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
+procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
 begin
   if FAllowedTerrains=AValue then Exit;
   FAllowedTerrains:=AValue;
 end;
 
-constructor TObjTemplate.Create(ACollection: TCollection);
+constructor TMapObjectTemplate.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FVisitableFrom := TStringList.Create;
@@ -668,13 +668,13 @@ begin
 
   AllowedTerrains := ALL_TERRAINS;
 
-  FObjSubtype :=  (ACollection as TObjTemplates).ObjSubtype;
+  FMapObjectType :=  (ACollection as TMapObjectTemplates).MapObjectType;
 
-  FObjType := (ACollection as TObjTemplates).ObjSubtype.FObjType;
+  FMapObjectGroup := (ACollection as TMapObjectTemplates).MapObjectType.FMapObjectGroup;
   FTags := TStringList.Create;
 end;
 
-destructor TObjTemplate.Destroy;
+destructor TMapObjectTemplate.Destroy;
 begin
   FTags.Free;
   FMask.Free;
@@ -682,7 +682,7 @@ begin
   inherited Destroy;
 end;
 
-class function TObjTemplate.UseMeta: boolean;
+class function TMapObjectTemplate.UseMeta: boolean;
 begin
   Result:=True;
 end;
@@ -700,10 +700,10 @@ constructor TObjectsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FObjTypes := TObjTypes.Create;
+  FMapObjectGroups := TMapObjectGroups.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
 
-  FAllTemplates := TObjTemplatesList.Create(false);
+  FAllTemplates := TMapObjectTemplateList.Create(false);
 
   FTextTokenizer := TRegExpr.Create('[_\-\s\.:]+');
   FTextTokenizer.Compile
@@ -715,7 +715,7 @@ begin
   FSearchIndex.Free;
   FAllTemplates.Free;
   FLegacyObjTypes.Free;
-  FObjTypes.Free;
+  FMapObjectGroups.Free;
   inherited Destroy;
 end;
 
@@ -725,18 +725,18 @@ begin
   FListsManager:=AValue;
 end;
 
-procedure TObjectsManager.FillWithAllObjects(ATarget: TObjTemplatesList);
+procedure TObjectsManager.FillWithAllObjects(ATarget: TMapObjectTemplateList);
 var
  i,j,k: Integer;
- obj_type: TObjType;
- obj_subtype: TObjSubType;
- obj_template: TObjTemplate;
+ obj_type: TMapObjectGroup;
+ obj_subtype: TMapObjectType;
+ obj_template: TMapObjectTemplate;
 begin
   ATarget.Clear;
-  for i := 0 to FObjTypes.Count - 1 do
+  for i := 0 to FMapObjectGroups.Count - 1 do
   begin
 
-    obj_type := FObjTypes.Items[i];
+    obj_type := FMapObjectGroups.Items[i];
 
     for j := 0 to obj_type.Types.Count - 1 do
     begin
@@ -748,8 +748,8 @@ begin
 
         ATarget.Add(obj_template);
 
-        Assert(Assigned(obj_template.FObjType));
-        Assert(Assigned(obj_template.FObjSubtype));
+        Assert(Assigned(obj_template.FMapObjectGroup));
+        Assert(Assigned(obj_template.FMapObjectType));
       end;
     end;
   end;
@@ -794,7 +794,7 @@ begin
 
     FProgress.Max:=FCombinedConfig.Count;
     AProgressCallback.NextStage('Loading objects ... ');
-    destreamer.JSONToObject(FCombinedConfig,FObjTypes);
+    destreamer.JSONToObject(FCombinedConfig,FMapObjectGroups);
 
     PopulateMapOfLegacyObjects;
   finally
@@ -864,7 +864,7 @@ begin
   keywords.Free;
 end;
 
-function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TObjSubType;
+function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TMapObjectType;
 var
   full_id: TLegacyTemplateId;
 begin
@@ -883,15 +883,15 @@ procedure TObjectsManager.BuildIndex;
 var
   idx: SizeInt;
 
-  obj: TObjTemplate;
+  obj: TMapObjectTemplate;
 
   keyword, s: string;
 
   keywords: TStringList;
 
   i: Integer;
-  obj_type: TObjType;
-  obj_subtype: TObjSubType;
+  obj_type: TMapObjectGroup;
+  obj_subtype: TMapObjectType;
 begin
   FillWithAllObjects(FAllTemplates);
   FSearchIndex := TSearchIndex.Create(FAllTemplates.Count);
@@ -915,7 +915,7 @@ begin
       FTextTokenizer.Split(keyword, keywords)
     end;
 
-    obj_type := obj.ObjType;
+    obj_type := obj.MapObjectGroup;
     if obj_type.Name <> '' then
       keyword := obj_type.Name
     else
@@ -923,7 +923,7 @@ begin
     keyword := NormalizeKeyWord(keyword);
     FTextTokenizer.Split(keyword, keywords);
 
-    obj_subtype := obj.ObjSubType;
+    obj_subtype := obj.MapObjectType;
     if obj_subtype.Name <> '' then
       keyword := obj_subtype.Name
     else
@@ -1467,15 +1467,15 @@ end;
 procedure TObjectsManager.PopulateMapOfLegacyObjects;
 var
   i,j: SizeInt;
-  obj_type: TObjType;
-  obj_sub_type: TObjSubType;
+  obj_type: TMapObjectGroup;
+  obj_sub_type: TMapObjectType;
   full_id: TLegacyTemplateId;
 begin
 
-  for i := 0 to FObjTypes.Count - 1 do
+  for i := 0 to FMapObjectGroups.Count - 1 do
   begin
 
-    obj_type := FObjTypes[i];
+    obj_type := FMapObjectGroups[i];
 
     for j := 0 to obj_type.Types.Count - 1 do
     begin
@@ -1494,7 +1494,7 @@ end;
 procedure TObjectsManager.OnObjectDestream(Sender: TObject; AObject: TObject;
   JSON: TJSONObject);
 begin
-  if Assigned(FProgress) and (AObject is TObjType) then
+  if Assigned(FProgress) and (AObject is TMapObjectGroup) then
   begin
     FProgress.Advance(1);
   end;

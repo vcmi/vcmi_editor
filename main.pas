@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, LazFileUtils, GL, OpenGLContext, LCLType, Forms,
   Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls,
   ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
-  map_actions, objects, editor_graphics, minimap, filesystem, filesystem_base,
+  map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
   map_road_river_actions, map_object_actions, undo_map, object_options, map_rect,
   player_options_form, edit_triggered_events, player_selection_form,
@@ -55,9 +55,9 @@ type
 
   TTemplateDragProxy = class(TDragProxy)
   private
-    FDraggingTemplate: TObjTemplate;
+    FDraggingTemplate: TMapObjectTemplate;
   public
-    constructor Create(AOwner: TfMain; ADraggingTemplate: TObjTemplate);
+    constructor Create(AOwner: TfMain; ADraggingTemplate: TMapObjectTemplate);
 
     procedure DropOnMap; override;
     procedure Render(x, y: integer); override;
@@ -326,7 +326,7 @@ type
 
     FMapDragging: boolean;
     FNextDragSubject: TDragSubject;
-    FSelectedTemplate: TObjTemplate;
+    FSelectedTemplate: TMapObjectTemplate;
 
     FCurrentPlayer: TPlayer;
 
@@ -456,7 +456,7 @@ end;
 { TTemplateDragProxy }
 
 constructor TTemplateDragProxy.Create(AOwner: TfMain;
-  ADraggingTemplate: TObjTemplate);
+  ADraggingTemplate: TMapObjectTemplate);
 begin
   FDraggingTemplate := ADraggingTemplate;
   inherited Create(AOwner);
@@ -471,7 +471,7 @@ var
 
   p: TPlayer;
 begin
-  c :=  TObjectOptions.GetClassByID(FDraggingTemplate.ObjType.Identifier, FDraggingTemplate.ObjSubType.Identifier);
+  c :=  TObjectOptions.GetClassByID(FDraggingTemplate.MapObjectGroup.Identifier, FDraggingTemplate.MapObjectType.Identifier);
 
   p := FOwner.FCurrentPlayer;
 
@@ -1741,7 +1741,7 @@ var
   row: Integer;
   col: Integer;
   o_idx: Integer;
-  o_def: TObjTemplate;
+  o_def: TMapObjectTemplate;
   cx: Integer;
   cy: Integer;
 begin

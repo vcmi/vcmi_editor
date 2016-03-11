@@ -24,7 +24,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="3"/>
-      <BuildNr Value="67"/>
+      <BuildNr Value="69"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="81">
+    <Units Count="82">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -190,7 +190,7 @@
         <IsPartOfProject Value="True"/>
       </Unit10>
       <Unit11>
-        <Filename Value="objects.pas"/>
+        <Filename Value="map_objects.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit11>
       <Unit12>
@@ -574,6 +574,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit80>
+      <Unit81>
+        <Filename Value="logical_building_condition.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit81>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
