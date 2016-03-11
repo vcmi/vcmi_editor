@@ -46,7 +46,6 @@ type
     FGroup,FIsOverlay: uint8;
   public
     constructor Create;
-
     property Filename: AnsiString read FFilename;
     property Actions: TDefBitmask read FActions;
     property Passability: TDefBitmask read FPassability;
@@ -71,10 +70,8 @@ type
   public
     constructor Create(APath: AnsiString);
     procedure LoadFromStream(AStream: TStream); override;
-
     property Width: Byte read FWidth write SetWidth;
     property Height: Byte read FHeight write SetHeight;
-
     property Mask1:TDefBitmask read FMask1;//todo: rename and use
     property Mask2:TDefBitmask read FMask2;
   end;
@@ -93,40 +90,32 @@ type
   TMapObjectTemplate = class (TNamedCollectionItem)
   private
     FDef: TDefAnimation;
-
     FMapObjectGroup:TMapObjectGroup;
     FMapObjectType: TMapObjectType;
-
   strict private
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
     FTags: TStrings;
-    FVisitableFrom: TStringList;
-    FMask: TStringList;
+    FVisitableFrom: TStrings;
+    FMask: TStrings;
     FzIndex: Integer;
-    function GetMask: TStrings;
-    function GetVisitableFrom: TStrings;
-    procedure SetAllowedTerrains(AValue: TTerrainTypes);
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
-    procedure SetZIndex(AValue: Integer);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     property Def: TDefAnimation read FDef;
-
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     property MapObjectType: TMapObjectType read FMapObjectType;
-
     class function UseMeta: boolean; override;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
-    property VisitableFrom: TStrings read GetVisitableFrom;
-    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write SetAllowedTerrains default ALL_TERRAINS;
-    property Mask: TStrings read GetMask;
-    property ZIndex: Integer read FzIndex write SetzIndex default 0;
+    property VisitableFrom: TStrings read FVisitableFrom;
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write FAllowedTerrains default ALL_TERRAINS;
+    property Mask: TStrings read FMask;
+    property ZIndex: Integer read FzIndex write FzIndex default 0;
     property Tags: TStrings read FTags;
   end;
 
@@ -155,9 +144,7 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
-
     class function UseMeta: boolean; override;
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
@@ -172,7 +159,7 @@ type
     FOwner: TMapObjectGroup;
   public
     constructor Create(AOwner: TMapObjectGroup);
-    property owner: TMapObjectGroup read FOwner;
+    property Owner: TMapObjectGroup read FOwner;
   end;
 
   { TMapObjectGroup }
@@ -182,18 +169,16 @@ type
     FHandler: AnsiString;
     FName: TLocalizedString;
     FNid: TCustomID;
-    FSubTypes: TMapObjectTypes;
-    procedure SetHandler(AValue: AnsiString);
+    FMapObjectTypes: TMapObjectTypes;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-
     class function UseMeta: boolean; override;
   published
     property Index: TCustomID read FNid write FNid default ID_INVALID;
-    property Types:TMapObjectTypes read FSubTypes;
+    property Types:TMapObjectTypes read FMapObjectTypes;
     property Name: TLocalizedString read FName write FName;
-    property Handler: AnsiString read FHandler write SetHandler;
+    property Handler: AnsiString read FHandler write FHandler;
   end;
 
   TMapObjectGroups = specialize TGNamedCollection<TMapObjectGroup>;
@@ -237,10 +222,9 @@ type
       data: TBusketData;
     constructor Create();
     destructor Destroy; override;
-
     procedure AddItem(AItem: TMapObjectTemplate);
-    procedure SaveTo(ATarget:TBusketData);
     procedure Intersect(ATarget:TSearchIndexBusket.TBusketData);
+    procedure SaveTo(ATarget:TBusketData);
   end;
 
   { TSearchIndex }
@@ -253,11 +237,8 @@ type
   public
     constructor Create(AIndexSize: SizeInt);
     destructor Destroy; override;
-
     procedure AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
-
     procedure Find(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
-
     procedure Intersect(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
   end;
 
@@ -266,57 +247,38 @@ type
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
     FMapObjectGroups: TMapObjectGroups;
-
     FAllTemplates: TMapObjectTemplateList; //for use in index
-
     FSearchIndex: TSearchIndex;
-
     FLegacyObjTypes: TLegacyIdMap;
-
     FProgress: IProgressCallback;
-
     FTextTokenizer: TRegExpr;
-
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
-
     procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
     procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
-
     procedure HandleInteritanceObjectTemplate(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritanceObjectSubType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritanceObjectType(Const AName : TJSONStringType; Item: TJSONData; Data: TObject; var Continue: Boolean);
     procedure HandleInteritance(AConfig: TJSONObject);
-
     procedure AddFactions(AConfig: TJSONObject);
     procedure AddHeroClasses(AConfig: TJSONObject);
     procedure AddCreatures(AConfig: TJSONObject);
     procedure AddArtifacts(AConfig: TJSONObject);
-
     procedure PopulateMapOfLegacyObjects;
-
     procedure OnObjectDestream(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   private
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
-
     procedure FillWithAllObjects(ATarget: TMapObjectTemplateList);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     property ListsManager:TListsManager read FListsManager write SetListsManager;
-
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
-
     property MapObjectGroups: TMapObjectGroups read FMapObjectGroups;
-
     function SelectAll: TObjectsSelection;
-
     // AInput = space separated words
     function SelectByKeywords(AInput: string): TObjectsSelection;
-
     function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
-
     procedure BuildIndex;
   end;
 
@@ -374,7 +336,6 @@ procedure TSearchIndexBusket.Intersect(ATarget: TSearchIndexBusket.TBusketData);
 var
   it: TBusketData.TIterator;
   n: TBusketData.PNode;
-
   to_delete: TDataVector;
   i: SizeInt;
 begin
@@ -420,7 +381,6 @@ end;
 procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
 var
   busket: TSearchIndexBusket;
-
   short_key: ShortString;
   idx: Integer;
 begin
@@ -512,7 +472,6 @@ begin
 
   AStream.Read(FMask1,6);
   AStream.Read(FMask2,6);
-
 end;
 
 { TMapObjectTypes }
@@ -557,22 +516,16 @@ end;
 
 { TMapObjectGroup }
 
-procedure TMapObjectGroup.SetHandler(AValue: AnsiString);
-begin
-  if FHandler=AValue then Exit;
-  FHandler:=AValue;
-end;
-
 constructor TMapObjectGroup.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FSubTypes := TMapObjectTypes.Create(self);
+  FMapObjectTypes := TMapObjectTypes.Create(self);
   Index:=ID_INVALID;
 end;
 
 destructor TMapObjectGroup.Destroy;
 begin
-  FSubTypes.Free;
+  FMapObjectTypes.Free;
   inherited Destroy;
 end;
 
@@ -598,7 +551,6 @@ begin
   inherited Create(ACollection);
   index := ID_INVALID;
   FTemplates := TMapObjectTemplates.Create(Self);
-
   FMapObjectGroup :=  (ACollection as TMapObjectTypes).Owner;
 end;
 
@@ -636,28 +588,6 @@ begin
   FEditorAnimation:=AValue;
 
   FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
-end;
-
-procedure TMapObjectTemplate.SetZIndex(AValue: Integer);
-begin
-  if FzIndex=AValue then Exit;
-  FzIndex:=AValue;
-end;
-
-function TMapObjectTemplate.GetVisitableFrom: TStrings;
-begin
-  Result := FVisitableFrom;
-end;
-
-function TMapObjectTemplate.GetMask: TStrings;
-begin
-  Result := FMask;
-end;
-
-procedure TMapObjectTemplate.SetAllowedTerrains(AValue: TTerrainTypes);
-begin
-  if FAllowedTerrains=AValue then Exit;
-  FAllowedTerrains:=AValue;
 end;
 
 constructor TMapObjectTemplate.Create(ACollection: TCollection);
@@ -735,7 +665,6 @@ begin
   ATarget.Clear;
   for i := 0 to FMapObjectGroups.Count - 1 do
   begin
-
     obj_type := FMapObjectGroups.Items[i];
 
     for j := 0 to obj_type.Types.Count - 1 do
@@ -761,7 +690,6 @@ var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;
   destreamer: TVCMIJSONDestreamer;
-
   FFullIdToDefMap: TLegacyObjConfigFullIdMap; //type,subtype => template list
   i: Integer;
 begin
@@ -801,7 +729,6 @@ begin
     FCombinedConfig.Free;
     FConfig.Free;
     destreamer.Free;
-
     FFullIdToDefMap.Free;
   end;
 end;
@@ -815,10 +742,8 @@ end;
 function TObjectsManager.SelectByKeywords(AInput: string): TObjectsSelection;
 var
   keywords: TStringList;
-
   data: TSearchIndexBusket.TBusketData;
   i: Integer;
-
   it: TSearchIndexBusket.TBusketData.TIterator;
 begin
   AInput := UTF8Trim(UTF8LowerCase(AInput));
@@ -882,13 +807,9 @@ end;
 procedure TObjectsManager.BuildIndex;
 var
   idx: SizeInt;
-
   obj: TMapObjectTemplate;
-
   keyword, s: string;
-
   keywords: TStringList;
-
   i: Integer;
   obj_type: TMapObjectGroup;
   obj_subtype: TMapObjectType;
@@ -948,95 +869,88 @@ end;
 
 procedure TObjectsManager.LoadLegacy(AProgressCallback: IProgressCallback;
   AFullIdToDefMap: TLegacyObjConfigFullIdMap);
+var
+  row, col: Integer;
+  objects_txt: TTextResource;
+
+  procedure CellToStr(var s: string);
+  begin
+    if not objects_txt.HasCell(col, row) then
+       raise Exception.CreateFmt('OBJTXT error cell not exists. row:%d, col:%d',[row,col]);
+
+    s := objects_txt.Value[col,row];
+    inc(col);
+  end;
+
+
+  procedure CellToBitMask(var mask: TDefBitmask);
   var
-    row, col: Integer;
+    i,j: Integer;
+    s, ss: string;
+    m: UInt8;
+  begin
+    s:='';
+    CellToStr(s);
+    if not Length(s)=6*8 then
+       raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
 
-    objects_txt: TTextResource;
-
-    procedure CellToStr(var s: string);
+    for i:=5 downto 0 do //in object.txt bottom line is first
     begin
-      if not objects_txt.HasCell(col, row) then
-         raise Exception.CreateFmt('OBJTXT error cell not exists. row:%d, col:%d',[row,col]);
-
-      s := objects_txt.Value[col,row];
-      inc(col);
-    end;
-
-
-    procedure CellToBitMask(var mask: TDefBitmask);
-    var
-      i: Integer;
-      j: Integer;
-
-      ss: string;
-      m: UInt8;
-      s: string;
-    begin
-      s:='';
-      CellToStr(s);
-      if not Length(s)=6*8 then
-         raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
-
-      for i:=5 downto 0 do //in object.txt bottom line is first
+      ss := Copy(s,i*8+1,8);
+      if not (Length(ss)=8) then
+        raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
+      m := 0;
+      for j := 0 to 7 do
       begin
-        ss := Copy(s,i*8+1,8);
-        if not (Length(ss)=8) then
-          raise Exception.CreateFmt('OBJTXT Format error. line:%d, data:%s',[row,s]);
-        m := 0;
-        for j := 0 to 7 do
-        begin
-          if ss[j+1] = '1' then
-            m := m or (1 shl j) ;
-        end;
-        mask[i] := m;
+        if ss[j+1] = '1' then
+          m := m or (1 shl j) ;
       end;
+      mask[i] := m;
     end;
+  end;
 
 
-    procedure CellToUint16Mask(var v: uint16);
-    var
-      temp: string;
-      len: Integer;
-      i: Integer;
-    begin
-      temp := '';
-      CellToStr(temp);
-      len:= Length(temp);
-      v := 0;
-      for i := len downto 1 do
-      begin
-        if temp[i] = '1' then
-          v := v or 1 shl (len - i);
-      end;
-    end;
-
-    function CellToInt: uint32;
-    begin
-      result := StrToIntDef(objects_txt.Value[col,row],0);
-      inc(col);
-    end;
-
+  procedure CellToUint16Mask(var v: uint16);
   var
-    def: TLegacyObjTemplate;
+    temp: string;
+    len, i: Integer;
+  begin
+    temp := '';
+    CellToStr(temp);
+    len:= Length(temp);
+    v := 0;
+    for i := len downto 1 do
+    begin
+      if temp[i] = '1' then
+        v := v or 1 shl (len - i);
+    end;
+  end;
 
-    s_tmp: string;
-    legacy_config: TJSONObject;
-    list: TLegacyObjConfigList;
-    full_id: TLegacyTemplateId;
-    idx: LongInt;
-    byte_idx, bit_idx: integer;
-    str: String;
+  function CellToInt: uint32;
+  begin
+    result := StrToIntDef(objects_txt.Value[col,row],0);
+    inc(col);
+  end;
 
-    passable, active: Boolean;
-    mask_conf, visit_conf, allowedTerrains, tags: TJSONArray;
-    //anim: TDefAnimation;
-    width_tiles: Integer;
-    height_tiles: Integer;
+var
+  def: TLegacyObjTemplate;
+  s_tmp: string;
+  legacy_config: TJSONObject;
+  list: TLegacyObjConfigList;
+  full_id: TLegacyTemplateId;
+  idx: LongInt;
+  byte_idx, bit_idx: integer;
+  str: String;
 
-    msk: TMaskResource;
+  passable, active: Boolean;
+  mask_conf, visit_conf, allowedTerrains, tags: TJSONArray;
+  //anim: TDefAnimation;
+  width_tiles: Integer;
+  height_tiles: Integer;
+
+  msk: TMaskResource;
 begin
   AProgressCallback.NextStage('Loading legacy objects ... ');
-
 
   objects_txt := TTextResource.Create(OBJECT_LIST);
   objects_txt.Delimiter := TTextResource.TDelimiter.Space;
@@ -1108,7 +1022,6 @@ begin
               str += 'A'
             else
               str += 'B';
-
         end;
         UniqueString(str);
         mask_conf.Add(str);
@@ -1162,7 +1075,6 @@ begin
 
       AProgressCallback.Advance(1);
     end;
-
   finally
     objects_txt.Free;
   end;
@@ -1183,9 +1095,6 @@ var
 begin
   objects_names := TTextResource.Create(OBJECT_NAMES);
   objects_names.Load(ResourceLoader);
-
-
-
   //cycle by type
   for i := 0 to ACombinedConfig.Count - 1 do
   begin
@@ -1234,7 +1143,6 @@ begin
         Continue; //no index property or invalid
       end;
 
-
       full_id := TypToId(obj_id, obj_subid);
 
       idx :=  AFullIdToDefMap.IndexOf(full_id);
@@ -1247,7 +1155,6 @@ begin
       legacy_data :=  AFullIdToDefMap.Data[idx];
 
       //subTypeObj => legacy_data
-
       templates_obj :=  subTypeObj.GetOrCreateObject('templates');
 
       if templates_obj.Count = 0 then
@@ -1255,7 +1162,6 @@ begin
         //add legacy templates only if there are no normal templates
         for k := legacy_data.Count - 1 downto 0 do
         begin
-
           t := legacy_data.Items[k];
 
           legacy_data.Extract(t);
@@ -1263,11 +1169,9 @@ begin
           templates_obj.Add('legacy_'+IntToStr(k), t);
         end;
       end;
-
       AFullIdToDefMap.Remove(full_id); //delete merged data
     end;
   end;
-
   objects_names.Free;
 end;
 
@@ -1276,16 +1180,10 @@ procedure TObjectsManager.HandleInteritanceObjectTemplate(
   var Continue: Boolean);
 var
   obj_template: TVCMIJsonObject;
-  base: TVCMIJsonObject;
 begin
   obj_template := Item as TVCMIJsonObject;
-
   if Assigned(data) then
-  begin
-    base := data as TVCMIJsonObject;
-
-    obj_template.InheritFrom(base);
-  end;
+    obj_template.InheritFrom(data as TVCMIJsonObject);
 end;
 
 procedure TObjectsManager.HandleInteritanceObjectSubType(
@@ -1299,9 +1197,7 @@ begin
   obj_subtype := Item as TVCMIJsonObject;
 
   if Assigned(data) then
-  begin
     obj_subtype.InheritFrom(data as TVCMIJsonObject);
-  end;
 
   base := nil;
 
@@ -1333,13 +1229,11 @@ procedure TObjectsManager.HandleInteritanceObjectType(
   var Continue: Boolean);
 var
   obj_type: TJSONObject;
-
   base: TJSONObject;
   idx: Integer;
 begin
   FProgress.Advance(1);
   //AName = object type id
-
   obj_type  := Item as TJSONObject;
 
   base := nil;
@@ -1363,7 +1257,6 @@ begin
   end;
 
   obj_type.Objects['types'].Iterate(@HandleInteritanceObjectSubType, base);
-
 end;
 
 procedure TObjectsManager.HandleInteritance(AConfig: TJSONObject);
@@ -1395,7 +1288,6 @@ begin
 
     town_types.Add(faction.Identifier , town_type);
   end;
-
 end;
 
 procedure TObjectsManager.AddHeroClasses(AConfig: TJSONObject);
@@ -1461,7 +1353,6 @@ begin
     info.Graphics.AddTemplates(ar);
     artifacts.Add(info.Identifier, ar);
   end;
-
 end;
 
 procedure TObjectsManager.PopulateMapOfLegacyObjects;
@@ -1471,10 +1362,8 @@ var
   obj_sub_type: TMapObjectType;
   full_id: TLegacyTemplateId;
 begin
-
   for i := 0 to FMapObjectGroups.Count - 1 do
   begin
-
     obj_type := FMapObjectGroups[i];
 
     for j := 0 to obj_type.Types.Count - 1 do
@@ -1484,7 +1373,6 @@ begin
       if (obj_type.Index>=0) and (obj_sub_type.Index>=0) then
       begin
         full_id := TypToId(obj_type.Index, obj_sub_type.Index);
-
         FLegacyObjTypes.KeyData[full_id] := obj_sub_type;
       end;
     end;
