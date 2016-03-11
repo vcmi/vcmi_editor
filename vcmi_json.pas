@@ -812,36 +812,37 @@ Var
   str_data : TVCMIJsonString;
 
   value: TJSONStringType;
-  idx: SizeInt;
-  Meta: TJSONStringType;
+  //idx: SizeInt;
+  //local_scope: TJSONStringType;
 begin
   PI:=PropInfo;
   TI:=PropInfo^.PropType;
 
   if (TI = TypeInfo(TIdentifier)) then
   begin
-
     value := '';
-    Meta := '';
+    //local_scope := '';
 
     if Assigned(PropData) and (PropData is TVCMIJsonString) then
     begin
       str_data := TVCMIJsonString(PropData);
       value := str_data.AsString;
-      Meta := str_data.Meta;
+      //local_scope := str_data.Meta;
     end;
 
-    if Meta <> '' then
-    begin
-      //DebugLn(['Loading ident: ', value, '; meta: ', str_data.Meta]);
+    //todo: may be move identifier resolving here
 
-      idx := pos(':', value);
-
-      if idx = 0 then
-      begin
-        value := Meta +':'+value;
-      end;
-    end;
+    //if local_scope <> '' then
+    //begin
+    //  DebugLn(['Loading ident: ', value, '; local scope: ', local_scope]);
+    //
+    //  idx := pos(':', value);
+    //
+    //  if idx = 0 then
+    //  begin
+    //    value := local_scope +':'+value;//todo: remove
+    //  end;
+    //end;
 
     SetStrProp(AObject,PI,value);
   end

@@ -148,6 +148,8 @@ begin
   DoLoadObjects(HERO_METACLASS, @FListsManager.LoadHeroes);
   DoLoadObjects(SPELL_METACLASS, @FListsManager.LoadSpells);
 
+  FListsManager.ProcessResolveRequests;
+
   ProgressForm.NextStage('Loading terrain graphics ...');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
 

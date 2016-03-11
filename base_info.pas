@@ -42,14 +42,10 @@ type
 
     procedure SetIndex_(AValue: TCustomID);
   protected
-    function GetFullID: AnsiString; virtual;
-
     function GetName: TLocalizedString; virtual;
     procedure SetName(const AValue: TLocalizedString); virtual;
   public
     constructor Create(ACollection: TCollection); override;
-
-    property FullID: AnsiString read GetFullID;
 
     property CollectionIndex: integer read GetCollectionIndex write SetCollectionIndex;
   published
@@ -93,11 +89,6 @@ constructor TBaseInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FIndex := ID_INVALID;
-end;
-
-function TBaseInfo.GetFullID: AnsiString;
-begin
-  Result := Identifier;
 end;
 
 function TBaseInfo.GetCollectionIndex: integer;

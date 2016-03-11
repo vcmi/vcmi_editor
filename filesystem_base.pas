@@ -25,7 +25,7 @@ unit filesystem_base;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Types;
 
 type
 
@@ -50,6 +50,8 @@ type
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
 
     function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string):boolean;
+
+    function GetModDepenencies(AModId: AnsiString): TStringDynArray;
   end;
 
   { TBaseResource }

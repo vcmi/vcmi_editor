@@ -25,7 +25,7 @@ unit lists_manager;
 interface
 
 uses
-  Classes, SysUtils, gmap, gutil, fgl, fpjson, filesystem_base, editor_consts,
+  Classes, SysUtils, gmap, gutil, gvector, fgl, Types, fpjson, filesystem_base, editor_consts,
   editor_types, editor_utils, vcmi_json, h3_txt, base_info, editor_classes,
   logical_id_condition, logical_expression, logical_building_condition;
 
@@ -79,8 +79,6 @@ type
   { TSkillInfo }
 
   TSkillInfo = class (TBaseInfo)
-  protected
-    function GetFullID: AnsiString; override;
   end;
 
   { TSkillInfos }
@@ -100,8 +98,6 @@ type
     FLevel: integer;
     procedure SetType(AValue: TSpellType);
     procedure SetLevel(AValue: integer);
-  protected
-    function GetFullID: AnsiString; override;
   published
     property level: integer read FLevel write SetLevel;
     property &type: TSpellType read FType write SetType;
@@ -377,11 +373,12 @@ type
     procedure SetHeroClass(AValue: TIdentifier);
     procedure SetSpecial(AValue: Boolean);
   protected
-
     procedure SetName(const AValue: TLocalizedString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    class function UseMeta: boolean; override;
 
     //IHeroInfo
     function GetHeroIdentifier: AnsiString;
@@ -416,6 +413,8 @@ type
   THeroInfos = class(specialize TGNamedCollection<THeroInfo>)
   private
     FOwner:TListsManager;
+  protected
+    procedure PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass; const AProperty: ShortString); override;
   public
     constructor Create(AOwner: TListsManager);
     procedure FillWithNotSpecial(AList: TLogicalIDCondition);
@@ -431,6 +430,15 @@ type
       TLessInteger = specialize gutil.TLess<Integer>;
 
       TBuildingCnv = specialize gmap.TMap<Integer, Integer, TLessInteger>;
+
+      PResolveRequest = ^TResolveRequest;
+      TResolveRequest = record
+        AObject: TNamedCollectionItem;
+        AMetaClass: TMetaclass;
+        AProperty: ShortString;
+      end;
+
+      TResolveRequests = specialize gvector.TVector<TResolveRequest>;
   strict private
     FDestreamer: TVCMIJSONDestreamer;
 
@@ -459,6 +467,8 @@ type
 
     FSlotIds: TSlotMap;
 
+    FResolveRequests: TResolveRequests;
+
     procedure FillSlotIds;
 
     procedure LoadBuildings;
@@ -469,7 +479,6 @@ type
   strict private //Accesors
     function GetPlayerName(const APlayer: TPlayer): TLocalizedString;
   strict private
-
     FTextDataConfig: TTextDataConfig;
 
     function GetArtifactSlotMap(ASlot: Integer): TStrings;
@@ -480,9 +489,16 @@ type
     procedure FillArtifactCache;
 
     procedure Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList; ATarget:THashedCollection);
+
+    procedure ResolveIdentifier(var AIdentifier: AnsiString; ALocalScope: AnsiString; AMetaclass: TMetaclass);
+    function ResolveIdentifier(AIdentifier: AnsiString; AMetaclass: TMetaclass): Boolean ;
+
+    function ResolveHeroClass(AIdentifier: AnsiString): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass; const AProperty: ShortString);
 
     procedure PreLoad;
 
@@ -492,6 +508,8 @@ type
     procedure LoadArtifacts(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadSpells(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
     procedure LoadHeroes(AProgess: IProgressCallback; APaths: TModdedConfigPaths);
+
+    procedure ProcessResolveRequests;
   public
 
     property TextDataConfig: TTextDataConfig read FTextDataConfig;
@@ -705,6 +723,12 @@ end;
 
 { THeroInfos }
 
+procedure THeroInfos.PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass;
+  const AProperty: ShortString);
+begin
+  FOwner.PushResolveRequest(AObject, AMetaClass, AProperty);
+end;
+
 constructor THeroInfos.Create(AOwner: TListsManager);
 begin
   inherited Create;
@@ -732,6 +756,7 @@ procedure THeroInfo.SetHeroClass(AValue: TIdentifier);
 begin
   if FHeroClass=AValue then Exit;
   FHeroClass:=AValue;
+  PushResolveRequest(TMetaclass.HeroClass, 'Class');
 end;
 
 procedure THeroInfo.SetSpecial(AValue: Boolean);
@@ -760,7 +785,7 @@ constructor THeroInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FTexts := THeroTexts.Create;
-  FSpellBook := CrStrList;
+  FSpellBook := TIdentifierSet.Create(nil);
   FSkills := THeroSecondarySkills.Create;
 end;
 
@@ -770,6 +795,11 @@ begin
   FSpellBook.Free;
   FTexts.Free;
   inherited Destroy;
+end;
+
+class function THeroInfo.UseMeta: boolean;
+begin
+  Result:=True;
 end;
 
 function THeroInfo.GetPortrait: AnsiString;
@@ -1063,13 +1093,6 @@ begin
   end;
 end;
 
-{ TSkillInfo }
-
-function TSkillInfo.GetFullID: AnsiString;
-begin
-  Result := 'skill.'+Identifier
-end;
-
 { TSkillInfos }
 
 procedure TSkillInfos.FillWithAllIds(AList: TLogicalIDCondition);
@@ -1114,11 +1137,6 @@ procedure TSpellInfo.SetType(AValue: TSpellType);
 begin
   if Ftype = AValue then Exit;
   Ftype := AValue;
-end;
-
-function TSpellInfo.GetFullID: AnsiString;
-begin
-  Result := 'spell.'+Identifier;
 end;
 
 procedure TSpellInfo.SetLevel(AValue: integer);
@@ -1166,12 +1184,15 @@ begin
 
   FSlotIds := TSlotMap.Create;
   FillSlotIds;
+
+  FResolveRequests := TResolveRequests.Create;
 end;
 
 destructor TListsManager.Destroy;
 var
   i: SizeInt;
 begin
+  FResolveRequests.Free;
   FSlotIds.Free;
   FHeroInfos.Free;
 
@@ -1202,6 +1223,18 @@ begin
   inherited Destroy;
 end;
 
+procedure TListsManager.PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass;
+  const AProperty: ShortString);
+var
+  r: TResolveRequest;
+begin
+  r.AMetaClass:=AMetaClass;
+  r.AObject :=AObject;
+  r.AProperty:=AProperty;
+
+  FResolveRequests.PushBack(r);
+end;
+
 function TListsManager.GetPlayerName(const APlayer: TPlayer): TLocalizedString;
 begin
   //TODO: get localized name;
@@ -1212,7 +1245,6 @@ begin
   else begin
     Result := PLAYER_NAMES[APlayer];
   end;
-
 end;
 
 procedure TListsManager.MergeLegacy(ASrc: TJsonObjectList; ADest: TJSONObject);
@@ -1769,9 +1801,7 @@ procedure TListsManager.Load(AProgess: IProgressCallback; APaths: TModdedConfigP
   ATarget: THashedCollection);
 var
   FConfig: TModdedConfigs;
-  FCombinedConfig, o: TJSONObject;
-  iter: TJSONEnum;
-  info: TBaseInfo;
+  FCombinedConfig: TJSONObject;
 begin
   FConfig := TModdedConfigs.Create;
   FCombinedConfig := CreateJSONObject([]);
@@ -1781,19 +1811,111 @@ begin
 
     MergeLegacy(ALegacyConfig, FCombinedConfig);
 
-    for iter in FCombinedConfig do
-    begin
-      info := ATarget.Add as TBaseInfo;
+    FDestreamer.JSONToObjectEx(FCombinedConfig, ATarget);
 
-      info.Identifier := iter.Key;
-
-      o := iter.Value as TJSONObject;
-
-      FDestreamer.JSONToObjectEx(o, info);
-    end;
   finally
     FCombinedConfig.Free;
     FConfig.Free;
+  end;
+end;
+
+procedure TListsManager.ResolveIdentifier(var AIdentifier: AnsiString; ALocalScope: AnsiString; AMetaclass: TMetaclass);
+var
+  idx: SizeInt;
+  scopes: TStringDynArray;
+  s: String;
+begin
+  idx := pos(':', AIdentifier);
+
+  if idx = 0 then
+  begin
+    if ResolveIdentifier(AIdentifier, AMetaclass) then
+      exit;//found in core
+
+    if ALocalScope <> '' then
+    begin
+      if ResolveIdentifier(ALocalScope+':'+ AIdentifier, AMetaclass) then
+      begin
+        AIdentifier := ALocalScope+':'+ AIdentifier;
+        exit;//found local
+      end;
+
+      scopes := ResourceLoader.GetModDepenencies(ALocalScope);
+
+      for s in scopes do
+      begin
+        if ResolveIdentifier(s+':'+ AIdentifier, AMetaclass) then
+        begin
+          AIdentifier := s+':'+ AIdentifier;
+          exit;//found in this scope
+        end;
+      end;
+    end;
+
+    raise Exception.CreateFmt('Identifier resolve failed for %s',[AIdentifier]);
+  end
+  else
+  begin
+    if not ResolveIdentifier(AIdentifier, AMetaclass) then
+      raise Exception.CreateFmt('Identifier resolve failed for %s',[AIdentifier]);
+  end;
+end;
+
+function TListsManager.ResolveIdentifier(AIdentifier: AnsiString; AMetaclass: TMetaclass): Boolean;
+begin
+  case AMetaclass of
+    TMetaclass.HeroClass: Result := ResolveHeroClass(AIdentifier) ;
+  else
+    raise Exception.Create('Unimplmented resolve request');
+  end;
+end;
+
+function TListsManager.ResolveHeroClass(AIdentifier: AnsiString): Boolean;
+begin
+  Result := Assigned(FHeroClassInfos.FindItem(AIdentifier));
+end;
+
+procedure TListsManager.ProcessResolveRequests;
+var
+  i: SizeInt;
+  r: PResolveRequest;
+
+  pinfo:PPropInfo;
+  pType : PTypeInfo;
+  tmp: AnsiString;
+
+  o: TNamedCollectionItem;
+  local_scope: AnsiString;
+begin
+  for i := 0 to SizeInt(FResolveRequests.Size) - 1 do
+  begin
+    r := FResolveRequests.Mutable[i];
+
+    pinfo := FindPropInfo(r^.AObject, r^.AProperty);
+    pType := pinfo^.PropType;
+
+    local_scope := '';
+
+    if r^.AObject is TNamedCollectionItem then
+    begin
+      o := TNamedCollectionItem(r^.AObject);
+      local_scope := o.Meta;
+    end
+    else
+      raise Exception.Create('Unimplmented resolve request');
+
+    case pType^.Kind of
+      tkAString:
+      begin
+        tmp := GetStrProp(r^.AObject, pinfo);
+
+        ResolveIdentifier(tmp, local_scope, r^.AMetaClass);
+
+        SetStrProp(r^.AObject, pinfo, tmp);
+      end
+    else
+      raise Exception.Create('Unimplmented resolve request');
+    end;
   end;
 end;
 

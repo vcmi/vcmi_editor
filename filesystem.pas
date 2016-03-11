@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LazFileUtils,
-  gmap, gqueue, fgl,
+  gmap, gqueue, fgl, Types,
   lazutf8classes,
   vcmi_json,
   editor_classes,
@@ -346,6 +346,8 @@ type
       AName: string): boolean;
 
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
+
+    function GetModDepenencies(AModId: AnsiString): TStringDynArray;
   public
     property Configs:TIdToConfigMap read FConfigMap;
   end;
@@ -997,6 +999,22 @@ begin
   FreeAndNil(it);
 end;
 
+function TFSManager.GetModDepenencies(AModId: AnsiString): TStringDynArray;
+var
+  AConfig: TModConfig;
+  i: Integer;
+begin
+  AModId := NormalizeModId(AModId);
+  AConfig := FModMap.KeyData[AModId];
+
+  SetLength(Result, AConfig.Depends.Count);
+
+  for i := 0 to AConfig.Depends.Count - 1 do
+  begin
+    Result[i] := AConfig.Depends[i];
+  end;
+end;
+
 procedure TFSManager.ScanLod(LodRelPath: string; ARootPath: TStrings);
 var
   lod: TLod;
@@ -1104,7 +1122,6 @@ end;
 procedure TFSManager.ResolveDeps;
 var
   Initial, Resolved, ToResolve: TStringList;
-
 
   function IsResolved(AConfig: TModConfig): Boolean;
   var

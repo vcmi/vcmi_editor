@@ -101,6 +101,8 @@ type
     procedure AssignTo(Dest: TPersistent); override;
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;
+
+    procedure PushResolveRequest(AMetaClass: TMetaclass; const AProperty: ShortString);
   public
     property Identifier: AnsiString read FIdentifier write SetIdentifier;
     property Meta: AnsiString read FMeta write SetMeta;
@@ -115,13 +117,14 @@ type
   THashedCollection = class(TCollection)
   private
     FHash: TFPHashObjectList;
-
   protected
     procedure ItemIdentifierChanged(Item: TCollectionItem; AOldName: String; ANewName: String); virtual;
     procedure ItemAdded(Item: TCollectionItem); virtual;
     procedure ItemRemoved(Item: TCollectionItem); virtual;
     procedure Notify(Item: TCollectionItem; Action: TCollectionNotification);
       override;
+
+    procedure PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass; const AProperty: ShortString); virtual;
   public
     constructor Create(AItemClass: TNamedCollectionItemClass);
     destructor Destroy; override;
@@ -406,6 +409,12 @@ begin
   end;
 end;
 
+procedure THashedCollection.PushResolveRequest(AObject: TNamedCollectionItem; AMetaClass: TMetaclass;
+  const AProperty: ShortString);
+begin
+  raise Exception.Create('Unhandled PushResolveRequest');
+end;
+
 constructor THashedCollection.Create(AItemClass: TNamedCollectionItemClass);
 begin
   inherited Create(AItemClass);
@@ -492,6 +501,11 @@ end;
 procedure TNamedCollectionItem.SetDisplayName(const Value: string);
 begin
 //do nothing here
+end;
+
+procedure TNamedCollectionItem.PushResolveRequest(AMetaClass: TMetaclass; const AProperty: ShortString);
+begin
+  (Collection as THashedCollection).PushResolveRequest(self, AMetaClass, AProperty);
 end;
 
 class function TNamedCollectionItem.UseMeta: boolean;

@@ -135,6 +135,7 @@ type
 
   TMapObjectType = class (TNamedCollectionItem)
   private
+    FFilters: TJSONObject;
     FName: TLocalizedString;
     FNid: TCustomID;
     FTemplates: TMapObjectTemplates;
@@ -150,6 +151,7 @@ type
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
     property Templates:TMapObjectTemplates read FTemplates;
     property Name: TLocalizedString read FName write FName;
+    property Filters: TJSONObject read FFilters;
   end;
 
   { TMapObjectTypes }
@@ -552,10 +554,12 @@ begin
   index := ID_INVALID;
   FTemplates := TMapObjectTemplates.Create(Self);
   FMapObjectGroup :=  (ACollection as TMapObjectTypes).Owner;
+  FFilters := CreateJSONObject([]);
 end;
 
 destructor TMapObjectType.Destroy;
 begin
+  FFilters.Free;
   FTemplates.Free;
   inherited Destroy;
 end;

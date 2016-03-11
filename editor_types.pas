@@ -70,13 +70,15 @@ type
 
   TWinLossCondition = (have_0, haveBuilding_0,  destroy_0,  daysPassed,  isHuman,  standardWin,  daysWithoutTown,  constValue);
 
-  TIdentifier = type AnsiString;
+  TIdentifier = type AnsiString;//marks identifiers requiring resolution
 
   TInstanceID = type Int32;
 
   TSkillLevel = (none, basic, advanced, expert);
 
   TBuildMode = (normal, auto, special, grail);
+
+  TMetaclass = (Artifact, Creature, Faction, Hero, HeroClass, Spell);
 
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
