@@ -1084,11 +1084,15 @@ var
   c: Char;
 begin
   mask_h := Mask.Count;
-  mask_w := Length(Mask[0]);
+  mask_w := 1;
 
   FIsVisitable:=false;
   for s in FMask do
   begin
+    if Length(s) > mask_w then
+    begin
+      mask_w := Length(s)
+    end;
     for c in s do
     begin
       if (c = MASK_ACTIVABLE) or (c = MASK_TRIGGER) then
@@ -1164,7 +1168,7 @@ end;
 
 procedure TMapObjectTemplate.OnOwnerChanged(ATiles: TTiles; op: TFPObservedOperation);
 var
-  i, j, x, y: Integer;
+  i, j, x, y, shift: Integer;
   line: String;
 
   t: PMapTile;
@@ -1174,9 +1178,11 @@ begin
     line := Mask[i-1];
     y := FOwner.Y - mask_h + i;
 
-    for j := 1 to mask_w do
+    shift := Length(line);
+
+    for j := 1 to Length(line) do
     begin
-      x := FOwner.X - mask_w + j;
+      x := FOwner.X + j - shift;
 
       if (x>0) and (y>0) and (x < length(ATiles)) and (y < length(ATiles[x])) then
       begin
@@ -1202,7 +1208,7 @@ const
   ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
   BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
 var
-  i, j: Integer;
+  i, j, p, shift: Integer;
   line: String;
 begin
   CurrentContextState.SetTranslation((FOwner.X - mask_w + 1 ) * TILE_SIZE, (FOwner.Y - mask_h + 1) * TILE_SIZE);
@@ -1210,12 +1216,13 @@ begin
   for i := 0 to mask_h - 1 do
   begin
     line := Mask[i];
-
-    for j := 0 to mask_w - 1 do
+    shift := mask_w - Length(line);
+    for j := 0 to Length(line) - 1 do
     begin
+      p := j + shift;
       case line[j+1] of
-        MASK_ACTIVABLE, MASK_TRIGGER: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
-        MASK_BLOCKED, MASK_HIDDEN: CurrentContextState.RenderSolidRect(j* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
+        MASK_ACTIVABLE, MASK_TRIGGER: CurrentContextState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
+        MASK_BLOCKED, MASK_HIDDEN: CurrentContextState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
       end;
     end;
   end;
