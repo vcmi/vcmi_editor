@@ -539,6 +539,7 @@ begin
       FreeAndNil(FMap);
 
       FMap := TVCMIMap.Create(fenv,params);
+      FMap.Loaded;
       MapChanded;
     end;
 

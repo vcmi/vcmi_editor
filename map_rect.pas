@@ -121,10 +121,10 @@ function TMapRect.Intersect(Other: TMapRect): TMapRect;
 var
   intersects: Boolean;
 begin
-  intersects := (Right() > Other.Left())
-    and (Other.Right() > Left())
-    and (Bottom()>Other.Top())
-    and (Other.Bottom()>Top());
+  intersects := (Right() >= Other.Left())
+    and (Other.Right() >= Left())
+    and (Bottom() >= Other.Top())
+    and (Other.Bottom() >= Top());
 
   Result.Create();
 

@@ -432,11 +432,7 @@ end;
 procedure TAddObject.Execute;
 begin
   TargetObject := TMapObject.Create(nil);
-
-  TargetObject.&Type:=Template.MapObjectGroup.Identifier;
-  TargetObject.Subtype:=Template.MapObjectType.Identifier;
-
-  TargetObject.Template.Assign(Template);
+  TargetObject.AssignTemplate(Template);
 
   TargetObject.L := l;
   TargetObject.X := X;

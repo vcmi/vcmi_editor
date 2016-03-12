@@ -119,9 +119,9 @@ begin
 
     tile_size := trunc(FScale)+1;
 
-    for row := FInvalidRegion.Top() to FInvalidRegion.Bottom()-1 do
+    for row := FInvalidRegion.Top() to FInvalidRegion.Bottom() do
     begin
-      for col := FInvalidRegion.Left() to FInvalidRegion.Right()-1 do
+      for col := FInvalidRegion.Left() to FInvalidRegion.Right() do
       begin
         tile := FLevel.Tile[col,row];
 
