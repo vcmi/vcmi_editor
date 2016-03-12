@@ -24,7 +24,7 @@ unit logical_building_condition;
 interface
 
 uses
-  Classes, SysUtils, fpjson, editor_classes, logical_expression, editor_types, vcmi_json;
+  Classes, SysUtils, fpjson, logical_expression, vcmi_json;
 
 type
   { TBuildingConditionItem }

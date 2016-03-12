@@ -239,7 +239,6 @@ type
     procedure ObjectsSearchButtonClick(Sender: TObject);
     procedure ObjectsSearchChange(Sender: TObject);
     procedure ObjectsSearchEditingDone(Sender: TObject);
-    procedure ObjectsSearchKeyPress(Sender: TObject; var Key: char);
     procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -965,8 +964,7 @@ begin
   FreeAndNil(FVisibleObjects);
 end;
 
-procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
-  );
+procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   dx,dy: integer;
 begin
@@ -1634,10 +1632,6 @@ begin
   DoObjectsSearch;
 end;
 
-procedure TfMain.ObjectsSearchKeyPress(Sender: TObject; var Key: char);
-begin
-//
-end;
 
 procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
@@ -1656,26 +1650,11 @@ end;
 
 procedure TfMain.PlayerMenuClick(Sender: TObject);
 var
-  m, mc : TMenuItem;
-  i: Integer;
+  m : TMenuItem;
 begin
   m := Sender as TMenuItem;
 
-  for i := 0 to menuPlayer.Count - 1 do
-  begin
-    mc := menuPlayer[i];
-
-    if mc=m then
-    begin
-      SetCurrentPlayer(TPlayer(m.Tag));
-      mc.Checked := True;
-    end
-    else begin
-      mc.Checked := False;
-    end;
-  end;
-
-  InvalidateObjects;
+  SetCurrentPlayer(TPlayer(m.Tag));
 end;
 
 procedure TfMain.LevelMenuClick(Sender: TObject);
@@ -2027,11 +2006,22 @@ begin
 end;
 
 procedure TfMain.SetCurrentPlayer(APlayer: TPlayer);
+var
+  i: Integer;
+  mc: TMenuItem;
 begin
   FCurrentPlayer := APlayer;
 
-  InvalidateObjects;
+  for i := 0 to menuPlayer.Count - 1 do
+  begin
+    mc := menuPlayer[i];
+    if mc.Tag = PtrInt(APlayer) then
+      mc.Checked := True
+    else
+      mc.Checked := False;
+  end;
 
+  InvalidateObjects;
 end;
 
 procedure TfMain.SetActiveBrush(ABrush: TMapBrush);

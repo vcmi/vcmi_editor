@@ -142,23 +142,16 @@ type
     FName: TLocalizedString;
     FRequires: TBuildingCondition;
     FUpgrades: AnsiString;
-    procedure SetDescription(AValue: TLocalizedString);
-    procedure SetID(AValue: Integer);
-    procedure SetMode(AValue: TBuildMode);
-    procedure SetName(AValue: TLocalizedString);
-    procedure SetUpgrades(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-
     function GetDisplayName: string; override;
   published
-    property ID:Integer read FID write SetID;
-    property Name: TLocalizedString read FName write SetName;
-    property Description: TLocalizedString read FDescription write SetDescription;
-    property Mode: TBuildMode read FMode write SetMode default TBuildMode.normal;
-    property Upgrades: AnsiString read FUpgrades write SetUpgrades;
-
+    property ID:Integer read FID write FID;
+    property Name: TLocalizedString read FName write FName;
+    property Description: TLocalizedString read FDescription write FDescription;
+    property Mode: TBuildMode read FMode write FMode default TBuildMode.normal;
+    property Upgrades: AnsiString read FUpgrades write FUpgrades;
     property Requires: TBuildingCondition read FRequires;
   end;
 
@@ -179,10 +172,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
   published
     property MapObject: TJSONObject read FMapObject;
-
     property GuildSpells:TGuildSpells read FGuildSpells;
     property Buildings:TTownBuildings read FBuildings;
     property MageGuild:Integer read FMageGuild write SetMageGuild;
@@ -239,7 +230,6 @@ type
 
   {$push}
   {$m+}
-
 
   { TBaseGraphics }
 
@@ -599,35 +589,6 @@ const
 
 { TTownBuilding }
 
-procedure TTownBuilding.SetID(AValue: Integer);
-begin
-  if FID=AValue then Exit;
-  FID:=AValue;
-end;
-
-procedure TTownBuilding.SetMode(AValue: TBuildMode);
-begin
-  if FMode=AValue then Exit;
-  FMode:=AValue;
-end;
-
-procedure TTownBuilding.SetDescription(AValue: TLocalizedString);
-begin
-  if FDescription=AValue then Exit;
-  FDescription:=AValue;
-end;
-
-procedure TTownBuilding.SetName(AValue: TLocalizedString);
-begin
-  if FName=AValue then Exit;
-  FName:=AValue;
-end;
-
-procedure TTownBuilding.SetUpgrades(AValue: AnsiString);
-begin
-  if FUpgrades=AValue then Exit;
-  FUpgrades:=AValue;
-end;
 
 constructor TTownBuilding.Create(ACollection: TCollection);
 begin

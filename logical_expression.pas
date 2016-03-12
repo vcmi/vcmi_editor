@@ -31,6 +31,9 @@ type
   TLogicalOperator = (nop, anyOf, allOf, noneOf);
 
 type
+  TLogicalExpressionItem = class;
+
+  TEvaluate = function(AExpression: TLogicalExpressionItem) : boolean of object;
 
   TLogicalExpression = class;
   TLogicalExpressionClass = class of TLogicalExpression;
@@ -51,6 +54,8 @@ type
     destructor Destroy; override;
     property LogicalOperator: TLogicalOperator read FLogicalOperator write SetLogicalOperator;
     property SubExpressions:TLogicalExpression read FSubExpressions;
+
+    function Evaluate(ACallback: TEvaluate): Boolean;
   end;
 
   TLogicalExpression = class (TCollection, IArrayCollection, ISerializeSpecial)
@@ -65,6 +70,8 @@ type
     //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+
+    function Evaluate(ACallback: TEvaluate): Boolean;
   end;
 
 implementation
@@ -123,6 +130,22 @@ begin
   end;
 end;
 
+function TLogicalExpression.Evaluate(ACallback: TEvaluate): Boolean;
+begin
+  Result := False;
+  if FIsRoot then
+  begin
+    if Count = 1 then
+    begin
+      Result := TLogicalExpressionItem(Items[0]).Evaluate(ACallback);
+    end
+    else if Count = 0 then
+    begin
+      Result := true
+    end;
+  end;
+end;
+
 { TLogicalExpressionItem }
 
 procedure TLogicalExpressionItem.SetLogicalOperator(AValue: TLogicalOperator);
@@ -161,6 +184,42 @@ destructor TLogicalExpressionItem.Destroy;
 begin
   FSubExpressions.Free;
   inherited Destroy;
+end;
+
+function TLogicalExpressionItem.Evaluate(ACallback: TEvaluate): Boolean;
+var
+  i: Integer;
+begin
+  case LogicalOperator of
+    TLogicalOperator.nop: Result := ACallback(Self);
+    TLogicalOperator.anyOf:
+    begin
+      for i := 0 to SubExpressions.Count - 1 do
+      begin
+        if TLogicalExpressionItem(SubExpressions.Items[i]).Evaluate(ACallback) then
+          exit(true);
+      end;
+      Result := false;
+    end;
+    TLogicalOperator.allOf:
+    begin
+      for i := 0 to SubExpressions.Count - 1 do
+      begin
+        if not TLogicalExpressionItem(SubExpressions.Items[i]).Evaluate(ACallback) then
+          exit(false);
+      end;
+      Result := True;
+    end;
+    TLogicalOperator.noneOf:
+    begin
+      for i := 0 to SubExpressions.Count - 1 do
+      begin
+        if TLogicalExpressionItem(SubExpressions.Items[i]).Evaluate(ACallback) then
+          exit(false);
+      end;
+      Result := True;
+    end;
+  end;
 end;
 
 end.

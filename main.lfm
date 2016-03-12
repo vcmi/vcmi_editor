@@ -1230,7 +1230,6 @@ object fMain: TfMain
         OnButtonClick = ObjectsSearchButtonClick
         OnChange = ObjectsSearchChange
         OnEditingDone = ObjectsSearchEditingDone
-        OnKeyPress = ObjectsSearchKeyPress
         PasswordChar = #0
         Spacing = 2
         TabOrder = 0

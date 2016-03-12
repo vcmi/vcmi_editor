@@ -74,7 +74,6 @@ type
   TLogicalEventCondition = class(TLogicalExpression, IReferenceNotify)
   public //IReferenceNotify
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
-
   end;
 
   { TTriggeredEventEffect }
