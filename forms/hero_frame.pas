@@ -76,6 +76,7 @@ type
     Defence: TSpinEdit;
     SpellPower: TSpinEdit;
     Knowledge: TSpinEdit;
+    procedure AttackChange(Sender: TObject);
     procedure cbBiographyChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
@@ -83,10 +84,13 @@ type
     procedure cbSexChange(Sender: TObject);
     procedure cbSkillsChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
+    procedure DefenceChange(Sender: TObject);
     procedure edExperienceEditingDone(Sender: TObject);
     procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
+    procedure KnowledgeChange(Sender: TObject);
+    procedure SpellPowerChange(Sender: TObject);
   private
     FOptions: IEditableHeroInfo;
     FHeroOptions: THeroOptions;
@@ -122,7 +126,6 @@ type
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
 
-    procedure StashSkills;
     procedure LoadSkills;
     procedure ResetSkills;
 
@@ -171,6 +174,22 @@ begin
   case edSex.ItemIndex of
     0: FCustomFemale:=false;
     1: FCustomFemale:=true;
+  end;
+end;
+
+procedure THeroFrame.KnowledgeChange(Sender: TObject);
+begin
+  if cbSkills.Checked then
+  begin
+    FCustomSkills.Knowledge:=(Sender as TSpinEdit).Value;
+  end;
+end;
+
+procedure THeroFrame.SpellPowerChange(Sender: TObject);
+begin
+  if cbSkills.Checked then
+  begin
+    FCustomSkills.Spellpower:=(Sender as TSpinEdit).Value;
   end;
 end;
 
@@ -263,7 +282,6 @@ begin
 
   if cbSkills.Checked then
   begin
-    StashSkills;
     FOptions.GetPrimarySkills.Assign(FCustomSkills);
   end
   else
@@ -391,6 +409,14 @@ begin
   UpdateControls();
 end;
 
+procedure THeroFrame.DefenceChange(Sender: TObject);
+begin
+  if cbSkills.Checked then
+  begin
+    FCustomSkills.Defence:=(Sender as TSpinEdit).Value;
+  end;
+end;
+
 procedure THeroFrame.edExperienceEditingDone(Sender: TObject);
 begin
   FCustomExperience := StrToInt64Def(edExperience.Text, 0);
@@ -426,7 +452,6 @@ begin
   end
   else
   begin
-    StashSkills;
     ResetSkills;
   end;
 end;
@@ -458,6 +483,14 @@ begin
   UpdateText(edBiography, cbBiography, FCustomBiography,GetDefaultBiography());
 end;
 
+procedure THeroFrame.AttackChange(Sender: TObject);
+begin
+  if cbSkills.Checked then
+  begin
+    FCustomSkills.Attack:=(Sender as TSpinEdit).Value;
+  end;
+end;
+
 procedure THeroFrame.cbNameChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
@@ -473,14 +506,6 @@ begin
   edSex.Enabled:=cbSex.Checked;
   edBiography.Enabled:=cbBiography.Checked;
   pnSkills.Enabled := cbSkills.Checked;
-end;
-
-procedure THeroFrame.StashSkills;
-begin
-  FCustomSkills.Attack := Attack.Value;
-  FCustomSkills.Defence := Defence.Value;
-  FCustomSkills.Spellpower := SpellPower.Value;
-  FCustomSkills.Knowledge := Knowledge.Value;
 end;
 
 procedure THeroFrame.LoadSkills;

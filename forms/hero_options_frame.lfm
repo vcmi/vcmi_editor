@@ -89,6 +89,15 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   end
   inherited pnSkills: TPanel
     Top = 440
+    inherited Defence: TSpinEdit
+      OnChange = nil
+    end
+    inherited SpellPower: TSpinEdit
+      OnChange = nil
+    end
+    inherited Knowledge: TSpinEdit
+      OnChange = nil
+    end
   end
   inherited cbSkills: TCheckBox
     Top = 440

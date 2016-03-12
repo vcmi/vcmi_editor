@@ -55,7 +55,6 @@ type
     procedure Load(); override;
   public
     procedure ReadHero(AOptions: THeroOptions); override;
-
   end;
 
 implementation
@@ -197,7 +196,6 @@ begin
   cbBiographyChange(cbBiography);
   cbSkillsChange(cbSkills);
   UpdateControls;
-
 end;
 
 procedure THeroOptionsFrame.Load;

@@ -297,6 +297,7 @@ inherited HeroFrame: THeroFrame
       Top = 11
       Width = 70
       MaxValue = 0
+      OnChange = AttackChange
       TabOrder = 0
     end
     object Defence: TSpinEdit
@@ -305,6 +306,7 @@ inherited HeroFrame: THeroFrame
       Top = 48
       Width = 70
       MaxValue = 0
+      OnChange = DefenceChange
       TabOrder = 1
     end
     object lbSpellPower: TLabel
@@ -329,6 +331,7 @@ inherited HeroFrame: THeroFrame
       Top = 11
       Width = 70
       MaxValue = 0
+      OnChange = SpellPowerChange
       TabOrder = 2
     end
     object Knowledge: TSpinEdit
@@ -337,6 +340,7 @@ inherited HeroFrame: THeroFrame
       Top = 48
       Width = 70
       MaxValue = 0
+      OnChange = KnowledgeChange
       TabOrder = 3
     end
   end
