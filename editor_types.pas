@@ -34,8 +34,8 @@ type
 {$packenum 1}
   TTerrainType  = (dirt=0, sand, grass, snow, swamp, rough, subterra, lava, water, rock{,border=$FF});
   TTerrainTypes = set of TTerrainType;
-  TRiverType = (noRiver=0, clearRiver, icyRiver, muddyRiver, lavaRiver);
-  TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad, cobblestoneRoad);
+  TRiverType = (noRiver=0, clearRiver=1, icyRiver=2, muddyRiver=3, lavaRiver=4);
+  TRoadType = (noRoad = 0, dirtRoad=1, grazvelRoad=2, cobblestoneRoad=3);
   TPlayer = (red=0, blue, tan, green, orange, purple, teal, pink, none = 255);
 
   TAITactics = (NONE=-1,RANDOM = 0,WARRIOR,BUILDER,EXPLORER);

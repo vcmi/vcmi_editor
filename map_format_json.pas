@@ -114,14 +114,14 @@ begin
 
   Result := TERRAIN_CODES[tile^.TerType]+IntToStr(tile^.TerSubType)+FLIP_CODES[tile^.Flags mod 4];
 
-  if tile^.RoadType <> 0 then
+  if tile^.RoadType <> TRoadType.noRoad then
   begin
-    Result := Result + ROAD_CODES[TRoadType(tile^.RoadType)]+IntToStr(tile^.RoadDir)+FLIP_CODES[(tile^.Flags shr 4) mod 4];
+    Result := Result + ROAD_CODES[tile^.RoadType]+IntToStr(tile^.RoadDir)+FLIP_CODES[(tile^.Flags shr 4) mod 4];
   end;
 
-  if tile^.RiverType <> 0 then
+  if tile^.RiverType <> TRiverType.noRiver then
   begin
-    Result := Result + RIVER_CODES[TRiverType(tile^.RiverType)]+IntToStr((tile^.RiverDir shr 2) mod 4);
+    Result := Result + RIVER_CODES[tile^.RiverType]+IntToStr((tile^.RiverDir shr 2) mod 4);
   end;
 end;
 
@@ -238,7 +238,9 @@ procedure TMapReaderJson.DeStreamTile(Encoded: string; Tile: PMapTile);
 var
   terrainCode: String;
   tt: TTerrainType;
-  typ, styp, flip: UInt8;
+  styp, flip: UInt8;
+  road_type: TRoadType;
+  river_type: TRiverType;
 begin
 
   if not FTileExpression.Exec(Encoded) then
@@ -260,11 +262,11 @@ begin
     Assert(FTileExpression.MatchLen[5]>0);
     Assert(FTileExpression.MatchLen[6]>0);
 
-    typ := UInt8(FRoadTypeMap[FTileExpression.Match[5]]);
+    road_type := FRoadTypeMap[FTileExpression.Match[5]];
     styp := UInt8(StrToInt( FTileExpression.Match[6]));
     flip := ParseFlip(FTileExpression.Match[7][1]);
 
-    Tile^.SetRoad(typ, styp, flip);
+    Tile^.SetRoad(road_type, styp, flip);
   end;
 
   if FTileExpression.MatchLen[8]>0 then
@@ -272,13 +274,12 @@ begin
     Assert(FTileExpression.MatchLen[9]>0);
     Assert(FTileExpression.MatchLen[10]>0);
 
-    typ := UInt8(FRiverTypeMap[FTileExpression.Match[9]]);
+    river_type := FRiverTypeMap[FTileExpression.Match[9]];
     styp := StrToInt(FTileExpression.Match[10]);
     flip := ParseFlip(FTileExpression.Match[11][1]);
 
-    Tile^.SetRiver(typ, styp, flip);
+    Tile^.SetRiver(river_type, styp, flip);
   end;
-
 end;
 
 procedure TMapReaderJson.DeStreamTilesLevel(AJson: TJSONArray; AMap: TVCMIMap;

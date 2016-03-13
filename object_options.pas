@@ -48,6 +48,7 @@ type
   end;
 
   { TObjectOptions }
+
   TObjectOptions = class(TObject, ISerializeNotify)
   private
     FObject: IMapObject;

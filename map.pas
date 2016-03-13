@@ -244,9 +244,9 @@ type
     //start binary compatible with H3 part
     FTerType: TTerrainType;
     FTerSubtype: UInt8;
-    FRiverType: UInt8;
-    FRiverDir: UInt8;
-    FRoadType: UInt8;
+    FRiverType: TRiverType;
+    FRiverDir:  UInt8;
+    FRoadType: TRoadType;
     FRoadDir: UInt8;
     FFlags: UInt8;
     //end binary compatible with H3 part
@@ -254,28 +254,23 @@ type
 
     FBlockingCount: UInt32; //anount of objects blocking this tile
     FFlaggableID: Int32; //Internal id of flaggable object in this tile.
-
   public
     constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
-
-    procedure Render(mgr: TTerrainManager; X,Y: Integer); inline;
-    procedure RenderRoad(mgr: TTerrainManager; X,Y: Integer); inline;
 
     property TerType: TTerrainType read FTerType;
     property TerSubType: UInt8 read FTerSubtype;
 
-    property RiverType:UInt8 read FRiverType;
+    property RiverType:TRiverType read FRiverType;
     property RiverDir:UInt8 read FRiverDir;
-    property RoadType:UInt8 read FRoadType;
+    property RoadType:TRoadType read FRoadType;
     property RoadDir:UInt8 read FRoadDir;
     property Flags:UInt8 read FFlags;
 
-    procedure SetRiver(ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
-    procedure SetRoad(ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
+    procedure SetRiver(ARiverType: TRiverType; ARriverDir: UInt8; AMir: Uint8); inline;
+    procedure SetRoad(ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8); inline;
     procedure SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);inline;
 
     procedure BlockingObjectAdded(AObject: TMapObject);
-    procedure BlockingObjectChanged(AObject: TMapObject);
     procedure BlockingObjectRemoved(AObject: TMapObject);
 
     function IsBlocked: boolean; inline;
@@ -314,8 +309,8 @@ type
 
     property Map: TVCMIMap read GetMap;
 
-    procedure SetRoad(x,y: integer; ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8); inline;
-    procedure SetRiver(x,y: integer; ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8); inline;
+    procedure SetRoad(x,y: integer; ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8); inline;
+    procedure SetRiver(x,y: integer; ARiverType: TRiverType; ARriverDir: UInt8; AMir: Uint8); inline;
     procedure SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8); inline;
 
     procedure ObjectAdded(AObject:TMapObject); inline;
@@ -1195,7 +1190,11 @@ begin
             case op of
               TFPObservedOperation.ooAddItem: t^.BlockingObjectAdded(FOwner);
               TFPObservedOperation.ooDeleteItem: t^.BlockingObjectRemoved(FOwner);
-              TFPObservedOperation.ooChange: t^.BlockingObjectChanged(FOwner);
+              TFPObservedOperation.ooChange:
+              begin
+                t^.BlockingObjectRemoved(FOwner);
+                t^.BlockingObjectAdded(FOwner);
+              end;
             end;
           end;
         end;
@@ -1886,9 +1885,9 @@ begin
   FTerType := ATerType;
   FTerSubtype := ATerSubtype;
 
-  FRiverType:=0;
+  FRiverType:=TRiverType.noRiver;
   FRiverDir:=0;
-  FRoadType:=0;
+  FRoadType:=TRoadType.noRoad;
   FRoadDir:=0;
   FFlags:=0;
   FBlockingCount := 0;
@@ -1896,26 +1895,14 @@ begin
   FOwner:=TPlayer.none;
 end;
 
-procedure TMapTile.Render(mgr: TTerrainManager; X, Y: Integer);
-begin
-  mgr.Render(FTerType,FTerSubtype,X,Y,Flags);
-
-  mgr.RenderRiver(TRiverType(FRiverType),FRiverDir,X,Y,Flags);
-end;
-
-procedure TMapTile.RenderRoad(mgr: TTerrainManager; X, Y: Integer);
-begin
-  mgr.RenderRoad(TRoadType(FRoadType),FRoadDir,X,Y,Flags);
-end;
-
-procedure TMapTile.SetRiver(ARiverType: uint8; ARriverDir: UInt8; AMir: Uint8);
+procedure TMapTile.SetRiver(ARiverType: TRiverType; ARriverDir: UInt8; AMir: Uint8);
 begin
   FRiverType:= ARiverType;
   FRiverDir:=ARriverDir;
   FFlags := (FFlags and $F3) or (AMir shl 2);
 end;
 
-procedure TMapTile.SetRoad(ARoadType: uint8; ARoadDir: UInt8; AMir: Uint8);
+procedure TMapTile.SetRoad(ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8);
 begin
   FRoadType:= ARoadType;
   FRoadDir:=ARoadDir;
@@ -1936,14 +1923,6 @@ begin
   if (FFlaggableID = -1) and (AObject.Options.CanBeOwned) then
   begin
     FFlaggableID:=AObject.ID;
-    FOwner:=AObject.GetPlayer;
-  end;
-end;
-
-procedure TMapTile.BlockingObjectChanged(AObject: TMapObject);
-begin
-  if FFlaggableID = AObject.ID then
-  begin
     FOwner:=AObject.GetPlayer;
   end;
 end;
@@ -1970,16 +1949,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapLevel.SetRoad(x, y: integer; ARoadType: uint8; ARoadDir: UInt8;
-  AMir: Uint8);
+procedure TMapLevel.SetRoad(x, y: integer; ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8);
 begin
   Tile[x,y]^.SetRoad(ARoadType, ARoadDir, AMir);
 end;
 
-procedure TMapLevel.SetRiver(x, y: integer; ARiverType: uint8;
-  ARriverDir: UInt8; AMir: Uint8);
+procedure TMapLevel.SetRiver(x, y: integer; ARiverType: TRiverType; ARriverDir: UInt8; AMir: Uint8);
 begin
-  Tile[x,y]^.SetRiver(ARiverType, ARiverType, AMir);
+  Tile[x,y]^.SetRiver(ARiverType, ARriverDir, AMir);
 end;
 
 procedure TMapLevel.SetTerrain(X, Y: Integer; TT: TTerrainType; TS: UInt8; mir: UInt8);
@@ -2258,6 +2235,7 @@ procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   j: Integer;
+  t: PMapTile;
 begin
 
   Right := Min(Right, CurrentLevel.Width - 1);
@@ -2267,7 +2245,9 @@ begin
   begin
     for j := Top to Bottom do
     begin
-      GetTile(FCurrentLevel,i,j)^.Render(FTerrainManager,i,j);
+      t := GetTile(FCurrentLevel,i,j);
+      FTerrainManager.Render(t^.TerType, t^.TerSubType, i, j, t^.Flags);
+      FTerrainManager.RenderRiver(t^.RiverType, t^.RiverDir, i, j, t^.Flags);
     end;
   end;
 
@@ -2277,7 +2257,8 @@ begin
   begin
     for j := Top to Bottom do
     begin
-      GetTile(FCurrentLevel,i,j)^.RenderRoad(FTerrainManager,i,j);
+      t := GetTile(FCurrentLevel,i,j);
+      FTerrainManager.RenderRoad(t^.RoadType, t^.RoadDir,i,j, t^.Flags);
     end;
   end;
 end;

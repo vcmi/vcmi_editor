@@ -239,7 +239,7 @@ type
 
     procedure RenderRoad(const rdt: TRoadType; const Dir: UInt8; X, Y: Integer;  Flags: UInt8);
 
-    procedure RenderRiver(const rt: TRiverType; const Dir: UInt8; X, Y: Integer; Flags: UInt8 );
+    procedure RenderRiver(const rt: TRiverType; const Dir: UInt8; X, Y: Integer; Flags: UInt8);
 
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
