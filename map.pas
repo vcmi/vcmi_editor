@@ -252,7 +252,7 @@ type
     //end binary compatible with H3 part
     FOwner: TPlayer;
 
-    FBlockingCount: UInt32; //anount of objects blocking this tile
+    FBlockingCount: Int32; //anount of objects blocking this tile
     FFlaggableID: Int32; //Internal id of flaggable object in this tile.
   public
     constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
@@ -627,9 +627,7 @@ type
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
-    procedure FPOObservedChanged(ASender: TObject;
-      Operation: TFPObservedOperation; Data: Pointer);
-
+    procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
     procedure SetCurrentLevelIndex(AValue: Integer);
     procedure SetDifficulty(AValue: TDifficulty);
     procedure SetLevelLimit(AValue: Integer);
@@ -1180,7 +1178,7 @@ begin
     begin
       x := FOwner.X + j - shift;
 
-      if (x>0) and (y>0) and (x < length(ATiles)) and (y < length(ATiles[x])) then
+      if (x>=0) and (y>=0) and (x < length(ATiles)) and (y < length(ATiles[x])) then
       begin
         t := @ATiles[x,y];
 
@@ -1671,6 +1669,11 @@ begin
   if Assigned(Collection) then
   begin
     GetMap.NotifyOwnerChanged(self, old, FPlayer);
+
+    if GetMap.FTrackObjectChanges then
+    begin
+      GetMap.MapLevels[L].ObjectChanged(Self);
+    end;
   end;
 end;
 
@@ -1736,13 +1739,11 @@ begin
   inherited ItemAdded(Item);
 
   ProcessItemIdentifier(TNamedCollectionItem(Item).Identifier);
-  FMap.NotifyOwnerChanged(TMapObject(Item), TPlayer.none, TMapObject(Item).GetPlayer());
 end;
 
 procedure TMapObjects.ItemRemoved(Item: TCollectionItem);
 begin
   inherited ItemRemoved(Item);
-  FMap.NotifyOwnerChanged(TMapObject(Item),TMapObject(Item).GetPlayer(), TPlayer.none);
 end;
 
 procedure TMapObjects.ItemIdentifierChanged(Item: TCollectionItem;
@@ -2156,6 +2157,7 @@ end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FTrackObjectChanges := false;
   FVisibleObjectsQueue.Free;
 
   FTriggeredEvents.Free;
@@ -2203,11 +2205,28 @@ begin
   begin
     o := TMapObject(Data);
     case Operation of
-      ooAddItem: begin
+      ooAddItem:
+      begin
         FLevels[o.L].ObjectAdded(o);
       end;
-      ooDeleteItem: begin
+      ooDeleteItem:
+      begin
         FLevels[o.L].ObjectRemoved(o);
+      end;
+    end;
+  end;
+
+  if (ASender = FObjects) then
+  begin
+    o := TMapObject(Data);
+    case Operation of
+      ooAddItem:
+      begin
+        NotifyOwnerChanged(o, TPlayer.none, o.GetPlayer());
+      end;
+      ooDeleteItem:
+      begin
+        NotifyOwnerChanged(o, o.GetPlayer(),  TPlayer.none);
       end;
     end;
   end;
@@ -2351,8 +2370,7 @@ begin
   end;
 end;
 
-procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner,
-  ANewOwner: TPlayer);
+procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
 
   procedure Remove(ACollection: THashedCollection; AIdentifier: string);
   var
@@ -2409,11 +2427,6 @@ begin
     else begin
       DebugLn(['invalid player color', Integer(ANewOwner)]);
     end;
-  end;
-
-  if FTrackObjectChanges then
-  begin
-    FLevels[AObject.L].ObjectChanged(AObject);
   end;
 end;
 

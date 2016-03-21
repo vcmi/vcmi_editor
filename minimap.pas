@@ -43,6 +43,7 @@ type
     FInvalidRegion: TMapRect;
 
     procedure ValidateImageSize(pb: TPaintBox);
+    procedure UpdateRegion(const ARegion: TMapRect);
     procedure ValidateImage;
   public
     constructor Create(ALevel: TMapLevel);
@@ -92,7 +93,7 @@ begin
   end
 end;
 
-procedure TLevelMinimap.ValidateImage;
+procedure TLevelMinimap.UpdateRegion(const ARegion: TMapRect);
 var
   row, col, x, y: Integer;
   tile_size: Integer;
@@ -104,9 +105,6 @@ var
   id: Int32;
   c: TPlayer;
 begin
-  if FInvalidRegion.IsEmpty then
-    Exit;
-
   TempImage := FImage.CreateIntfImage;
 
   try
@@ -117,11 +115,13 @@ begin
 
     FScale := imgWidth / levelWidth;
 
-    tile_size := trunc(FScale)+1;
+    tile_size := Max(1, Round(FScale));
 
-    for row := FInvalidRegion.Top() to FInvalidRegion.Bottom() do
+    //DebugLn([FScale,' ',tile_size]);
+
+    for row := ARegion.Top() to ARegion.Bottom() do
     begin
-      for col := FInvalidRegion.Left() to FInvalidRegion.Right() do
+      for col := ARegion.Left() to ARegion.Right() do
       begin
         tile := FLevel.Tile[col,row];
 
@@ -166,8 +166,15 @@ begin
   finally
     TempImage.Free;
   end;
+end;
 
-  FInvalidRegion.Clear();
+procedure TLevelMinimap.ValidateImage;
+begin
+  if not FInvalidRegion.IsEmpty then
+  begin
+    UpdateRegion(FInvalidRegion);
+    FInvalidRegion.Clear();
+  end;
 end;
 
 constructor TLevelMinimap.Create(ALevel: TMapLevel);
