@@ -59,6 +59,7 @@ constructor TLocaleManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FGeneralTexts := TTextResource.Create(GENERAL_TEXTS_PATH);
+  FGeneralTexts.TopRowSkip := 1;
   FVictoryTexts := TTextResource.Create(VICTORY_PATH);
   FLossTexts := TTextResource.Create(LOSS_PATH);
 end;

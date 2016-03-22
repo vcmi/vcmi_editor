@@ -38,9 +38,11 @@ type
   private
     FDelimiter: TDelimiter;
     FDoc: TCSVDocument;
+    FTopRowSkip: Integer;
     function GetRowCount: Integer;
     function GetValue(Col, Row: Integer): TLocalizedString;
     procedure SetDelimiter(AValue: TDelimiter);
+    procedure SetTopRowSkip(AValue: Integer);
   public
     constructor Create(APath: AnsiString);
     destructor Destroy; override;
@@ -52,6 +54,7 @@ type
     property RowCount: Integer read GetRowCount;
   public
     property Delimiter: TDelimiter read FDelimiter write SetDelimiter;
+    property TopRowSkip: Integer read FTopRowSkip write SetTopRowSkip;
   end;
 
 
@@ -86,6 +89,7 @@ end;
 
 function TTextResource.GetValue(Col, Row: Integer): TLocalizedString;
 begin
+  row := row + TopRowSkip;
   {$IFDEF MSWindows}
   Result := WinCPToUTF8(FDoc.Cells[Col,Row]);
   {$ELSE}
@@ -109,6 +113,12 @@ const
 begin
   FDelimiter := AValue;
   FDoc.Delimiter := DELIMITERS[AValue];
+end;
+
+procedure TTextResource.SetTopRowSkip(AValue: Integer);
+begin
+  if FTopRowSkip=AValue then Exit;
+  FTopRowSkip:=AValue;
 end;
 
 end.
