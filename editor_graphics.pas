@@ -906,7 +906,7 @@ begin
 
   mir := flags mod 4;
 
-  editor_gl.CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+  editor_gl.CurrentContextState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
   editor_gl.CurrentContextState.SetTranslation(x,y);
   editor_gl.CurrentContextState.RenderSpriteMirrored(Sprite,mir);
 end;
@@ -938,7 +938,7 @@ class procedure TDefAnimation.SetPalyerColor(color: TPlayer);
 begin
   if color = TPlayer.NONE then
   begin
-    CurrentContextState.SetFlagColor(NEWTRAL_PLAYER_COLOR);
+    CurrentContextState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
   end
   else begin
     CurrentContextState.SetFlagColor(PLAYER_FLAG_COLORS[color]);

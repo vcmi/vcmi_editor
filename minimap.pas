@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, math, fgl, Graphics, Map, editor_types, map_rect, editor_utils, editor_consts, editor_classes, editor_gl, ExtCtrls,
-  LCLProc, IntfGraphics, OpenGLContext;
+  LCLProc, IntfGraphics, FPimage, OpenGLContext;
 
 type
 
@@ -33,8 +33,11 @@ type
 
   TLevelMinimap = class
   private
-    FTerrainColors: array[TTerrainType] of TColor;
-    FTerrainBlockColors: array[TTerrainType] of TColor;
+    FTerrainColors: array[TTerrainType] of TFPColor;
+    FTerrainBlockColors: array[TTerrainType] of TFPColor;
+
+    FNeutralPlayerColor: TFPColor;
+    FPlayerFlagColors: array[TPlayerColor] of TFPColor;
 
     FScale: Double;
     FLevel: TMapLevel;
@@ -143,20 +146,20 @@ begin
 
               if c = TPlayer.none then
               begin
-                TempImage.Colors[x,y] := RGBAColorToFpColor (NEWTRAL_PLAYER_COLOR);
+                TempImage.Colors[x,y] := FNeutralPlayerColor;
               end
               else
               begin
-                TempImage.Colors[x,y] := RGBAColorToFpColor (PLAYER_FLAG_COLORS[TPlayerColor(c)]);
+                TempImage.Colors[x,y] := FPlayerFlagColors[TPlayerColor(c)];
               end;
             end
             else if tile^.IsBlocked then
             begin
-              TempImage.Colors[x,y] := TColorToFPColor(FTerrainBlockColors[tile^.TerType]);
+              TempImage.Colors[x,y] := FTerrainBlockColors[tile^.TerType];
             end
             else
             begin
-              TempImage.Colors[x,y] := TColorToFPColor(FterrainColors[tile^.TerType]);
+              TempImage.Colors[x,y] := FterrainColors[tile^.TerType];
             end;
           end;
         end;
@@ -178,6 +181,8 @@ begin
 end;
 
 constructor TLevelMinimap.Create(ALevel: TMapLevel);
+var
+  player: tplayer;
 begin
   FImage := TBitmap.Create;
   FLevel := ALevel;
@@ -186,29 +191,36 @@ begin
   FInvalidRegion.FHeight := FLevel.Height;
 
   //todo: use json configuration
-  FterrainColors[TTerrainType.dirt] := RGBToColor( 82, 56, 8 );
-  FterrainColors[TTerrainType.sand] := RGBToColor(222, 207, 140);
-  FterrainColors[TTerrainType.grass] := RGBToColor(0, 65, 0 );
-  FterrainColors[TTerrainType.snow] := RGBToColor(181, 199, 198);
-  FTerrainColors[TTerrainType.swamp] := RGBToColor(74, 134, 107);
+  FterrainColors[TTerrainType.dirt] := TColorToFPColor(RGBToColor( 82, 56, 8 ));
+  FterrainColors[TTerrainType.sand] := TColorToFPColor(RGBToColor(222, 207, 140));
+  FterrainColors[TTerrainType.grass] := TColorToFPColor(RGBToColor(0, 65, 0 ));
+  FterrainColors[TTerrainType.snow] := TColorToFPColor(RGBToColor(181, 199, 198));
+  FTerrainColors[TTerrainType.swamp] := TColorToFPColor(RGBToColor(74, 134, 107));
 
-  FterrainColors[TTerrainType.rough] := RGBToColor(132, 113, 49);
-  FterrainColors[TTerrainType.subterra] := RGBToColor(132, 48, 0);
-  FterrainColors[TTerrainType.lava] := RGBToColor(74, 73, 74);
-  FterrainColors[TTerrainType.water] := RGBToColor (8, 81, 148);
-  FterrainColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
+  FterrainColors[TTerrainType.rough] := TColorToFPColor(RGBToColor(132, 113, 49));
+  FterrainColors[TTerrainType.subterra] := TColorToFPColor(RGBToColor(132, 48, 0));
+  FterrainColors[TTerrainType.lava] := TColorToFPColor(RGBToColor(74, 73, 74));
+  FterrainColors[TTerrainType.water] := TColorToFPColor(RGBToColor (8, 81, 148));
+  FterrainColors[TTerrainType.rock] := TColorToFPColor(RGBToColor(0, 0, 0));
 
-  FTerrainBlockColors[TTerrainType.dirt] := RGBToColor( 57, 40, 8 );
-  FTerrainBlockColors[TTerrainType.sand] := RGBToColor(165, 158, 107);
-  FTerrainBlockColors[TTerrainType.grass] := RGBToColor(0, 48, 0 );
-  FTerrainBlockColors[TTerrainType.snow] := RGBToColor(140, 158, 156);
-  FTerrainBlockColors[TTerrainType.swamp] := RGBToColor(33, 89, 66);
+  FTerrainBlockColors[TTerrainType.dirt] := TColorToFPColor(RGBToColor( 57, 40, 8 ));
+  FTerrainBlockColors[TTerrainType.sand] := TColorToFPColor(RGBToColor(165, 158, 107));
+  FTerrainBlockColors[TTerrainType.grass] := TColorToFPColor(RGBToColor(0, 48, 0 ));
+  FTerrainBlockColors[TTerrainType.snow] := TColorToFPColor(RGBToColor(140, 158, 156));
+  FTerrainBlockColors[TTerrainType.swamp] := TColorToFPColor(RGBToColor(33, 89, 66));
 
-  FTerrainBlockColors[TTerrainType.rough] := RGBToColor(99, 81, 33);
-  FTerrainBlockColors[TTerrainType.subterra] := RGBToColor(90, 8, 0);
-  FTerrainBlockColors[TTerrainType.lava] := RGBToColor(41, 40, 41);
-  FTerrainBlockColors[TTerrainType.water] := RGBToColor (8, 81, 148);
-  FTerrainBlockColors[TTerrainType.rock] := RGBToColor(0, 0, 0);
+  FTerrainBlockColors[TTerrainType.rough] := TColorToFPColor(RGBToColor(99, 81, 33));
+  FTerrainBlockColors[TTerrainType.subterra] := TColorToFPColor(RGBToColor(90, 8, 0));
+  FTerrainBlockColors[TTerrainType.lava] := TColorToFPColor(RGBToColor(41, 40, 41));
+  FTerrainBlockColors[TTerrainType.water] := TColorToFPColor(RGBToColor (8, 81, 148));
+  FTerrainBlockColors[TTerrainType.rock] := TColorToFPColor(RGBToColor(0, 0, 0));
+
+  FNeutralPlayerColor :=  RGBAColorToFpColor (NEUTRAL_PLAYER_COLOR);
+
+  for player in TPlayerColor do
+  begin
+    FPlayerFlagColors[player] := RGBAColorToFpColor(PLAYER_FLAG_COLORS[player]);
+  end;
 end;
 
 destructor TLevelMinimap.Destroy;

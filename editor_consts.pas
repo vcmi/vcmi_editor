@@ -237,7 +237,7 @@ const
 
 const
 
-  NEWTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
+  NEUTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
 
   PLAYER_FLAG_COLORS: array[TPlayerColor] of TRBGAColor = (
     //(r: 128; g: 128; b:128; a: 255),//NONE
