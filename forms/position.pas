@@ -44,6 +44,7 @@ type
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 
     procedure Assign(AOther: TPosition);
+    function Equals(Obj: TPosition): boolean; reintroduce;
 
     property X: Integer read FX write SetX;
     property Y: Integer read FY write SetY;
@@ -101,6 +102,11 @@ begin
   X:=AOther.X;
   Y:=AOther.Y;
   L:=AOther.L;
+end;
+
+function TPosition.Equals(Obj: TPosition): boolean;
+begin
+  Result := (Obj.X = X) and (Obj.Y = Y) and (Obj.L = L);
 end;
 
 function TPosition.IsEmpty: Boolean;

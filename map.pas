@@ -29,7 +29,7 @@ uses
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   map_objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, vcmi_json, locale_manager,
-  editor_gl, map_rect, vcmi_fpjsonrtti;
+  editor_gl, map_rect, position, vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -105,8 +105,8 @@ type
     function GetX: integer;
     function GetY: integer;
     procedure SetGenerateHero(AValue: boolean);
-    procedure SetMapObject(AValue: TMapObject);
   public
+    procedure SetMapObject(AValue: TMapObject);
     property MapObject: TMapObject read FMapObject write SetMapObject;
   published
     property &type:AnsiString read GetType;
@@ -133,7 +133,6 @@ type
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
-
   public
     constructor Create(AColor: TPlayerColor; AOwner: IReferenceNotify);
     destructor Destroy; override;
@@ -374,6 +373,7 @@ type
     Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
 
     property Visitable: Boolean read FIsVisitable;
+    function IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
 
     property Width: Integer read mask_w;
     property Height: Integer read mask_h;
@@ -389,18 +389,19 @@ type
 
   TMapObject = class (TNamedCollectionItem, IMapObject)
   strict private
+    FPosition: TPosition;
     FIsHero: Boolean;
     FLastFrame: Integer;
     FLastTick: DWord;
     FOptions: TObjectOptions;
     FPlayer: TPlayer;
-    FL: integer;
     FSubtype: AnsiString;
     FTemplate: TMapObjectAppearance;
     FType: AnsiString;
-    FX: integer;
-    FY: integer;
     function GetIdx: integer;
+    function GetL: integer; inline;
+    function GetX: integer; inline;
+    function GetY: integer; inline;
 
     procedure Render(Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
@@ -426,6 +427,7 @@ type
     procedure RenderSelectionRect; inline;
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
+    function IsVisitableAt(ALevel, AX, AY: Integer): boolean;  inline;
 
     function GetMap:TVCMIMap;
 
@@ -437,6 +439,8 @@ type
 
     //ignores position
     function GetRegion(AX, AY: integer): TMapRect;
+
+    function EqualPosition(APosition: TPosition): Boolean;
   public //IMapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
@@ -445,9 +449,9 @@ type
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
-    property X:integer read FX write SetX;
-    property Y:integer read FY write SetY;
-    property L:integer read FL write SetL;
+    property X:integer read GetX write SetX;
+    property Y:integer read GetY write SetY;
+    property L:integer read GetL write SetL;
 
     property &Type: AnsiString read FType write SetType;
     property Subtype: AnsiString read FSubtype write SetSubtype;
@@ -1107,6 +1111,26 @@ begin
   end;
 end;
 
+function TMapObjectAppearance.IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
+var
+  dx, dy: Integer;
+  line: String;
+begin
+  if ALevel <> FOwner.L then
+    Exit(false);
+
+  dx := FOwner.X - AX;
+  dy := FOwner.Y - AY;
+
+  if (dx < 0) or (dy < 0) or (dx >= mask_w) or (dy >=  mask_h) then
+    Exit(false);
+
+  line := Mask[mask_h - dy - 1];
+  if Length(line) < (dx+1) then
+     Exit(false);
+  Result := line[Length(line) - dx] = MASK_ACTIVABLE;
+end;
+
 constructor TMapObjectAppearance.Create(AOwner: TMapObject);
 begin
   FOwner := AOwner;
@@ -1436,9 +1460,14 @@ begin
   //TODO: use MASK
   w := Template.FDef.Width div TILE_SIZE;
   h := Template.FDef.Height div TILE_SIZE;
-  Result := (FL = ALevel)
+  Result := (L = ALevel)
     and (X>=AX) and (Y>=AY)
     and (X-w<AX) and (Y-h<AY);
+end;
+
+function TMapObject.IsVisitableAt(ALevel, AX, AY: Integer): boolean;
+begin
+
 end;
 
 constructor TMapObject.Create(ACollection: TCollection);
@@ -1447,6 +1476,7 @@ begin
   FTemplate := TMapObjectAppearance.Create(Self);
   FOptions := TObjectOptions.Create(Self);
   FPlayer:=TPlayer.none;
+  FPosition := TPosition.Create;
   inherited Create(ACollection);
 end;
 
@@ -1455,6 +1485,7 @@ begin
   inherited Destroy;
   FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
+  FPosition.Free;
 end;
 
 function TMapObject.GetPlayer: TPlayer;
@@ -1465,6 +1496,21 @@ end;
 function TMapObject.GetIdx: integer;
 begin
   Result := Index;
+end;
+
+function TMapObject.GetL: integer;
+begin
+  Result := FPosition.L;
+end;
+
+function TMapObject.GetX: integer;
+begin
+  Result := FPosition.X;
+end;
+
+function TMapObject.GetY: integer;
+begin
+   Result := FPosition.Y;
 end;
 
 function TMapObject.HasOptions: boolean;
@@ -1517,7 +1563,7 @@ end;
 
 procedure TMapObject.RenderSelectionRect;
 begin
-  Template.FDef.RenderBorder(FX,FY);
+  Template.FDef.RenderBorder(X,Y);
 end;
 
 procedure TMapObject.RenderStatic;
@@ -1532,7 +1578,7 @@ end;
 
 procedure TMapObject.SetL(AValue: integer);
 begin
-  FL := AValue;
+  FPosition.L := AValue;
 end;
 
 procedure TMapObject.SetSubtype(AValue: AnsiString);
@@ -1556,27 +1602,12 @@ end;
 
 procedure TMapObject.SetX(AValue: integer);
 begin
-  //todo: more accurate check
-
-  //if not GetMap.IsOnMap(FL, AValue,FY) then
-  //begin
-  //  DebugLn('Invalid object X position '+IntToStr(AValue));
-  //  exit;
-  //end;
-  if FX = AValue then Exit;
-  FX := AValue;
+  FPosition.X := AValue;
 end;
 
 procedure TMapObject.SetY(AValue: integer);
 begin
-  //if not GetMap.IsOnMap(FL, FX,AValue) then
-  //begin
-  //  DebugLn('Invalid object Y position '+IntToStr(AValue));
-  //  exit;
-  //end;
-
-  if FY = AValue then Exit;
-  FY := AValue;
+  FPosition.Y := AValue;
 end;
 
 procedure TMapObject.UpdateIdentifier;
@@ -1655,6 +1686,11 @@ begin
   Result.FTopLeft.Y:=AY+1-FTemplate.Height;
   Result.FWidth:=FTemplate.Width;
   Result.FHeight:=FTemplate.Height;
+end;
+
+function TMapObject.EqualPosition(APosition: TPosition): Boolean;
+begin
+  Result := FPosition.Equals(APosition);
 end;
 
 procedure TMapObject.SetPlayer(AValue: TPlayer);

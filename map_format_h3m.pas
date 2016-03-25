@@ -94,23 +94,46 @@ type
     constructor Create(AGraphicsManager: TGraphicsManager);
   end;
 
-   { TQIResolveRequest }
+  { TQIResolveRequest }
 
-   TQIResolveRequest = class
-   public
-     Type
-       TResolveProc = procedure (AValue: string) of object;
-   private
-     FIdentifier: UInt32;
-     FResolveProc: TResolveProc;
-     procedure SetIdentifier(AValue: UInt32);
-     procedure SetResolveProc(AValue: TResolveProc);
-   public
-     property Identifier: UInt32 read FIdentifier write SetIdentifier;
-     property ResolveProc:TResolveProc read FResolveProc write SetResolveProc;
-   end;
+  TQIResolveRequest = class
+  public
+    Type
+      TResolveProc = procedure (AValue: string) of object;
+  private
+    FIdentifier: UInt32;
+    FResolveProc: TResolveProc;
+  public
+    property Identifier: UInt32 read FIdentifier write FIdentifier;
+    property ResolveProc:TResolveProc read FResolveProc write FResolveProc;
+  end;
 
-   TQIResolveRequests = specialize TFPGObjectList<TQIResolveRequest>;
+  TQIResolveRequests = specialize TFPGObjectList<TQIResolveRequest>;
+
+  { TPositionResolveRequest }
+
+  TPositionResolveRequest = class
+  public
+    Type
+      TResolveProc = procedure (AValue: TMapObject) of object;
+  private
+    FAllowedTypes: TStrings;
+    FPosition: TPosition;
+    FResolveProc: TResolveProc;
+
+    function CheckObjectType(AObject: TMapObject): boolean;
+    function CheckObjectPosition(AObject: TMapObject): boolean;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property AllowedTypes: TStrings read FAllowedTypes;
+    property Position:TPosition read FPosition;
+    property ResolveProc:TResolveProc read FResolveProc write FResolveProc;
+
+    function CheckObject(AObject: TMapObject): Boolean;
+  end;
+
+  TPositionResolveRequests = specialize TFPGObjectList<TPositionResolveRequest>;
 
    { TMapReaderH3m }
 
@@ -125,6 +148,7 @@ type
      FCurrentObject: TMapObject;
      FQuestIdentifierMap: TH3MQuestIdentifierMap;
      FQILinksToResolve: TQIResolveRequests;
+     FPositionsToResolve: TPositionResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
 
@@ -136,6 +160,8 @@ type
      procedure SkipNotImpl(count: Integer);
      procedure PushQIResolveRequest(AIdent: UInt32; AResolveProc: TQIResolveRequest.TResolveProc);
      procedure ResolveQuestIdentifiers;
+     procedure ResolveTownPositions;
+     procedure ResolveAll;
    strict private
      type
        TIdToString = function(AId: TCustomID): AnsiString of object;
@@ -169,7 +195,7 @@ type
    strict private
      procedure ReadPlayerInfos(Attrs: TPlayerInfos);//+
      procedure ReadPlayerInfo(Attr: TPlayerInfo);//+?
-     procedure ReadSVLC();
+     procedure ReadSVLC();//+
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();//+
      procedure ReadDisposedHeros();//+
@@ -238,10 +264,46 @@ implementation
 
 uses LazLoggerBase, editor_consts, editor_utils;
 
+{ TPositionResolveRequest }
+
+function TPositionResolveRequest.CheckObjectType(AObject: TMapObject): boolean;
+begin
+  if AllowedTypes.Count = 0 then
+  begin
+    Result := True;
+  end
+  else
+  begin
+    Result := AllowedTypes.IndexOf(AObject.&Type) >= 0;
+  end;
+end;
+
+function TPositionResolveRequest.CheckObjectPosition(AObject: TMapObject): boolean;
+begin
+  Result := AObject.EqualPosition(FPosition) or AObject.Template.IsVisitableAt(FPosition.L, FPosition.X, FPosition.Y);
+end;
+
+constructor TPositionResolveRequest.Create;
+begin
+  FPosition := TPosition.Create;
+  FAllowedTypes := TIdentifierSet.Create(nil);
+end;
+
+destructor TPositionResolveRequest.Destroy;
+begin
+  FAllowedTypes.Free;
+  FPosition.Free;
+  inherited Destroy;
+end;
+
+function TPositionResolveRequest.CheckObject(AObject: TMapObject): Boolean;
+begin
+  Result := CheckObjectPosition(AObject) and CheckObjectType(AObject);
+end;
+
 { TLegacyMapObjectTemplates }
 
-constructor TLegacyMapObjectTemplates.Create(AGraphicsManager: TGraphicsManager
-  );
+constructor TLegacyMapObjectTemplates.Create(AGraphicsManager: TGraphicsManager);
 begin
   inherited Create;
   FGraphicsManager := AGraphicsManager;
@@ -309,19 +371,6 @@ begin
   FZIndex := AValue;
 end;
 
-{ TQIResolveRequest }
-
-procedure TQIResolveRequest.SetIdentifier(AValue: UInt32);
-begin
-  if FIdentifier=AValue then Exit;
-  FIdentifier:=AValue;
-end;
-
-procedure TQIResolveRequest.SetResolveProc(AValue: TResolveProc);
-begin
-  FResolveProc:=AValue;
-end;
-
 { TMapReaderH3m }
 
 class procedure TMapReaderH3m.CheckMapVersion(const AVersion: DWord);
@@ -351,12 +400,14 @@ begin
   inherited Create(AMapEnv);
   FQuestIdentifierMap := TH3MQuestIdentifierMap.Create;
   FQILinksToResolve := TQIResolveRequests.Create(True);
+  FPositionsToResolve := TPositionResolveRequests.Create(True);
   FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
 
 destructor TMapReaderH3m.Destroy;
 begin
   FTemplates.Free;
+  FPositionsToResolve.Free;
   FQILinksToResolve.Free;
   FQuestIdentifierMap.Free;
   inherited Destroy;
@@ -465,7 +516,7 @@ begin
     ReadObjects();
     ReadEvents();
 
-    ResolveQuestIdentifiers();
+    ResolveAll();
 
     if IsWog then
     begin
@@ -1418,9 +1469,9 @@ var
   AllowedFactionsSet: Boolean;
   HasMainTown: Boolean;
 
-  main_town_pos: TPosition;
   CanHumanPlay: Boolean;
   CanComputerPlay: Boolean;
+  request: TPositionResolveRequest;
 begin
   CanHumanPlay := FSrc.ReadBoolean;
   CanComputerPlay := FSrc.ReadBoolean;
@@ -1497,9 +1548,14 @@ begin
       Attr.MainTown.GenerateHero  := True;
     end;
 
-    main_town_pos := TPosition.Create;
-    ReadPosition(main_town_pos);
-    main_town_pos.Free; //todo: push request
+    request := TPositionResolveRequest.Create;
+    request.AllowedTypes.Add(TYPE_TOWN);
+    request.AllowedTypes.Add(TYPE_RANDOMTOWN);
+    request.ResolveProc := @Attr.MainTown.SetMapObject;
+
+    ReadPosition(request.Position);
+
+    FPositionsToResolve.Add(request);
   end; //main town
   with Attr,FSrc do
   begin
@@ -1914,7 +1970,6 @@ var
   child_condition: TLogicalEventConditionItem;
 
 begin
-  //TODO:ReadSVLC
   position := TPosition.Create;
   FMap.TriggeredEvents.Clear;
 
@@ -2348,6 +2403,52 @@ begin
 
     FQILinksToResolve.Delete(0);
   end;
+end;
+
+procedure TMapReaderH3m.ResolveTownPositions;
+var
+  req: TPositionResolveRequest;
+  p: TPlayer;
+  info: TPlayerInfo;
+  i: Integer;
+  t: TPlayerTown;
+  succ: Boolean;
+begin
+  while FPositionsToResolve.Count>0 do
+  begin
+    succ := false;
+    req := FPositionsToResolve[0];
+
+    for p in TPlayerColor do
+    begin
+      info := FMap.Players.GetPlayerInfo(Integer(p));
+
+      for i := 0 to info.Towns.Count - 1 do
+      begin
+        t := info.Towns[i];
+
+        if req.CheckObject(t.MapObject) then
+        begin
+          succ := true;
+          req.ResolveProc(t.MapObject);
+        end;
+      end;
+    end;
+
+    if not succ then
+    begin
+      raise Exception.Create('Request not resolved');
+    end;
+
+    FPositionsToResolve.Delete(0);
+  end;
+
+end;
+
+procedure TMapReaderH3m.ResolveAll;
+begin
+  ResolveQuestIdentifiers;
+  ResolveTownPositions;
 end;
 
 procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);
