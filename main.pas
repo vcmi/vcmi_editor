@@ -1493,9 +1493,11 @@ begin
 
   if not Assigned(FMapViewState) then
   begin
-    FMapViewState := TLocalState.Create;
+    FMapViewState := TLocalState.Create(c);
 
     FMapViewState.Init;
+    FMapViewState.EnableDefaultBlend();
+    glClearColor(0, 0, 0, 0);
   end;
 
   if not FVisibleObjectsValid then
@@ -1508,15 +1510,12 @@ begin
 
   FMapViewState.UsePalettedTextures();
 
-  glEnable(GL_SCISSOR_TEST);
-  glScissor(0, 0, MapView.Width, MapView.Height);
-
   FMapViewState.SetOrtho(TILE_SIZE * FMapHPos,
     MapView.Width + TILE_SIZE * FMapHPos,
     MapView.Height + TILE_SIZE * FMapVPos,
     TILE_SIZE * FMapVPos);
 
-  glClearColor(0, 0, 0, 0);
+
   glClear(GL_COLOR_BUFFER_BIT);
 
   scissor_x := 0;
@@ -1525,10 +1524,8 @@ begin
   scissor_w := ifthen(FMapHPos + FViewTilesH >= getMapWidth(), FViewTilesH * TILE_SIZE, MapView.Width);
   scissor_h := ifthen(FMapVPos + FViewTilesV >= getMapHeight(),  FViewTilesV * TILE_SIZE, MapView.Height);
 
+  FMapViewState.EnableScissor();
   glScissor(scissor_x,scissor_y, scissor_w,scissor_h);
-
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   FMapViewState.StartDrawingSprites;
 
@@ -1577,11 +1574,9 @@ begin
   RenderSelection;
   RenderCursor;
 
-  glDisable(GL_SCISSOR_TEST);
-  glDisable (GL_BLEND);
-
   FMapViewState.StopDrawing;
-  //glDisable(GL_ALPHA_TEST);
+
+  FMapViewState.DisableScissor;
 
   c.SwapBuffers;
 end;
@@ -1730,29 +1725,26 @@ begin
   begin
     Exit;
   end;
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_DITHER);
 
   if not Assigned(FObjectsViewState) then
   begin
-    FObjectsViewState := TLocalState.Create;
+    FObjectsViewState := TLocalState.Create(c);
     FObjectsViewState.Init;
+    FObjectsViewState.EnableDefaultBlend();
+
+    glClearColor(255, 255, 255, 0);
   end;
+
   editor_gl.CurrentContextState := FObjectsViewState;
-
-  glEnable(GL_SCISSOR_TEST);
-
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glScissor(0, 0, c.Width, c.Height);
 
   FObjectsViewState.UseNoTextures();
 
   FObjectsViewState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
 
-  glClearColor(255, 255, 255, 0);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  FObjectsViewState.EnableScissor();
+  FObjectsViewState.SetScissor();
 
   FObjectsViewState.StartDrawingRects;
   FObjectsViewState.SetFragmentColor(GRID_COLOR);
@@ -1794,10 +1786,7 @@ begin
     end;
   end;
   FObjectsViewState.StopDrawing;
-
-  glDisable (GL_BLEND);
-  glDisable(GL_SCISSOR_TEST);
-
+  FObjectsViewState.DisableScissor();
   c.SwapBuffers;
 end;
 

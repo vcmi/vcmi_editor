@@ -25,7 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, matrix, GL, glext40, editor_types;
+  Classes, SysUtils, math, matrix, GL, OpenGLContext, glext40, editor_types;
 
 const
   SHADER_VERSION =  '#version 130'#13#10;
@@ -169,6 +169,8 @@ type
 
   TLocalState = class
   private
+    FContext: TOpenGLControl;
+
     SpriteVAO: GLuint;
     RectVAO: GLuint;
 
@@ -196,7 +198,7 @@ type
     procedure UseNoTextures;
     procedure UsePalettedTextures;
 
-    constructor Create;
+    constructor Create(AContext: TOpenGLControl);
     destructor Destroy; override;
 
     procedure Init;
@@ -215,6 +217,12 @@ type
 
     procedure StopDrawing;
 
+    procedure EnableScissor(); inline;
+    procedure DisableScissor(); inline;
+
+    procedure EnableDefaultBlend();
+
+    procedure SetScissor();
   end;
 
 
@@ -520,8 +528,9 @@ end;
 
 { TLocalState }
 
-constructor TLocalState.Create;
+constructor TLocalState.Create(AContext: TOpenGLControl);
 begin
+  FContext := AContext;
   FTranslateMaxrix.init_identity;
 end;
 
@@ -537,7 +546,7 @@ begin
 
   SetupSpriteVAO;
   SetupRectVAO;
-  CheckGLErrors('VAO');
+  CheckGLErrors('TLocalState.Init');
 end;
 
 procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
@@ -599,6 +608,27 @@ begin
   glDisableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
   glDisableVertexAttribArray(GlobalContextState.FUVAttribLocation);
   SetTranslation(0,0);
+end;
+
+procedure TLocalState.EnableScissor;
+begin
+  glEnable(GL_SCISSOR_TEST);
+end;
+
+procedure TLocalState.DisableScissor;
+begin
+  glDisable(GL_SCISSOR_TEST);
+end;
+
+procedure TLocalState.EnableDefaultBlend;
+begin
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+end;
+
+procedure TLocalState.SetScissor;
+begin
+  glScissor(0, 0, FContext.Width, FContext.Height);
 end;
 
 procedure TLocalState.StartDrawingRects;
