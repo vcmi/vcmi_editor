@@ -946,6 +946,10 @@ begin
     FFixedTerrainBrush.TT :=  TTerrainType.dirt;
   end;
 
+  FTemplatesSelection := TObjectsSelection.Create(FObjManager);
+
+  FObjManager.SelectAll(FTemplatesSelection);
+
   MapChanded;
   InvalidateObjects;
   UpdateWidgets;
@@ -1112,11 +1116,6 @@ end;
 
 procedure TfMain.InvalidateObjects;
 begin
-  if not Assigned(FTemplatesSelection) then
-  begin
-    FTemplatesSelection := FObjManager.SelectAll;
-  end;
-
   FObjectCount := FTemplatesSelection.Count;
 
   FObjectRows := FObjectCount div 3;
@@ -2121,8 +2120,7 @@ end;
 
 procedure TfMain.DoObjectsSearch;
 begin
-  FreeAndNil(FTemplatesSelection);
-  FTemplatesSelection := RootManager.ObjectsManager.SelectByKeywords(ObjectsSearch.Text);
+  FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text);
   InvalidateObjects;
 end;
 

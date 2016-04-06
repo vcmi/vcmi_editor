@@ -202,6 +202,7 @@ type
   public
     constructor Create(AManager: TObjectsManager);
     destructor Destroy; override;
+    procedure Clear;
     property Count:Integer read GetCount;
     property Objcts[AIndex: Integer]: TMapObjectTemplate read GetObjcts;
   end;
@@ -277,9 +278,9 @@ type
     property ListsManager:TListsManager read FListsManager write SetListsManager;
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
     property MapObjectGroups: TMapObjectGroups read FMapObjectGroups;
-    function SelectAll: TObjectsSelection;
+    procedure SelectAll(ATarget: TObjectsSelection);
     // AInput = space separated words
-    function SelectByKeywords(AInput: string): TObjectsSelection;
+    procedure SelectByKeywords(ATarget: TObjectsSelection; AInput: string);
     function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
     procedure BuildIndex;
   end;
@@ -516,6 +517,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TObjectsSelection.Clear;
+begin
+  FData.Clear;
+end;
+
 { TMapObjectGroup }
 
 constructor TMapObjectGroup.Create(ACollection: TCollection);
@@ -737,24 +743,26 @@ begin
   end;
 end;
 
-function TObjectsManager.SelectAll: TObjectsSelection;
+procedure TObjectsManager.SelectAll(ATarget: TObjectsSelection);
 begin
-  Result := TObjectsSelection.Create(Self);
-  FillWithAllObjects(Result.FData);
+  ATarget.Clear;
+  FillWithAllObjects(ATarget.FData);
 end;
 
-function TObjectsManager.SelectByKeywords(AInput: string): TObjectsSelection;
+procedure TObjectsManager.SelectByKeywords(ATarget: TObjectsSelection; AInput: string);
 var
   keywords: TStringList;
   data: TSearchIndexBusket.TBusketData;
   i: Integer;
   it: TSearchIndexBusket.TBusketData.TIterator;
 begin
+  ATarget.Clear;
+
   AInput := UTF8Trim(UTF8LowerCase(AInput));
 
   if AInput = '' then
   begin
-    Result := SelectAll;
+    SelectAll(ATarget);
     Exit;
   end;
 
@@ -778,13 +786,12 @@ begin
     end;
   end;
 
-  Result := TObjectsSelection.Create(Self);
   it := data.Min;
 
   if Assigned(it) then
   begin
     repeat
-      Result.FData.Add(it.Data);
+      ATarget.FData.Add(it.Data);
     until not it.Next;
     it.free;
   end;
@@ -792,6 +799,7 @@ begin
   data.Free;
   keywords.Free;
 end;
+
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TMapObjectType;
 var
