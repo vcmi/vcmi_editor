@@ -185,6 +185,7 @@ type
     FCurrentProgram: GLuint;
 
     FTranslateMaxrix: Tmatrix4_single;
+    FScale: GLfloat;
 
     procedure Init;
 
@@ -195,6 +196,9 @@ type
 
     procedure DoRenderSprite(constref ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
  public
+    constructor Create(AContext: TOpenGLControl);
+    destructor Destroy; override;
+
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
@@ -209,8 +213,6 @@ type
     procedure UseNoTextures;
     procedure UsePalettedTextures;
 
-    constructor Create(AContext: TOpenGLControl);
-    destructor Destroy; override;
 
     function StartFrame: Boolean;
     procedure FinishFrame;
@@ -233,6 +235,8 @@ type
     procedure DisableScissor(); inline;
 
     procedure SetScissor();
+
+    property Scale: GLfloat read FScale write FScale;
   end;
 
 
@@ -550,6 +554,7 @@ begin
   FInitialised := False;
   FContext := AContext;
   FTranslateMaxrix.init_identity;
+  FScale:=1.0;
 end;
 
 destructor TLocalState.Destroy;
@@ -596,18 +601,12 @@ procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
 var
   vertex_data: packed array[1..8] of GLfloat;
 begin
-  SetTranslation(x,y);
-
   glLineWidth(1.5);
 
-  vertex_data[1] := 0;
-  vertex_data[2] := 0;
-  vertex_data[3] := 0 + dimx;
-  vertex_data[4] := 0;
-  vertex_data[5] := 0 + dimx;
-  vertex_data[6] := 0 + dimy;
-  vertex_data[7] := 0;
-  vertex_data[8] := 0 + dimy;
+  vertex_data[1] := X;         vertex_data[2] := Y;
+  vertex_data[3] := X + dimx;  vertex_data[4] := Y;
+  vertex_data[5] := X + dimx;  vertex_data[6] := Y + dimy;
+  vertex_data[7] := X;         vertex_data[8] := Y + dimy;
 
   ApplyTranslation;
 
@@ -797,8 +796,11 @@ end;
 procedure TLocalState.SetTranslation(X, Y: Integer);
 begin
   FTranslateMaxrix.init_identity;
-  FTranslateMaxrix.data[0,3] := x;
-  FTranslateMaxrix.data[1,3] := y;
+  FTranslateMaxrix.data[0,0] := FScale;
+  FTranslateMaxrix.data[1,1] := FScale;
+
+  FTranslateMaxrix.data[0,3] := x * FScale;
+  FTranslateMaxrix.data[1,3] := y * FScale;
 end;
 
 procedure TLocalState.ApplyTranslation;

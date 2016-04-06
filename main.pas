@@ -81,6 +81,8 @@ type
   TfMain = class(TForm)
     actDelete: TAction;
     actAnimateObjects: TAction;
+    actZoomOut: TAction;
+    actZoomIn: TAction;
     actViewGrid: TAction;
     actViewPassability: TAction;
     actVictoryLossConditions: TAction;
@@ -280,6 +282,8 @@ type
 
     FResourceManager: IResourceLoader;
 
+    FRealTileSize: Integer;
+
     FMapHPos, FMapVPos: Integer; //topleft visible tile
     FViewTilesH, FViewTilesV: Integer; //amount of tiles visible on mapview
 
@@ -341,6 +345,8 @@ type
     procedure InvalidateMapContent;
 
     procedure InvalidateVisibleObjects;
+
+    procedure SetMapScale(AScale: GLfloat);
 
     procedure SetMapPosition(APosition:TPoint);
     procedure SetMapViewMouse(x,y: integer);
@@ -511,7 +517,7 @@ var
   cx: Integer;
   cy: Integer;
 begin
-  cx := (x +1 ) * TILE_SIZE;
+  cx := (x+1) * TILE_SIZE;
   cy := (y+1) * TILE_SIZE;
 
   FDraggingTemplate.Def.RenderO(AState, 0,cx, cy, FOwner.FCurrentPlayer);
@@ -848,6 +854,7 @@ var
 begin
   FObjectCellSize:=OBJ_CELL_SIZE;
   FObjectsPerRow:=OBJ_PER_ROW;
+  FRealTileSize := TILE_SIZE;
 
   FZbuffer := TZBuffer.Create;
   pnHAxis.DoubleBuffered := True;
@@ -903,6 +910,13 @@ begin
 
   FObjectBrush.VisibleObjects := FVisibleObjects;
 
+  FTemplatesSelection := TObjectsSelection.Create(FObjManager);
+
+  FObjManager.SelectAll(FTemplatesSelection);
+
+  FMapViewState := TLocalState.Create(MapView);
+  FObjectsViewState := TLocalState.Create(ObjectsView);
+
   //load map if specified
 
   if Paramcount > 0 then
@@ -943,16 +957,11 @@ begin
     FFixedTerrainBrush.TT :=  TTerrainType.dirt;
   end;
 
-  FTemplatesSelection := TObjectsSelection.Create(FObjManager);
-
-  FObjManager.SelectAll(FTemplatesSelection);
-
-  FMapViewState := TLocalState.Create(MapView);
-  FObjectsViewState := TLocalState.Create(ObjectsView);
-
   MapChanded;
   InvalidateObjects;
   UpdateWidgets;
+
+  SetMapScale(1);
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -1075,13 +1084,20 @@ begin
   end;
 end;
 
+procedure TfMain.SetMapScale(AScale: GLfloat);
+begin
+  FRealTileSize:= round(AScale * TILE_SIZE);
+  FMapViewState.Scale := FRealTileSize / TILE_SIZE;
+  InvalidateMapDimensions;
+end;
+
 procedure TfMain.InvalidateMapDimensions;
 var
   factor: Double;
   dim: Integer;
 begin
-  FViewTilesV := MapView.Height div TILE_SIZE;
-  FViewTilesH := MapView.Width div TILE_SIZE;
+  FViewTilesV := MapView.Height div FRealTileSize;
+  FViewTilesH := MapView.Width div FRealTileSize;
 
   vScrollBar.Max := getMapHeight - 1;
   hScrollBar.Max := getMapWidth - 1;
@@ -1499,17 +1515,14 @@ begin
 
   FMapViewState.UsePalettedTextures();
 
-  FMapViewState.SetOrtho(TILE_SIZE * FMapHPos,
-    MapView.Width + TILE_SIZE * FMapHPos,
-    MapView.Height + TILE_SIZE * FMapVPos,
-    TILE_SIZE * FMapVPos);
-
+  FMapViewState.SetOrtho(FRealTileSize * FMapHPos, MapView.Width + FRealTileSize * FMapHPos,
+    MapView.Height + FRealTileSize * FMapVPos, FRealTileSize * FMapVPos);
 
   scissor_x := 0;
-  scissor_y := ifthen(FMapVPos + FViewTilesV >= getMapHeight(), MapView.Height mod TILE_SIZE, 0);
+  scissor_y := ifthen(FMapVPos + FViewTilesV >= getMapHeight(), MapView.Height mod FRealTileSize, 0);
 
-  scissor_w := ifthen(FMapHPos + FViewTilesH >= getMapWidth(), FViewTilesH * TILE_SIZE, MapView.Width);
-  scissor_h := ifthen(FMapVPos + FViewTilesV >= getMapHeight(),  FViewTilesV * TILE_SIZE, MapView.Height);
+  scissor_w := ifthen(FMapHPos + FViewTilesH >= getMapWidth(), FViewTilesH * FRealTileSize, MapView.Width);
+  scissor_h := ifthen(FMapVPos + FViewTilesV >= getMapHeight(),  FViewTilesV * FRealTileSize, MapView.Height);
 
   FMapViewState.EnableScissor();
   glScissor(scissor_x,scissor_y, scissor_w,scissor_h);
@@ -1781,7 +1794,7 @@ begin
     TAxisKind.Vertical: tmp := Axis.Height;
   end;
 
-  tiles := tmp div TILE_SIZE;
+  tiles := tmp div FRealTileSize;
 
   img := TBitmap.Create;
 
@@ -1803,22 +1816,22 @@ begin
       text_width := ctx.GetTextWidth(txt);
 
       case Kind of
-        TAxisKind.Horizontal: ofs := (TILE_SIZE - text_width) div 2;
-        TAxisKind.Vertical: ofs :=(TILE_SIZE + text_width) div 2;
+        TAxisKind.Horizontal: ofs := (FRealTileSize - text_width) div 2;
+        TAxisKind.Vertical: ofs :=(FRealTileSize + text_width) div 2;
       end;
 
       case Kind of
         TAxisKind.Horizontal: begin
           if (FMapHPos + 1 + i) <= FMap.CurrentLevel.Width then
           begin
-            ctx.TextOut(I * TILE_SIZE + ofs, 0, txt);
+            ctx.TextOut(I * FRealTileSize + ofs, 0, txt);
           end;
         end;
         TAxisKind.Vertical: begin
           if (FMapVPos + 1 + i) <= FMap.CurrentLevel.Height then
           begin
             ctx.Font.Orientation := 900;
-            ctx.TextOut(0, I * TILE_SIZE + ofs, txt);
+            ctx.TextOut(0, I * FRealTileSize + ofs, txt);
             ctx.Font.Orientation := 0;
           end;
         end;
@@ -2118,8 +2131,8 @@ begin
   FMouseX := x;
   FMouseY := y;
 
-  ofs_x := X div TILE_SIZE;
-  ofs_y := Y div TILE_SIZE;
+  ofs_x := X div FRealTileSize;
+  ofs_y := Y div FRealTileSize;
 
   FMouseTileX := FMapHPos + ofs_x;
   FMouseTileY := FMapVPos + ofs_y;

@@ -2124,6 +2124,12 @@ object fMain: TfMain
       Checked = True
       OnExecute = actAnimateObjectsExecute
     end
+    object actZoomIn: TAction
+      Caption = 'Zoom in'
+    end
+    object actZoomOut: TAction
+      Caption = 'Zoom out'
+    end
   end
   object ApplicationProperties1: TApplicationProperties
     OnIdleEnd = ApplicationProperties1IdleEnd
