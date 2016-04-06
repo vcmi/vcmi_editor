@@ -154,6 +154,7 @@ type
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
+    ToolButton10: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton5: TToolButton;
@@ -164,6 +165,8 @@ type
     ToolButton2: TToolButton;
     ToolButton3: TToolButton;
     ToolButton4: TToolButton;
+    ToolButton8: TToolButton;
+    ToolButton9: TToolButton;
     VerticalAxis: TPaintBox;
     Minimap: TPaintBox;
     pnVAxis: TPanel;
@@ -193,6 +196,10 @@ type
     procedure actVictoryLossConditionsUpdate(Sender: TObject);
     procedure actViewGridExecute(Sender: TObject);
     procedure actViewPassabilityExecute(Sender: TObject);
+    procedure actZoomInExecute(Sender: TObject);
+    procedure actZoomInUpdate(Sender: TObject);
+    procedure actZoomOutExecute(Sender: TObject);
+    procedure actZoomOutUpdate(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
     procedure ApplicationProperties1IdleEnd(Sender: TObject);
     procedure btnBrush1Click(Sender: TObject);
@@ -274,10 +281,14 @@ type
     const
       OBJ_PER_ROW = 3;
       OBJ_CELL_SIZE = 60;
-    var
-      FObjectsPerRow: Integer;
-      FObjectCellSize: Integer;
+
+      FTileSizes: array [0..3] of Integer = (8, 16, 24, 32);
   private
+    FZoomIndex: integer;
+
+    FObjectsPerRow: Integer;
+    FObjectCellSize: Integer;
+
     FZbuffer: TZBuffer;
 
     FResourceManager: IResourceLoader;
@@ -346,7 +357,8 @@ type
 
     procedure InvalidateVisibleObjects;
 
-    procedure SetMapScale(AScale: GLfloat);
+    procedure SetZoomIndex(AIndex: Integer);
+    procedure SetTileSize(ASize: Integer);
 
     procedure SetMapPosition(APosition:TPoint);
     procedure SetMapViewMouse(x,y: integer);
@@ -713,6 +725,26 @@ begin
   MapView.Invalidate;
 end;
 
+procedure TfMain.actZoomInExecute(Sender: TObject);
+begin
+  SetZoomIndex(FZoomIndex + 1);
+end;
+
+procedure TfMain.actZoomInUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=Assigned(FMap) and (FZoomIndex < 3);
+end;
+
+procedure TfMain.actZoomOutExecute(Sender: TObject);
+begin
+  SetZoomIndex(FZoomIndex - 1);
+end;
+
+procedure TfMain.actZoomOutUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=Assigned(FMap) and (FZoomIndex > 0);
+end;
+
 procedure TfMain.AnimTimerTimer(Sender: TObject);
 begin
   if Visible and (WindowState<>wsMinimized) then
@@ -961,7 +993,7 @@ begin
   InvalidateObjects;
   UpdateWidgets;
 
-  SetMapScale(1);
+  SetZoomIndex(3);
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -1084,11 +1116,18 @@ begin
   end;
 end;
 
-procedure TfMain.SetMapScale(AScale: GLfloat);
+procedure TfMain.SetZoomIndex(AIndex: Integer);
 begin
-  FRealTileSize:= round(AScale * TILE_SIZE);
+  FZoomIndex:=AIndex;
+  SetTileSize(FTileSizes[FZoomIndex]);
+end;
+
+procedure TfMain.SetTileSize(ASize: Integer);
+begin
+  FRealTileSize:= ASize;
   FMapViewState.Scale := FRealTileSize / TILE_SIZE;
   InvalidateMapDimensions;
+  InvalidateMapAxis;
 end;
 
 procedure TfMain.InvalidateMapDimensions;
