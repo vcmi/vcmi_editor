@@ -1824,7 +1824,7 @@ var
   tiles, tmp: Integer;
   text_width: Integer;
   txt: string;
-  ofs: Integer;
+  ofs, text_scale: Integer;
 
   img: TBitmap;
 begin
@@ -1841,16 +1841,27 @@ begin
 
   ctx := img.Canvas;
 
+  case Kind of
+    TAxisKind.Horizontal: tmp := FMapHPos;
+    TAxisKind.Vertical: tmp := FMapVPos;
+  end;
+
+  txt := IntToStr(tmp + tiles);//max number
+  text_width := ctx.GetTextWidth(txt);
+
+  text_scale := 1 + (text_width div FRealTileSize);
+
   try
     ctx.Brush.Color := clWhite;
     ctx.FillRect(0, 0, Axis.Width, Axis.Height);
 
     for i := 0 to tiles do
     begin
-      case Kind of
-        TAxisKind.Horizontal: tmp := FMapHPos;
-        TAxisKind.Vertical: tmp := FMapVPos;
+      if (text_scale > 1) and (i mod text_scale <> 0) then
+      begin
+        Continue;
       end;
+
       txt := IntToStr(tmp + i);
       text_width := ctx.GetTextWidth(txt);
 
