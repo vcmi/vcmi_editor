@@ -838,9 +838,7 @@ end;
 
 procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-
-  CanClose := CheckUnsavedMap;
-
+  CanClose := CheckUnsavedMap();
 end;
 
 procedure TfMain.FormCreate(Sender: TObject);
@@ -948,6 +946,9 @@ begin
   FTemplatesSelection := TObjectsSelection.Create(FObjManager);
 
   FObjManager.SelectAll(FTemplatesSelection);
+
+  FMapViewState := TLocalState.Create(MapView);
+  FObjectsViewState := TLocalState.Create(ObjectsView);
 
   MapChanded;
   InvalidateObjects;
@@ -1470,7 +1471,6 @@ end;
 
 procedure TfMain.MapViewPaint(Sender: TObject);
 var
-  c: TOpenGLControl;
   scissor_x: Integer;
   scissor_w: Integer;
   scissor_h: Integer;
@@ -1478,25 +1478,17 @@ var
 
   o: TMapObject;
 begin
-  c := TOpenGLControl(Sender);
-
-  if not c.MakeCurrent() then
+  if not FMapViewState.StartFrame then
   begin
     Exit;
   end;
+
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   if not Assigned(FMap) then
   begin
     Exit;
-  end;
-
-  if not Assigned(FMapViewState) then
-  begin
-    FMapViewState := TLocalState.Create(c);
-
-    FMapViewState.Init;
-    FMapViewState.EnableDefaultBlend();
-    glClearColor(0, 0, 0, 0);
   end;
 
   if not FVisibleObjectsValid then
@@ -1512,8 +1504,6 @@ begin
     MapView.Height + TILE_SIZE * FMapVPos,
     TILE_SIZE * FMapVPos);
 
-
-  glClear(GL_COLOR_BUFFER_BIT);
 
   scissor_x := 0;
   scissor_y := ifthen(FMapVPos + FViewTilesV >= getMapHeight(), MapView.Height mod TILE_SIZE, 0);
@@ -1571,11 +1561,9 @@ begin
   RenderSelection;
   RenderCursor;
 
-  FMapViewState.StopDrawing;
-
   FMapViewState.DisableScissor;
 
-  c.SwapBuffers;
+  FMapViewState.FinishFrame;
 end;
 
 procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1708,7 +1696,6 @@ procedure TfMain.ObjectsViewPaint(Sender: TObject);
 const
   GRID_COLOR: TRBGAColor = (r:200; g:200; b:200; a:255);
 var
-  c: TOpenGLControl;
   row: Integer;
   col: Integer;
   o_idx: Integer;
@@ -1716,25 +1703,16 @@ var
   cx: Integer;
   cy: Integer;
 begin
-  c := TOpenGLControl(Sender);
-
-  if not c.MakeCurrent() then
+  if not FObjectsViewState.StartFrame then
   begin
     Exit;
   end;
 
-  if not Assigned(FObjectsViewState) then
-  begin
-    FObjectsViewState := TLocalState.Create(c);
-    FObjectsViewState.Init;
-    FObjectsViewState.EnableDefaultBlend();
-
-    glClearColor(255, 255, 255, 0);
-  end;
+  glClearColor(255, 255, 255, 0);
 
   FObjectsViewState.UseNoTextures();
 
-  FObjectsViewState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
+  FObjectsViewState.SetOrtho(0, ObjectsView.Width + 0, ObjectsView.Height + 0, 0);
 
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1776,13 +1754,15 @@ begin
       cx := col * FObjectCellSize;
       cy := row * FObjectCellSize;
 
+      FObjectsViewState.SetTranslation(cx,cy);
+
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.Def.RenderIcon(FObjectsViewState, cx,cy, FObjectCellSize, FCurrentPlayer);
+      o_def.Def.RenderIcon(FObjectsViewState, FObjectCellSize, FCurrentPlayer);
     end;
   end;
-  FObjectsViewState.StopDrawing;
+
   FObjectsViewState.DisableScissor();
-  c.SwapBuffers;
+  FObjectsViewState.FinishFrame;
 end;
 
 procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);

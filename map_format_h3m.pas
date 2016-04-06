@@ -280,7 +280,7 @@ end;
 
 function TPositionResolveRequest.CheckObjectPosition(AObject: TMapObject): boolean;
 begin
-  Result := AObject.EqualPosition(FPosition) or AObject.Template.IsVisitableAt(FPosition.L, FPosition.X, FPosition.Y);
+  Result := AObject.EqualPosition(FPosition) or AObject.IsVisitableAt(FPosition.L, FPosition.X, FPosition.Y);
 end;
 
 constructor TPositionResolveRequest.Create;

@@ -1467,7 +1467,7 @@ end;
 
 function TMapObject.IsVisitableAt(ALevel, AX, AY: Integer): boolean;
 begin
-
+  Result := FTemplate.IsVisitableAt(ALevel, AX, AY);
 end;
 
 constructor TMapObject.Create(ACollection: TCollection);
@@ -2289,7 +2289,7 @@ end;
 procedure TVCMIMap.RenderTerrain(AState: TLocalState; Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
-  j: Integer;
+  j, x, y: Integer;
   t: PMapTile;
 begin
 
@@ -2301,8 +2301,15 @@ begin
     for j := Top to Bottom do
     begin
       t := GetTile(FCurrentLevel,i,j);
-      FTerrainManager.Render(AState, t^.TerType, t^.TerSubType, i, j, t^.Flags);
-      FTerrainManager.RenderRiver(AState, t^.RiverType, t^.RiverDir, i, j, t^.Flags);
+
+
+      x := i * TILE_SIZE;
+      y := j * TILE_SIZE;
+
+      AState.SetTranslation(x,y);
+
+      FTerrainManager.Render(AState, t^.TerType, t^.TerSubType, t^.Flags);
+      FTerrainManager.RenderRiver(AState, t^.RiverType, t^.RiverDir, t^.Flags);
     end;
   end;
 
@@ -2312,8 +2319,13 @@ begin
   begin
     for j := Top to Bottom do
     begin
+
+      x := i * TILE_SIZE;
+      y := j * TILE_SIZE + TILE_SIZE div 2;
+
+      AState.SetTranslation(x,y);
       t := GetTile(FCurrentLevel,i,j);
-      FTerrainManager.RenderRoad(AState, t^.RoadType, t^.RoadDir,i,j, t^.Flags);
+      FTerrainManager.RenderRoad(AState, t^.RoadType, t^.RoadDir, t^.Flags);
     end;
   end;
 end;

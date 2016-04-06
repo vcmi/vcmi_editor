@@ -31,25 +31,8 @@ type
 
   TRGBAPalette = packed array[0..255] of TRBGAColor;
 
-  { TBaseSprite }
 
-  TBaseSprite = object
-    TextureId: GLuint;
-    procedure UnBind; inline;
-  end;
-
-  PDefEntry = ^TDefEntry;
-
-  { TDefEntry }
-
-  TDefEntry = object (TBaseSprite)
-    TopMargin: int32;
-    LeftMargin: int32;
-    SpriteWidth: Int32;
-    SpriteHeight: Int32;
-  end;
-
-  TDefEntries = specialize gvector.TVector<TDefEntry>;
+  TDefEntries = specialize gvector.TVector<TGLSprite>;
 
 
   { TDefAnimation }
@@ -79,8 +62,8 @@ type
     destructor Destroy; override;
 
     procedure RenderBorder(AState: TLocalState; TileX,TileY: Integer);
-    procedure RenderIcon(AState: TLocalState; X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
-    procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
+    procedure RenderIcon(AState: TLocalState; dim:integer; color: TPlayer = TPlayer.none);
+    procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags:UInt8);
     procedure RenderO(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;
@@ -305,7 +288,7 @@ var
   BaseOffset: Int32;
   BaseOffsetor: Int32;
 
-  PEntry: PDefEntry;
+  PEntry: PGLSprite;
 
   procedure ReadType0;
   var
@@ -502,12 +485,17 @@ begin
   add := 4 - (h.FullWidth mod 4);
   if add = 4 then
      add :=0;
+  PEntry^.PaletteID := FCurrentDef.FPaletteID;
+  PEntry^.TextureId := ATextureID;
 
   PEntry^.LeftMargin := h.LeftMargin;
   PEntry^.TopMargin := h.TopMargin;
-  PEntry^.TextureId := ATextureID;
+
   PEntry^.SpriteHeight := h.SpriteHeight;
   PEntry^.SpriteWidth := h.SpriteWidth;
+
+  PEntry^.Width:=FCurrentDef.Width;
+  PEntry^.Height:=FCurrentDef.Height;
 
   IncreaseBuffer(h.FullWidth*h.FullHeight);
 
@@ -671,13 +659,6 @@ procedure TDefFormatLoader.SetCurrentDef(AValue: TDefAnimation);
 begin
   if FCurrentDef = AValue then Exit;
   FCurrentDef := AValue;
-end;
-
-{ TBaseSprite }
-
-procedure TBaseSprite.UnBind;
-begin
-  editor_gl.Unbind(TextureId);
 end;
 
 { TGraphicsCosnumer }
@@ -845,28 +826,6 @@ begin
   FResourceID:=AValue;
 end;
 
-procedure TDefAnimation.RenderIcon(AState: TLocalState; X, Y: Integer; dim: integer; color: TPlayer);
-var
-  Sprite: TGLSprite;
-begin
-  if entries.Size = 0 then
-  begin
-    Exit;
-  end;
-  Sprite.TextureID := entries[0].TextureId;
-  Sprite.PaletteID := FPaletteID;
-  Sprite.Height := height;
-  Sprite.Width := width;
-  Sprite.SpriteHeight:=entries[0].SpriteHeight;
-  Sprite.SpriteWidth:=entries[0].SpriteWidth;
-  Sprite.LeftMargin:=entries[0].LeftMargin;
-  Sprite.TopMargin:=entries[0].TopMargin;
-
-  AState.SetPlayerColor(color);
-  AState.SetTranslation(x,y);
-  AState.RenderSpriteIcon(Sprite, dim);
-end;
-
 procedure TDefAnimation.RenderBorder(AState: TLocalState; TileX, TileY: Integer);
 const
   RECT_COLOR: TRBGAColor = (r:50; g:50; b:50; a:255);
@@ -883,53 +842,41 @@ begin
   AState.StopDrawing;
 end;
 
-procedure TDefAnimation.RenderF(AState: TLocalState; const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
+procedure TDefAnimation.RenderIcon(AState: TLocalState; dim: integer; color: TPlayer);
+begin
+  if entries.Size = 0 then
+  begin
+    Exit;
+  end;
+  AState.SetPlayerColor(color);
+  AState.RenderSpriteIcon(entries.Mutable[0], dim);
+end;
+
+procedure TDefAnimation.RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags: UInt8);
 var
   mir: UInt8;
-  Sprite: TGLSprite;
 begin
   if SpriteIndex > entries.Size then
   begin
     Exit;
   end;
 
-  Sprite.Height := height;
-  Sprite.Width := width;
-  Sprite.TextureID := entries[SpriteIndex].TextureId;
-  Sprite.PaletteID := FPaletteID;
-  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
-  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
-  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMargin:=entries[SpriteIndex].TopMargin;
-
-  mir := flags mod 4;
+  mir := flags and $3;
 
   AState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
-  AState.SetTranslation(x,y);
-  AState.RenderSpriteMirrored(Sprite,mir);
+  AState.RenderSpriteMirrored(entries.Mutable[SpriteIndex], mir);
 end;
 
 procedure TDefAnimation.RenderO(AState: TLocalState; const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
-var
-  Sprite: TGLSprite;
 begin
   if SpriteIndex > entries.Size then
   begin
     Exit;
   end;
-  Sprite.Height := height;
-  Sprite.Width := width;
-  Sprite.TextureID := entries[SpriteIndex].TextureId;
-  Sprite.PaletteID := FPaletteID;
-  Sprite.SpriteHeight:=entries[SpriteIndex].SpriteHeight;
-  Sprite.SpriteWidth:=entries[SpriteIndex].SpriteWidth;
-  Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
-  Sprite.TopMargin:=entries[SpriteIndex].TopMargin;
 
   AState.SetPlayerColor(color);
   AState.SetTranslation(X - width, Y - height);
-  AState.RenderSpriteSimple(Sprite);
-
+  AState.RenderSpriteSimple(entries.Mutable[SpriteIndex]);
 end;
 
 procedure TDefAnimation.UnBindTextures;

@@ -21,6 +21,7 @@
 unit editor_gl;
 
 {$I compilersetup.inc}
+{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
@@ -112,9 +113,13 @@ const
 
 type
 
+  { TGLSprite }
+
+  PGLSprite = ^TGLSprite;
+
   TGLSprite = record
     TextureID: GLuint;
-    PaletteID: Gluint;
+    PaletteID: Gluint;//not owned
 
     Width: Int32;
     Height: Int32;
@@ -124,6 +129,8 @@ type
 
     SpriteWidth: Int32;
     SpriteHeight: int32;
+
+    procedure Unbind; inline;
   end;
 
   { TGlobalState }
@@ -169,6 +176,7 @@ type
 
   TLocalState = class
   private
+    FInitialised: Boolean;
     FContext: TOpenGLControl;
 
     SpriteVAO: GLuint;
@@ -178,12 +186,14 @@ type
 
     FTranslateMaxrix: Tmatrix4_single;
 
+    procedure Init;
+
     procedure SetupSpriteVAO;
     procedure SetupRectVAO;
 
     procedure SetProjection(constref AMatrix: Tmatrix4_single);
 
-    procedure DoRenderSprite(ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
+    procedure DoRenderSprite(constref ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
  public
     procedure SetFlagColor(FlagColor: TRBGAColor);
     procedure SetFragmentColor(AColor: TRBGAColor);
@@ -202,7 +212,8 @@ type
     constructor Create(AContext: TOpenGLControl);
     destructor Destroy; override;
 
-    procedure Init;
+    function StartFrame: Boolean;
+    procedure FinishFrame;
 
     procedure StartDrawingRects;
     procedure RenderRect(x, y: Integer; dimx, dimy: integer);
@@ -211,17 +222,15 @@ type
 
     procedure StartDrawingSprites;
 
-    procedure RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
+    procedure RenderSpriteMirrored(ASprite: PGLSprite; mir: UInt8);
 
-    procedure RenderSpriteSimple(ASprite: TGLSprite);
-    procedure RenderSpriteIcon(ASprite: TGLSprite; dim: Integer);
+    procedure RenderSpriteSimple(ASprite: PGLSprite);
+    procedure RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
 
     procedure StopDrawing;
 
     procedure EnableScissor(); inline;
     procedure DisableScissor(); inline;
-
-    procedure EnableDefaultBlend();
 
     procedure SetScissor();
   end;
@@ -405,6 +414,14 @@ begin
   if doFragment then glDeleteShader(fragment_shader);
 end;
 
+{ TGLSprite }
+
+procedure TGLSprite.Unbind;
+begin
+  glDeleteTextures(1,@TextureId);
+  TextureId := 0;
+end;
+
 { TGlobalState }
 
 procedure TGlobalState.SetupUVBuffer;
@@ -530,6 +547,7 @@ end;
 
 constructor TLocalState.Create(AContext: TOpenGLControl);
 begin
+  FInitialised := False;
   FContext := AContext;
   FTranslateMaxrix.init_identity;
 end;
@@ -539,10 +557,35 @@ begin
   inherited Destroy;
 end;
 
+function TLocalState.StartFrame: Boolean;
+begin
+  if FContext.MakeCurrent() then
+  begin
+    Result := true;
+
+    if not FInitialised then
+    begin
+      Init;
+      FInitialised:=True;
+    end;
+  end
+  else
+    Result := false;
+end;
+
+procedure TLocalState.FinishFrame;
+begin
+  StopDrawing;
+  FContext.SwapBuffers;
+end;
+
 procedure TLocalState.Init;
 begin
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_DITHER);
+
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   SetupSpriteVAO;
   SetupRectVAO;
@@ -620,11 +663,6 @@ begin
   glDisable(GL_SCISSOR_TEST);
 end;
 
-procedure TLocalState.EnableDefaultBlend;
-begin
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-end;
 
 procedure TLocalState.SetScissor;
 begin
@@ -647,16 +685,16 @@ begin
   glEnableVertexAttribArray(GlobalContextState.FUVAttribLocation);
 end;
 
-procedure TLocalState.RenderSpriteMirrored(ASprite: TGLSprite; mir: UInt8);
+procedure TLocalState.RenderSpriteMirrored(ASprite: PGLSprite; mir: UInt8);
 var
   H,W,
   x,
   y,
   TopMargin: Int32;
 begin
-  H := ASprite.SpriteHeight;
-  W := ASprite.Width;
-  TopMargin := ASprite.TopMargin;
+  H := ASprite^.SpriteHeight;
+  W := ASprite^.Width;
+  TopMargin := ASprite^.TopMargin;
 
   //todo: use indexes
   x := 0;
@@ -669,40 +707,40 @@ begin
     end;
     1:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+ASprite.TopMargin;
+      y := 0+ASprite^.TopMargin;
 
     end;
     2:begin
       x := 0;//+ round(factor * ASprite.LeftMargin);
-      y := 0+(ASprite.Height - ASprite.SpriteHeight - ASprite.TopMargin);
+      y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
 
     end;
     3:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+(ASprite.Height - ASprite.SpriteHeight - ASprite.TopMargin);
+      y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
      end;
   end;
 
-  DoRenderSprite(ASprite, x,y,w,h, mir);
+  DoRenderSprite(ASprite^, x,y,w,h, mir);
 end;
 
-procedure TLocalState.RenderSpriteSimple(ASprite: TGLSprite);
+procedure TLocalState.RenderSpriteSimple(ASprite: PGLSprite);
 var
   H,W,
   x,
   y,
   TopMargin: Int32;
 begin
-    H := ASprite.SpriteHeight;
-    W := ASprite.Width;
-    TopMargin := ASprite.TopMargin;
-    x := 0;//+round(factor * ASprite.LeftMargin);
+    H := ASprite^.SpriteHeight;
+    W := ASprite^.Width;
+    TopMargin := ASprite^.TopMargin;
+    x := 0;//+round(factor * ASprite^.LeftMargin);
     y := 0 +TopMargin;
 
-  DoRenderSprite(ASprite, x,y,w,h, 0);
+  DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
 
-procedure TLocalState.RenderSpriteIcon(ASprite: TGLSprite; dim: Integer);
+procedure TLocalState.RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
 var
   factor: Double;
   cur_dim: integer;
@@ -711,12 +749,12 @@ var
   y,
   TopMargin: Int32;
 begin
-  cur_dim := Max(ASprite.Width,ASprite.SpriteHeight);
+  cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
 
   factor := Min((dim-1) / cur_dim, 1); //no zoom
 
-  h := round(Double(ASprite.SpriteHeight) * factor);
-  w := round(Double(ASprite.Width) * factor);
+  h := round(Double(ASprite^.SpriteHeight) * factor);
+  w := round(Double(ASprite^.Width) * factor);
 
   TopMargin := dim - 1 - h;
 
@@ -724,7 +762,7 @@ begin
   x := 0;//+round(factor * ASprite.LeftMargin);
   y := 0 +TopMargin;
 
-  DoRenderSprite(ASprite, x,y,w,h, 0);
+  DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
 
 
@@ -824,8 +862,7 @@ begin
     Assert(false);
 end;
 
-procedure TLocalState.DoRenderSprite(ASprite: TGLSprite; x, y, w, h: Int32;
-  mir: UInt8);
+procedure TLocalState.DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
 var
   vertex_data: packed array[1..12] of GLfloat;
 begin
