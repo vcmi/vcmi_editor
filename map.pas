@@ -368,7 +368,7 @@ type
 
     procedure OnOwnerChanged(ATiles:TTiles; op: TFPObservedOperation);
 
-    procedure RenderOverlay();
+    procedure RenderOverlay(AState: TLocalState);
 
     Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
 
@@ -403,7 +403,7 @@ type
     function GetX: integer; inline;
     function GetY: integer; inline;
 
-    procedure Render(Frame:integer; Ax,Ay: integer);
+    procedure Render(AState: TLocalState; Frame:integer; Ax,Ay: integer);
     procedure SetL(AValue: integer);
     procedure SetSubtype(AValue: AnsiString);
     procedure SetType(AValue: AnsiString);
@@ -418,13 +418,13 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    procedure RenderStatic(); inline;
-    procedure RenderStatic(X,Y: integer); inline;
-    procedure RenderAnim(); inline;
+    procedure RenderStatic(AState: TLocalState); inline;
+    procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
+    procedure RenderAnim(AState: TLocalState); inline;
 
-    procedure RenderOverlay; inline;
+    procedure RenderOverlay(AState: TLocalState); inline;
 
-    procedure RenderSelectionRect; inline;
+    procedure RenderSelectionRect(AState: TLocalState); inline;
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
     function IsVisitableAt(ALevel, AX, AY: Integer): boolean;  inline;
@@ -699,7 +699,7 @@ type
     function IsOnMap(Level, X, Y: Integer): boolean;
 
     //Left, Right, Top, Bottom - clip rect in Tiles
-    procedure RenderTerrain(Left, Right, Top, Bottom: Integer);
+    procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
 
     procedure SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
 
@@ -1225,7 +1225,7 @@ begin
   end;
 end;
 
-procedure TMapObjectAppearance.RenderOverlay();
+procedure TMapObjectAppearance.RenderOverlay(AState: TLocalState);
 const
   ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
   BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
@@ -1233,7 +1233,7 @@ var
   i, j, p, shift: Integer;
   line: String;
 begin
-  CurrentContextState.SetTranslation((FOwner.X - mask_w + 1 ) * TILE_SIZE, (FOwner.Y - mask_h + 1) * TILE_SIZE);
+  AState.SetTranslation((FOwner.X - mask_w + 1 ) * TILE_SIZE, (FOwner.Y - mask_h + 1) * TILE_SIZE);
 
   for i := 0 to mask_h - 1 do
   begin
@@ -1243,8 +1243,8 @@ begin
     begin
       p := j + shift;
       case line[j+1] of
-        MASK_ACTIVABLE, MASK_TRIGGER: CurrentContextState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
-        MASK_BLOCKED, MASK_HIDDEN: CurrentContextState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
+        MASK_ACTIVABLE, MASK_TRIGGER: AState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR);
+        MASK_BLOCKED, MASK_HIDDEN: AState.RenderSolidRect(p* TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
       end;
     end;
   end;
@@ -1518,7 +1518,7 @@ begin
   Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
 end;
 
-procedure TMapObject.Render(Frame: integer; Ax, Ay: integer);
+procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer);
 var
   owner : TPlayer;
 begin
@@ -1528,16 +1528,16 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.FDef.RenderO(Frame, Ax,Ay,GetPlayer);
+  Template.FDef.RenderO(AState, Frame, Ax,Ay,GetPlayer);
 
   if (owner <> TPlayer.none) and
     ((&type = 'hero') or (&type = 'randomHero') or (&type = 'heroPlaceholder')) then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(0, Ax, Ay);
+    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);
   end;
 end;
 
-procedure TMapObject.RenderAnim;
+procedure TMapObject.RenderAnim(AState: TLocalState);
 var
   new_tick: DWord;
 begin
@@ -1553,27 +1553,27 @@ begin
       FLastFrame := 0;
   end;
 
-  Render(FLastFrame,(x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+  Render(AState, FLastFrame,(x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
 end;
 
-procedure TMapObject.RenderOverlay;
+procedure TMapObject.RenderOverlay(AState: TLocalState);
 begin
-  Template.RenderOverlay();
+  Template.RenderOverlay(AState);
 end;
 
-procedure TMapObject.RenderSelectionRect;
+procedure TMapObject.RenderSelectionRect(AState: TLocalState);
 begin
-  Template.FDef.RenderBorder(X,Y);
+  Template.FDef.RenderBorder(AState,X,Y);
 end;
 
-procedure TMapObject.RenderStatic;
+procedure TMapObject.RenderStatic(AState: TLocalState);
 begin
-  Render(FLastFrame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+  Render(AState, FLastFrame, (x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
 end;
 
-procedure TMapObject.RenderStatic(X, Y: integer);
+procedure TMapObject.RenderStatic(AState: TLocalState; X, Y: integer);
 begin
-  Render(FLastFrame, x,y);
+  Render(AState, FLastFrame, x,y);
 end;
 
 procedure TMapObject.SetL(AValue: integer);
@@ -2286,7 +2286,7 @@ begin
   and (y>=0) and (y<MapLevels[Level].Height);
 end;
 
-procedure TVCMIMap.RenderTerrain(Left, Right, Top, Bottom: Integer);
+procedure TVCMIMap.RenderTerrain(AState: TLocalState; Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   j: Integer;
@@ -2301,8 +2301,8 @@ begin
     for j := Top to Bottom do
     begin
       t := GetTile(FCurrentLevel,i,j);
-      FTerrainManager.Render(t^.TerType, t^.TerSubType, i, j, t^.Flags);
-      FTerrainManager.RenderRiver(t^.RiverType, t^.RiverDir, i, j, t^.Flags);
+      FTerrainManager.Render(AState, t^.TerType, t^.TerSubType, i, j, t^.Flags);
+      FTerrainManager.RenderRiver(AState, t^.RiverType, t^.RiverDir, i, j, t^.Flags);
     end;
   end;
 
@@ -2313,7 +2313,7 @@ begin
     for j := Top to Bottom do
     begin
       t := GetTile(FCurrentLevel,i,j);
-      FTerrainManager.RenderRoad(t^.RoadType, t^.RoadDir,i,j, t^.Flags);
+      FTerrainManager.RenderRoad(AState, t^.RoadType, t^.RoadDir,i,j, t^.Flags);
     end;
   end;
 end;

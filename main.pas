@@ -48,7 +48,7 @@ type
     destructor Destroy; override;
     procedure DropOnMap; virtual; abstract;
     procedure DropOnPalette; virtual;
-    procedure Render(x,y: integer); virtual; abstract;
+    procedure Render(AState: TLocalState; x,y: integer); virtual; abstract;
   end;
 
   { TTemplateDragProxy }
@@ -60,7 +60,7 @@ type
     constructor Create(AOwner: TfMain; ADraggingTemplate: TMapObjectTemplate);
 
     procedure DropOnMap; override;
-    procedure Render(x, y: integer); override;
+    procedure Render(AState: TLocalState; x, y: integer); override;
   end;
 
   { TObjectDragProxy }
@@ -73,7 +73,7 @@ type
     constructor Create(AOwner: TfMain;ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
     procedure DropOnMap; override;
     procedure DropOnPalette; override;
-    procedure Render(x, y: integer); override;
+    procedure Render(AState: TLocalState; x, y: integer); override;
   end;
 
   { TfMain }
@@ -267,7 +267,6 @@ type
   private
     FEnv: TMapEnvironment;
 
-
     function CheckUnsavedMap: boolean;
   private
     const
@@ -447,9 +446,9 @@ begin
   FDraggingObject := nil;
 end;
 
-procedure TObjectDragProxy.Render(x, y: integer);
+procedure TObjectDragProxy.Render(AState: TLocalState; x, y: integer);
 begin
-  FDraggingObject.RenderStatic((x+1+FShiftX)*TILE_SIZE,(y+1+FShiftY)*TILE_SIZE);
+  FDraggingObject.RenderStatic(AState, (x+1+FShiftX)*TILE_SIZE,(y+1+FShiftY)*TILE_SIZE);
 end;
 
 { TTemplateDragProxy }
@@ -507,7 +506,7 @@ begin
   FOwner.FSelectedObject := action_item.TargetObject;
 end;
 
-procedure TTemplateDragProxy.Render(x, y: integer);
+procedure TTemplateDragProxy.Render(AState: TLocalState; x, y: integer);
 var
   cx: Integer;
   cy: Integer;
@@ -515,7 +514,7 @@ begin
   cx := (x +1 ) * TILE_SIZE;
   cy := (y+1) * TILE_SIZE;
 
-  FDraggingTemplate.Def.RenderO(0,cx, cy, FOwner.FCurrentPlayer);
+  FDraggingTemplate.Def.RenderO(AState, 0,cx, cy, FOwner.FCurrentPlayer);
 end;
 
 
@@ -1506,8 +1505,6 @@ begin
     FVisibleObjectsValid := True;
   end;
 
-  editor_gl.CurrentContextState := FMapViewState;
-
   FMapViewState.UsePalettedTextures();
 
   FMapViewState.SetOrtho(TILE_SIZE * FMapHPos,
@@ -1530,16 +1527,16 @@ begin
   FMapViewState.StartDrawingSprites;
 
   FMapViewState.SetUseFlag(false);
-  FMap.RenderTerrain(FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
+  FMap.RenderTerrain(FMapViewState, FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
   FMapViewState.SetUseFlag(true);
 
   for o in FVisibleObjects do
   begin
     if actAnimateObjects.Checked then
-      o.RenderAnim
+      o.RenderAnim(FMapViewState)
     else
-      o.RenderStatic;
+      o.RenderStatic(FMapViewState);
   end;
 
   FMapViewState.SetUseFlag(false);
@@ -1551,7 +1548,7 @@ begin
 
     for o in FVisibleObjects do
     begin
-      o.RenderOverlay;
+      o.RenderOverlay(FMapViewState);
     end;
   end;
 
@@ -1568,7 +1565,7 @@ begin
     FMapViewState.StartDrawingSprites;
     FMapViewState.UsePalettedTextures();
 
-    FDragging.Render(FMouseTileX,FMouseTileY);
+    FDragging.Render(FMapViewState, FMouseTileX, FMouseTileY);
   end;
 
   RenderSelection;
@@ -1735,8 +1732,6 @@ begin
     glClearColor(255, 255, 255, 0);
   end;
 
-  editor_gl.CurrentContextState := FObjectsViewState;
-
   FObjectsViewState.UseNoTextures();
 
   FObjectsViewState.SetOrtho(0, c.Width + 0, c.Height + 0, 0);
@@ -1782,7 +1777,7 @@ begin
       cy := row * FObjectCellSize;
 
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.Def.RenderIcon(cx,cy, FObjectCellSize, FCurrentPlayer);
+      o_def.Def.RenderIcon(FObjectsViewState, cx,cy, FObjectCellSize, FCurrentPlayer);
     end;
   end;
   FObjectsViewState.StopDrawing;
@@ -1938,7 +1933,7 @@ begin
 
   if Assigned(FSelectedObject) then
   begin
-    FSelectedObject.RenderSelectionRect;
+    FSelectedObject.RenderSelectionRect(FMapViewState);
   end;
 
   FActiveBrush.RenderSelection(FMapViewState);

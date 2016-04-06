@@ -293,7 +293,7 @@ begin
   if Assigned(it) then
   begin
     repeat
-      it.Data.RenderSelectionRect;
+      it.Data.RenderSelectionRect(State);
 
     until not it.Next;
 

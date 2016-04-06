@@ -74,18 +74,16 @@ type
     procedure SetLoaded(AValue: Boolean);
     procedure SetResourceID(AValue: AnsiString);
     procedure UnBindTextures;
-    class procedure SetPalyerColor(color: TPlayer); static;
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure RenderIcon(X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
-    procedure RenderF(const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
-    procedure RenderO(const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
+    procedure RenderBorder(AState: TLocalState; TileX,TileY: Integer);
+    procedure RenderIcon(AState: TLocalState; X,Y: Integer; dim:integer; color: TPlayer = TPlayer.none);
+    procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; flags:UInt8);
+    procedure RenderO(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
     property FrameCount: Integer read GetFrameCount;
-
-    procedure RenderBorder(TileX,TileY: Integer);
 
     property Width: UInt32 read FWidth;
     property Height: UInt32 read FHeight;
@@ -847,7 +845,7 @@ begin
   FResourceID:=AValue;
 end;
 
-procedure TDefAnimation.RenderIcon(X, Y: Integer; dim: integer; color: TPlayer);
+procedure TDefAnimation.RenderIcon(AState: TLocalState; X, Y: Integer; dim: integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
@@ -864,12 +862,12 @@ begin
   Sprite.LeftMargin:=entries[0].LeftMargin;
   Sprite.TopMargin:=entries[0].TopMargin;
 
-  SetPalyerColor(color);
-  editor_gl.CurrentContextState.SetTranslation(x,y);
-  editor_gl.CurrentContextState.RenderSpriteIcon(Sprite, dim);
+  AState.SetPlayerColor(color);
+  AState.SetTranslation(x,y);
+  AState.RenderSpriteIcon(Sprite, dim);
 end;
 
-procedure TDefAnimation.RenderBorder(TileX, TileY: Integer);
+procedure TDefAnimation.RenderBorder(AState: TLocalState; TileX, TileY: Integer);
 const
   RECT_COLOR: TRBGAColor = (r:50; g:50; b:50; a:255);
 var
@@ -879,13 +877,13 @@ begin
   cx := (TileX+1) * TILE_SIZE;
   cy := (TileY+1) * TILE_SIZE;
 
-  editor_gl.CurrentContextState.SetFragmentColor(RECT_COLOR);
-  editor_gl.CurrentContextState.StartDrawingRects;
-  editor_gl.CurrentContextState.RenderRect(cx,cy,-width,-height);
-  editor_gl.CurrentContextState.StopDrawing;
+  AState.SetFragmentColor(RECT_COLOR);
+  AState.StartDrawingRects;
+  AState.RenderRect(cx,cy,-width,-height);
+  AState.StopDrawing;
 end;
 
-procedure TDefAnimation.RenderF(const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
+procedure TDefAnimation.RenderF(AState: TLocalState; const SpriteIndex: UInt8; X, Y: Integer; flags: UInt8);
 var
   mir: UInt8;
   Sprite: TGLSprite;
@@ -906,12 +904,12 @@ begin
 
   mir := flags mod 4;
 
-  editor_gl.CurrentContextState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
-  editor_gl.CurrentContextState.SetTranslation(x,y);
-  editor_gl.CurrentContextState.RenderSpriteMirrored(Sprite,mir);
+  AState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
+  AState.SetTranslation(x,y);
+  AState.RenderSpriteMirrored(Sprite,mir);
 end;
 
-procedure TDefAnimation.RenderO(const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
+procedure TDefAnimation.RenderO(AState: TLocalState; const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
 var
   Sprite: TGLSprite;
 begin
@@ -928,21 +926,9 @@ begin
   Sprite.LeftMargin:=entries[SpriteIndex].LeftMargin;
   Sprite.TopMargin:=entries[SpriteIndex].TopMargin;
 
-  SetPalyerColor(color);
-  editor_gl.CurrentContextState.SetTranslation(X - width, Y - height);
-  editor_gl.CurrentContextState.RenderSpriteSimple(Sprite);
-
-end;
-
-class procedure TDefAnimation.SetPalyerColor(color: TPlayer);
-begin
-  if color = TPlayer.NONE then
-  begin
-    CurrentContextState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
-  end
-  else begin
-    CurrentContextState.SetFlagColor(PLAYER_FLAG_COLORS[color]);
-  end;
+  AState.SetPlayerColor(color);
+  AState.SetTranslation(X - width, Y - height);
+  AState.RenderSpriteSimple(Sprite);
 
 end;
 

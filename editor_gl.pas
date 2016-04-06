@@ -25,7 +25,7 @@ unit editor_gl;
 interface
 
 uses
-  Classes, SysUtils, math, matrix, GL, OpenGLContext, glext40, editor_types;
+  Classes, SysUtils, math, matrix, GL, OpenGLContext, glext40, editor_types, editor_consts;
 
 const
   SHADER_VERSION =  '#version 130'#13#10;
@@ -189,6 +189,7 @@ type
     procedure SetFragmentColor(AColor: TRBGAColor);
     procedure SetOrtho(left, right, bottom, top: GLfloat);
 
+    procedure SetPlayerColor(APlayer: TPlayer);
     procedure SetTranslation(X,Y: Integer);
     procedure ApplyTranslation;
 
@@ -241,7 +242,6 @@ function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSourc
 
 var
   GlobalContextState: TGlobalState;
-  CurrentContextState:TLocalState = nil;
 
 implementation
 
@@ -742,6 +742,18 @@ begin
   m.data[2,3] := - 1;
 
   SetProjection(m);
+end;
+
+procedure TLocalState.SetPlayerColor(APlayer: TPlayer);
+begin
+  if APlayer = TPlayer.NONE then
+  begin
+    SetFlagColor(NEUTRAL_PLAYER_COLOR);
+  end
+  else
+  begin
+    SetFlagColor(PLAYER_FLAG_COLORS[APlayer]);
+  end;
 end;
 
 procedure TLocalState.SetTranslation(X, Y: Integer);

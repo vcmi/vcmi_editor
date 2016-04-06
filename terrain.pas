@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, contnrs,
    fgl,
   editor_types, editor_graphics, vcmi_json,
-  filesystem_base, editor_classes, transitions;
+  filesystem_base, editor_classes, transitions, editor_gl;
 
 const
 
@@ -235,11 +235,11 @@ type
 
     procedure LoadTerrainGraphics;
 
-    procedure Render(const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
+    procedure Render(AState: TLocalState; const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
 
-    procedure RenderRoad(const rdt: TRoadType; const Dir: UInt8; X, Y: Integer;  Flags: UInt8);
+    procedure RenderRoad(AState: TLocalState; const rdt: TRoadType; const Dir: UInt8; X, Y: Integer;  Flags: UInt8);
 
-    procedure RenderRiver(const rt: TRiverType; const Dir: UInt8; X, Y: Integer; Flags: UInt8);
+    procedure RenderRiver(AState: TLocalState; const rt: TRiverType; const Dir: UInt8; X, Y: Integer; Flags: UInt8);
 
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
@@ -987,27 +987,26 @@ begin
   end;
 end;
 
-procedure TTerrainManager.Render(const tt: TTerrainType; sbt: UInt8; X,
-  Y: Integer; Flags: UInt8);
+procedure TTerrainManager.Render(AState: TLocalState; const tt: TTerrainType; sbt: UInt8; X, Y: Integer; Flags: UInt8);
 begin
-  FTerrainDefs[tt].RenderF(sbt, x*TILE_SIZE, y*TILE_SIZE,Flags);
+  FTerrainDefs[tt].RenderF(AState, sbt, x*TILE_SIZE, y*TILE_SIZE,Flags);
 end;
 
-procedure TTerrainManager.RenderRiver(const rt: TRiverType; const Dir: UInt8;
-  X, Y: Integer; Flags: UInt8);
+procedure TTerrainManager.RenderRiver(AState: TLocalState; const rt: TRiverType; const Dir: UInt8; X, Y: Integer;
+  Flags: UInt8);
 begin
   if rt <> TRiverType.noRiver then
   begin
-    FRiverDefs[rt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE, Flags shr 2);
+    FRiverDefs[rt].RenderF(AState, dir,x*TILE_SIZE, y*TILE_SIZE, Flags shr 2);
   end;
 end;
 
-procedure TTerrainManager.RenderRoad(const rdt: TRoadType; const Dir: UInt8; X,
-  Y: Integer; Flags: UInt8);
+procedure TTerrainManager.RenderRoad(AState: TLocalState; const rdt: TRoadType; const Dir: UInt8; X, Y: Integer;
+  Flags: UInt8);
 begin
   if rdt <> TRoadType.noRoad then
   begin
-    FRoadDefs[rdt].RenderF(dir,x*TILE_SIZE, y*TILE_SIZE + TILE_SIZE div 2, Flags shr 4);
+    FRoadDefs[rdt].RenderF(AState, dir,x*TILE_SIZE, y*TILE_SIZE + TILE_SIZE div 2, Flags shr 4);
   end;
 end;
 
