@@ -364,6 +364,7 @@ uses
 
 const
   GAME_PATH_CONFIG = 'gamepath.txt';
+  MOD_LIST_CONFIG = 'modlist.txt';
 
   RES_TO_EXT: array[TResourceType] of string = (
     '.TXT', '.JSON', '.DEF', '.MSK'
@@ -818,7 +819,6 @@ begin
 
   for i := 0 to arch.Entries.Count - 1 do
   begin
-
     if arch.Entries[i].IsDirectory then
       Continue;
 
@@ -831,7 +831,7 @@ begin
     if not MatchFilter(file_ext,res_typ) then
       Continue;
 
-    rel_path := CreateRelativePath(ExtractFilePath(src_file_name), MakeFullPath(FCurrentRootPath, FCurrentRelPath)); //???
+    rel_path := CreateRelativePath(ExtractFilePath(src_file_name), MakeFullPath(FCurrentRootPath, FCurrentRelPath));
 
     if rel_path <> '' then
        rel_path := IncludeTrailingPathDelimiter(rel_path);
@@ -839,7 +839,7 @@ begin
     file_name := ExtractFileNameOnly(src_file_name);
 
     res_id.Typ := res_typ;
-    res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));//
+    res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));
 
     FResMap.Insert(res_id,res_loc);
   end;

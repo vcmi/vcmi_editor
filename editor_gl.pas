@@ -145,7 +145,7 @@ type
     FCoordAttribLocation: GLint;
     FUVAttribLocation: GLint;
 
-    EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
+    //EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
   private
 
     DefaultProgram: GLuint;
@@ -221,6 +221,8 @@ type
     procedure RenderRect(x, y: Integer; dimx, dimy: integer);
 
     procedure RenderSolidRect(x, y: Integer; dimx, dimy: integer; color: TRBGAColor);
+
+    procedure RenderGrid(AColor: TRBGAColor; ATileSize: Integer; TilesW,TilesH: integer);
 
     procedure StartDrawingSprites;
 
@@ -502,12 +504,12 @@ procedure TGlobalState.SetupCoordsBuffer;
 begin
   glGenBuffers(1,@CoordsBuffer);
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE * SizeOf(GLfloat), @EmptyBufferData[0], GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE * SizeOf(GLfloat), nil, GL_STREAM_DRAW);
 end;
 
 constructor TGlobalState.Create;
 begin
-  SetLength(EmptyBufferData, VERTEX_BUFFER_SIZE); //do not care even if it will contain junk
+
 end;
 
 destructor TGlobalState.Destroy;
@@ -642,6 +644,11 @@ begin
   ApplyTranslation;
 
   glDrawArrays(GL_TRIANGLES,6,6);  //todo: use triangle strip
+end;
+
+procedure TLocalState.RenderGrid(AColor: TRBGAColor; ATileSize: Integer; TilesW, TilesH: integer);
+begin
+  //todo:
 end;
 
 procedure TLocalState.StopDrawing;
