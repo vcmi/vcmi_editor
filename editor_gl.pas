@@ -460,36 +460,36 @@ begin
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
 
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
           uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
       end;
       1: begin
             uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
             uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
             uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
 
+            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
             uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
             uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
         end;
       2: begin
             uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
             uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
             uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
 
+            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
             uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
             uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
         end;
       3:begin
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
           uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
 
+          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
           uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
         end;
      end;
 
@@ -879,9 +879,9 @@ begin
   vertex_data[3] := x+w; vertex_data[4] := y;
   vertex_data[5] := x+w; vertex_data[6] := y+h;
 
-  vertex_data[7] := x+w; vertex_data[8] := y+h;
-  vertex_data[9] := x;   vertex_data[10] := y+h;
-  vertex_data[11] := x;  vertex_data[12] := y;
+  vertex_data[7] := x;   vertex_data[8] := y;
+  vertex_data[9] := x+w; vertex_data[10] := y+h;
+  vertex_data[11] := x;  vertex_data[12] := y+h;
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
