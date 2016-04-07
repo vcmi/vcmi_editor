@@ -1892,7 +1892,6 @@ begin
     Axis.Canvas.Draw(0,0,img);
     Axis.Canvas.Changed;
   finally
-
     img.Free;
   end;
 end;

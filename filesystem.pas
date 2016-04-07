@@ -171,6 +171,7 @@ type
     FDisabled: Boolean;
     FFilesystem: TFilesystemConfig;
     FID: TModId;
+    FLoadOrder: integer;
     FName: string;
     FPath: String;
     FVersion: string;
@@ -180,6 +181,7 @@ type
     procedure SetDescription(AValue: string);
     procedure SetDisabled(AValue: Boolean);
     procedure SetID(AValue: TModId);
+    procedure SetLoadOrder(AValue: integer);
     procedure SetName(AValue: string);
     procedure SetPath(AValue: String);
     procedure SetVersion(AValue: string);
@@ -194,6 +196,8 @@ type
     procedure MayBeSetDefaultFSConfig;
 
     procedure Assign (AOther: TModConfig);
+
+    property LoadOrder: integer read FLoadOrder write SetLoadOrder;
   published
     //short decription
     property Name: string read FName write SetName;
@@ -254,7 +258,7 @@ type
     class function c(constref a:TResId;constref b:TResId):boolean;
   end;
 
-  TResIDToLcationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
+  TResIDToLocationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
 
   TArchiveList = specialize TFPGObjectList<TUnZipper>;
 
@@ -264,7 +268,7 @@ type
   private
     FConfig: TFilesystemConfig;
     FGameConfig: TGameConfig;
-    FResMap: TResIDToLcationMap;
+    FResMap: TResIDToLocationMap;
     FLodList: TLodList;
     FArchiveList: TArchiveList;
 
@@ -278,6 +282,7 @@ type
 
     FGamePath: TStringList;
 
+    FCurrentLoadOrder: Integer;
 
     FCurrentVFSPath: string;
     FCurrentRelPath: string;
@@ -331,8 +336,8 @@ type
 
     procedure LoadGameConfig;
 
-    function SelectResource(AResType: TResourceType; AName: string):TResIDToLcationMap.TIterator;
-    procedure LoadSelected(var it: TResIDToLcationMap.TIterator; AResource: IResource);
+    function SelectResource(AResType: TResourceType; AName: string):TResIDToLocationMap.TIterator;
+    procedure LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -626,6 +631,12 @@ begin
   FID := AValue;
 end;
 
+procedure TModConfig.SetLoadOrder(AValue: integer);
+begin
+  if FLoadOrder=AValue then Exit;
+  FLoadOrder:=AValue;
+end;
+
 procedure TModConfig.SetName(AValue: string);
 begin
   if FName = AValue then Exit;
@@ -654,7 +665,7 @@ begin
 
   FGamePath := TStringList.Create;
   FConfig := TFilesystemConfig.Create;
-  FResMap := TResIDToLcationMap.Create;
+  FResMap := TResIDToLocationMap.Create;
   FLodList := TLodList.Create(True);
   FMods := TModConfigs.Create(True);
   FModMap := TIdToModMap.Create;
@@ -842,6 +853,7 @@ end;
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   AProgress.NextStage('Scanning filesystem ...');
+  FCurrentLoadOrder:=0;
   ScanFilesystem;
   ScanMods;
   LoadGameConfig;
@@ -928,7 +940,7 @@ begin
 end;
 
 function TFSManager.SelectResource(AResType: TResourceType; AName: string
-  ): TResIDToLcationMap.TIterator;
+  ): TResIDToLocationMap.TIterator;
 var
   res_id: TResId;
 begin
@@ -945,7 +957,7 @@ begin
   Result :=FResMap.Find(res_id);
 end;
 
-procedure TFSManager.LoadSelected(var it: TResIDToLcationMap.TIterator;
+procedure TFSManager.LoadSelected(var it: TResIDToLocationMap.TIterator;
   AResource: IResource);
 var
   res_loc: TResLocation;
@@ -963,7 +975,7 @@ end;
 procedure TFSManager.LoadResource(AResource: IResource;
   AResType: TResourceType; AName: string);
 var
-  it : TResIDToLcationMap.TIterator;
+  it : TResIDToLocationMap.TIterator;
 begin
   it := SelectResource(AResType, AName);
 
@@ -978,7 +990,7 @@ end;
 function TFSManager.TryLoadResource(AResource: IResource;
   AResType: TResourceType; AName: string): boolean;
 var
-  it : TResIDToLcationMap.TIterator;
+  it : TResIDToLocationMap.TIterator;
 begin
   it := SelectResource(AResType, AName);
 
@@ -992,7 +1004,7 @@ end;
 function TFSManager.ExistsResource(AResType: TResourceType; AName: string
   ): boolean;
 var
-  it : TResIDToLcationMap.TIterator;
+  it : TResIDToLocationMap.TIterator;
 begin
   it := SelectResource(AResType, AName);
   Result := Assigned(it);
@@ -1064,7 +1076,7 @@ var
   mod_paths_config: String;
   mod_id: String;
   mod_idx: Integer;
-  i: Integer;
+  load_order, i: Integer;
   APath: String;
 
   AMod: TModConfig;
@@ -1087,15 +1099,17 @@ begin
 
     ResolveDeps;
 
-    for i := 0 to FEnabledModList.Count - 1 do
+    for load_order := 0 to FEnabledModList.Count - 1 do
     begin
-      mod_id := NormalizeModId(FEnabledModList[i]);
+      mod_id := NormalizeModId(FEnabledModList[load_order]);
 
       mod_idx := FModMap.IndexOf(mod_id);
 
       if mod_idx >=0 then
       begin
         AMod := FModMap.Data[mod_idx];
+        AMod.LoadOrder:=load_order;
+        FCurrentLoadOrder:=load_order;
         mod_paths.Clear;
 
         for APath in mod_roots do
