@@ -104,10 +104,10 @@ begin
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
 
-  edAbilities.SaveToCondition    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
-  edSpells.SaveToCondition       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edAllowedHeroes.SaveToCondition(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
-  edArtifacts.SaveToCondition    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
+  edAbilities.SaveTo    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
+  edSpells.SaveTo       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
+  edArtifacts.SaveTo    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
   FMap.IsDirty:=True;
 
@@ -166,16 +166,16 @@ begin
   edName.Text := FMap.Name;
   edDescription.Text := FMap.Description;
 
-  edAbilities.FillFromCondition(FMap.ListsManager.SkillInfos, FMap.AllowedAbilities);
+  edAbilities.FillFrom(FMap.ListsManager.SkillInfos, FMap.AllowedAbilities);
   cbSkillsNegate.ItemIndex:=ifthen(FMap.AllowedAbilities.IsPermissive, 1, 0);
 
-  edSpells.FillFromCondition(FMap.ListsManager.SpellInfos, FMap.AllowedSpells);
+  edSpells.FillFrom(FMap.ListsManager.SpellInfos, FMap.AllowedSpells);
   cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);
 
-  edArtifacts.FillFromCondition(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts);
+  edArtifacts.FillFrom(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts);
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
-  edAllowedHeroes.FillFromCondition(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);
+  edAllowedHeroes.FillFrom(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);
 
   for mod_id in FMap.Mods.AllOf do
   begin

@@ -205,6 +205,7 @@ type
 
   TFactionInfos = class (specialize TGNamedCollection<TFactionInfo>)
   public
+    procedure FillWithAllIds(AList: TLogicalIDCondition; AIncludeMods: Boolean);
     procedure FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
     procedure FillWithTownIds(AList: TStrings; AIncludeMods: Boolean);
   end;
@@ -1022,12 +1023,30 @@ end;
 
 { TFactionInfos }
 
+procedure TFactionInfos.FillWithAllIds(AList: TLogicalIDCondition; AIncludeMods: Boolean);
+var
+  faction: TFactionInfo;
+  idx: SizeInt;
+begin
+  AList.Clear;
+
+  for idx := 0 to Count - 1 do
+  begin
+    faction := Items[idx];
+    if AIncludeMods or (ExtractModID(faction.Identifier) = '') then
+    begin
+      AList.AnyOf.AddObject(faction.Identifier, faction);
+    end;
+  end;
+end;
+
 procedure TFactionInfos.FillWithAllIds(AList: TStrings; AIncludeMods: Boolean);
 var
   faction: TFactionInfo;
   idx: SizeInt;
 begin
   AList.Clear;
+
   for idx := 0 to Count - 1 do
   begin
     faction := Items[idx];

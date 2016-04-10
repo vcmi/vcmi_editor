@@ -242,8 +242,8 @@ begin
   LoadSecondarySkills(AOptions.SecondarySkills);
   LoadResources(AOptions.Resources);
 
-  edArtifacts.FillFromList(ListsManager.ArtifactInfos, AOptions.Artifacts);
-  edSpells.FillFromList(ListsManager.SpellInfos, AOptions.Spells);
+  edArtifacts.FillFrom(ListsManager.ArtifactInfos, AOptions.Artifacts);
+  edSpells.FillFrom(ListsManager.SpellInfos, AOptions.Spells);
 
 end;
 
@@ -312,8 +312,8 @@ begin
   SaveSecondarySkills(FOptions.SecondarySkills);
   SaveResources(FOptions.Resources);
 
-  edArtifacts.SaveToList(FOptions.Artifacts);
-  edSpells.SaveToList(FOptions.Spells);
+  edArtifacts.SaveTo(FOptions.Artifacts);
+  edSpells.SaveTo(FOptions.Spells);
 end;
 
 procedure TPandorasRewardFrame.VisitPandorasBox(AOptions: TPandorasOptions);

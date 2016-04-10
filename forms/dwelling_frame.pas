@@ -138,14 +138,14 @@ end;
 
 procedure TDwellingFrame.LoadFactions;
 begin
-  edFaction.FillFromList(ListsManager.FactionInfos, FOptions.AllowedFactions);
+  edFaction.FillFrom(ListsManager.FactionInfos, FOptions.AllowedFactions);
 
   FFactionsLoaded:=True;
 end;
 
 procedure TDwellingFrame.SaveFactions;
 begin
-  edFaction.SaveToList(FOptions.AllowedFactions);
+  edFaction.SaveTo(ListsManager.FactionInfos, FOptions.AllowedFactions, false);
 end;
 
 procedure TDwellingFrame.LoadLink;

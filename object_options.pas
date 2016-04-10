@@ -696,7 +696,7 @@ type
 
   TBaseRandomDwellingOptions = class abstract (TObjectOptions)
   private
-    FAllowedFactions: TStrings;
+    FAllowedFactions: TLogicalIDCondition;
     FMaxLevel: UInt8;
     FMinLevel: UInt8;
     FSameAsTown: String;
@@ -712,7 +712,7 @@ type
     property MinLevel: UInt8 read FMinLevel write SetMinLevel default 0;
     property MaxLevel: UInt8 read FMaxLevel write SetMaxLevel default 7;
 
-    property AllowedFactions: TStrings read FAllowedFactions stored IsAllowedFactionsStored;
+    property AllowedFactions: TLogicalIDCondition read FAllowedFactions stored IsAllowedFactionsStored;
 
     procedure SetSameAsTown(AValue: string);
     property SameAsTown: string read FSameAsTown write SetSameAsTown;
@@ -1420,7 +1420,7 @@ end;
 constructor TBaseRandomDwellingOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FAllowedFactions := TIdentifierSet.Create(AObject);
+  FAllowedFactions := TLogicalIDCondition.Create(AObject);
   RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions, False);
 end;
 
@@ -1442,7 +1442,7 @@ end;
 
 function TBaseRandomDwellingOptions.IsAllowedFactionsStored: boolean;
 begin
-  Result := FAllowedFactions.Count > 0;
+  Result := not FAllowedFactions.IsEmpty;
 end;
 
 procedure TBaseRandomDwellingOptions.SetSameAsTown(AValue: string);

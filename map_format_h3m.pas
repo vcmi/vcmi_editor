@@ -701,13 +701,11 @@ begin
   ADest.Clear;
   tmp := TStringList.Create;
   try
-    //invert negation to fill NoneOF list, so modded ids are allowed by default
-    ReadBitmask(tmp, AMaskSize, ACount, ACallback, not Negate);
-    ADest.NoneOf.Assign(tmp);
+    ReadBitmask(tmp, AMaskSize, ACount, ACallback, Negate);
+    ADest.AnyOf.Assign(tmp);
   finally
     tmp.Free;
   end;
-
 end;
 
 function TMapReaderH3m.ReadID1(ACallback: TIdToString; AIDRandom: TCustomID

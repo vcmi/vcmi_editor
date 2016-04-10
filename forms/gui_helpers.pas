@@ -40,14 +40,15 @@ type
 
   TCheckListBoxHelper = class helper for TCustomCheckListBox
   public
-    procedure FillFromList(AFullList: THashedCollection; ASrc: TStrings);
-    procedure SaveToList(ADest: TStrings);
+    procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings);
 
-    procedure SaveToCondition(AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
+    procedure SaveTo(ADest: TStrings);
 
-    procedure FillFromCondition(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
+    procedure SaveTo(AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
 
-    procedure FillFromCondition(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
+    procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
+
+    procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
 
     function SelectedInfo: TBaseInfo;
   end;
@@ -409,24 +410,24 @@ end;
 
 { TCheckListBoxHelper }
 
-procedure TCheckListBoxHelper.FillFromList(AFullList: THashedCollection;
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
   ASrc: TStrings);
 begin
   FillCheckListBox(Self,AFullList,ASrc)
 end;
 
-procedure TCheckListBoxHelper.SaveToList(ADest: TStrings);
+procedure TCheckListBoxHelper.SaveTo(ADest: TStrings);
 begin
   SaveCheckListBox(Self,ADest);
 end;
 
-procedure TCheckListBoxHelper.SaveToCondition(AFullList: THashedCollection;
+procedure TCheckListBoxHelper.SaveTo(AFullList: THashedCollection;
   ADest: TLogicalIDCondition; Permissive: Boolean);
 begin
   SaveCheckListBox(Self,AFullList, ADest, Permissive);
 end;
 
-procedure TCheckListBoxHelper.FillFromCondition(AFullList: THashedCollection;
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
   ASrc: TLogicalIDCondition);
 
   function filter_stub(ATarget: TBaseInfo): Boolean;
@@ -438,7 +439,7 @@ begin
   FillCheckListBox(Self,AFullList,ASrc, @filter_stub);
 end;
 
-procedure TCheckListBoxHelper.FillFromCondition(AFullList: THashedCollection;
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
   ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
 begin
   FillCheckListBox(Self,AFullList,ASrc, AFilter);

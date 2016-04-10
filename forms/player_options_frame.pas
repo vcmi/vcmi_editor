@@ -120,7 +120,7 @@ begin
     Enabled:=true;
   end;
 
-  edAllowedFactions.FillFromCondition(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, @TownFilter);
+  edAllowedFactions.FillFrom(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, @TownFilter);
   AllowedFactionsPermissive.Checked:=FObject.AllowedFactions.IsPermissive;
 
   selected_idx := 0;
@@ -208,7 +208,7 @@ begin
   else
      FObject.CanPlay := TPlayableBy(edCanPlay.ItemIndex+1);
 
-  edAllowedFactions.SaveToCondition(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
+  edAllowedFactions.SaveTo(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
 
   if Assigned(edMainTown.Items.Objects[edMainTown.ItemIndex]) then
     FObject.MainTown.MapObject := (edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).MapObject

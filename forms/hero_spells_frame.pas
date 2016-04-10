@@ -115,13 +115,13 @@ end;
 
 procedure THeroSpellsFrame.Load;
 begin
-  Spellbook.FillFromList(Map.ListsManager.SpellInfos, FCache);
+  Spellbook.FillFrom(Map.ListsManager.SpellInfos, FCache);
 end;
 
 procedure THeroSpellsFrame.Clear;
 begin
-  Spellbook.SaveToList(FCache);
-  Spellbook.FillFromList(Map.ListsManager.SpellInfos, FDefaults);
+  Spellbook.SaveTo(FCache);
+  Spellbook.FillFrom(Map.ListsManager.SpellInfos, FDefaults);
 end;
 
 procedure THeroSpellsFrame.UpdateControls;
@@ -138,7 +138,7 @@ end;
 procedure THeroSpellsFrame.Commit;
 begin
   inherited Commit;
-  Spellbook.SaveToList(FCache);
+  Spellbook.SaveTo(FCache);
   if not cbCustomise.Checked then
   begin
     FTarget.Clear;
