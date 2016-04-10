@@ -78,6 +78,7 @@ type
     procedure VisitRandomHero(AOptions: TRandomHeroOptions); override;
 
     procedure VisitTown(AOptions: TTownOptions); override;
+    procedure VisitMine(AOptions: TMineOptions); override;
   end;
 
 implementation
@@ -324,6 +325,13 @@ begin
   inherited VisitTown(AOptions);
   Load(AOptions.Army);
   edTightFormation.Visible := true;
+end;
+
+procedure TCreatureSetFrame.VisitMine(AOptions: TMineOptions);
+begin
+  inherited VisitMine(AOptions);
+  Load(AOptions.Army);
+  edTightFormation.Visible:=false;
 end;
 
 end.

@@ -83,6 +83,7 @@ type
     procedure VisitResource(AOptions: TResourceOptions);//+
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
+    procedure VisitMine(AOptions: TMineOptions);//+
     procedure VisitShrine(AOptions: TShrineOptions);//+
     procedure VisitPandorasBox(AOptions: TPandorasOptions); //+
     procedure VisitGrail(AOptions: TGrailOptions); //+
@@ -188,6 +189,12 @@ end;
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
   FActiveEditors.AddFrame(TAbandonedFrame, AOptions, tsCommon);
+end;
+
+procedure TEditObjectOptions.VisitMine(AOptions: TMineOptions);
+begin
+  VisitOwnedObject(AOptions);
+  VisitArmedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);

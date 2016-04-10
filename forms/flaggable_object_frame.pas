@@ -22,6 +22,7 @@ type
   public
     { public declarations }
     procedure Commit; override;
+    procedure VisitMine(AOptions: TMineOptions); override;
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions); override;
     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions); override;
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions); override;
@@ -40,6 +41,11 @@ procedure TFlaggableFrame.Commit;
 begin
   inherited Commit;
   WriteOwner(FObject, edOwnerRG);
+end;
+
+procedure TFlaggableFrame.VisitMine(AOptions: TMineOptions);
+begin
+  VisitOptions(AOptions);
 end;
 
 procedure TFlaggableFrame.SetupControls;

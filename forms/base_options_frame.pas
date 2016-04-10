@@ -82,6 +82,7 @@ type
     procedure VisitResource({%H-}AOptions: TResourceOptions);virtual;
     procedure VisitTown(AOptions: TTownOptions);virtual;
     procedure VisitAbandonedMine({%H-}AOptions: TAbandonedOptions); virtual;
+    procedure VisitMine({%H-}AOptions: TMineOptions); virtual;
     procedure VisitShrine({%H-}AOptions: TShrineOptions);virtual;
     procedure VisitPandorasBox({%H-}AOptions: TPandorasOptions);virtual;
     procedure VisitGrail({%H-}AOptions: TGrailOptions);virtual;
@@ -423,6 +424,11 @@ end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
   );
+begin
+  //do nothing
+end;
+
+procedure TBaseOptionsFrame.VisitMine(AOptions: TMineOptions);
 begin
   //do nothing
 end;

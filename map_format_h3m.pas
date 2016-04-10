@@ -244,6 +244,7 @@ type
      procedure VisitResource(AOptions: TResourceOptions);//+
      procedure VisitTown(AOptions: TTownOptions);
      procedure VisitAbandonedMine(AOptions: TAbandonedOptions);//+
+     procedure VisitMine(AOptions: TMineOptions);//+
      procedure VisitShrine(AOptions: TShrineOptions);//+
      procedure VisitPandorasBox(AOptions: TPandorasOptions);//+
      procedure VisitGrail(AOptions: TGrailOptions);//+
@@ -2466,6 +2467,11 @@ begin
   end;
 
   FSrc.Skip(3);
+end;
+
+procedure TMapReaderH3m.VisitMine(AOptions: TMineOptions);
+begin
+  VisitOwnedObject(AOptions);
 end;
 
 

@@ -287,6 +287,19 @@ type
     property Owner default TPlayer.none;
   end;
 
+  { TOwnedArmedObjectOptions }
+
+  TOwnedArmedObjectOptions = class abstract(TOwnedObjectOptions)
+  strict private
+    FArmy: TCreatureSet;
+  public
+    constructor Create(AObject: IMapObject); override;
+    destructor Destroy; override;
+    procedure Clear; override;
+  published
+    property Army: TCreatureSet read FArmy;
+  end;
+
   { TSignBottleOptions }
 
   TSignBottleOptions = class(TObjectOptions)
@@ -364,9 +377,8 @@ type
 
   { THeroOptions }
 
-  THeroOptions = class abstract (TOwnedObjectOptions, IEditableHeroInfo)
+  THeroOptions = class abstract (TOwnedArmedObjectOptions, IEditableHeroInfo)
   private
-    FArmy: TCreatureSet;
     FArtifacts: THeroArtifacts;
     FBiography: TLocalizedString;
     FExperience: UInt64;
@@ -416,7 +428,6 @@ type
   published
     property &type: AnsiString read FId write SetId;
 
-    property Army: TCreatureSet read FArmy;
     property TightFormation: Boolean read GetTightFormation write SetTightFormation;
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
 
@@ -554,9 +565,8 @@ type
 
   { TGarrisonOptions }
 
-  TGarrisonOptions = class(TOwnedObjectOptions)
+  TGarrisonOptions = class(TOwnedArmedObjectOptions)
   private
-    FArmy: TCreatureSet;
     FRemovableUnits: Boolean;
   public
     constructor Create(AObject: IMapObject); override;
@@ -564,7 +574,6 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property Army: TCreatureSet read FArmy;
     property RemovableUnits: Boolean read FRemovableUnits write FRemovableUnits;
   end;
 
@@ -602,10 +611,9 @@ type
 
   { TTownOptions }
 
-  TTownOptions = class(TOwnedObjectOptions)
+  TTownOptions = class(TOwnedArmedObjectOptions)
   private
     FBuildings: TLogicalIDCondition;
-    FArmy: TCreatureSet;
     FHasFort: Boolean;
     FName: TLocalizedString;
     FSpells: TLogicalIDCondition;
@@ -618,7 +626,6 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property Army: TCreatureSet read FArmy;
     property TightFormation: Boolean read GetTightFormation write SetTightFormation;
     property Name: TLocalizedString read FName write FName;
     property Spells: TLogicalIDCondition read FSpells;
@@ -640,6 +647,13 @@ type
     procedure Clear; override;
   published
     property PossibleResources: TStrings read FPossibleResources;
+  end;
+
+  { TMineOptions }
+
+  TMineOptions = class (TOwnedArmedObjectOptions)
+  public
+    procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
   end;
 
   { TShrineOptions }
@@ -810,6 +824,7 @@ type
     procedure VisitResource(AOptions: TResourceOptions);
     procedure VisitTown(AOptions: TTownOptions);
     procedure VisitAbandonedMine(AOptions:TAbandonedOptions);
+    procedure VisitMine(AOptions: TMineOptions);
     procedure VisitShrine(AOptions: TShrineOptions);
     procedure VisitPandorasBox(AOptions: TPandorasOptions);
     procedure VisitGrail(AOptions: TGrailOptions);
@@ -823,6 +838,33 @@ type
   end;
 
 implementation
+
+{ TMineOptions }
+
+procedure TMineOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
+begin
+  AVisitor.VisitMine(Self);
+end;
+
+{ TOwnedArmedObjectOptions }
+
+procedure TOwnedArmedObjectOptions.Clear;
+begin
+  inherited Clear;
+  FArmy.Clear;
+end;
+
+constructor TOwnedArmedObjectOptions.Create(AObject: IMapObject);
+begin
+  inherited Create(AObject);
+  FArmy := TCreatureSet.Create(AObject);
+end;
+
+destructor TOwnedArmedObjectOptions.Destroy;
+begin
+  FArmy.Free;
+  inherited Destroy;
+end;
 
 { TObjectOptions }
 
@@ -914,7 +956,7 @@ begin
         Result := TAbandonedOptions;
       end else
       begin
-        Result := TOwnedObjectOptions;
+        Result := TMineOptions;
       end;
     end;
 
@@ -1735,7 +1777,6 @@ end;
 constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create(AObject);
   FSpells := TLogicalIDCondition.Create(AObject);
   FBuildings := TLogicalIDCondition.Create(AObject);
 end;
@@ -1744,13 +1785,12 @@ destructor TTownOptions.Destroy;
 begin
   FBuildings.Free;
   FSpells.Free;
-  FArmy.Free;
   inherited Destroy;
 end;
 
 function TTownOptions.GetTightFormation: Boolean;
 begin
-  Result := FArmy.TightFormation;
+  Result := Army.TightFormation;
 end;
 
 function TTownOptions.HasFortStored: Boolean;
@@ -1760,7 +1800,7 @@ end;
 
 procedure TTownOptions.SetTightFormation(AValue: Boolean);
 begin
-  FArmy.TightFormation := AValue;
+  Army.TightFormation := AValue;
 end;
 
 { TResourceOptions }
@@ -1812,19 +1852,16 @@ end;
 procedure TGarrisonOptions.Clear;
 begin
   inherited Clear;
-  Army.Clear;
   RemovableUnits:=false;
 end;
 
 constructor TGarrisonOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create(AObject);
 end;
 
 destructor TGarrisonOptions.Destroy;
 begin
-  FArmy.Free;
   inherited Destroy;
 end;
 
@@ -2035,7 +2072,6 @@ procedure THeroOptions.Clear;
 begin
   inherited Clear;
   &type := '';
-  Army.Clear;
   TightFormation := false;
   PatrolRadius := -1;
   Artifacts.Clear;
@@ -2090,7 +2126,7 @@ end;
 
 function THeroOptions.GetTightFormation: Boolean;
 begin
-  Result := FArmy.TightFormation;
+  Result := Army.TightFormation;
 end;
 
 function THeroOptions.GetExperience: UInt64;
@@ -2140,13 +2176,12 @@ end;
 
 procedure THeroOptions.SetTightFormation(AValue: Boolean);
 begin
-  FArmy.TightFormation:=AValue;
+  Army.TightFormation:=AValue;
 end;
 
 constructor THeroOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FArmy := TCreatureSet.Create(AObject);
   FArtifacts := THeroArtifacts.Create(AObject);
   FExperience:=0;
   FSecondarySkills := THeroSecondarySkills.Create;
@@ -2163,7 +2198,6 @@ begin
   FSpellBook.Free;
   FSecondarySkills.Free;
   FArtifacts.Free;
-  FArmy.Free;
   inherited Destroy;
 end;
 
