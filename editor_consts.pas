@@ -7,6 +7,10 @@ interface
 uses
   Classes, SysUtils, editor_types;
 
+const
+  FORMAT_H3M_EXT = '.H3M';
+  FORMAT_VCMI_EXT = '.VMAP';
+
 type //h3 object types
   TObj = (
     ALTAR_OF_SACRIFICE = 2,

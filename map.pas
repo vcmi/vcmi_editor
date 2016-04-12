@@ -2292,7 +2292,7 @@ var
   j, x, y: Integer;
   t: PMapTile;
 begin
-
+  AState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
   Right := Min(Right, CurrentLevel.Width - 1);
   Bottom := Min(Bottom, CurrentLevel.Height - 1);
 

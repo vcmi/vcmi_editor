@@ -205,7 +205,6 @@ type
 
     procedure SetPlayerColor(APlayer: TPlayer);
     procedure SetTranslation(X,Y: Integer);
-    procedure ApplyTranslation;
 
     procedure SetUseFlag(const Value: Boolean);
     procedure SetUsePalette(const Value: Boolean);
@@ -225,9 +224,7 @@ type
     procedure RenderGrid(AColor: TRBGAColor; ATileSize: Integer; TilesW,TilesH: integer);
 
     procedure StartDrawingSprites;
-
     procedure RenderSpriteMirrored(ASprite: PGLSprite; mir: UInt8);
-
     procedure RenderSpriteSimple(ASprite: PGLSprite);
     procedure RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
 
@@ -610,8 +607,6 @@ begin
   vertex_data[5] := X + dimx;  vertex_data[6] := Y + dimy;
   vertex_data[7] := X;         vertex_data[8] := Y + dimy;
 
-  ApplyTranslation;
-
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -627,8 +622,6 @@ var
 begin
   SetFragmentColor(color);
 
-  ApplyTranslation;
-
   vertex_data[1] := x;   vertex_data[2] := y;
   vertex_data[3] := x+dimx; vertex_data[4] := y;
   vertex_data[5] := x+dimx; vertex_data[6] := y+dimy;
@@ -640,8 +633,6 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
-
-  ApplyTranslation;
 
   glDrawArrays(GL_TRIANGLES,6,6);  //todo: use triangle strip
 end;
@@ -808,10 +799,7 @@ begin
 
   FTranslateMaxrix.data[0,3] := x * FScale;
   FTranslateMaxrix.data[1,3] := y * FScale;
-end;
 
-procedure TLocalState.ApplyTranslation;
-begin
   glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
 end;
 
@@ -892,8 +880,6 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
-
-  ApplyTranslation;
 
   glDrawArrays(GL_TRIANGLES,mir*6,6);  //todo: use triangle strip
 end;

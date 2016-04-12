@@ -4,10 +4,6 @@ unit editor_str_consts;
 
 interface
 
-const
-  FORMAT_H3M_EXT = '.H3M';
-  FORMAT_VCMI_EXT = '.VMAP';
-
 resourcestring
   rsDefaultMapName = 'Untitled';
 

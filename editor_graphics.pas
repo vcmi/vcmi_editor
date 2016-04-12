@@ -860,10 +860,7 @@ begin
   begin
     Exit;
   end;
-
   mir := flags and $3;
-
-  AState.SetFlagColor(NEUTRAL_PLAYER_COLOR);
   AState.RenderSpriteMirrored(entries.Mutable[SpriteIndex], mir);
 end;
 
