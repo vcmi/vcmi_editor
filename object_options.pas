@@ -292,12 +292,13 @@ type
   TOwnedArmedObjectOptions = class abstract(TOwnedObjectOptions)
   strict private
     FArmy: TCreatureSet;
+    function IsArmyStored: Boolean;
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure Clear; override;
   published
-    property Army: TCreatureSet read FArmy;
+    property Army: TCreatureSet read FArmy stored IsArmyStored;
   end;
 
   { TSignBottleOptions }
@@ -852,6 +853,11 @@ procedure TOwnedArmedObjectOptions.Clear;
 begin
   inherited Clear;
   FArmy.Clear;
+end;
+
+function TOwnedArmedObjectOptions.IsArmyStored: Boolean;
+begin
+  Result := FArmy.Count > 0;
 end;
 
 constructor TOwnedArmedObjectOptions.Create(AObject: IMapObject);
