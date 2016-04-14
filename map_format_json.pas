@@ -94,14 +94,27 @@ end;
 
 procedure TMapWriterJson.AfterWriteObject(Sender: TObject; AObject: TObject;
   JSON: TJSONObject);
+var
+  opt_json: TJSONData;
+  map_object: TMapObject;
 begin
   if (AObject is TMapObject) then
   begin
     //manual streaming of Options
-
-    if (AObject as TMapObject).HasOptions then
+    map_object :=TMapObject(AObject);
+    if map_object.HasOptions then
     begin
-      JSON.Add('options', (Sender as TVCMIJSONStreamer).ObjectToJsonEx((AObject as TMapObject).Options));
+      opt_json := (Sender as TVCMIJSONStreamer).ObjectToJsonEx(map_object.Options);
+
+      //store only not empty options
+      if opt_json.Count > 0 then
+      begin
+        JSON.Add('options', opt_json);
+      end
+      else
+      begin
+        FreeAndNil(opt_json);
+      end;
     end;
   end;
 end;
@@ -216,7 +229,6 @@ begin
     //manual destreaming of Options
 
     (Sender as TVCMIJSONDestreamer).JSONToObjectEx(JSON.Objects['options'], (AObject as TMapObject).Options);
-
   end;
 end;
 
