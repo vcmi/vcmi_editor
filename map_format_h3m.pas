@@ -2455,7 +2455,7 @@ var
   res_mask: Byte;
   bit_idx: Integer;
 begin
-
+  AOptions.Clear;
   res_mask := FSrc.ReadByte;
 
   for bit_idx in [0..7] do

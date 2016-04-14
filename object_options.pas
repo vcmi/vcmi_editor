@@ -1210,7 +1210,7 @@ end;
 constructor TAbandonedOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FPossibleResources := CrStrList;
+  FPossibleResources := TStringList.Create;
 end;
 
 destructor TAbandonedOptions.Destroy;
