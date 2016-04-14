@@ -265,6 +265,7 @@ type
   private
     FGuardMessage: TLocalizedString;
     FGuards: TCreatureSet;
+    function IsGuardsStored: Boolean;
     procedure SetGuardMessage(AValue: TLocalizedString);
   public
     constructor Create(AObject: IMapObject); override;
@@ -272,7 +273,7 @@ type
 
     procedure Clear; override;
   published
-    property Guards: TCreatureSet read FGuards;
+    property Guards: TCreatureSet read FGuards stored IsGuardsStored;
     property GuardMessage:TLocalizedString read FGuardMessage write SetGuardMessage;
   end;
 
@@ -1568,6 +1569,11 @@ end;
 procedure TGuardedObjectOptions.SetGuardMessage(AValue: TLocalizedString);
 begin
   FGuardMessage := AValue;
+end;
+
+function TGuardedObjectOptions.IsGuardsStored: Boolean;
+begin
+  Result := FGuards.Count > 0;
 end;
 
 { TCreatureSet }
