@@ -96,6 +96,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
 
+    function IsEmpty: Boolean;
+
     property RawRandom: integer Read GetRawRandom write SetRawRandom;
   published
     property &type: AnsiString read FType write SetType;
@@ -115,6 +117,8 @@ type
   public
     constructor Create(AOwner: IMapObject);
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+
+    function IsEmpty: Boolean;
 
     property TightFormation:Boolean read FTightFormation write SetTightFormation;
   end;
@@ -394,6 +398,7 @@ type
     FSpellBook: TStrings;
 
     function GetTightFormation: Boolean;
+    function IsArtifactsStored: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
@@ -430,10 +435,10 @@ type
   published
     property &type: AnsiString read FId write SetId;
 
-    property TightFormation: Boolean read GetTightFormation write SetTightFormation;
+    property TightFormation: Boolean read GetTightFormation write SetTightFormation default false;
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
 
-    property Artifacts: THeroArtifacts read FArtifacts;
+    property Artifacts: THeroArtifacts read FArtifacts stored IsArtifactsStored;
     property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
@@ -608,7 +613,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property Amount: Integer read FAmount write FAmount;
+    property Amount: Integer read FAmount write FAmount default 0;
   end;
 
   { TTownOptions }
@@ -858,7 +863,7 @@ end;
 
 function TOwnedArmedObjectOptions.IsArmyStored: Boolean;
 begin
-  Result := FArmy.Count > 0;
+  Result := not FArmy.IsEmpty;
 end;
 
 constructor TOwnedArmedObjectOptions.Create(AObject: IMapObject);
@@ -1512,6 +1517,11 @@ begin
   inherited Create(ACollection);
 end;
 
+function TCreatureInstInfo.IsEmpty: Boolean;
+begin
+  Result := (FType = '') and (FAmount = 0) and (FLevel = 0) and (FUpgraded = false);
+end;
+
 procedure TCreatureInstInfo.SetAmount(AValue: Integer);
 begin
   FAmount := AValue;
@@ -1573,7 +1583,7 @@ end;
 
 function TGuardedObjectOptions.IsGuardsStored: Boolean;
 begin
-  Result := FGuards.Count > 0;
+  Result := not FGuards.IsEmpty;
 end;
 
 { TCreatureSet }
@@ -1593,6 +1603,22 @@ end;
 procedure TCreatureSet.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
 begin
   FOwner.NotifyReferenced(AOldIdentifier, ANewIdentifier);
+end;
+
+function TCreatureSet.IsEmpty: Boolean;
+var
+  item: TCollectionItem;
+begin
+  Result := True;
+
+  for item in self do
+  begin
+    if not TCreatureInstInfo(item).IsEmpty then
+    begin
+      Result := False;
+      Break;
+    end;
+  end;
 end;
 
 { TRandomDwellingOptions }
@@ -2139,6 +2165,11 @@ end;
 function THeroOptions.GetTightFormation: Boolean;
 begin
   Result := Army.TightFormation;
+end;
+
+function THeroOptions.IsArtifactsStored: Boolean;
+begin
+  Result := not FArtifacts.IsEmpty;
 end;
 
 function THeroOptions.GetExperience: UInt64;
