@@ -133,6 +133,7 @@ type
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
+    function IsAllowedFactionsStored: Boolean;
   public
     constructor Create(AColor: TPlayerColor; AOwner: IReferenceNotify);
     destructor Destroy; override;
@@ -149,7 +150,7 @@ type
       Operation: TFPObservedOperation; Data: Pointer);
 
   published
-    property AllowedFactions: TLogicalIDCondition read FAllowedFactions;
+    property AllowedFactions: TLogicalIDCondition read FAllowedFactions stored IsAllowedFactionsStored;
 
     property CanPlay: TPlayableBy read FCanPlay write FCanPlay default TPlayableBy.None;
 
@@ -230,6 +231,7 @@ type
   TRumors = class(specialize TGArrayCollection<TRumor>)
   public
     constructor Create;
+    function IsEmpty: Boolean;
   end;
 
 {$pop}
@@ -678,6 +680,7 @@ type
      var
        FModUsage:TModUsage;
 
+     function IsRumorsStored: Boolean;
      procedure SetDefeatIconIndex(AValue: Integer);
      procedure SetDefeatString(AValue: TLocalizedString);
      procedure SetVictoryIconIndex(AValue: Integer);
@@ -734,7 +737,7 @@ type
     property Players: TPlayerInfos read FPlayers;
     property Teams:TTeamSettings read FTeams;
 
-    property Rumors: TRumors read FRumors;
+    property Rumors: TRumors read FRumors stored IsRumorsStored;
 
     property AllowedSpells: TLogicalIDCondition read FAllowedSpells;
     property AllowedAbilities: TLogicalIDCondition read FAllowedAbilities;
@@ -1410,6 +1413,11 @@ begin
   inherited Create;
 end;
 
+function TRumors.IsEmpty: Boolean;
+begin
+  Result := Count = 0;
+end;
+
 { TBlitOrderCompare }
 
 class function TBlitOrderCompare.c(a, b: TMapObject): boolean;
@@ -1873,6 +1881,11 @@ end;
 function TPlayerInfo.HasMainTown: boolean;
 begin
   Result := Assigned(FMainTown.MapObject);
+end;
+
+function TPlayerInfo.IsAllowedFactionsStored: Boolean;
+begin
+  Result := not FAllowedFactions.IsEmpty;
 end;
 
 { TPlayerInfos }
@@ -2592,6 +2605,11 @@ procedure TVCMIMap.SetDefeatIconIndex(AValue: Integer);
 begin
   if FDefeatIconIndex=AValue then Exit;
   FDefeatIconIndex:=AValue;
+end;
+
+function TVCMIMap.IsRumorsStored: Boolean;
+begin
+  Result := not FRumors.IsEmpty;
 end;
 
 procedure TVCMIMap.SetVictoryIconIndex(AValue: Integer);

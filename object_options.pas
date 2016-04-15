@@ -581,7 +581,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property RemovableUnits: Boolean read FRemovableUnits write FRemovableUnits;
+    property RemovableUnits: Boolean read FRemovableUnits write FRemovableUnits default False;
   end;
 
   { TArtifactOptions }
@@ -633,7 +633,7 @@ type
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property TightFormation: Boolean read GetTightFormation write SetTightFormation;
+    property TightFormation: Boolean read GetTightFormation write SetTightFormation default false;
     property Name: TLocalizedString read FName write FName;
     property Spells: TLogicalIDCondition read FSpells;
     property Buildings: TLogicalIDCondition read FBuildings;
