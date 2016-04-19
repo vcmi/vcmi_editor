@@ -61,12 +61,13 @@ type
     procedure CreateSlots;
     procedure PrepareSlots;
 
-    procedure Load;
+
     procedure Clear;
 
 
     procedure Load(AOptions: THeroArtifacts);
   protected
+    procedure Load; override;
     procedure UpdateControls;override;
   public
     constructor Create(TheOwner: TComponent); override;

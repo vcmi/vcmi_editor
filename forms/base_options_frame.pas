@@ -56,6 +56,8 @@ type
 
     property InstanceType: AnsiString read FMainIdentifier write SetMainIdentifier;
 
+    procedure Load; virtual;
+
     procedure ApplyDefaults(); virtual;
     procedure ReloadDefaults(); virtual;
 
@@ -384,6 +386,11 @@ begin
   else begin
     AOptions.Owner := TPlayer(AEditor.ItemIndex-1);
   end;
+end;
+
+procedure TBaseOptionsFrame.Load;
+begin
+   //do nothing
 end;
 
 procedure TBaseOptionsFrame.ApplyDefaults;

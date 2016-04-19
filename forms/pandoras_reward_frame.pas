@@ -92,11 +92,12 @@ type
     procedure LoadMain(AOptions: TPandorasOptions);
     procedure LoadSecondarySkills(AOptions: THeroSecondarySkills);
     procedure LoadResources(AOptions: TResourceSet);
-    procedure Load(AOptions: TPandorasOptions);
 
     procedure SaveMain(AOptions: TPandorasOptions);
     procedure SaveSecondarySkills(AOptions: THeroSecondarySkills);
     procedure SaveResources(AOptions: TResourceSet);
+  protected
+    procedure Load; override;
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; override;
@@ -234,16 +235,15 @@ begin
   edMithril.Value:=AOptions.Mithril;
 end;
 
-procedure TPandorasRewardFrame.Load(AOptions: TPandorasOptions);
+procedure TPandorasRewardFrame.Load();
 begin
-  FOptions := AOptions;
 
-  LoadMain(AOptions);
-  LoadSecondarySkills(AOptions.SecondarySkills);
-  LoadResources(AOptions.Resources);
+  LoadMain(FOptions);
+  LoadSecondarySkills(FOptions.SecondarySkills);
+  LoadResources(FOptions.Resources);
 
-  edArtifacts.FillFrom(ListsManager.ArtifactInfos, AOptions.Artifacts);
-  edSpells.FillFrom(ListsManager.SpellInfos, AOptions.Spells);
+  edArtifacts.FillFrom(ListsManager.ArtifactInfos, FOptions.Artifacts);
+  edSpells.FillFrom(ListsManager.SpellInfos, FOptions.Spells);
 
 end;
 
@@ -319,13 +319,15 @@ end;
 procedure TPandorasRewardFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
   inherited VisitPandorasBox(AOptions);
-  Load(AOptions);
+  FOptions := AOptions;
+  Load();
 end;
 
 procedure TPandorasRewardFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
   inherited VisitLocalEvent(AOptions);
-  Load(AOptions);
+  FOptions := AOptions;
+  Load();
 end;
 
 end.

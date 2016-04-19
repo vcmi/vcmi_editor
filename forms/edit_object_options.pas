@@ -29,7 +29,7 @@ uses
   base_options_frame, creature_frame, abandoned_frame, scholar_frame,
   creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
   hero_artifacts_frame, message_frame, hero_options_frame,
-  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame;
+  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame, quest_frame;
 
 type
 
@@ -232,8 +232,8 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-  FActiveEditors.AddFrame(TLocalEventFrame, AOptions,tsCommon);
-  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,tsObject);
+  FActiveEditors.AddFrame(TLocalEventFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TPandorasRewardFrame ,AOptions, tsObject);
   VisitGuardedObject(AOptions);
 end;
 
@@ -256,7 +256,7 @@ end;
 
 procedure TEditObjectOptions.VisitQuestGuard(AOptions: TQuestGuardOptions);
 begin
-
+  FActiveEditors.AddFrame(TQuestFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitRandomDwelling(
@@ -290,7 +290,7 @@ end;
 
 procedure TEditObjectOptions.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
-
+  FActiveEditors.AddFrame(TQuestFrame, AOptions, tsCommon);
 end;
 
 procedure TEditObjectOptions.VisitShrine(AOptions: TShrineOptions);

@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="82">
+    <Units Count="83">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -578,6 +578,13 @@
         <Filename Value="logical_building_condition.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit81>
+      <Unit82>
+        <Filename Value="forms\quest_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="QuestFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit82>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

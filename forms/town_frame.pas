@@ -46,8 +46,9 @@ type
     FObject: TTownOptions;
     FCustomName: TLocalizedString;
 
-    procedure Load;
   protected
+    procedure Load; override;
+
     procedure UpdateControls; override;
   public
     procedure Commit; override;

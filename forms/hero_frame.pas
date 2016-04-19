@@ -129,8 +129,10 @@ type
     procedure LoadSkills;
     procedure ResetSkills;
 
-    procedure Load; virtual;
+
   protected
+    procedure Load; override;
+
     procedure ApplyDefaults; override;
     procedure ReloadDefaults; override;
     procedure UpdateControls(); override;

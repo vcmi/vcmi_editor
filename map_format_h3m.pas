@@ -230,9 +230,9 @@ type
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
 
-     procedure VisitPrison(AOptions: TPrisonOptions);
-     procedure VisitNormalHero(AOptions: TNormalHeroOptions);
-     procedure VisitRandomHero(AOptions: TRandomHeroOptions);
+     procedure VisitPrison(AOptions: TPrisonOptions); //+
+     procedure VisitNormalHero(AOptions: TNormalHeroOptions); //+
+     procedure VisitRandomHero(AOptions: TRandomHeroOptions); //+
 
      procedure VisitMonster(AOptions: TCreatureOptions);//+
      procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
@@ -1644,6 +1644,7 @@ function TMapReaderH3m.ReadQuest(obj: TQuest): TQuestMission;
 var
   limit: DWord;
 begin
+  obj.Clear;
   Result := TQuestMission(FSrc.ReadByte);
 
   obj.MissionType:=Result;

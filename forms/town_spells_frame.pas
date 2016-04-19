@@ -54,13 +54,13 @@ type
 
     function SpellsSelected: Boolean;
 
-    procedure Load;
-
     procedure FillList(Alist: TListBox; AFullList: TStrings; ACache: TStrings);
 
     procedure AddToList(ASource, ADest: TListBox; ACache: TStrings);
     procedure RemoveFromList(ADest: TListBox; ACache: TStrings);
   protected
+    procedure Load; override;
+
     procedure VisitNormalTown(AOptions: TTownOptions); override;
     procedure VisitRandomTown(AOptions: TTownOptions); override;
   public

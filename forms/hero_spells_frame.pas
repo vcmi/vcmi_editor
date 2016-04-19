@@ -43,7 +43,6 @@ type
     FCache: TStrings;
     FTarget:TStrings;
 
-    procedure Load;
     procedure Clear;
 
     procedure ReadData;
@@ -52,6 +51,7 @@ type
 
     procedure LoadTypeDefaults(AType: AnsiString);
   protected
+    procedure Load; override;
     procedure UpdateControls; override;
   public
     constructor Create(TheOwner: TComponent); override;

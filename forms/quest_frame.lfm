@@ -1,0 +1,10 @@
+inherited QuestFrame: TQuestFrame
+  object Label1: TLabel[0]
+    Left = 30
+    Height = 15
+    Top = 31
+    Width = 94
+    Caption = 'Not implemented'
+    ParentColor = False
+  end
+end

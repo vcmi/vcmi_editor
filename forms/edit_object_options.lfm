@@ -16,10 +16,10 @@ object EditObjectOptions: TEditObjectOptions
     Height = 656
     Top = 0
     Width = 567
-    ActivePage = tsSpells
+    ActivePage = tsCommon
     Align = alClient
     BorderSpacing.Bottom = 40
-    TabIndex = 5
+    TabIndex = 0
     TabOrder = 0
     object tsCommon: TTabSheet
       Caption = 'Main options'

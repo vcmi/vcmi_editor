@@ -80,10 +80,11 @@ type
 
     FDoUpdateNodeData: Boolean;
 
-    procedure Load;
     procedure FillBuildings;
     procedure LoadBuildings;
   protected
+    procedure Load; override;
+
     procedure UpdateControls; override;
 
     procedure VisitNormalTown(AOptions: TTownOptions); override;

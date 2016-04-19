@@ -55,9 +55,9 @@ type
     procedure SaveSkills;
     procedure LoadSkills(ASrc:THeroSecondarySkills);
 
-    procedure Load;
-  protected
 
+  protected
+    procedure Load; override;
     procedure UpdateControls();override;
   public
     constructor Create(TheOwner: TComponent); override;
