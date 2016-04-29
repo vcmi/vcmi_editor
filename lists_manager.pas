@@ -551,9 +551,7 @@ type
     //Heroes
     function HeroIndexToString (AIndex: TCustomID): AnsiString;
     property HeroInfos: THeroInfos read FHeroInfos;
-
     property Heroes[AId: AnsiString]: THeroInfo read GetHeroes;
-
     procedure FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
   end;
 

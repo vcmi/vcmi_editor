@@ -26,8 +26,8 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, math, editor_types, editor_classes, root_manager,
-  editor_utils, logical_id_condition, vcmi_json, editor_consts, fpjson;
+  Classes, SysUtils, math, typinfo, editor_types, editor_classes, root_manager,
+  editor_utils, logical_id_condition, vcmi_json, editor_consts, LazLoggerBase, fpjson;
 
 type
 
@@ -204,7 +204,7 @@ type
     property Army: TCreatureSet read FArmy stored IsArmyStored;
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
-    property HeroLevel: Integer read FHeroLevel write SetHeroLevel  stored IsHeroLevelStored default -1;
+    property HeroLevel: Integer read FHeroLevel write SetHeroLevel  stored IsHeroLevelStored default 0;
     property Hero: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
     property Player: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
 
@@ -253,6 +253,34 @@ type
     property Misc5: AnsiString      index 18 read GetBySlotNumber write SetBySlotNumber;
 
     property Backpack: TStrings read GetBackpack;
+  end;
+
+  { TReward }
+
+  TReward = class(TNamedCollectionItem, IEmbeddedValue)
+  private
+    FValue: Int64;
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  published
+    property Value: Int64 read FValue write FValue;
+  end;
+
+  { TRewards }
+
+  TRewards = class(specialize TGNamedCollection<TReward>)
+  public
+    type TAllowedRewards = set of TMetaclass;
+    const IMPOSSIBLE_REWARDS: TAllowedRewards = [TMetaclass.faction, TMetaclass.hero, TMetaclass.heroClass];
+  private
+    FOwner: IMapObject;
+    FAllowedReward: TAllowedRewards;
+    procedure SetAllowedReward(AValue: TAllowedRewards);
+  public
+    constructor Create(AOwner: IMapObject);
+    property AllowedReward:TAllowedRewards read FAllowedReward write SetAllowedReward;
+
+    procedure AddReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
   end;
 
 {$pop}
@@ -514,25 +542,25 @@ type
   { TSeerHutOptions }
 
   TSeerHutOptions = class(TObjectOptions)
+  public
+    const
+      ALLOWED_REWARDS: TRewards.TAllowedRewards =
+        [TMetaclass.artifact, TMetaclass.creature, TMetaclass.experience, TMetaclass.luck, TMetaclass.mana,
+        TMetaclass.morale, TMetaclass.movement, TMetaclass.primarySkill, TMetaclass.secondarySkill, TMetaclass.spell,
+        TMetaclass.resource];
   private
     FQuest: TQuest;
-    FRewardID: AnsiString;
-    FRewardType: TSeerHutReward;
-    FRewardValue: Integer;
-    procedure SetRewardID(AValue: AnsiString);
-    procedure SetRewardType(AValue: TSeerHutReward);
-    procedure SetRewardValue(AValue: Integer);
+    FReward: TRewards;
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
+
+    procedure AddReward(AType: TSeerHutReward; AIdentifier: AnsiString; AValue: Int64);
   published
     property Quest: TQuest read FQuest;
-
-    property RewardType: TSeerHutReward read FRewardType write SetRewardType default TSeerHutReward.NOTHING;
-    property Reward: AnsiString read FRewardID write SetRewardID;
-    property RewardValue: Integer read FRewardValue write SetRewardValue default 0;
+    property Reward: TRewards read FReward;
   end;
 
   { TWitchHutOptions }
@@ -845,6 +873,75 @@ type
   end;
 
 implementation
+
+{ TRewards }
+
+procedure TRewards.SetAllowedReward(AValue: TAllowedRewards);
+begin
+  AValue:=AValue - IMPOSSIBLE_REWARDS;
+  FAllowedReward:=AValue;
+end;
+
+constructor TRewards.Create(AOwner: IMapObject);
+begin
+  inherited Create;
+  FOwner := AOwner;
+end;
+
+procedure TRewards.AddReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
+var
+  mod_id, metaclass_id, full_id: AnsiString;
+  item: TReward;
+begin
+  if AType = TMetaclass.invalid then
+  begin
+    DebugLn(['attempt to add invalid reward']);
+    Exit;
+  end;
+
+  if AType in IMPOSSIBLE_REWARDS then
+  begin
+    DebugLn(['attempt to add impossible reward']);
+    Exit;
+  end;
+
+  if AValue = 0 then
+  begin
+    DebugLn(['attempt to add reward with zero amount']);
+    Exit;
+  end;
+
+  mod_id := ExtractModID2(AIdentifier);
+
+  metaclass_id := GetEnumName(TypeInfo(TMetaclass), Integer(AType));
+
+  if mod_id = '' then
+  begin
+    if AIdentifier = '' then
+      full_id := metaclass_id
+    else
+      full_id := metaclass_id + '.'+AIdentifier;
+  end
+  else
+  begin
+    full_id := mod_id + ':' +metaclass_id + '.'+AIdentifier;
+  end;
+
+  item := Add;
+  item.Identifier := full_id;
+  item.Value:=AValue;
+end;
+
+{ TReward }
+
+procedure TReward.AssignTo(Dest: TPersistent);
+begin
+  if Dest is TReward then
+  begin
+    Value:=TReward(Dest).Value;
+  end;
+  inherited AssignTo(Dest);
+end;
 
 { TMineOptions }
 
@@ -1981,36 +2078,29 @@ procedure TSeerHutOptions.Clear;
 begin
   inherited Clear;
   Quest.Clear;
-  RewardType := TSeerHutReward.nothing;
-  RewardValue := 0;
+  Reward.Clear;
 end;
 
-procedure TSeerHutOptions.SetRewardType(AValue: TSeerHutReward);
+procedure TSeerHutOptions.AddReward(AType: TSeerHutReward; AIdentifier: AnsiString; AValue: Int64);
+const
+  SEER_REWARD_TO_REWARD: array[TSeerHutReward] of TMetaclass =
+    (TMetaclass.invalid, TMetaclass.experience, TMetaclass.mana, TMetaclass.morale, TMetaclass.luck,
+    TMetaclass.resource, TMetaclass.primarySkill, TMetaclass.secondarySkill, TMetaclass.artifact, TMetaclass.spell, TMetaclass.creature);
 begin
-  if FRewardType=AValue then Exit;
-  FRewardType:=AValue;
-end;
-
-procedure TSeerHutOptions.SetRewardValue(AValue: Integer);
-begin
-  if FRewardValue=AValue then Exit;
-  FRewardValue:=AValue;
-end;
-
-procedure TSeerHutOptions.SetRewardID(AValue: AnsiString);
-begin
-  if FRewardID=AValue then Exit;
-  FRewardID:=AValue;
+  FReward.AddReward(SEER_REWARD_TO_REWARD[AType], AIdentifier, AValue);
 end;
 
 constructor TSeerHutOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FQuest := TQuest.Create(AObject);
+  FReward := TRewards.Create(AObject);
+  FReward.AllowedReward := ALLOWED_REWARDS;
 end;
 
 destructor TSeerHutOptions.Destroy;
 begin
+  FReward.Free;
   FQuest.Free;
   inherited Destroy;
 end;

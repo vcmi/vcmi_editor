@@ -680,7 +680,9 @@ type
      var
        FModUsage:TModUsage;
 
+     function IsPredefinedHeroesStored: Boolean;
      function IsRumorsStored: Boolean;
+     function IsTeamsStored: Boolean;
      procedure SetDefeatIconIndex(AValue: Integer);
      procedure SetDefeatString(AValue: TLocalizedString);
      procedure SetVictoryIconIndex(AValue: Integer);
@@ -735,7 +737,7 @@ type
     property HeroLevelLimit: Integer read FLevelLimit write SetLevelLimit default 199;//+
 
     property Players: TPlayerInfos read FPlayers;
-    property Teams:TTeamSettings read FTeams;
+    property Teams:TTeamSettings read FTeams stored IsTeamsStored;
 
     property Rumors: TRumors read FRumors stored IsRumorsStored;
 
@@ -746,7 +748,7 @@ type
 
     property MapLevels: TMapLevels read FLevels;
 
-    property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes;
+    property PredefinedHeroes: THeroDefinitions read FPredefinedHeroes stored IsPredefinedHeroesStored;
 
     property TriggeredEvents: TTriggeredEvents read FTriggeredEvents;
 
@@ -2610,6 +2612,16 @@ end;
 function TVCMIMap.IsRumorsStored: Boolean;
 begin
   Result := not FRumors.IsEmpty;
+end;
+
+function TVCMIMap.IsPredefinedHeroesStored: Boolean;
+begin
+  Result := FPredefinedHeroes.Count > 0;
+end;
+
+function TVCMIMap.IsTeamsStored: Boolean;
+begin
+  Result := FTeams.Count > 0;
 end;
 
 procedure TVCMIMap.SetVictoryIconIndex(AValue: Integer);

@@ -9,7 +9,7 @@ object MapOptionsForm: TMapOptionsForm
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
-  LCLVersion = '1.4.5.0'
+  LCLVersion = '1.6.1.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
@@ -199,13 +199,13 @@ object MapOptionsForm: TMapOptionsForm
     end
     object tsAbilities: TTabSheet
       Caption = 'Abilities'
-      ClientHeight = 321
-      ClientWidth = 489
+      ClientHeight = 294
+      ClientWidth = 459
       object edAbilities: TCheckListBox
         Left = 0
-        Height = 271
+        Height = 244
         Top = 0
-        Width = 489
+        Width = 459
         Align = alClient
         Columns = 2
         ItemHeight = 0
@@ -214,12 +214,12 @@ object MapOptionsForm: TMapOptionsForm
       object Panel2: TPanel
         Left = 0
         Height = 50
-        Top = 271
-        Width = 489
+        Top = 244
+        Width = 459
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 50
-        ClientWidth = 489
+        ClientWidth = 459
         TabOrder = 1
         object Label3: TLabel
           Left = 17

@@ -58,7 +58,7 @@ type
   protected
     procedure UpdateControls; override;
 
-    procedure Load(ASrc: TCreatureSet);
+    procedure Load(ASrc: TCreatureSet); overload;
 
     procedure VisitNormalTown(AOptions: TTownOptions); override;
     procedure VisitRandomTown(AOptions: TTownOptions); override;

@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="83">
+    <Units Count="84">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -585,6 +585,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit82>
+      <Unit83>
+        <Filename Value="forms\reward_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RewardFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit83>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

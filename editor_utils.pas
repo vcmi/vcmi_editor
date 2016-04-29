@@ -43,6 +43,8 @@ type
 
   function ExtractModID(AIdentifier:AnsiString): AnsiString;
 
+  function ExtractModID2(var AIdentifier:AnsiString): AnsiString;
+
   procedure LeToNInPlase(var Val:Int32); inline;
 
   function CrStrList: TStringList;
@@ -60,6 +62,8 @@ type
   procedure GenerateDefaultVisitableFrom(ADest: TJSONArray; AGroup: UInt8; Atyp: Tobj);
 
   function RGBAColorToFpColor(const c: TRBGAColor): TFPColor;
+
+  function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out AIdentifier: AnsiString): Boolean;
 
 implementation
 
@@ -79,6 +83,23 @@ begin
     exit('');//object is from core
 
   Result := copy(AIdentifier, 1, colon_pos-1);
+end;
+
+function ExtractModID2(var AIdentifier: AnsiString): AnsiString;
+var
+  colon_pos: SizeInt;
+begin
+  if(AIdentifier = '') then
+    exit('');
+
+  colon_pos := pos(':',AIdentifier);
+
+  if colon_pos <= 0 then
+    exit('');//object is from core
+
+  Result := copy(AIdentifier, 1, colon_pos-1);
+
+  AIdentifier:=copy(AIdentifier, colon_pos+1, MaxInt);
 end;
 
 procedure LeToNInPlase(var Val:Int32); inline;
@@ -213,6 +234,12 @@ begin
   Result.Green:=c.g + c.g shl 8;
   Result.Blue:= c.b + c.b shl 8;
   Result.Alpha:=c.a + c.a shl 8;
+end;
+
+function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out
+  AIdentifier: AnsiString): Boolean;
+begin
+
 end;
 
 { TStringCompare }

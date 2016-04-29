@@ -78,7 +78,7 @@ type
 
   TBuildMode = (normal, auto, special, grail);
 
-  TMetaclass = (Artifact, Creature, Faction, Hero, HeroClass, Spell);
+  TMetaclass = (invalid, artifact, creature, faction, experience, hero, heroClass, luck, mana, morale, movement, primarySkill, secondarySkill, spell, resource);
 
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];

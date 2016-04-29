@@ -1816,6 +1816,10 @@ var
   mis_type: TQuestMission;
   aid: Byte;
   tmp: DWord;
+
+  reward_type: TSeerHutReward;
+  reward_value: Int64;
+  reward_identifier: AnsiString;
 begin
   with FSrc, AOptions do begin
     if IsAtLeastAB() then
@@ -1834,35 +1838,36 @@ begin
 
     if mis_type<> TQuestMission.None then
     begin
-      RewardType := TSeerHutReward(ReadByte);
-      case RewardType of
+      reward_type := TSeerHutReward(ReadByte);
+      reward_value := 0;
+      reward_identifier := '';
+
+      case reward_type of
         TSeerHutReward.experience, TSeerHutReward.manaPoints:
         begin
-          AOptions.RewardValue:=ReadInt32;
+          reward_value:=ReadInt32;
         end;
         TSeerHutReward.moraleBonus, TSeerHutReward.luckBonus:
         begin
-          AOptions.RewardValue:=ReadByte;
+          reward_value:=ReadByte;
         end;
-
-        TSeerHutReward.RESOURCES:
+        TSeerHutReward.resources:
         begin
-          Reward := RESOURCE_NAMES[TResType(ReadByte)];
+          reward_identifier := RESOURCE_NAMES[TResType(ReadByte)];
 
           tmp := ReadDWord;
           tmp := tmp and $00FFFFFF;
-          AOptions.RewardValue := tmp
+          reward_value := tmp
         end;
         TSeerHutReward.primarySkill:
         begin
-          Reward := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
-          RewardValue:=ReadByte;
-
+          reward_identifier := PRIMARY_SKILL_NAMES[TPrimarySkill(ReadByte)];
+          reward_value:=ReadByte;
         end;
         TSeerHutReward.secondarySkill:
         begin
-          Reward := SECONDARY_SKILL_NAMES[ReadByte];
-          RewardValue:=ReadByte;
+          reward_identifier := SECONDARY_SKILL_NAMES[ReadByte];
+          reward_value:=ReadByte;
         end;
         TSeerHutReward.artifact:
         begin
@@ -1873,11 +1878,13 @@ begin
           else begin
             tmp := ReadByte;
           end;
-          Reward:=FMapEnv.lm.ArtifactIndexToString(tmp);
+          reward_identifier:=FMapEnv.lm.ArtifactIndexToString(tmp);
+          reward_value := 1;
         end;
         TSeerHutReward.spell:
         begin
-          Reward:=FMapEnv.lm.SpellIndexToString(ReadByte);
+          reward_identifier:=FMapEnv.lm.SpellIndexToString(ReadByte);
+          reward_value := 1;
         end;
         TSeerHutReward.creature:
         begin
@@ -1888,11 +1895,13 @@ begin
           else begin
             tmp := ReadByte;
           end;
-          Reward:=FMapEnv.lm.CreatureIndexToString(tmp);
-          RewardValue:=ReadWord;
+          reward_identifier:=FMapEnv.lm.CreatureIndexToString(tmp);
+          reward_value:=ReadWord;
         end;
       end;
       skip(2);//junk
+
+      AddReward(reward_type, reward_identifier, reward_value);
     end
     else
       skip(3); //junk
