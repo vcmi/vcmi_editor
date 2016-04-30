@@ -1,4 +1,10 @@
 inherited QuestFrame: TQuestFrame
+  Height = 497
+  Width = 727
+  ClientHeight = 497
+  ClientWidth = 727
+  DesignLeft = 482
+  DesignTop = 219
   object Label1: TLabel[0]
     Left = 30
     Height = 15

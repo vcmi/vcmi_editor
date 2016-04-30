@@ -1,11 +1,11 @@
 object EditObjectOptions: TEditObjectOptions
-  Left = 511
-  Height = 696
-  Top = 248
-  Width = 567
+  Left = 458
+  Height = 664
+  Top = 122
+  Width = 754
   Caption = 'EditObjectOptions'
-  ClientHeight = 696
-  ClientWidth = 567
+  ClientHeight = 664
+  ClientWidth = 754
   Constraints.MinHeight = 200
   Constraints.MinWidth = 300
   Position = poMainFormCenter
@@ -13,9 +13,9 @@ object EditObjectOptions: TEditObjectOptions
   LCLVersion = '1.6.1.0'
   object pcMain: TPageControl
     Left = 0
-    Height = 656
+    Height = 624
     Top = 0
-    Width = 567
+    Width = 754
     ActivePage = tsReward
     Align = alClient
     BorderSpacing.Bottom = 40
@@ -53,9 +53,9 @@ object EditObjectOptions: TEditObjectOptions
     end
   end
   object btOk: TButton
-    Left = 397
+    Left = 584
     Height = 25
-    Top = 664
+    Top = 632
     Width = 75
     Action = actSave
     Anchors = [akRight, akBottom]
@@ -63,9 +63,9 @@ object EditObjectOptions: TEditObjectOptions
     TabOrder = 1
   end
   object btCancel: TButton
-    Left = 485
+    Left = 672
     Height = 25
-    Top = 664
+    Top = 632
     Width = 75
     Action = actDontSave
     Anchors = [akRight, akBottom]

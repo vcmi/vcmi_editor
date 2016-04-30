@@ -197,7 +197,6 @@ begin
     AmountEdit.MinValue:=0;
     AmountEdit.MaxValue:=0;
   end;
-
 end;
 
 procedure TRewardFrame.actAddExecute(Sender: TObject);
