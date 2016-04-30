@@ -24,7 +24,7 @@ unit editor_utils;
 interface
 
 uses
-  sysutils, Classes, types, editor_types, editor_consts, LazUTF8, fpjson, gmap, FPimage;
+  sysutils, Classes, types, typinfo, editor_types, editor_consts, LazUTF8, fpjson, gmap, FPimage;
 
 type
 
@@ -64,6 +64,7 @@ type
   function RGBAColorToFpColor(const c: TRBGAColor): TFPColor;
 
   function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out AIdentifier: AnsiString): Boolean;
+  function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
 
 implementation
 
@@ -238,8 +239,61 @@ end;
 
 function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out
   AIdentifier: AnsiString): Boolean;
-begin
+var
+  Metaclass, scope, identifier: AnsiString;
 
+  dot_pos: SizeInt;
+  raw_metaclass: Integer;
+
+begin
+  Result := false;
+  Metaclass := '';
+
+  identifier:=ASource;
+
+  scope:= ExtractModID2(identifier);
+
+  dot_pos := pos('.', identifier);
+
+  if dot_pos <= 0 then
+  begin
+    Metaclass := identifier;
+    identifier:='';
+  end
+  else
+  begin
+    Metaclass := copy(identifier, 1, dot_pos-1);
+
+    identifier := copy(identifier, dot_pos+1, MaxInt);
+  end;
+
+  raw_metaclass := GetEnumValue(TypeInfo(TMetaclass),Metaclass);
+
+  Result := raw_metaclass >= 0;
+
+  AMetaclass := TMetaclass(raw_metaclass);
+  AScope := scope;
+  AIdentifier:=identifier;
+  Result := true;
+end;
+
+function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+begin
+  if AScope = '' then
+  begin
+    if AIdentifier = '' then
+    begin
+      Result := AMetaclass;
+    end
+    else
+    begin
+      Result := AMetaclass + '.' + AIdentifier;
+    end;
+  end
+  else
+  begin
+    Result := AScope + ':' + AMetaclass + '.' + AIdentifier;
+  end;
 end;
 
 { TStringCompare }

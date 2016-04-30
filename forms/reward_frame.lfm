@@ -24,6 +24,7 @@ inherited RewardFrame: TRewardFrame
     Top = 10
     Width = 110
     ItemHeight = 15
+    OnSelect = MetaTypeEditSelect
     Style = csDropDownList
     TabOrder = 1
   end

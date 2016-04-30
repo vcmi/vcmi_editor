@@ -1,7 +1,7 @@
 object EditObjectOptions: TEditObjectOptions
-  Left = 441
+  Left = 511
   Height = 696
-  Top = 148
+  Top = 248
   Width = 567
   Caption = 'EditObjectOptions'
   ClientHeight = 696
@@ -16,10 +16,10 @@ object EditObjectOptions: TEditObjectOptions
     Height = 656
     Top = 0
     Width = 567
-    ActivePage = tsCommon
+    ActivePage = tsReward
     Align = alClient
     BorderSpacing.Bottom = 40
-    TabIndex = 0
+    TabIndex = 6
     TabOrder = 0
     object tsCommon: TTabSheet
       Caption = 'Main options'
@@ -47,6 +47,9 @@ object EditObjectOptions: TEditObjectOptions
     end
     object tsSpells: TTabSheet
       Caption = 'Spells'
+    end
+    object tsReward: TTabSheet
+      Caption = 'Reward'
     end
   end
   object btOk: TButton

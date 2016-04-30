@@ -29,7 +29,7 @@ uses
   base_options_frame, creature_frame, abandoned_frame, scholar_frame,
   creature_set_frame, resource_frame, pandoras_reward_frame, local_event_frame,
   hero_artifacts_frame, message_frame, hero_options_frame,
-  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame, quest_frame;
+  hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame, quest_frame, reward_frame;
 
 type
 
@@ -43,6 +43,7 @@ type
     btCancel: TButton;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
+    tsReward: TTabSheet;
     tsBuildings: TTabSheet;
     tsSpells: TTabSheet;
     tsArtifacts: TTabSheet;
@@ -291,6 +292,7 @@ end;
 procedure TEditObjectOptions.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
   FActiveEditors.AddFrame(TQuestFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TRewardFrame, AOptions, tsReward);
 end;
 
 procedure TEditObjectOptions.VisitShrine(AOptions: TShrineOptions);

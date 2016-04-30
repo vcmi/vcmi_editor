@@ -63,6 +63,48 @@ type
 
   {$pop}
 
+  { TMetaclassInfo }
+
+  TMetaclassInfo = class(TBaseInfo)
+  private
+    FList: THashedCollection;
+    FMaxValue: Int64;
+    FMinValue: Int64;
+    function GetMetaclass: TMetaclass;
+    procedure SetMaxValue(AValue: Int64);
+    procedure SetMetaclass(AValue: TMetaclass);
+    procedure SetMinValue(AValue: Int64);
+  public
+    property Metaclass: TMetaclass read GetMetaclass write SetMetaclass;
+
+    function IsEntity: Boolean;
+
+    property MinValue: Int64 read FMinValue write SetMinValue;
+    property MaxValue: Int64 read FMaxValue write SetMaxValue;
+
+
+    //only for entities
+    property List: THashedCollection read FList write FList;
+  end;
+
+  { TMetaclassInfos }
+
+  TMetaclassInfos = class(specialize TGNamedCollection<TMetaclassInfo>)
+
+  end;
+
+  { TResourceTypeInfo }
+
+  TResourceTypeInfo = class(TBaseInfo)
+
+  end;
+
+  { TResourceTypeInfos }
+
+  TResourceTypeInfos = class(specialize TGNamedCollection<TResourceTypeInfo>)
+
+  end;
+
   { TPrimSkillInfo }
 
   TPrimSkillInfo = class(TBaseInfo)
@@ -435,36 +477,32 @@ type
 
     FNameMap: TNameToIdMap;
 
+    FMetaclassInfos: TMetaclassInfos;
+    FResourceTypeInfos: TResourceTypeInfos;
     FPrimSkillInfos: TPrimSkillInfos;
-
     FSkillInfos: TSkillInfos;
-
     FSpellInfos: TSpellInfos;
-
     FFactionInfos: TFactionInfos;
     FRandomFaction: TFactionInfo;
     FBuildingCnv:TBuildingCnv;
     FBuildingCnvSpec: TJSONArray;
 
     FHeroClassInfos: THeroClassInfos;
-
     FCreatureInfos: TCreatureInfos;
-
     FHeroInfos: THeroInfos;
-
     FArtifactInfos: TArtifactInfos;
-
     FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStrings;
-
     FSlotIds: TSlotMap;
 
     FResolveRequests: TResolveRequests;
 
     procedure FillSlotIds;
 
+    procedure LoadMetaclasses;
     procedure LoadBuildings;
     procedure LoadPrimSkills;
     procedure LoadSkills;
+    procedure LoadResourceTypes;
     procedure LoadTextDataConfig;
 
   strict private //Accesors
@@ -510,6 +548,9 @@ type
     procedure FillWithPlayers(ATarget: TStrings; AIncludeNeutral: Boolean);
 
     function SIDIdNID(AID: AnsiString): TCustomID;
+
+    //metaclasses
+    property Metaclasses: TMetaclassInfos read FMetaclassInfos;
 
     //primary skills
     property PrimarySkills: TPrimSkillInfos read FPrimSkillInfos;
@@ -584,6 +625,35 @@ const
     'Player 7 (teal)',
     'Player 8 (pink)');
 
+{ TMetaclassInfo }
+
+function TMetaclassInfo.GetMetaclass: TMetaclass;
+begin
+  result := TMetaclass(Index);
+end;
+
+procedure TMetaclassInfo.SetMaxValue(AValue: Int64);
+begin
+  if FMaxValue=AValue then Exit;
+  FMaxValue:=AValue;
+end;
+
+procedure TMetaclassInfo.SetMetaclass(AValue: TMetaclass);
+begin
+  Index:=TCustomID(AValue);
+  Identifier:= GetEnumName(TypeInfo(TMetaclass), index);
+end;
+
+procedure TMetaclassInfo.SetMinValue(AValue: Int64);
+begin
+  if FMinValue=AValue then Exit;
+  FMinValue:=AValue;
+end;
+
+function TMetaclassInfo.IsEntity: Boolean;
+begin
+  Result := Assigned(FList);
+end;
 
 
 { TTownBuilding }
@@ -1136,12 +1206,12 @@ begin
 
   FNameMap := TNameToIdMap.Create;
 
+  FMetaclassInfos := TMetaclassInfos.Create;
+  FResourceTypeInfos := TResourceTypeInfos.Create;
+
   FPrimSkillInfos := TPrimSkillInfos.Create();
-
   FSkillInfos := TSkillInfos.Create();
-
   FSpellInfos := TSpellInfos.Create();
-
   FFactionInfos := TFactionInfos.Create();
   FRandomFaction := TFactionInfo.Create(nil);
   FBuildingCnv := TBuildingCnv.Create;
@@ -1179,21 +1249,18 @@ begin
     FArtifactSlotMaps[i].Free;
   end;
   FArtifactInfos.Free;
-
   FCreatureInfos.free;
-
   FHeroClassInfos.Free;
 
   FFactionInfos.Free;
   FRandomFaction.Free;
   FBuildingCnv.Free;
   FreeAndNil(FBuildingCnvSpec);
-
   FSpellInfos.Free;
-
   FSkillInfos.Free;
-
   FPrimSkillInfos.Free;
+  FResourceTypeInfos.Free;
+  FMetaclassInfos.Free;
 
   FNameMap.Free;
 
@@ -1464,10 +1531,12 @@ end;
 
 procedure TListsManager.PreLoad;
 begin
+  LoadMetaclasses;
   LoadTextDataConfig;
   LoadPrimSkills;
   LoadSkills;
   LoadBuildings;
+  LoadResourceTypes;
 end;
 
 procedure TListsManager.LoadFactions(AProgess: IProgressCallback;
@@ -1853,6 +1922,105 @@ begin
   Result := Assigned(FHeroClassInfos.FindItem(AIdentifier));
 end;
 
+procedure TListsManager.LoadMetaclasses;
+var
+  o: TMetaclassInfo;
+begin
+
+  //artifact
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.artifact;
+  o.List := FArtifactInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //creature
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.creature;
+  o.List := FCreatureInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //faction
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.faction;
+  o.List := FFactionInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//limit make no sence
+
+  //experience
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.experience;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //hero
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.hero;
+  o.List := FHeroInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//limit make no sence
+
+  //heroClass
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.hero;
+  o.List := FHeroClassInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//limit make no sence
+
+  //luck
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.luck;
+  o.MinValue:=-3;
+  o.MaxValue:=3;
+
+  //mana
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.mana;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //morale
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.morale;
+  o.MinValue:=-3;
+  o.MaxValue:=3;
+
+  //movement
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.movement;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //primarySkill
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.primarySkill;
+  o.List := FPrimSkillInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+
+  //secondarySkill
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.secondarySkill;
+  o.List := FSkillInfos;
+  o.MinValue:=0;
+  o.MaxValue:=3;//value=mastery
+
+  //spell
+  o := FMetaclassInfos.Add;
+  o.Metaclass := TMetaclass.spell;
+  o.List := FSpellInfos;
+  o.MinValue:=0;
+  o.MaxValue:=1;
+
+  //resource
+  o :=  FMetaclassInfos.Add;
+  o.Metaclass:=TMetaclass.resource;
+  o.List := FResourceTypeInfos;
+  o.MinValue:=0;
+  o.MaxValue:=0;//no limit
+end;
+
 procedure TListsManager.ProcessResolveRequests;
 var
   i: SizeInt;
@@ -1988,6 +2156,22 @@ begin
 
   finally
     sstraits.Free;
+  end;
+end;
+
+procedure TListsManager.LoadResourceTypes;
+var
+  rt: TResType;
+  o: TResourceTypeInfo;
+begin
+  for rt in TResType do
+  begin
+    o := FResourceTypeInfos.Add;
+
+    o.Index:=Integer(rt);
+    o.Identifier:=RESOURCE_NAMES[rt];
+
+    //todo: set name
   end;
 end;
 

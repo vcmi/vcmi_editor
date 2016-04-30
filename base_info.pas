@@ -103,7 +103,14 @@ end;
 
 function TBaseInfo.GetName: TLocalizedString;
 begin
-  Result := FName;
+  if FName = '' then
+  begin
+    Result := Identifier;
+  end
+  else
+  begin
+    Result := FName;
+  end;
 end;
 
 procedure TBaseInfo.SetName(const AValue: TLocalizedString);
