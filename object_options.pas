@@ -151,12 +151,12 @@ type
 
   { TQuest }
 
-  TQuestMission = (None=0, Level=1, PrimaryStat=2, KillHero=3, KillCreature=4, Artifact=5, Army=6, Resources=7, Hero=8, Player=9, Keymaster=10);
+  TQuestMission = (None=0, Level=1, PrimaryStat=2, KillHero=3, KillCreature=4, Artifact=5, Army=6, Resources=7, Hero=8, Player=9{, Keymaster=10});
 
   TQuest = class
   private
     FOwner: IMapObject;
-    FArmy: TCreatureSet;
+    FCreatures: TCreatureSet;
     FCompletedText: TLocalizedString;
     FFirstVisitText: TLocalizedString;
     FHeroID: AnsiString;
@@ -169,7 +169,7 @@ type
     FResources: TResourceSet;
     FTimeLimit: Integer;
     FArtifacts:TStrings;
-    function IsArmyStored: Boolean;
+    function IsCreaturesStored: Boolean;
     function IsArtifactsStored: Boolean;
     function IsHeroIDStored: Boolean;
     function IsHeroLevelStored: Boolean;
@@ -201,13 +201,12 @@ type
     property TimeLimit: Integer read FTimeLimit write SetTimeLimit default -1;
 
     property Artifacts: TStrings read FArtifacts stored IsArtifactsStored;
-    property Army: TCreatureSet read FArmy stored IsArmyStored;
+    property Creatures: TCreatureSet read FCreatures stored IsCreaturesStored;
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property HeroLevel: Integer read FHeroLevel write SetHeroLevel  stored IsHeroLevelStored default 0;
     property Hero: AnsiString read FHeroID write SetHeroID stored IsHeroIDStored;
-    property Player: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE ;
-
+    property Player: TPlayer read FPlayerID write SetPlayerID stored IsPlayerIDStored default TPlayer.NONE;
     property KillTarget: String read FKillTarget write SetKillTarget stored IsKillTargetStored;
   end;
 
@@ -1340,7 +1339,7 @@ begin
   FCompletedText := AValue;
 end;
 
-function TQuest.IsArmyStored: Boolean;
+function TQuest.IsCreaturesStored: Boolean;
 begin
   Result := MissionType = TQuestMission.Army;
 end;
@@ -1433,7 +1432,7 @@ begin
   TimeLimit := -1;
   FArtifacts := TIdentifierList.Create(AOwner);//todo: should we allow muiltiple same arctifacts for quest
 
-  FArmy := TCreatureSet.Create(FOwner);
+  FCreatures := TCreatureSet.Create(FOwner);
   FResources := TResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
@@ -1444,7 +1443,7 @@ destructor TQuest.Destroy;
 begin
   FPrimarySkills.Free;
   FResources.Free;
-  FArmy.Free;
+  FCreatures.Free;
   FArtifacts.Free;
   inherited Destroy;
 end;
@@ -1459,7 +1458,7 @@ begin
   TimeLimit := -1;
 
   Artifacts.Clear;
-  Army.Clear;
+  Creatures.Clear;
   Resources.Clear;
   PrimarySkills.Clear;
 

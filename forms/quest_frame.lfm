@@ -1,16 +1,213 @@
 inherited QuestFrame: TQuestFrame
-  Height = 497
-  Width = 727
-  ClientHeight = 497
-  ClientWidth = 727
-  DesignLeft = 482
-  DesignTop = 219
-  object Label1: TLabel[0]
-    Left = 30
-    Height = 15
-    Top = 31
-    Width = 94
-    Caption = 'Not implemented'
-    ParentColor = False
+  Height = 601
+  Width = 817
+  ClientHeight = 601
+  ClientWidth = 817
+  DesignLeft = 0
+  DesignTop = 0
+  object TopPanel: TPanel[0]
+    Left = 0
+    Height = 34
+    Top = 0
+    Width = 817
+    Align = alTop
+    ChildSizing.LeftRightSpacing = 5
+    ChildSizing.TopBottomSpacing = 5
+    ChildSizing.HorizontalSpacing = 10
+    ChildSizing.VerticalSpacing = 5
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclTopToBottomThenLeftToRight
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 34
+    ClientWidth = 817
+    TabOrder = 0
+    object MissionTypeLabel: TLabel
+      Left = 5
+      Height = 24
+      Top = 5
+      Width = 164
+      Caption = 'Mission type:'
+      ParentColor = False
+    end
+    object MissionType: TComboBox
+      Left = 179
+      Height = 23
+      Top = 5
+      Width = 234
+      ItemHeight = 15
+      OnChange = MissionTypeChange
+      Style = csDropDownList
+      TabOrder = 0
+    end
+    object cbTimeLimit: TCheckBox
+      Left = 423
+      Height = 24
+      Top = 5
+      Width = 262
+      Caption = 'Time limit (days):'
+      OnChange = cbTimeLimitChange
+      TabOrder = 1
+    end
+    object TimeLimit: TSpinEdit
+      Left = 695
+      Height = 24
+      Top = 5
+      Width = 117
+      MaxValue = 1000000000
+      TabOrder = 2
+    end
+  end
+  object TextPanel: TPanel[1]
+    Left = 0
+    Height = 136
+    Top = 34
+    Width = 817
+    Align = alTop
+    Caption = 'TextPanel'
+    ChildSizing.LeftRightSpacing = 5
+    ChildSizing.TopBottomSpacing = 5
+    ChildSizing.VerticalSpacing = 5
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 3
+    ClientHeight = 136
+    ClientWidth = 817
+    TabOrder = 1
+    object Panel1: TPanel
+      Left = 5
+      Height = 126
+      Top = 5
+      Width = 269
+      Caption = 'Panel1'
+      ClientHeight = 126
+      ClientWidth = 269
+      TabOrder = 0
+      object cbFirstVisitText: TCheckBox
+        Left = 6
+        Height = 19
+        Top = 6
+        Width = 257
+        Align = alTop
+        BorderSpacing.Around = 5
+        Caption = 'First visit text:'
+        OnChange = cbFirstVisitTextChange
+        TabOrder = 0
+      end
+      object FirstVisitText: TMemo
+        Left = 6
+        Height = 90
+        Top = 30
+        Width = 257
+        Align = alClient
+        BorderSpacing.Around = 5
+        Lines.Strings = (
+          'FirstVisitText'
+        )
+        ScrollBars = ssAutoBoth
+        TabOrder = 1
+      end
+    end
+    object Panel2: TPanel
+      Left = 274
+      Height = 126
+      Top = 5
+      Width = 269
+      Caption = 'Panel2'
+      ClientHeight = 126
+      ClientWidth = 269
+      TabOrder = 1
+      object cbNextVisitText: TCheckBox
+        Left = 6
+        Height = 19
+        Top = 6
+        Width = 257
+        Align = alTop
+        BorderSpacing.Around = 5
+        Caption = 'Next visit text:'
+        OnChange = cbNextVisitTextChange
+        TabOrder = 1
+      end
+      object NextVisitText: TMemo
+        Left = 6
+        Height = 90
+        Top = 30
+        Width = 257
+        Align = alClient
+        BorderSpacing.Around = 5
+        Lines.Strings = (
+          'NextVisitText'
+        )
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
+      end
+    end
+    object Panel3: TPanel
+      Left = 543
+      Height = 126
+      Top = 5
+      Width = 269
+      Caption = 'Panel3'
+      ClientHeight = 126
+      ClientWidth = 269
+      TabOrder = 2
+      object cbCompletedText: TCheckBox
+        Left = 6
+        Height = 19
+        Top = 6
+        Width = 257
+        Align = alTop
+        BorderSpacing.Around = 5
+        Caption = 'Completed text:'
+        OnChange = cbCompletedTextChange
+        TabOrder = 1
+      end
+      object CompletedText: TMemo
+        Left = 6
+        Height = 90
+        Top = 30
+        Width = 257
+        Align = alClient
+        BorderSpacing.Around = 5
+        Lines.Strings = (
+          'CompletedText'
+        )
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
+      end
+    end
+  end
+  object Missions: TPageControl[2]
+    Left = 0
+    Height = 431
+    Top = 170
+    Width = 817
+    ActivePage = tsArtifacts
+    Align = alClient
+    TabIndex = 1
+    TabOrder = 2
+    object NoMission: TTabSheet
+      Caption = 'No mission'
+    end
+    object tsArtifacts: TTabSheet
+      Caption = 'Artifacts'
+      ClientHeight = 403
+      ClientWidth = 809
+      object Artifacts: TCheckListBox
+        Left = 0
+        Height = 403
+        Top = 0
+        Width = 809
+        Align = alClient
+        Columns = 3
+        ItemHeight = 0
+        TabOrder = 0
+      end
+    end
   end
 end

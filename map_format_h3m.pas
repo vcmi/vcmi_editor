@@ -1666,7 +1666,7 @@ begin
         ReadArtifactSet(obj.Artifacts);
       end;
       TQuestMission.Army: begin
-        ReadCreatureSet(obj.Army);
+        ReadCreatureSet(obj.Creatures);
       end;
       TQuestMission.Resources: begin
         ReadResources(obj.Resources);

@@ -27,7 +27,7 @@ unit gui_helpers;
 interface
 
 uses
-  Classes, SysUtils, Controls, StdCtrls, CheckLst,
+  Classes, SysUtils, Controls, StdCtrls, ComCtrls, CheckLst,
 
   base_info, logical_id_condition, editor_str_consts,
   editor_classes;
@@ -40,16 +40,13 @@ type
 
   TCheckListBoxHelper = class helper for TCustomCheckListBox
   public
+    procedure FillItems(AFullList: THashedCollection);
+    procedure LoadItems(ASrc: TStrings);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings);
-
     procedure SaveTo(ADest: TStrings);
-
     procedure SaveTo(AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
-
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
-
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
-
     function SelectedInfo: TBaseInfo;
   end;
 
@@ -85,6 +82,13 @@ type
 
     function SelectedInfo: TBaseInfo;
     function SelectedIdentifier: AnsiString;
+  end;
+
+  { TPageControlHelper }
+
+  TPageControlHelper = class helper for TPageControl
+  public
+    procedure HideAllTabs;
   end;
 
   procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
@@ -183,10 +187,20 @@ var
 begin
   FillItems(ATarget.Items, AFullList);
 
-  for i := 0 to ATarget.Items.Count - 1 do
+  if Assigned(ASrc) then
   begin
-    info := ATarget.Items.Objects[i] as TBaseInfo;
-    ATarget.Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
+    for i := 0 to ATarget.Items.Count - 1 do
+    begin
+      info := ATarget.Items.Objects[i] as TBaseInfo;
+      ATarget.Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
+    end;
+  end
+  else
+  begin
+    for i := 0 to ATarget.Items.Count - 1 do
+    begin
+      ATarget.Checked[i] := false;
+    end;
   end;
 end;
 
@@ -282,6 +296,18 @@ begin
 
   finally
     ban_list.Free;
+  end;
+end;
+
+{ TPageControlHelper }
+
+procedure TPageControlHelper.HideAllTabs;
+var
+  i: Integer;
+begin
+  for i := 0 to PageCount - 1 do
+  begin
+    Self.Pages[i].TabVisible := False;
   end;
 end;
 
@@ -409,6 +435,33 @@ begin
 end;
 
 { TCheckListBoxHelper }
+
+procedure TCheckListBoxHelper.FillItems(AFullList: THashedCollection);
+begin
+  FillCheckListBox(Self,AFullList,nil)
+end;
+
+procedure TCheckListBoxHelper.LoadItems(ASrc: TStrings);
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  if Assigned(ASrc) then
+  begin
+    for i := 0 to Items.Count - 1 do
+    begin
+      info := Items.Objects[i] as TBaseInfo;
+      Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
+    end;
+  end
+  else
+  begin
+    for i := 0 to Items.Count - 1 do
+    begin
+      Checked[i] := false;
+    end;
+  end;
+end;
 
 procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
   ASrc: TStrings);
