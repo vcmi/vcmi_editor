@@ -219,16 +219,14 @@ type
     FBackpack: TStrings;
     function GetBackpack: TStrings;
     function GetBySlotNumber(ASlotID: Integer): AnsiString;
+    function IsBackpackStored: Boolean;
     procedure SetBySlotNumber(ASlotID: Integer; AValue: AnsiString);
-
   public
     constructor Create(AOwner: IReferenceNotify);
     destructor Destroy; override;
 
     property BySlotNumber[ASlotID: Integer]: AnsiString read GetBySlotNumber write SetBySlotNumber;
-
     function IsEmpty: Boolean;
-
     procedure Clear;
   published
     property Head: AnsiString       index 0 read GetBySlotNumber write SetBySlotNumber;
@@ -251,7 +249,7 @@ type
 		property Spellbook: AnsiString  index 17 read GetBySlotNumber write SetBySlotNumber;
     property Misc5: AnsiString      index 18 read GetBySlotNumber write SetBySlotNumber;
 
-    property Backpack: TStrings read GetBackpack;
+    property Backpack: TStrings read GetBackpack stored IsBackpackStored;
   end;
 
   { TReward }
@@ -1207,6 +1205,11 @@ begin
 
   Result := FBackpack[ASlotID-High(FSlots)];
 
+end;
+
+function THeroArtifacts.IsBackpackStored: Boolean;
+begin
+  Result := FBackpack.Count > 0;
 end;
 
 procedure THeroArtifacts.SetBySlotNumber(ASlotID: Integer; AValue: AnsiString);
