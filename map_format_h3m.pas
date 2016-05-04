@@ -186,7 +186,7 @@ type
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet); //any size
      procedure ReadQuestIdentifier;
      procedure ReadResources(AresourceSet: TResourceSet);
-     procedure ReadPrimarySkills(ASkills: THeroPrimarySkills);
+     procedure ReadPrimarySkills(ASkills: TPrimarySkills);
      procedure MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills4(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills1(ASkills: THeroSecondarySkills);
@@ -862,7 +862,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadPrimarySkills(ASkills: THeroPrimarySkills);
+procedure TMapReaderH3m.ReadPrimarySkills(ASkills: TPrimarySkills);
 begin
   ASkills.Attack:=FSrc.ReadByte;
   ASkills.Defence:=FSrc.ReadByte;

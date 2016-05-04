@@ -177,9 +177,9 @@ type
     procedure Deref(Item: Pointer); override;
   end;
 
-  { THeroPrimarySkills }
+  { TPrimarySkills }
 
-  THeroPrimarySkills = class(TPersistent)
+  TPrimarySkills = class(TPersistent)
   private
     FAttack: Integer;
     FDefence: Integer;
@@ -189,14 +189,40 @@ type
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create;
-    function IsDefault: Boolean;
-    procedure Clear;
+    function IsDefault: Boolean; virtual; abstract;
+    procedure Clear; virtual; abstract;
     procedure SetZero;
+
+    property Attack: Integer read FAttack write FAttack ;
+    property Defence: Integer read FDefence write FDefence;
+    property Spellpower: Integer read FSpellpower write FSpellpower;
+    property Knowledge: Integer read FKnowledge write FKnowledge;
+  end;
+
+  { THeroPrimarySkills }
+
+  THeroPrimarySkills = class(TPrimarySkills)
+  public
+    function IsDefault: Boolean; override;
+    procedure Clear; override;
   published
-    property Attack: Integer read FAttack write FAttack default -1;
-    property Defence: Integer read FDefence write FDefence default -1;
-    property Spellpower: Integer read FSpellpower write FSpellpower default -1;
-    property Knowledge: Integer read FKnowledge write FKnowledge default -1;
+    property Attack default -1;
+    property Defence default -1;
+    property Spellpower default -1;
+    property Knowledge default -1;
+  end;
+
+  { TRewardPrimarySkills }
+
+  TRewardPrimarySkills = class(TPrimarySkills)
+  public
+    function IsDefault: Boolean; override;
+    procedure Clear; override;
+  published
+    property Attack default 0;
+    property Defence default 0;
+    property Spellpower default 0;
+    property Knowledge default 0;
   end;
 
   { THeroSecondarySkill }
@@ -265,6 +291,33 @@ type
   end;
 
 implementation
+
+{ TRewardPrimarySkills }
+
+function TRewardPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = 0) and (Defence = 0) and (Spellpower = 0) and (Knowledge = 0);
+end;
+
+procedure TRewardPrimarySkills.Clear;
+begin
+  SetZero;
+end;
+
+{ THeroPrimarySkills }
+
+function THeroPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
+end;
+
+procedure THeroPrimarySkills.Clear;
+begin
+  Attack :=-1;
+  Defence:=-1;
+  Spellpower:=-1;
+  Knowledge:=-1;
+end;
 
 { TIdentifierSet }
 
@@ -544,41 +597,28 @@ begin
   TData(Pointer(PByte(Item)+KeySize)^).Free;
 end;
 
-{ THeroPrimarySkills }
+{ TPrimarySkills }
 
-procedure THeroPrimarySkills.AssignTo(Dest: TPersistent);
+procedure TPrimarySkills.AssignTo(Dest: TPersistent);
 begin
-  if Dest is THeroPrimarySkills then
+  if Dest is TPrimarySkills then
   begin
-    THeroPrimarySkills(Dest).Attack:=Attack;
-    THeroPrimarySkills(Dest).Defence:=Defence;
-    THeroPrimarySkills(Dest).Spellpower:=Spellpower;
-    THeroPrimarySkills(Dest).Knowledge:=Knowledge;
+    TPrimarySkills(Dest).Attack:=Attack;
+    TPrimarySkills(Dest).Defence:=Defence;
+    TPrimarySkills(Dest).Spellpower:=Spellpower;
+    TPrimarySkills(Dest).Knowledge:=Knowledge;
   end
   else begin
     inherited AssignTo(Dest);
   end;
 end;
 
-constructor THeroPrimarySkills.Create;
+constructor TPrimarySkills.Create;
 begin
   Clear;
 end;
 
-function THeroPrimarySkills.IsDefault: Boolean;
-begin
-  Result := (Attack = -1) and (Defence = -1) and (Spellpower = -1) and (Knowledge = -1);
-end;
-
-procedure THeroPrimarySkills.Clear;
-begin
-  Attack :=-1;
-  Defence:=-1;
-  Spellpower:=-1;
-  Knowledge:=-1;
-end;
-
-procedure THeroPrimarySkills.SetZero;
+procedure TPrimarySkills.SetZero;
 begin
   Attack :=0;
   Defence:=0;
