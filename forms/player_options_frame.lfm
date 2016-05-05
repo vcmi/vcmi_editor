@@ -16,8 +16,6 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   ClientHeight = 363
   ClientWidth = 548
   TabOrder = 0
-  DesignLeft = 438
-  DesignTop = 168
   object lbCanPlay: TLabel
     Left = 20
     Height = 23

@@ -144,7 +144,7 @@ begin
   begin
     edMainHero.AddItem(FObject.Heroes[i].MapObject.FormatDisplayName(FMap.GetHeroName(FObject.Heroes[i].MapObject)), FObject.Heroes[i]);
 
-    if(FObject.MainHero = FObject.Heroes[i].Identifier) then
+    if(FObject.MainHero = FObject.Heroes[i].&type) then
       selected_idx := i+1;
   end;
 
