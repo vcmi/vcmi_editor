@@ -5,8 +5,6 @@ inherited CreatureSetFrame: TCreatureSetFrame
   ClientHeight = 458
   ClientWidth = 619
   Constraints.MinWidth = 315
-  DesignLeft = 512
-  DesignTop = 151
   object pnCreatures: TPanel[0]
     Left = 0
     Height = 432

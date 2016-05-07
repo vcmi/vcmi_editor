@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, gvector, FileUtil, LCLType, Forms, Controls, ComCtrls,
   Spin, Grids, ExtCtrls, StdCtrls, editor_types, object_options, map,
-  lists_manager, editor_consts;
+  lists_manager, editor_consts, field_editors;
 
 type
 
@@ -39,6 +39,7 @@ type
     FListsManager: TListsManager;
     FMainIdentifier: AnsiString;
     FMap: TVCMIMap;
+    FFieldEditors: TFieldEditors;
     procedure SetMainIdentifier(AValue: AnsiString);
     procedure SetMap(AValue: TVCMIMap);
   protected
@@ -64,6 +65,10 @@ type
     procedure UpdateControls(); virtual;
 
     procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
+
+    procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
+
+    procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -223,17 +228,32 @@ end;
 
 procedure TBaseOptionsFrame.Commit;
 begin
-
+  FFieldEditors.Commit;
 end;
 
 constructor TBaseOptionsFrame.Create(TheOwner: TComponent);
 begin
-  FListsManager := (TheOwner as TBaseOptionsFrameList).ListsManager;
+  if TheOwner is TBaseOptionsFrameList  then
+  begin
+    FListsManager := TBaseOptionsFrameList(TheOwner).ListsManager;
+  end
+  else if TheOwner is TBaseOptionsFrame then
+  begin
+    FListsManager := TBaseOptionsFrame(TheOwner).ListsManager;
+  end
+  else
+  begin
+    raise Exception.Create('Invalid owner');
+  end;
+
   inherited Create(TheOwner);
+
+  FFieldEditors := TFieldEditors.Create;
 end;
 
 procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
 begin
+  FFieldEditors.Free;
   FMainIdentifier:=AValue;
 
   ReloadDefaults();
@@ -390,7 +410,7 @@ end;
 
 procedure TBaseOptionsFrame.Load;
 begin
-   //do nothing
+  FFieldEditors.Load;
 end;
 
 procedure TBaseOptionsFrame.ApplyDefaults;
@@ -427,6 +447,17 @@ begin
   begin
     AControl.Text := ADefault;
   end;
+end;
+
+procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;
+  ACheck: TCustomCheckBox);
+begin
+  FFieldEditors.Add(TOptStringFieldEditor.Create(ATarget, APropName, AWidget, ACheck));
+end;
+
+procedure TBaseOptionsFrame.AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
+begin
+  FFieldEditors.Add(TIntEditor.Create(ATarget, APropName, AWidget));
 end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

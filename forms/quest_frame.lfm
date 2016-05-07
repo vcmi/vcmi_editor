@@ -3,8 +3,6 @@ inherited QuestFrame: TQuestFrame
   Width = 817
   ClientHeight = 601
   ClientWidth = 817
-  DesignLeft = 0
-  DesignTop = 0
   object TopPanel: TPanel[0]
     Left = 0
     Height = 34
@@ -187,9 +185,9 @@ inherited QuestFrame: TQuestFrame
     Height = 431
     Top = 170
     Width = 817
-    ActivePage = tsArtifacts
+    ActivePage = tsResources
     Align = alClient
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 2
     object NoMission: TTabSheet
       Caption = 'No mission'
@@ -207,6 +205,171 @@ inherited QuestFrame: TQuestFrame
         Columns = 3
         ItemHeight = 0
         TabOrder = 0
+      end
+    end
+    object tsCreatures: TTabSheet
+      Caption = 'Creatures'
+    end
+    object tsResources: TTabSheet
+      Caption = 'Resources'
+      ChildSizing.LeftRightSpacing = 5
+      ChildSizing.TopBottomSpacing = 5
+      ChildSizing.HorizontalSpacing = 5
+      ChildSizing.VerticalSpacing = 5
+      ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+      ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+      ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+      ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 4
+      ClientHeight = 403
+      ClientWidth = 809
+      object lbWood: TLabel
+        Left = 105
+        Height = 23
+        Top = 63
+        Width = 39
+        Caption = 'Wood:'
+        ParentColor = False
+      end
+      object edWood: TSpinEdit
+        Left = 249
+        Height = 23
+        Top = 63
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 0
+      end
+      object lbMercury: TLabel
+        Left = 454
+        Height = 23
+        Top = 63
+        Width = 47
+        Caption = 'Mercury:'
+        ParentColor = False
+      end
+      object edMercury: TSpinEdit
+        Left = 606
+        Height = 23
+        Top = 63
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 1
+      end
+      object lbOre: TLabel
+        Left = 105
+        Height = 23
+        Top = 149
+        Width = 39
+        Caption = 'Ore:'
+        ParentColor = False
+      end
+      object edOre: TSpinEdit
+        Left = 249
+        Height = 23
+        Top = 149
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 2
+      end
+      object lbSulfur: TLabel
+        Left = 454
+        Height = 23
+        Top = 149
+        Width = 47
+        Caption = 'Sulfur:'
+        ParentColor = False
+      end
+      object edSulfur: TSpinEdit
+        Left = 606
+        Height = 23
+        Top = 149
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 3
+      end
+      object lbCrystal: TLabel
+        Left = 105
+        Height = 23
+        Top = 235
+        Width = 39
+        Caption = 'Crystal:'
+        ParentColor = False
+      end
+      object edCrystal: TSpinEdit
+        Left = 249
+        Height = 23
+        Top = 235
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 4
+      end
+      object lbGems: TLabel
+        Left = 454
+        Height = 23
+        Top = 235
+        Width = 47
+        Caption = 'Gems:'
+        ParentColor = False
+      end
+      object edGems: TSpinEdit
+        Left = 606
+        Height = 23
+        Top = 235
+        Width = 100
+        Constraints.MinWidth = 100
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 5
+      end
+      object lbGold: TLabel
+        Left = 105
+        Height = 23
+        Top = 321
+        Width = 39
+        Caption = 'Gold:'
+        ParentColor = False
+      end
+      object edGold: TSpinEdit
+        Left = 249
+        Height = 23
+        Top = 321
+        Width = 100
+        Constraints.MinWidth = 100
+        Increment = 1000
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 6
+      end
+      object lbMithril: TLabel
+        Left = 454
+        Height = 23
+        Top = 321
+        Width = 47
+        Caption = 'Mithril:'
+        Enabled = False
+        ParentColor = False
+      end
+      object edMithril: TSpinEdit
+        Left = 606
+        Height = 23
+        Top = 321
+        Width = 100
+        Constraints.MinWidth = 100
+        Enabled = False
+        MaxValue = 2000000000
+        MinValue = 2000000000
+        TabOrder = 7
       end
     end
   end

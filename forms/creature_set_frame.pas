@@ -79,6 +79,8 @@ type
 
     procedure VisitTown(AOptions: TTownOptions); override;
     procedure VisitMine(AOptions: TMineOptions); override;
+
+    procedure VisitQuest(AOptions: TQuest);
   end;
 
 implementation
@@ -122,9 +124,15 @@ var
 begin
   FOptions := ASrc;
 
-  customised :=  ASrc.Count>0;
-
-  edCustomize.Checked:=customised;
+  if edCustomize.Visible then
+  begin
+    customised := ASrc.Count>0;
+    edCustomize.Checked:=customised;
+  end
+  else
+  begin
+    edCustomize.Checked := true;
+  end;
 
   for cell_number in [0..6] do
   begin
@@ -312,12 +320,15 @@ procedure TCreatureSetFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
   inherited VisitLocalEvent(AOptions);
   Load(AOptions.Guards);
+  edTightFormation.Visible := false;
+  edRemovableUnits.Visible := false;
 end;
 
 procedure TCreatureSetFrame.ReadHero(AOptions: THeroOptions);
 begin
   Load(AOptions.Army);
   edTightFormation.Visible := true;
+  edRemovableUnits.Visible := false;
 end;
 
 procedure TCreatureSetFrame.VisitTown(AOptions: TTownOptions);
@@ -325,6 +336,7 @@ begin
   inherited VisitTown(AOptions);
   Load(AOptions.Army);
   edTightFormation.Visible := true;
+  edRemovableUnits.Visible := false;
 end;
 
 procedure TCreatureSetFrame.VisitMine(AOptions: TMineOptions);
@@ -332,6 +344,17 @@ begin
   inherited VisitMine(AOptions);
   Load(AOptions.Army);
   edTightFormation.Visible:=false;
+  edRemovableUnits.Visible := false;
+end;
+
+procedure TCreatureSetFrame.VisitQuest(AOptions: TQuest);
+begin
+  edCustomize.Visible:=false;
+  pnOptions.Visible:=false;
+
+  Load(AOptions.Creatures);
+  edTightFormation.Visible := false;
+  edRemovableUnits.Visible := false;
 end;
 
 end.

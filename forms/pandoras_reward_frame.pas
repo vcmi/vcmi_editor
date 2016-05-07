@@ -237,14 +237,12 @@ end;
 
 procedure TPandorasRewardFrame.Load();
 begin
-
   LoadMain(FOptions);
   LoadSecondarySkills(FOptions.SecondarySkills);
   LoadResources(FOptions.Resources);
 
   edArtifacts.FillFrom(ListsManager.ArtifactInfos, FOptions.Artifacts);
   edSpells.FillFrom(ListsManager.SpellInfos, FOptions.Spells);
-
 end;
 
 procedure TPandorasRewardFrame.SaveMain(AOptions: TPandorasOptions);

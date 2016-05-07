@@ -46,7 +46,7 @@ uses
 player_options_frame, position, hero_spells_frame, hero_skills_frame, 
 town_frame, town_buildings_frame, zipper_ex, edit_triggered_events, 
 locale_manager, player_selection_form, map_rect, town_spells_frame, logical_building_condition, quest_frame, 
-reward_frame;
+reward_frame, field_editors;
 
 {$R *.res}
 
