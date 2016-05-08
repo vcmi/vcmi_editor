@@ -25,7 +25,7 @@ unit field_editors;
 interface
 
 uses
-  Classes, SysUtils, fgl, typinfo, StdCtrls, Spin;
+  Classes, SysUtils, fgl, typinfo, Controls, StdCtrls, Spin, editor_rtti;
 
 type
 
@@ -44,23 +44,49 @@ type
     FTarget: TObject;
     FPropName: string;
     FPropInfo: PPropInfo;
+
+    FEditorControl: TWinControl;
   public
-    constructor Create(ATarget: TObject; const APropName: string);
+    constructor Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl);
+  end;
+
+  { TBaseOptFieldEditor }
+
+  TBaseOptFieldEditor = class abstract(TBaseFieldEditor)
+  private
+
+  protected
+    FCheck: TCustomCheckBox;
+
+    procedure LoadCustom; virtual; abstract;
+    procedure LoadDefault; virtual; abstract;
+
+    function IsDefault: Boolean;
+
+    procedure SaveCustom; virtual; abstract;
+    procedure SaveDefault; virtual; abstract;
+
+    procedure CheckChange(Sender: TObject); virtual;
+  public
+    constructor Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl; ACheck: TCustomCheckBox);
+
+    procedure Commit; override;
+    procedure Load; override;
   end;
 
   { TOptStringFieldEditor }
 
-  TOptStringFieldEditor = class(TBaseFieldEditor)
+  TOptStringFieldEditor = class(TBaseOptFieldEditor)
   private
     FWidget: TCustomEdit;
-    FCheck: TCustomCheckBox;
+  protected
+    procedure LoadCustom; override;
+    procedure LoadDefault; override;
 
-    procedure CheckChange(Sender: TObject);
+    procedure SaveCustom; override;
+    procedure SaveDefault; override;
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
-
-    procedure Commit; override;
-    procedure Load; override;
   end;
 
   { TIntEditor }
@@ -73,7 +99,22 @@ type
 
     procedure Commit; override;
     procedure Load; override;
+  end;
 
+  { TOptIntEditor }
+
+  TOptIntEditor = class(TBaseOptFieldEditor)
+  private
+    FWidget: TCustomSpinEdit;
+    FDefaultValue: LongInt;
+  protected
+    procedure LoadCustom; override;
+    procedure LoadDefault; override;
+
+    procedure SaveCustom; override;
+    procedure SaveDefault; override;
+  public
+    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
   end;
 
 
@@ -88,91 +129,147 @@ type
 
 implementation
 
+{ TBaseOptFieldEditor }
+
+procedure TBaseOptFieldEditor.CheckChange(Sender: TObject);
+begin
+  FEditorControl.Enabled := FCheck.State = cbChecked;
+end;
+
+constructor TBaseOptFieldEditor.Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl;
+  ACheck: TCustomCheckBox);
+begin
+  inherited Create(ATarget, APropName, AEditorControl);
+  FCheck := ACheck;
+
+  FCheck.OnChange := @CheckChange;
+end;
+
+procedure TBaseOptFieldEditor.Commit;
+begin
+  if FCheck.State in [cbChecked] then
+  begin
+    SaveCustom;
+  end
+  else
+  begin
+    SaveDefault;
+  end;
+end;
+
+procedure TBaseOptFieldEditor.Load;
+begin
+  if IsDefault then
+  begin
+    LoadDefault;
+    FCheck.State:=cbUnchecked;
+  end
+  else
+  begin
+    LoadCustom;
+    FCheck.State:=cbChecked;
+  end;
+
+  CheckChange(FCheck);
+end;
+
+function TBaseOptFieldEditor.IsDefault: Boolean;
+begin
+  Result := IsDefaultValue(FTarget, FPropInfo);
+end;
+
+{ TOptIntEditor }
+
+procedure TOptIntEditor.LoadCustom;
+begin
+  FWidget.Value := GetOrdProp(FTarget, FPropInfo);
+end;
+
+procedure TOptIntEditor.LoadDefault;
+begin
+  FWidget.Value:=FDefaultValue;
+end;
+
+procedure TOptIntEditor.SaveCustom;
+begin
+  SetOrdProp(FTarget, FPropInfo, FWidget.Value);
+end;
+
+procedure TOptIntEditor.SaveDefault;
+begin
+  SetOrdProp(FTarget, FPropName, FDefaultValue);
+end;
+
+constructor TOptIntEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit;
+  ACheck: TCustomCheckBox);
+begin
+  inherited Create(ATarget, APropName, AWidget, ACheck);
+  FWidget := AWidget;
+
+  FDefaultValue:=FPropInfo^.Default;
+
+  if FDefaultValue = longint($80000000) then
+  begin
+    raise Exception.CreateFmt('TOptIntEditor: property %s has no default value',[APropName]);
+  end;
+end;
+
 { TIntEditor }
 
 constructor TIntEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
 begin
   FWidget := AWidget;
-  inherited Create(ATarget, APropName);
-
+  inherited Create(ATarget, APropName, AWidget);
 end;
 
 procedure TIntEditor.Commit;
-var
-  value: Int64;
 begin
-  value:=FWidget.Value;
-  SetOrdProp(FTarget, FPropInfo, value);
+  SetOrdProp(FTarget, FPropInfo, FWidget.Value);
 end;
 
 procedure TIntEditor.Load;
-var
-  value: Int64;
 begin
-  value := GetOrdProp(FTarget, FPropInfo);
+  FWidget.Value := GetOrdProp(FTarget, FPropInfo);
 end;
 
 { TOptStringFieldEditor }
 
-procedure TOptStringFieldEditor.CheckChange(Sender: TObject);
+procedure TOptStringFieldEditor.LoadCustom;
 begin
-  FWidget.Enabled := FCheck.State = cbChecked;
+  FWidget.Text := GetStrProp(FTarget, FPropInfo);
+end;
+
+procedure TOptStringFieldEditor.LoadDefault;
+begin
+  FWidget.Text := '';
+end;
+
+procedure TOptStringFieldEditor.SaveCustom;
+begin
+  SetStrProp(FTarget, FPropInfo, FWidget.Text);
+end;
+
+procedure TOptStringFieldEditor.SaveDefault;
+begin
+  SetStrProp(FTarget, FPropInfo, '');
 end;
 
 constructor TOptStringFieldEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;
   ACheck: TCustomCheckBox);
 begin
   FWidget := AWidget;
-  FCheck := ACheck;
-  Inherited Create(ATarget, APropName);
-
-  FCheck.OnChange := @CheckChange;
-end;
-
-procedure TOptStringFieldEditor.Commit;
-var
-  value: string;
-begin
-  if FCheck.State in [cbChecked] then
-  begin
-    value := FWidget.Text;
-  end
-  else
-  begin
-    value := '';
-  end;
-
-  SetStrProp(FTarget, FPropInfo, value);
-end;
-
-procedure TOptStringFieldEditor.Load;
-var
-  value: string;
-begin
-  value := GetStrProp(FTarget, FPropInfo);
-
-  if value = '' then
-  begin
-    FCheck.State:=cbUnchecked;
-    FWidget.Text:='';
-  end
-  else
-  begin
-    FCheck.State:=cbChecked;
-    FWidget.Text:=value;
-  end;
-
-  CheckChange(FCheck);
+  Inherited Create(ATarget, APropName, AWidget, ACheck);
 end;
 
 { TBaseFieldEditor }
 
-constructor TBaseFieldEditor.Create(ATarget: TObject; const APropName: string);
+constructor TBaseFieldEditor.Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl);
 begin
   FTarget := ATarget;
   FPropName := APropName;
 
   FPropInfo := GetPropInfo(ATarget, APropName);
+  FEditorControl := AEditorControl;
 end;
 
 { TFieldEditors }

@@ -69,6 +69,7 @@ type
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
 
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
+    procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
   public
     constructor Create(TheOwner: TComponent); override;
     procedure Commit; virtual;
@@ -458,6 +459,12 @@ end;
 procedure TBaseOptionsFrame.AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
 begin
   FFieldEditors.Add(TIntEditor.Create(ATarget, APropName, AWidget));
+end;
+
+procedure TBaseOptionsFrame.AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit;
+  ACheck: TCustomCheckBox);
+begin
+  FFieldEditors.Add(TOptIntEditor.Create(ATarget, APropName, AWidget, ACheck));
 end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

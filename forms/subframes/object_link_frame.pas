@@ -40,6 +40,7 @@ type
     procedure SetTypeFilter(AValue: TObjectOptionsClass);
   public
     function SelectedObject: TMapObject;
+    function SelectedIdentifier: AnsiString;
     procedure Load(AIdentifier: String);
 
     property Map: TVCMIMap read FMap write SetMap;
@@ -57,13 +58,11 @@ uses editor_consts;
 
 procedure TObjectLinkFrame.SetMap(AValue: TVCMIMap);
 begin
-  if FMap=AValue then Exit;
   FMap:=AValue;
 end;
 
 procedure TObjectLinkFrame.SetTypeFilter(AValue: TObjectOptionsClass);
 begin
-  if FTypeFilter=AValue then Exit;
   FTypeFilter:=AValue;
 end;
 
@@ -78,6 +77,17 @@ begin
   end;
 end;
 
+function TObjectLinkFrame.SelectedIdentifier: AnsiString;
+var
+  o: TMapObject;
+begin
+  o := SelectedObject;
+  if Assigned(o) then
+    Result := o.Identifier
+  else
+    Result := '';
+end;
+
 procedure TObjectLinkFrame.Load(AIdentifier: String);
 var
   map_object: TMapObject;
@@ -88,19 +98,15 @@ begin
     map_object := TMapObject(item);
 
     if map_object.Options is FTypeFilter then
-    begin
-      ObjectList.AddItem(Format('%s at %d %d %d',[map_object.&Type, map_object.L, map_object.X, map_object.Y]),map_object);
-    end
+      ObjectList.AddItem(map_object.DisplayName, map_object)
     else
       Continue;
 
     if (AIdentifier <> '') and (map_object.Identifier = AIdentifier) then
-    begin
       ObjectList.ItemIndex := ObjectList.Count-1; //select recently added object
-    end;
   end;
 
-  ObjectList.Invalidate;
+  //ObjectList.Invalidate;
 end;
 
 end.

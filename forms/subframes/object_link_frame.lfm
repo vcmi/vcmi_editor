@@ -6,8 +6,6 @@ object ObjectLinkFrame: TObjectLinkFrame
   ClientHeight = 240
   ClientWidth = 320
   TabOrder = 0
-  DesignLeft = 390
-  DesignTop = 180
   object ObjectList: TListBox
     Left = 0
     Height = 240

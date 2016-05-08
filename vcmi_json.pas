@@ -98,20 +98,19 @@ type
 
     function JSONStreamToJson(AStream: TStream): TJSONData;
     function JSONStreamToJSONObject(AStream: TStream; AName: string): TJSONObject;
-
   end;
 
   { TVCMIJSONStreamer }
 
   TVCMIJSONStreamer = class (TJSONStreamer)
   private
-
     function EmbeddedValueToJson(Aobject: TObject): TJSONData;
 
   protected
     procedure DoBeforeStreamProperty(const AObject: TObject;
       PropertyInfo: PPropInfo; var Skip: boolean); override;
     procedure DoPreparePropName(var PropName: AnsiString); override;
+
   public
     constructor Create(AOwner: TComponent); override;
 

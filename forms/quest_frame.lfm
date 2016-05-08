@@ -46,7 +46,6 @@ inherited QuestFrame: TQuestFrame
       Top = 5
       Width = 262
       Caption = 'Time limit (days):'
-      OnChange = cbTimeLimitChange
       TabOrder = 1
     end
     object TimeLimit: TSpinEdit
@@ -185,9 +184,9 @@ inherited QuestFrame: TQuestFrame
     Height = 431
     Top = 170
     Width = 817
-    ActivePage = tsResources
+    ActivePage = tsKillHero
     Align = alClient
-    TabIndex = 3
+    TabIndex = 4
     TabOrder = 2
     object NoMission: TTabSheet
       Caption = 'No mission'
@@ -371,6 +370,12 @@ inherited QuestFrame: TQuestFrame
         MinValue = 2000000000
         TabOrder = 7
       end
+    end
+    object tsKillHero: TTabSheet
+      Caption = 'Hero to kill'
+    end
+    object tsKillCreature: TTabSheet
+      Caption = 'Creature to kill'
     end
   end
 end

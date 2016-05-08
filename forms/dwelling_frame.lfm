@@ -4,8 +4,6 @@ inherited DwellingFrame: TDwellingFrame
   ClientHeight = 390
   ClientWidth = 525
   Constraints.MinWidth = 330
-  DesignLeft = 585
-  DesignTop = 184
   object gbLevel: TGroupBox[0]
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner

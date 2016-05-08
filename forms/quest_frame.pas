@@ -26,7 +26,8 @@ interface
 
 uses
   Classes, SysUtils, typinfo, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Spin, ComCtrls,
-  CheckLst, base_options_frame, gui_helpers, creature_set_frame, object_options, field_editors;
+  CheckLst, Menus, base_options_frame, gui_helpers, creature_set_frame, object_link_frame, object_options,
+  field_editors;
 
 type
 
@@ -64,6 +65,8 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     NoMission: TTabSheet;
+    tsKillCreature: TTabSheet;
+    tsKillHero: TTabSheet;
     tsResources: TTabSheet;
     tsCreatures: TTabSheet;
     tsArtifacts: TTabSheet;
@@ -73,10 +76,11 @@ type
     procedure cbCompletedTextChange(Sender: TObject);
     procedure cbFirstVisitTextChange(Sender: TObject);
     procedure cbNextVisitTextChange(Sender: TObject);
-    procedure cbTimeLimitChange(Sender: TObject);
     procedure MissionTypeChange(Sender: TObject);
   private
     FCreaturesEdit: TCreatureSetFrame;
+    FKillHeroEdit: TObjectLinkFrame;
+    FKillCreatureEdit: TObjectLinkFrame;
     FObject: TQuest;
     FResEditors: TFieldEditors;
     procedure SetupMissionTypes;
@@ -104,32 +108,23 @@ begin
   inherited Commit;//will save with field editors
   FObject.MissionType:=TQuestMission(MissionType.ItemIndex);
 
-  if cbTimeLimit.Checked then
-  begin
-    FObject.TimeLimit:=TimeLimit.Value;
-  end
-  else
-  begin
-    FObject.TimeLimit := -1
-  end;
-
   case FObject.MissionType of
   TQuestMission.None: ;
   TQuestMission.Level: ;
   TQuestMission.PrimaryStat: ;
-  TQuestMission.KillHero: ;
-  TQuestMission.KillCreature: ;
-  TQuestMission.Artifact: Artifacts.SaveTo(FObject.Artifacts);
-  TQuestMission.Army: FCreaturesEdit.Commit;
-  TQuestMission.Resources: FResEditors.Commit;
+  TQuestMission.KillHero:
+    FObject.KillTarget:=FKillHeroEdit.SelectedIdentifier;
+  TQuestMission.KillCreature:
+    FObject.KillTarget:=FKillCreatureEdit.SelectedIdentifier;
+  TQuestMission.Artifact:
+    Artifacts.SaveTo(FObject.Artifacts);
+  TQuestMission.Army:
+    FCreaturesEdit.Commit;
+  TQuestMission.Resources:
+    FResEditors.Commit;
   TQuestMission.Hero: ;
   TQuestMission.Player: ;
   end;
-end;
-
-procedure TQuestFrame.cbTimeLimitChange(Sender: TObject);
-begin
-  UpdateControls;
 end;
 
 procedure TQuestFrame.MissionTypeChange(Sender: TObject);
@@ -150,8 +145,8 @@ begin
   TQuestMission.None: OpenPage(NoMission) ;
   TQuestMission.Level: ;
   TQuestMission.PrimaryStat: ;
-  TQuestMission.KillHero: ;
-  TQuestMission.KillCreature: ;
+  TQuestMission.KillHero:OpenPage(tsKillHero) ;
+  TQuestMission.KillCreature: OpenPage(tsKillCreature);
   TQuestMission.Artifact: OpenPage(tsArtifacts);
   TQuestMission.Army: OpenPage(tsCreatures);
   TQuestMission.Resources: OpenPage(tsResources);
@@ -187,9 +182,15 @@ end;
 
 procedure TQuestFrame.Load;
 begin
+  FKillCreatureEdit.Map := Map;
+  FCreaturesEdit.Map := Map;
+  FKillHeroEdit.Map := Map;
+
   AddStrEditor(FObject, 'FirstVisitText', FirstVisitText, cbFirstVisitText);
   AddStrEditor(FObject, 'NextVisitText', NextVisitText, cbNextVisitText);
   AddStrEditor(FObject, 'CompletedText', CompletedText, cbCompletedText);
+
+  AddIntEditor(FObject, 'TimeLimit', TimeLimit, cbTimeLimit);
 
   FResEditors.Add(TIntEditor.Create(FObject.Resources, 'Wood', edWood));
   FResEditors.Add(TIntEditor.Create(FObject.Resources, 'Mercury', edMercury));
@@ -203,24 +204,18 @@ begin
   inherited Load;//do after editors setup; will load to field editors
 
   MissionType.ItemIndex := Integer(FObject.MissionType);
-  MissionTypeChange(nil);
 
-  cbTimeLimit.Checked := FObject.TimeLimit >= 0;
-  if cbTimeLimit.Checked then
-  begin
-    TimeLimit.Value := FObject.TimeLimit;
-  end
-  else
-  begin
-    TimeLimit.Value := 0;
-  end;
+  FKillHeroEdit.Load(FObject.KillTarget);
+  FKillCreatureEdit.Load(FObject.KillTarget);
 
   case FObject.MissionType of
   TQuestMission.None: ;
   TQuestMission.Level: ;
   TQuestMission.PrimaryStat: ;
-  TQuestMission.KillHero: ;
-  TQuestMission.KillCreature: ;
+  TQuestMission.KillHero:;
+
+  TQuestMission.KillCreature:;
+
   TQuestMission.Artifact:
     Artifacts.LoadItems(FObject.Artifacts);
   TQuestMission.Army:
@@ -230,6 +225,8 @@ begin
   TQuestMission.Hero: ;
   TQuestMission.Player: ;
   end;
+
+  MissionTypeChange(nil);
 
   UpdateControls;
 end;
@@ -257,9 +254,20 @@ begin
 
   FCreaturesEdit.Parent := tsCreatures;
   FCreaturesEdit.Align := alClient;
-  FCreaturesEdit.Map := Map;
+
 
   FResEditors := TFieldEditors.Create;
+
+  FKillCreatureEdit := TObjectLinkFrame.Create(tsKillCreature);
+
+  FKillCreatureEdit.TypeFilter := TCreatureOptions;
+  FKillCreatureEdit.Parent := tsKillCreature;
+  FKillCreatureEdit.Align:=alClient;
+
+  FKillHeroEdit := TObjectLinkFrame.Create(tsKillHero);
+  FKillHeroEdit.TypeFilter := THeroOptions;
+  FKillHeroEdit.Parent := tsKillHero;
+  FKillHeroEdit.Align := alClient;
 end;
 
 destructor TQuestFrame.Destroy;
