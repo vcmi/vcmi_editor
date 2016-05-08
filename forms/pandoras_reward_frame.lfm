@@ -10,9 +10,9 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
     Height = 315
     Top = 0
     Width = 544
-    ActivePage = tsSecondary
+    ActivePage = tsMain
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'

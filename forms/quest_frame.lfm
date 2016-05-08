@@ -93,7 +93,6 @@ inherited QuestFrame: TQuestFrame
         Align = alTop
         BorderSpacing.Around = 5
         Caption = 'First visit text:'
-        OnChange = cbFirstVisitTextChange
         TabOrder = 0
       end
       object FirstVisitText: TMemo
@@ -127,7 +126,6 @@ inherited QuestFrame: TQuestFrame
         Align = alTop
         BorderSpacing.Around = 5
         Caption = 'Next visit text:'
-        OnChange = cbNextVisitTextChange
         TabOrder = 1
       end
       object NextVisitText: TMemo
@@ -161,7 +159,6 @@ inherited QuestFrame: TQuestFrame
         Align = alTop
         BorderSpacing.Around = 5
         Caption = 'Completed text:'
-        OnChange = cbCompletedTextChange
         TabOrder = 1
       end
       object CompletedText: TMemo
@@ -184,12 +181,124 @@ inherited QuestFrame: TQuestFrame
     Height = 431
     Top = 170
     Width = 817
-    ActivePage = tsKillHero
+    ActivePage = tsHero
     Align = alClient
-    TabIndex = 4
+    TabIndex = 6
     TabOrder = 2
-    object NoMission: TTabSheet
-      Caption = 'No mission'
+    object tsDefault: TTabSheet
+      ChildSizing.LeftRightSpacing = 5
+      ChildSizing.TopBottomSpacing = 5
+      ChildSizing.VerticalSpacing = 5
+      ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+      ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+      ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+      ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 4
+      ClientHeight = 403
+      ClientWidth = 809
+      TabVisible = False
+      object lbAttack: TLabel
+        Left = 76
+        Height = 23
+        Top = 84
+        Width = 61
+        Caption = 'Attack:'
+        ParentColor = False
+      end
+      object Attack: TSpinEdit
+        Left = 213
+        Height = 23
+        Top = 84
+        Width = 150
+        Constraints.MinWidth = 150
+        MaxValue = 0
+        TabOrder = 0
+      end
+      object lbDefence: TLabel
+        Left = 439
+        Height = 23
+        Top = 84
+        Width = 62
+        Caption = 'Defence:'
+        ParentColor = False
+      end
+      object Defence: TSpinEdit
+        Left = 577
+        Height = 23
+        Top = 84
+        Width = 150
+        Constraints.MinWidth = 150
+        MaxValue = 0
+        TabOrder = 1
+      end
+      object lbSpellPower: TLabel
+        Left = 76
+        Height = 23
+        Top = 191
+        Width = 61
+        Caption = 'SpellPower:'
+        ParentColor = False
+      end
+      object SpellPower: TSpinEdit
+        Left = 213
+        Height = 23
+        Top = 191
+        Width = 150
+        Constraints.MinWidth = 150
+        MaxValue = 0
+        TabOrder = 2
+      end
+      object lbKnowledge: TLabel
+        Left = 439
+        Height = 23
+        Top = 191
+        Width = 62
+        Caption = 'Knowledge:'
+        ParentColor = False
+      end
+      object Knowledge: TSpinEdit
+        Left = 577
+        Height = 23
+        Top = 191
+        Width = 150
+        Constraints.MinWidth = 150
+        MaxValue = 0
+        TabOrder = 3
+      end
+      object lbPlayer: TLabel
+        Left = 76
+        Height = 23
+        Top = 298
+        Width = 61
+        Caption = 'Player:'
+        ParentColor = False
+      end
+      object Player: TComboBox
+        Left = 213
+        Height = 23
+        Top = 298
+        Width = 150
+        ItemHeight = 15
+        Style = csDropDownList
+        TabOrder = 4
+      end
+      object lbLevel: TLabel
+        Left = 439
+        Height = 23
+        Top = 298
+        Width = 62
+        Caption = 'Hero level:'
+        ParentColor = False
+      end
+      object Level: TSpinEdit
+        Left = 577
+        Height = 23
+        Top = 298
+        Width = 150
+        MaxValue = 199
+        TabOrder = 5
+      end
     end
     object tsArtifacts: TTabSheet
       Caption = 'Artifacts'
@@ -376,6 +485,21 @@ inherited QuestFrame: TQuestFrame
     end
     object tsKillCreature: TTabSheet
       Caption = 'Creature to kill'
+    end
+    object tsHero: TTabSheet
+      Caption = 'Hero:'
+      ClientHeight = 403
+      ClientWidth = 809
+      object Hero: TListBox
+        Left = 0
+        Height = 403
+        Top = 0
+        Width = 809
+        Align = alClient
+        Columns = 2
+        ItemHeight = 0
+        TabOrder = 0
+      end
     end
   end
 end

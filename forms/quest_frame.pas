@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, typinfo, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Spin, ComCtrls,
   CheckLst, Menus, base_options_frame, gui_helpers, creature_set_frame, object_link_frame, object_options,
-  field_editors;
+  field_editors, editor_types;
 
 type
 
@@ -39,14 +39,26 @@ type
     cbCompletedText: TCheckBox;
     cbTimeLimit: TCheckBox;
     Artifacts: TCheckListBox;
+    Attack: TSpinEdit;
+    lbLevel: TLabel;
+    Hero: TListBox;
+    Player: TComboBox;
     edCrystal: TSpinEdit;
+    Defence: TSpinEdit;
     edGems: TSpinEdit;
     edGold: TSpinEdit;
+    Knowledge: TSpinEdit;
     edMercury: TSpinEdit;
     edMithril: TSpinEdit;
     edOre: TSpinEdit;
+    lbPlayer: TLabel;
+    SpellPower: TSpinEdit;
     edSulfur: TSpinEdit;
     edWood: TSpinEdit;
+    lbAttack: TLabel;
+    lbDefence: TLabel;
+    lbSpellPower: TLabel;
+    lbKnowledge: TLabel;
     lbCrystal: TLabel;
     lbGems: TLabel;
     lbGold: TLabel;
@@ -64,7 +76,9 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
-    NoMission: TTabSheet;
+    Level: TSpinEdit;
+    tsHero: TTabSheet;
+    tsDefault: TTabSheet;
     tsKillCreature: TTabSheet;
     tsKillHero: TTabSheet;
     tsResources: TTabSheet;
@@ -73,9 +87,6 @@ type
     TimeLimit: TSpinEdit;
     TopPanel: TPanel;
     TextPanel: TPanel;
-    procedure cbCompletedTextChange(Sender: TObject);
-    procedure cbFirstVisitTextChange(Sender: TObject);
-    procedure cbNextVisitTextChange(Sender: TObject);
     procedure MissionTypeChange(Sender: TObject);
   private
     FCreaturesEdit: TCreatureSetFrame;
@@ -83,6 +94,7 @@ type
     FKillCreatureEdit: TObjectLinkFrame;
     FObject: TQuest;
     FResEditors: TFieldEditors;
+    FPrimaryStatsEditors: TFieldEditors;
     procedure SetupMissionTypes;
   protected
     procedure Load; override;
@@ -110,8 +122,10 @@ begin
 
   case FObject.MissionType of
   TQuestMission.None: ;
-  TQuestMission.Level: ;
-  TQuestMission.PrimaryStat: ;
+  TQuestMission.Level:
+    FObject.HeroLevel := Level.Value;
+  TQuestMission.PrimaryStat:
+    FPrimaryStatsEditors.Commit;
   TQuestMission.KillHero:
     FObject.KillTarget:=FKillHeroEdit.SelectedIdentifier;
   TQuestMission.KillCreature:
@@ -122,8 +136,10 @@ begin
     FCreaturesEdit.Commit;
   TQuestMission.Resources:
     FResEditors.Commit;
-  TQuestMission.Hero: ;
-  TQuestMission.Player: ;
+  TQuestMission.Hero:
+    FObject.Hero := Hero.SelectedIdentifier;
+  TQuestMission.Player:
+    FObject.Player := TPlayer(Player.ItemIndex);
   end;
 end;
 
@@ -132,27 +148,61 @@ procedure TQuestFrame.MissionTypeChange(Sender: TObject);
   procedure OpenPage(APage: TTabSheet);
   begin
     APage.PageControl.ActivePage := APage;
-    APage.TabVisible := true;
+    APage.TabVisible := APage <> tsDefault;
   end;
 
 var
   tp: TQuestMission;
+  flag: Boolean;
 begin
   Missions.HideAllTabs;
   tp := TQuestMission(MissionType.ItemIndex);
 
   case tp of
-  TQuestMission.None: OpenPage(NoMission) ;
-  TQuestMission.Level: ;
-  TQuestMission.PrimaryStat: ;
-  TQuestMission.KillHero:OpenPage(tsKillHero) ;
+  TQuestMission.None: OpenPage(tsDefault) ;
+  TQuestMission.Level: OpenPage(tsDefault);
+  TQuestMission.PrimaryStat: OpenPage(tsDefault);
+  TQuestMission.KillHero: OpenPage(tsKillHero);
   TQuestMission.KillCreature: OpenPage(tsKillCreature);
   TQuestMission.Artifact: OpenPage(tsArtifacts);
   TQuestMission.Army: OpenPage(tsCreatures);
   TQuestMission.Resources: OpenPage(tsResources);
-  TQuestMission.Hero: ;
-  TQuestMission.Player: ;
+  TQuestMission.Hero: OpenPage(tsHero);
+  TQuestMission.Player: OpenPage(tsDefault);
   end;
+
+  flag := tp = TQuestMission.PrimaryStat;
+
+  lbAttack.Enabled := flag;
+  Attack.Enabled := flag;
+  lbDefence.Enabled := flag;
+  Defence.Enabled := flag;
+  lbSpellPower.Enabled := flag;
+  SpellPower.Enabled := flag;
+  lbKnowledge.Enabled := flag;
+  Knowledge.Enabled := flag;
+
+  flag := tp = TQuestMission.Player;
+
+  lbPlayer.Enabled := flag;
+  Player.Enabled := flag;
+
+  if flag and (Player.ItemIndex < 0) then
+    Player.ItemIndex := 0;
+
+  flag := tp = TQuestMission.Level;
+
+  lbLevel.Enabled := flag;
+  Level.Enabled := flag;
+
+  flag := tp = TQuestMission.Hero;
+
+  if flag and (Hero.ItemIndex < 0) then
+  begin
+    Hero.ItemIndex := 0;
+  end;
+
+  UpdateControls;
 end;
 
 procedure TQuestFrame.SetupMissionTypes;
@@ -165,21 +215,6 @@ begin
   end;
 end;
 
-procedure TQuestFrame.cbFirstVisitTextChange(Sender: TObject);
-begin
-  UpdateControls;
-end;
-
-procedure TQuestFrame.cbCompletedTextChange(Sender: TObject);
-begin
-  UpdateControls;
-end;
-
-procedure TQuestFrame.cbNextVisitTextChange(Sender: TObject);
-begin
-  UpdateControls;
-end;
-
 procedure TQuestFrame.Load;
 begin
   FKillCreatureEdit.Map := Map;
@@ -189,7 +224,6 @@ begin
   AddStrEditor(FObject, 'FirstVisitText', FirstVisitText, cbFirstVisitText);
   AddStrEditor(FObject, 'NextVisitText', NextVisitText, cbNextVisitText);
   AddStrEditor(FObject, 'CompletedText', CompletedText, cbCompletedText);
-
   AddIntEditor(FObject, 'TimeLimit', TimeLimit, cbTimeLimit);
 
   FResEditors.Add(TIntEditor.Create(FObject.Resources, 'Wood', edWood));
@@ -200,6 +234,10 @@ begin
   FResEditors.Add(TIntEditor.Create(FObject.Resources, 'Gems', edGems));
   FResEditors.Add(TIntEditor.Create(FObject.Resources, 'Gold', edGold));
 
+  FPrimaryStatsEditors.Add(TIntEditor.Create(FObject.PrimarySkills, 'Attack', Attack));
+  FPrimaryStatsEditors.Add(TIntEditor.Create(FObject.PrimarySkills, 'Defence', Defence));
+  FPrimaryStatsEditors.Add(TIntEditor.Create(FObject.PrimarySkills, 'Spellpower', SpellPower));
+  FPrimaryStatsEditors.Add(TIntEditor.Create(FObject.PrimarySkills, 'Knowledge', Knowledge));
 
   inherited Load;//do after editors setup; will load to field editors
 
@@ -207,23 +245,25 @@ begin
 
   FKillHeroEdit.Load(FObject.KillTarget);
   FKillCreatureEdit.Load(FObject.KillTarget);
+  FCreaturesEdit.VisitQuest(FObject);
 
   case FObject.MissionType of
   TQuestMission.None: ;
-  TQuestMission.Level: ;
-  TQuestMission.PrimaryStat: ;
+  TQuestMission.Level:
+    Level.Value:=FObject.HeroLevel;
+  TQuestMission.PrimaryStat:
+    FPrimaryStatsEditors.Load;
   TQuestMission.KillHero:;
-
   TQuestMission.KillCreature:;
-
   TQuestMission.Artifact:
     Artifacts.LoadItems(FObject.Artifacts);
-  TQuestMission.Army:
-    FCreaturesEdit.VisitQuest(FObject);
+  TQuestMission.Army:;
   TQuestMission.Resources:
     FResEditors.Load;
-  TQuestMission.Hero: ;
-  TQuestMission.Player: ;
+  TQuestMission.Hero:
+    Hero.Select(ListsManager.HeroInfos, FObject.Hero);
+  TQuestMission.Player:
+    Player.ItemIndex := Integer(FObject.Player);
   end;
 
   MissionTypeChange(nil);
@@ -234,10 +274,6 @@ end;
 procedure TQuestFrame.UpdateControls;
 begin
   inherited UpdateControls;
-  TimeLimit.Enabled := cbTimeLimit.Checked;
-  FirstVisitText.Enabled:=cbFirstVisitText.Checked;
-  NextVisitText.Enabled:=cbNextVisitText.Checked;
-  CompletedText.Enabled:=cbCompletedText.Checked;
 end;
 
 constructor TQuestFrame.Create(TheOwner: TComponent);
@@ -246,15 +282,16 @@ begin
   MissionType.Clear;
   SetupMissionTypes();
   Missions.HideAllTabs;
-  Missions.ActivePage := NoMission;
+  Missions.ActivePage := tsDefault;
 
   Artifacts.FillItems(ListsManager.ArtifactInfos);
+
+  Hero.FillFromList(ListsManager.HeroInfos, '');
 
   FCreaturesEdit := TCreatureSetFrame.Create(Self);
 
   FCreaturesEdit.Parent := tsCreatures;
   FCreaturesEdit.Align := alClient;
-
 
   FResEditors := TFieldEditors.Create;
 
@@ -268,10 +305,15 @@ begin
   FKillHeroEdit.TypeFilter := THeroOptions;
   FKillHeroEdit.Parent := tsKillHero;
   FKillHeroEdit.Align := alClient;
+
+  FPrimaryStatsEditors := TFieldEditors.Create;
+
+  ListsManager.FillWithPlayers(Player.Items, False);
 end;
 
 destructor TQuestFrame.Destroy;
 begin
+  FPrimaryStatsEditors.Free;
   FResEditors.Free;
   inherited Destroy;
 end;

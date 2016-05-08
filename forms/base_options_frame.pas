@@ -72,6 +72,7 @@ type
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
   public
     constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Commit; virtual;
 
   public //IObjectOptionsVisitor
@@ -252,9 +253,14 @@ begin
   FFieldEditors := TFieldEditors.Create;
 end;
 
-procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
+destructor TBaseOptionsFrame.Destroy;
 begin
   FFieldEditors.Free;
+  inherited Destroy;
+end;
+
+procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
+begin
   FMainIdentifier:=AValue;
 
   ReloadDefaults();

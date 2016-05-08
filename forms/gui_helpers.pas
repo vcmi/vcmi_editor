@@ -60,6 +60,8 @@ type
     procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
     function SelectedInfo: TBaseInfo;
     function SelectedIdentifier: AnsiString;
+
+    procedure Select(AFullList: THashedCollection; AIdentifer: AnsiString);
   end;
 
   { TComboBoxHelper }
@@ -549,6 +551,11 @@ begin
     Result := SelectedInfo.Identifier
   else
     Result := '';
+end;
+
+procedure TListBoxHelper.Select(AFullList: THashedCollection; AIdentifer: AnsiString);
+begin
+  ItemIndex := AFullList.IndexOfName(AIdentifer);
 end;
 
 end.
