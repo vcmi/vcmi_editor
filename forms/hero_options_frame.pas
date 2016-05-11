@@ -34,14 +34,11 @@ type
 
   THeroOptionsFrame = class(THeroFrame)
     procedure cbExperienceChange(Sender: TObject);
-    procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
     procedure cbSexChange(Sender: TObject);
     procedure cbSkillsChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
     procedure edHeroClassChange(Sender: TObject);
-    procedure edNameChange(Sender: TObject);
-    procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
     procedure edTypeChange(Sender: TObject);
@@ -63,11 +60,6 @@ implementation
 { THeroOptionsFrame }
 
 procedure THeroOptionsFrame.cbExperienceChange(Sender: TObject);
-begin
-  inherited;
-end;
-
-procedure THeroOptionsFrame.cbNameChange(Sender: TObject);
 begin
   inherited;
 end;
@@ -138,16 +130,6 @@ begin
   edTypeChange(edType);
 end;
 
-procedure THeroOptionsFrame.edNameChange(Sender: TObject);
-begin
-  inherited;
-end;
-
-procedure THeroOptionsFrame.edNameEditingDone(Sender: TObject);
-begin
-  inherited;
-end;
-
 procedure THeroOptionsFrame.edPatrolKeyPress(Sender: TObject; var Key: char);
 begin
   inherited;
@@ -183,7 +165,6 @@ begin
 
   cbPortraitChange(cbPortrait);
   cbExperienceChange(cbExperience);
-  cbNameChange(cbName);
   cbSexChange(cbSex);
   cbSkillsChange(cbSkills);
 

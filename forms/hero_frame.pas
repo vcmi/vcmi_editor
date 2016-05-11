@@ -78,14 +78,12 @@ type
     Knowledge: TSpinEdit;
     procedure AttackChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
-    procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
     procedure cbSexChange(Sender: TObject);
     procedure cbSkillsChange(Sender: TObject);
     procedure CustomiseChange(Sender: TObject);
     procedure DefenceChange(Sender: TObject);
     procedure edExperienceEditingDone(Sender: TObject);
-    procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
     procedure edTypeChange(Sender: TObject);
@@ -108,9 +106,7 @@ type
   protected
     FEmptySkills:THeroPrimarySkills;
 
-    FCustomName: TLocalizedString;
     FCustomFemale: Boolean;
-    FCustomBiography: TLocalizedString;
     FCustomPortrait: AnsiString;
     FCustomExperience: UInt64;
 
@@ -154,11 +150,6 @@ implementation
 {$R *.lfm}
 
 { THeroFrame }
-
-procedure THeroFrame.edNameEditingDone(Sender: TObject);
-begin
-  FCustomName := edName.Text;
-end;
 
 procedure THeroFrame.edPatrolKeyPress(Sender: TObject; var Key: char);
 begin
@@ -214,6 +205,8 @@ end;
 procedure THeroFrame.Load;
 begin
   AddStrEditor(OptionsObj(), 'Biography', edBiography, cbBiography, @GetDefaultBiography);
+  AddStrEditor(OptionsObj(), 'Name', edName, cbName, @GetDefaultName);
+
   inherited Load;
 
   cbExperience.Checked := FOptions.GetExperience() <> 0;
@@ -223,18 +216,11 @@ begin
     FCustomExperience := GetDefaultExperience();
   cbExperienceChange(cbExperience);
 
-  cbName.Checked:=FOptions.GetName <> '';
-  if cbName.Checked then
-    FCustomName := FOptions.GetName()
-  else
-    FCustomName:=GetDefaultName();
-  cbNameChange(cbName);
-
   cbPortrait.Checked:=FOptions.GetPortrait <> '';
   if cbPortrait.Checked then
     FCustomPortrait := FOptions.GetPortrait()
   else
-    FCustomName:=GetDefaultPortrait();
+    FCustomPortrait:=GetDefaultPortrait();
   cbPortraitChange(cbPortrait);
 
   cbSkills.Checked:=not FOptions.GetPrimarySkills.IsDefault;
@@ -267,14 +253,6 @@ begin
   else
   begin
     FOptions.SetExperience(0);
-  end;
-
-  if cbName.Checked then
-  begin
-    FOptions.SetName(edName.Text);
-  end
-  else begin
-    FOptions.SetName('');
   end;
 
   if cbSex.Checked then
@@ -490,20 +468,12 @@ begin
   end;
 end;
 
-procedure THeroFrame.cbNameChange(Sender: TObject);
-begin
-  CustomiseChange(Sender);
-  UpdateText(edName, cbName, FCustomName,GetDefaultName);
-end;
-
 procedure THeroFrame.UpdateControls;
 begin
   inherited UpdateControls;
   edPortrait.Enabled:=cbPortrait.Checked;
   edExperience.Enabled:=cbExperience.Checked;
-  edName.Enabled:=cbName.Checked;
   edSex.Enabled:=cbSex.Checked;
-  edBiography.Enabled:=cbBiography.Checked;
   pnSkills.Enabled := cbSkills.Checked;
 end;
 

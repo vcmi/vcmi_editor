@@ -56,12 +56,9 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   end
   inherited edName: TEdit
     Top = 234
-    OnChange = edNameChange
-    OnEditingDone = edNameEditingDone
   end
   inherited cbName: TCheckBox
     Top = 234
-    OnChange = cbNameChange
   end
   inherited lbSex: TLabel
     Top = 277

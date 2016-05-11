@@ -178,7 +178,6 @@ inherited HeroFrame: THeroFrame
     Height = 23
     Top = 222
     Width = 419
-    OnEditingDone = edNameEditingDone
     TabOrder = 6
   end
   object cbName: TCheckBox[17]
@@ -188,7 +187,6 @@ inherited HeroFrame: THeroFrame
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
-    OnChange = cbNameChange
     TabOrder = 7
   end
   object lbSex: TLabel[18]
