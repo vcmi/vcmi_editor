@@ -33,7 +33,6 @@ type
   { THeroOptionsFrame }
 
   THeroOptionsFrame = class(THeroFrame)
-    procedure cbBiographyChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
@@ -62,11 +61,6 @@ implementation
 {$R *.lfm}
 
 { THeroOptionsFrame }
-
-procedure THeroOptionsFrame.cbBiographyChange(Sender: TObject);
-begin
-  inherited;
-end;
 
 procedure THeroOptionsFrame.cbExperienceChange(Sender: TObject);
 begin
@@ -167,10 +161,8 @@ end;
 procedure THeroOptionsFrame.edTypeChange(Sender: TObject);
 var
   editor: TCustomComboBox;
-
   info: TBaseInfo;
-
-  definition : THeroDefinition;
+  definition: THeroDefinition;
 begin
   FHeroTypeDefaults := nil;
 
@@ -193,9 +185,9 @@ begin
   cbExperienceChange(cbExperience);
   cbNameChange(cbName);
   cbSexChange(cbSex);
-  cbBiographyChange(cbBiography);
   cbSkillsChange(cbSkills);
-  UpdateControls;
+
+  inherited;
 end;
 
 procedure THeroOptionsFrame.Load;

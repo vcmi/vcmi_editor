@@ -67,6 +67,7 @@ type
     procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
+    procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; ACallback: TOnGetString);
 
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
@@ -427,7 +428,7 @@ end;
 
 procedure TBaseOptionsFrame.ReloadDefaults;
 begin
-
+  FFieldEditors.ReloadDefaults;
 end;
 
 procedure TBaseOptionsFrame.UpdateControls;
@@ -460,6 +461,12 @@ procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: stri
   ACheck: TCustomCheckBox);
 begin
   FFieldEditors.Add(TOptStringFieldEditor.Create(ATarget, APropName, AWidget, ACheck));
+end;
+
+procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;
+  ACheck: TCustomCheckBox; ACallback: TOnGetString);
+begin
+  FFieldEditors.Add(TOptStringFieldEditor.Create(ATarget, APropName, AWidget, ACheck, ACallback));
 end;
 
 procedure TBaseOptionsFrame.AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);

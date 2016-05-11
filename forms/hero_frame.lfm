@@ -61,6 +61,7 @@ inherited HeroFrame: THeroFrame
     Width = 419
     Constraints.MinWidth = 150
     ItemHeight = 15
+    OnChange = edTypeChange
     Style = csDropDownList
     TabOrder = 0
   end
@@ -251,7 +252,6 @@ inherited HeroFrame: THeroFrame
     Width = 90
     Caption = 'Customise'
     Constraints.MaxWidth = 90
-    OnChange = cbBiographyChange
     TabOrder = 9
   end
   object Label1: TLabel[24]

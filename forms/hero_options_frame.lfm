@@ -82,7 +82,6 @@ inherited HeroOptionsFrame: THeroOptionsFrame
   end
   inherited cbBiography: TCheckBox
     Top = 320
-    OnChange = cbBiographyChange
   end
   inherited Label1: TLabel
     Top = 440

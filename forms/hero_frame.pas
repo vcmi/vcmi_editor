@@ -77,7 +77,6 @@ type
     SpellPower: TSpinEdit;
     Knowledge: TSpinEdit;
     procedure AttackChange(Sender: TObject);
-    procedure cbBiographyChange(Sender: TObject);
     procedure cbExperienceChange(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
     procedure cbPortraitChange(Sender: TObject);
@@ -89,12 +88,15 @@ type
     procedure edNameEditingDone(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
+    procedure edTypeChange(Sender: TObject);
     procedure KnowledgeChange(Sender: TObject);
     procedure SpellPowerChange(Sender: TObject);
   private
     FOptions: IEditableHeroInfo;
     FHeroOptions: THeroOptions;
     FHeroDefinition: THeroDefinition;
+
+    function OptionsObj: TObject;
 
     procedure Save;
 
@@ -125,19 +127,14 @@ type
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
-
     procedure LoadSkills;
     procedure ResetSkills;
-
-
   protected
     procedure Load; override;
 
     procedure ApplyDefaults; override;
     procedure ReloadDefaults; override;
     procedure UpdateControls(); override;
-
-
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -179,6 +176,12 @@ begin
   end;
 end;
 
+procedure THeroFrame.edTypeChange(Sender: TObject);
+begin
+  ReloadDefaults;
+  UpdateControls;
+end;
+
 procedure THeroFrame.KnowledgeChange(Sender: TObject);
 begin
   if cbSkills.Checked then
@@ -195,14 +198,23 @@ begin
   end;
 end;
 
+function THeroFrame.OptionsObj: TObject;
+begin
+  if Assigned(FHeroOptions) then
+  begin
+    Result := FHeroOptions;
+  end
+  else
+  begin
+    Assert(Assigned(FHeroDefinition));
+    Result := FHeroDefinition;
+  end;
+end;
+
 procedure THeroFrame.Load;
 begin
-  cbBiography.Checked:=FOptions.GetBiography <> '';
-  if cbBiography.Checked then
-    FCustomBiography := FOptions.GetBiography()
-  else
-    FCustomBiography := GetDefaultBiography();
-  cbBiographyChange(cbBiography);
+  AddStrEditor(OptionsObj(), 'Biography', edBiography, cbBiography, @GetDefaultBiography);
+  inherited Load;
 
   cbExperience.Checked := FOptions.GetExperience() <> 0;
   if cbExperience.Checked then
@@ -248,15 +260,6 @@ end;
 
 procedure THeroFrame.Save;
 begin
-  if cbBiography.Checked then
-  begin
-    FOptions.SetBiography(edBiography.Text);
-  end
-  else
-  begin
-    FOptions.SetBiography('');
-  end;
-
   if cbExperience.Checked then
   begin
     FOptions.SetExperience(StrToInt64Def(edExperience.Text, 0));
@@ -479,12 +482,6 @@ begin
   end;
 end;
 
-procedure THeroFrame.cbBiographyChange(Sender: TObject);
-begin
-  CustomiseChange(Sender);
-  UpdateText(edBiography, cbBiography, FCustomBiography,GetDefaultBiography());
-end;
-
 procedure THeroFrame.AttackChange(Sender: TObject);
 begin
   if cbSkills.Checked then
@@ -538,8 +535,6 @@ end;
 procedure THeroFrame.ReloadDefaults;
 begin
   inherited ReloadDefaults;
-
-
 end;
 
 procedure THeroFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
