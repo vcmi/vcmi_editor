@@ -158,7 +158,11 @@ begin
 
     definition := Map.PredefinedHeroes.FindItem(info.Identifier);
 
-    InstanceType:=info.Identifier;
+    NotifyInstanceTypeChange(info.Identifier);
+  end
+  else
+  begin
+    NotifyInstanceTypeChange('');
   end;
 
   FHeroMapDefaults := definition;

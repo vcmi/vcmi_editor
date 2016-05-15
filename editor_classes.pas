@@ -250,6 +250,7 @@ type
     function GetPortrait: AnsiString;
     function GetPrimarySkills: THeroPrimarySkills;
     function GetSex: THeroSex;
+    function GetSecondarySkills: THeroSecondarySkills;
   end;
 
   IEditableHeroInfo = interface(IHeroInfo)

@@ -423,7 +423,7 @@ type
     function GetSex: THeroSex;
 
     function GetPrimarySkills: THeroPrimarySkills;
-
+    function GetSecondarySkills: THeroSecondarySkills;
   public// ISerializeNotify
     procedure BeforeSerialize(Sender:TObject);
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
@@ -863,6 +863,11 @@ begin
   c_info := THeroInfos(Collection).FOwner.HeroClasses[FHeroClass];
 
   Result := c_info.PrimarySkills;
+end;
+
+function THeroInfo.GetSecondarySkills: THeroSecondarySkills;
+begin
+  Result := FSkills;
 end;
 
 function THeroInfo.GetBiography: TLocalizedString;

@@ -454,6 +454,7 @@ type
     procedure SetSex(const AValue: THeroSex);
 
     function GetPrimarySkills: THeroPrimarySkills;
+    function GetSecondarySkills: THeroSecondarySkills;
   published
     property &type: AnsiString read FId write SetId;
 
@@ -2215,6 +2216,11 @@ end;
 function THeroOptions.GetPrimarySkills: THeroPrimarySkills;
 begin
   Result := FPrimarySkills;
+end;
+
+function THeroOptions.GetSecondarySkills: THeroSecondarySkills;
+begin
+  Result := FSecondarySkills;
 end;
 
 procedure THeroOptions.SetExperience(const AValue: UInt64);

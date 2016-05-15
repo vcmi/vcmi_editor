@@ -50,15 +50,18 @@ type
     procedure SecondarySkillSelectorEditingDone(Sender: TObject);
   private
     FObject: THeroSecondarySkills;
-    FCustomSkills, FDefaultSkills:  THeroSecondarySkills;
+    FCustomSkills, FDefaultSkills: THeroSecondarySkills;
+    FUseMapDefaults: Boolean;
 
     procedure SaveSkills;
     procedure LoadSkills(ASrc:THeroSecondarySkills);
 
-
+    procedure LoadDefaultSkills(AHeroId: AnsiString);
   protected
     procedure Load; override;
-    procedure UpdateControls();override;
+    procedure UpdateControls(); override;
+    procedure ApplyDefaults; override;
+    procedure ReloadDefaults; override;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -212,6 +215,39 @@ begin
   end;
 end;
 
+procedure THeroSkillsFrame.LoadDefaultSkills(AHeroId: AnsiString);
+var
+  FHeroTypeDefaults, FHeroMapDefaults: IHeroInfo;
+begin
+  FDefaultSkills.Clear;
+
+  FHeroTypeDefaults := nil;
+  FHeroMapDefaults := nil;
+
+  if AHeroId = '' then
+  begin
+    Exit;
+  end;
+
+  FHeroTypeDefaults := ListsManager.Heroes[AHeroId];
+
+  if FUseMapDefaults then
+  begin
+    FHeroMapDefaults := Map.PredefinedHeroes.FindItem(AHeroId);
+  end;
+
+  if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetSecondarySkills.Count <> 0) then
+  begin
+    FDefaultSkills.Assign(FHeroMapDefaults.GetSecondarySkills);
+    Exit;
+  end;
+
+  if Assigned(FHeroTypeDefaults) and (FHeroTypeDefaults.GetSecondarySkills.Count <> 0) then
+  begin
+    FDefaultSkills.Assign(FHeroTypeDefaults.GetSecondarySkills);
+  end;
+end;
+
 procedure THeroSkillsFrame.Load;
 begin
   cbCustomise.Checked:=FObject.Count <> 0;
@@ -237,14 +273,27 @@ begin
   edSecondarySkills.Enabled := cbCustomise.Checked;
 end;
 
+procedure THeroSkillsFrame.ApplyDefaults;
+begin
+  inherited ApplyDefaults;
+
+  if not cbCustomise.Checked then
+    LoadSkills(FDefaultSkills);
+end;
+
+procedure THeroSkillsFrame.ReloadDefaults;
+begin
+  inherited ReloadDefaults;
+  LoadDefaultSkills(InstanceType);
+end;
+
 procedure THeroSkillsFrame.VisitNormalHero(AOptions: TNormalHeroOptions);
 begin
   inherited VisitNormalHero(AOptions);
 
-  if AOptions.&type <> '' then
-  begin
-    FDefaultSkills.Assign(ListsManager.Heroes[AOptions.&type].Skills);
-  end;
+  FUseMapDefaults := True;
+
+  LoadDefaultSkills(AOptions.&type);
 
   FObject := AOptions.SecondarySkills;
   Load;
@@ -254,6 +303,10 @@ procedure THeroSkillsFrame.VisitRandomHero(AOptions: TRandomHeroOptions);
 begin
   inherited VisitRandomHero(AOptions);
 
+  FUseMapDefaults := True;
+
+  LoadDefaultSkills('');
+
   FObject := AOptions.SecondarySkills;
   Load;
 end;
@@ -262,10 +315,9 @@ procedure THeroSkillsFrame.VisitPrison(AOptions: TPrisonOptions);
 begin
   inherited VisitPrison(AOptions);
 
-  if AOptions.&type <> '' then
-  begin
-    FDefaultSkills.Assign(ListsManager.Heroes[AOptions.&type].Skills);
-  end;
+  FUseMapDefaults := True;
+
+  LoadDefaultSkills(AOptions.&type);
 
   FObject := AOptions.SecondarySkills;
   Load;
@@ -304,6 +356,11 @@ end;
 procedure THeroSkillsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
   inherited VisitHeroDefinition(AOptions);
+
+  FUseMapDefaults := False;
+
+  LoadDefaultSkills(AOptions.Identifier);
+
   FObject := AOptions.Skills;
   Load;
 end;

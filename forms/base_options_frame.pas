@@ -21,6 +21,8 @@ unit base_options_frame;
 
 {$I compilersetup.inc}
 
+{$INTERFACES CORBA}
+
 interface
 
 uses
@@ -30,17 +32,20 @@ uses
 
 type
 
+  IObjectOptionsNotify = interface
+    procedure InstanceTypeChanged(ANewValue: AnsiString);
+  end;
+
    //todo: FIXME reload defaults of all frames (f.e. on type change)
 
   { TBaseOptionsFrame }
 
-  TBaseOptionsFrame = class(TFrame,IObjectOptionsVisitor)
+  TBaseOptionsFrame = class(TFrame, IObjectOptionsVisitor, IObjectOptionsNotify)
   private
     FListsManager: TListsManager;
     FMainIdentifier: AnsiString;
     FMap: TVCMIMap;
     FFieldEditors: TFieldEditors;
-    procedure SetMainIdentifier(AValue: AnsiString);
     procedure SetMap(AValue: TVCMIMap);
   protected
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
@@ -49,13 +54,13 @@ type
     procedure VisitNormalTown({%H-}AOptions: TTownOptions);virtual;
     procedure VisitRandomTown({%H-}AOptions: TTownOptions);virtual;
 
-    procedure HandleStringGridKeyDown(Sender: TObject;  var Key: Word; Shift: TShiftState);
+    procedure HandleStringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure HandleStringGridResize(Sender: TObject);
 
     procedure ReadOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
     procedure WriteOwner(AOptions: TObjectOptions; AEditor: TCustomRadioGroup);
 
-    property InstanceType: AnsiString read FMainIdentifier write SetMainIdentifier;
+    property InstanceType: AnsiString read FMainIdentifier;
 
     procedure Load; virtual;
 
@@ -71,10 +76,15 @@ type
 
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
+
+    procedure NotifyInstanceTypeChange(ANewValue: AnsiString);
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure Commit; virtual;
+
+  public
+    procedure InstanceTypeChanged(ANewValue: AnsiString); virtual;
 
   public //IObjectOptionsVisitor
     procedure VisitLocalEvent({%H-}AOptions: TLocalEventOptions); virtual;
@@ -124,7 +134,7 @@ type
 
   TBaseOptionsFrameVector = specialize TVector<TBaseOptionsFrame>;
 
-  TBaseOptionsFrameList = class(TComponent)
+  TBaseOptionsFrameList = class(TComponent, IObjectOptionsNotify)
   private
     FListsManager: TListsManager;
     FMap: TVCMIMap;
@@ -133,6 +143,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure InstanceTypeChanged(ANewValue: AnsiString);
 
     procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: TObjectOptions; AParent:TTabSheet);
     procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: THeroDefinition; AParent:TTabSheet);
@@ -161,6 +173,16 @@ destructor TBaseOptionsFrameList.Destroy;
 begin
   FData.Free;
   inherited Destroy;
+end;
+
+procedure TBaseOptionsFrameList.InstanceTypeChanged(ANewValue: AnsiString);
+var
+  i: SizeInt;
+begin
+  for i := 0 to FData.Size - 1 do
+  begin
+    FData[i].InstanceTypeChanged(ANewValue);
+  end;
 end;
 
 procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass;
@@ -234,6 +256,14 @@ begin
   FFieldEditors.Commit;
 end;
 
+procedure TBaseOptionsFrame.InstanceTypeChanged(ANewValue: AnsiString);
+begin
+  FMainIdentifier:=ANewValue;
+
+  ReloadDefaults();
+  ApplyDefaults();
+end;
+
 constructor TBaseOptionsFrame.Create(TheOwner: TComponent);
 begin
   if TheOwner is TBaseOptionsFrameList  then
@@ -258,14 +288,6 @@ destructor TBaseOptionsFrame.Destroy;
 begin
   FFieldEditors.Free;
   inherited Destroy;
-end;
-
-procedure TBaseOptionsFrame.SetMainIdentifier(AValue: AnsiString);
-begin
-  FMainIdentifier:=AValue;
-
-  ReloadDefaults();
-  ApplyDefaults();
 end;
 
 procedure TBaseOptionsFrame.SetMap(AValue: TVCMIMap);
@@ -478,6 +500,18 @@ procedure TBaseOptionsFrame.AddIntEditor(ATarget: TObject; const APropName: stri
   ACheck: TCustomCheckBox);
 begin
   FFieldEditors.Add(TOptIntEditor.Create(ATarget, APropName, AWidget, ACheck));
+end;
+
+procedure TBaseOptionsFrame.NotifyInstanceTypeChange(ANewValue: AnsiString);
+begin
+  if Owner is TBaseOptionsFrameList then
+  begin
+    TBaseOptionsFrameList(Owner).InstanceTypeChanged(ANewValue);
+  end
+  else if Owner is TBaseOptionsFrame then
+  begin
+    TBaseOptionsFrame(Owner).InstanceTypeChanged(ANewValue);
+  end
 end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

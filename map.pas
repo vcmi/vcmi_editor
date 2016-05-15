@@ -565,6 +565,7 @@ type
     procedure SetSex(const AValue: THeroSex);
 
     function GetPrimarySkills: THeroPrimarySkills;
+    function GetSecondarySkills: THeroSecondarySkills;
   published
     property AvailableFor: TPlayers read FAvailableFor write FAvailableFor default ALL_PLAYERS;
 
@@ -1325,6 +1326,11 @@ end;
 function THeroDefinition.GetPrimarySkills: THeroPrimarySkills;
 begin
   Result := FPrimarySkills;
+end;
+
+function THeroDefinition.GetSecondarySkills: THeroSecondarySkills;
+begin
+  Result := FSkills;
 end;
 
 function THeroDefinition.IsSpellBookStored: Boolean;

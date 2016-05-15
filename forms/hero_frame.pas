@@ -169,7 +169,6 @@ end;
 
 procedure THeroFrame.edTypeChange(Sender: TObject);
 begin
-  ReloadDefaults;
   UpdateControls;
 end;
 
@@ -592,7 +591,7 @@ begin
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
 
-  InstanceType:=AOptions.&Type;
+  NotifyInstanceTypeChange(AOptions.&Type);
 
   Load;
 
@@ -631,7 +630,7 @@ begin
   edHeroClass.Enabled := false;
   edType.Enabled:=false;
 
-  InstanceType:=AOptions.Identifier;
+  NotifyInstanceTypeChange(AOptions.Identifier);
 
   h_info := ListsManager.Heroes[AOptions.Identifier];
   c_info := ListsManager.HeroClasses[h_info.&Class];
