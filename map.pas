@@ -577,8 +577,6 @@ type
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
-
-
   public //manual streaming
     property Sex:THeroSex read FSex write SetSex default THeroSex.default;
   end;

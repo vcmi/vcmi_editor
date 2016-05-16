@@ -51,7 +51,6 @@ type
   private
     FObject: THeroSecondarySkills;
     FCustomSkills, FDefaultSkills: THeroSecondarySkills;
-    FUseMapDefaults: Boolean;
 
     procedure SaveSkills;
     procedure LoadSkills(ASrc:THeroSecondarySkills);
@@ -237,15 +236,9 @@ begin
   end;
 
   if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetSecondarySkills.Count <> 0) then
-  begin
-    FDefaultSkills.Assign(FHeroMapDefaults.GetSecondarySkills);
-    Exit;
-  end;
-
-  if Assigned(FHeroTypeDefaults) and (FHeroTypeDefaults.GetSecondarySkills.Count <> 0) then
-  begin
+    FDefaultSkills.Assign(FHeroMapDefaults.GetSecondarySkills)
+  else if Assigned(FHeroTypeDefaults) then
     FDefaultSkills.Assign(FHeroTypeDefaults.GetSecondarySkills);
-  end;
 end;
 
 procedure THeroSkillsFrame.Load;

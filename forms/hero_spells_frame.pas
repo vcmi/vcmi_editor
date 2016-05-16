@@ -35,7 +35,6 @@ type
 
   THeroSpellsFrame = class(TBaseOptionsFrame)
     cbCustomise: TCheckBox;
-    Panel1: TPanel;
     Spellbook: TCheckListBox;
     procedure FrameResize(Sender: TObject);
   private
@@ -49,9 +48,12 @@ type
 
     procedure cbCustomiseChange(Sender: TObject);
 
-    procedure LoadTypeDefaults(AType: AnsiString);
+    procedure LoadDefaultSpells(AHeroId: AnsiString);
+
   protected
     procedure Load; override;
+    procedure ApplyDefaults; override;
+    procedure ReloadDefaults; override;
     procedure UpdateControls; override;
   public
     constructor Create(TheOwner: TComponent); override;
@@ -80,18 +82,28 @@ begin
   UpdateControls;
 end;
 
-procedure THeroSpellsFrame.LoadTypeDefaults(AType: AnsiString);
+procedure THeroSpellsFrame.LoadDefaultSpells(AHeroId: AnsiString);
 var
   hero_info: THeroInfo;
+  definition: THeroDefinition;
 begin
   FDefaults.Clear;
 
-  if AType = '' then
+  if AHeroId = '' then
     Exit;
 
-  hero_info := map.ListsManager.Heroes[AType];
+  hero_info := ListsManager.Heroes[AHeroId];
+  definition := nil;
 
-  FDefaults.Assign(hero_info.Spellbook);
+  if FUseMapDefaults then
+  begin
+    definition := Map.PredefinedHeroes.FindItem(AHeroId);
+  end;
+
+  if Assigned(definition) and (definition.Spellbook.Count <> 0) then
+    FDefaults.Assign(definition.Spellbook)
+  else if Assigned(hero_info) then
+    FDefaults.Assign(hero_info.SpellBook);
 end;
 
 constructor THeroSpellsFrame.Create(TheOwner: TComponent);
@@ -115,13 +127,25 @@ end;
 
 procedure THeroSpellsFrame.Load;
 begin
-  Spellbook.FillFrom(Map.ListsManager.SpellInfos, FCache);
+  Spellbook.FillFrom(ListsManager.SpellInfos, FCache);
+end;
+
+procedure THeroSpellsFrame.ApplyDefaults;
+begin
+  inherited ApplyDefaults;
+  Spellbook.FillFrom(ListsManager.SpellInfos, FCache);
+end;
+
+procedure THeroSpellsFrame.ReloadDefaults;
+begin
+  inherited ReloadDefaults;
+  LoadDefaultSpells(InstanceType);
 end;
 
 procedure THeroSpellsFrame.Clear;
 begin
   Spellbook.SaveTo(FCache);
-  Spellbook.FillFrom(Map.ListsManager.SpellInfos, FDefaults);
+  Spellbook.FillFrom(ListsManager.SpellInfos, FDefaults);
 end;
 
 procedure THeroSpellsFrame.UpdateControls;
@@ -152,32 +176,33 @@ begin
   begin
     FTarget.Assign(FCache);
   end;
-
 end;
 
 procedure THeroSpellsFrame.VisitHero(AOptions: THeroOptions);
-var
-  definition: THeroDefinition;
 begin
+  FUseMapDefaults:=True;
   inherited VisitHero(AOptions);//continue dispatch
+
   FTarget := AOptions.SpellBook;
   FCache.Assign(FTarget);
 
-  definition := Map.PredefinedHeroes.FindItem(AOptions.&type);
+  LoadDefaultSpells(AOptions.&type);
 
-  if Assigned(definition) then
-    FDefaults.Assign(definition.SpellBook)
-  else
-     LoadTypeDefaults(AOptions.&type);
   ReadData;
 end;
 
 procedure THeroSpellsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
+  FUseMapDefaults:=False;
   inherited VisitHeroDefinition(AOptions);//continue dispatch
+
+  LoadDefaultSpells(AOptions.Identifier);
+
   FTarget := AOptions.SpellBook;
   FCache.Assign(FTarget);
-  LoadTypeDefaults(AOptions.Identifier);
+
+  LoadDefaultSpells(AOptions.Identifier);
+
   ReadData;
 end;
 

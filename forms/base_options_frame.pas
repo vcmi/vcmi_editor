@@ -48,6 +48,8 @@ type
     FFieldEditors: TFieldEditors;
     procedure SetMap(AValue: TVCMIMap);
   protected
+    FUseMapDefaults: Boolean;
+
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
     procedure SaveResourceSet(AParentControl: TWinControl; ADest: TResourceSet);
 

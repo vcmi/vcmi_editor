@@ -3,8 +3,6 @@ inherited HeroArtifactsFrame: THeroArtifactsFrame
   Width = 514
   ClientHeight = 525
   ClientWidth = 514
-  DesignLeft = 453
-  DesignTop = 207
   object Splitter1: TSplitter[0]
     Cursor = crVSplit
     Left = 0

@@ -61,9 +61,7 @@ type
     procedure CreateSlots;
     procedure PrepareSlots;
 
-
     procedure Clear;
-
 
     procedure Load(AOptions: THeroArtifacts);
   protected
