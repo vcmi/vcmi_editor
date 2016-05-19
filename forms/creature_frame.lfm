@@ -70,9 +70,9 @@ inherited CreatureFrame: TCreatureFrame
     )
     TabOrder = 1
     object edNeverFlees: TCheckBox
-      Left = 6
-      Height = 29
-      Top = 0
+      Left = 210
+      Height = 27
+      Top = 58
       Width = 205
       Caption = 'Never flees'
       TabOrder = 0

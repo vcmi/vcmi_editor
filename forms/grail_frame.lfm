@@ -1,17 +1,15 @@
 inherited GrailFrame: TGrailFrame
-  DesignLeft = 332
-  DesignTop = 181
   object lbRadius: TLabel[0]
     Left = 11
-    Height = 14
+    Height = 15
     Top = 11
-    Width = 126
+    Width = 140
     Caption = 'Allowed placement radius:'
     ParentColor = False
   end
   object edRadius: TSpinEdit[1]
     Left = 11
-    Height = 21
+    Height = 23
     Top = 33
     Width = 126
     TabOrder = 0
