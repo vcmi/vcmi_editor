@@ -896,7 +896,7 @@ begin
   ObjectsView.SharedControl := RootManager.SharedContext;
 
   RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
-  RoadType.Items.AddObject(rsRoadTypeGrazvel, TObject(PtrInt(TRoadType.grazvelRoad)));
+  RoadType.Items.AddObject(rsRoadTypeGravel, TObject(PtrInt(TRoadType.gravelRoad)));
   RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
   RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
 
