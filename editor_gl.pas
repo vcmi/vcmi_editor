@@ -481,8 +481,8 @@ begin
         end;
       3:begin
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
           uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
 
           uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
           uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
@@ -864,8 +864,8 @@ var
   vertex_data: packed array[1..12] of GLfloat;
 begin
   vertex_data[1] := x;   vertex_data[2] := y;
-  vertex_data[3] := x+w; vertex_data[4] := y+ifthen(mir<>3, 0, h);
-  vertex_data[5] := x+w; vertex_data[6] := y+ifthen(mir=3, 0, h);
+  vertex_data[3] := x+w; vertex_data[4] := y;
+  vertex_data[5] := x+w; vertex_data[6] := y+h;
 
   vertex_data[7] := x;   vertex_data[8] := y;
   vertex_data[9] := x+w; vertex_data[10] := y+h;
