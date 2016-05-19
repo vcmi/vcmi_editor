@@ -17,7 +17,7 @@ resourcestring
 
   rsRoadTypeNone = 'Delete';
   rsRoadTypeDirt = 'Dirt';
-  rsRoadTypeGrazvel= 'Grazvel';
+  rsRoadTypeGravel= 'Gravel';
   rsRoadTypeCobblestone = 'Cobblestone';
 
   rsRiverTypeNone = 'Delete';

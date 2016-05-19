@@ -1356,6 +1356,7 @@ object fMain: TfMain
         Width = 200
         Anchors = [akTop, akLeft, akRight, akBottom]
         OnMouseDown = MinimapMouseDown
+        OnMouseMove = MinimapMouseMove
         OnPaint = MinimapPaint
       end
     end
