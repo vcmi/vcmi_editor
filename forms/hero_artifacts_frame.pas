@@ -52,6 +52,7 @@ type
     procedure cbCustomiseChange(Sender: TObject);
   private
     FOptions: THeroArtifacts;
+    FMapDefaults: THeroArtifacts;
 
     FSlotCaptions: array[0..ARTIFACT_SLOT_COUNT-1] of TLocalizedString;
 
@@ -63,9 +64,15 @@ type
 
     procedure Clear;
 
+    procedure LoadDefaultArtifacts(AHeroID: AnsiString);
+
     procedure Load(AOptions: THeroArtifacts);
+
+    procedure DoLoad(ASrc: THeroArtifacts);
   protected
     procedure Load; override;
+    procedure ReloadDefaults; override;
+    procedure ApplyDefaults; override;
     procedure UpdateControls;override;
   public
     constructor Create(TheOwner: TComponent); override;
@@ -214,6 +221,87 @@ begin
 end;
 
 procedure THeroArtifactsFrame.Load;
+begin
+  DoLoad(FOptions);
+end;
+
+procedure THeroArtifactsFrame.ReloadDefaults;
+begin
+  inherited ReloadDefaults;
+
+  if FUseMapDefaults then
+    LoadDefaultArtifacts(InstanceType);
+end;
+
+procedure THeroArtifactsFrame.ApplyDefaults;
+begin
+  inherited ApplyDefaults;
+
+  if not cbCustomise.Checked then
+  begin
+    Clear;
+  end;
+end;
+
+procedure THeroArtifactsFrame.Clear;
+var
+  slot: Integer;
+begin
+  if FUseMapDefaults and Assigned(FMapDefaults) and not FMapDefaults.IsEmpty then
+  begin
+    DoLoad(FMapDefaults);
+  end
+  else
+  begin
+    BackPack.RowCount:=BackPack.FixedRows;
+
+    for slot in [0..ARTIFACT_SLOT_COUNT-1] do
+    begin
+      FSlotEditors[slot].ItemIndex := -1;
+    end;
+  end;
+end;
+
+procedure THeroArtifactsFrame.LoadDefaultArtifacts(AHeroID: AnsiString);
+var
+  definition: THeroDefinition;
+begin
+  definition := map.PredefinedHeroes.FindItem(AHeroID);
+
+  if Assigned(definition) then
+  begin
+    FMapDefaults := definition.Artifacts;
+  end
+  else
+  begin
+    FMapDefaults := nil;
+  end;
+end;
+
+procedure THeroArtifactsFrame.UpdateControls;
+begin
+  inherited UpdateControls;
+  BackPack.Enabled := cbCustomise.Checked;
+  pnSlots.Enabled := cbCustomise.Checked;
+
+  if cbCustomise.Checked then
+    Load()
+  else
+    Clear();
+end;
+
+procedure THeroArtifactsFrame.Load(AOptions: THeroArtifacts);
+begin
+  FillItems(BackpackSelector.Items, ListsManager.ArtifactInfos);
+  FOptions := AOptions;
+  cbCustomise.OnChange:=nil;
+  cbCustomise.Checked:=not FOptions.IsEmpty;
+  cbCustomise.OnChange:=@cbCustomiseChange;
+
+  UpdateControls;
+end;
+
+procedure THeroArtifactsFrame.DoLoad(ASrc: THeroArtifacts);
 var
   slot: Integer;
 
@@ -231,16 +319,16 @@ begin
 
     for slot in [0..ARTIFACT_SLOT_COUNT-1] do
     begin
-      FSlotEditors[slot].SetValueWithEmptyOption(ListsManager.ArtifactSlotMap[slot], FOptions.BySlotNumber[slot]);
+      FSlotEditors[slot].SetValueWithEmptyOption(ListsManager.ArtifactSlotMap[slot], ASrc.BySlotNumber[slot]);
     end;
 
-    BackPack.RowCount:=BackPack.FixedRows + FOptions.Backpack.Count;
+    BackPack.RowCount:=BackPack.FixedRows + ASrc.Backpack.Count;
 
     BackPack.Clean([gzNormal, gzInvalid]);
 
     row := BackPack.FixedRows;
 
-    for art in FOptions.Backpack do
+    for art in ASrc.Backpack do
     begin
       info := (ListsManager.ArtifactInfos.FindItem(art) as TBaseInfo);
 
@@ -256,41 +344,6 @@ begin
     BackPack.EndUpdate(True);
     EnableAutoSizing;
   end;
-
-end;
-
-procedure THeroArtifactsFrame.Clear;
-var
-  slot: Integer;
-begin
-  BackPack.RowCount:=BackPack.FixedRows;
-
-  for slot in [0..ARTIFACT_SLOT_COUNT-1] do
-  begin
-    FSlotEditors[slot].ItemIndex := -1; //todo: use map specific defaults
-  end;
-end;
-
-procedure THeroArtifactsFrame.UpdateControls;
-begin
-  inherited UpdateControls;
-  BackPack.Enabled := cbCustomise.Checked;
-  pnSlots.Enabled:=cbCustomise.Checked;
-
-  if cbCustomise.Checked then
-    Load()
-  else
-    Clear();
-end;
-
-procedure THeroArtifactsFrame.Load(AOptions: THeroArtifacts);
-begin
-  FillItems(BackpackSelector.Items, Map.ListsManager.ArtifactInfos);
-  FOptions := AOptions;
-  cbCustomise.OnChange:=nil;
-  cbCustomise.Checked:=not FOptions.IsEmpty;
-  cbCustomise.OnChange:=@cbCustomiseChange;
-  UpdateControls;
 end;
 
 constructor THeroArtifactsFrame.Create(TheOwner: TComponent);
@@ -335,6 +388,10 @@ end;
 procedure THeroArtifactsFrame.VisitHero(AOptions: THeroOptions);
 begin
   PrepareSlots;
+  FUseMapDefaults:=True;
+
+  LoadDefaultArtifacts(AOptions.&type);
+
   inherited VisitHero(AOptions);
   Load(AOptions.Artifacts);
 end;
@@ -342,6 +399,8 @@ end;
 procedure THeroArtifactsFrame.VisitHeroDefinition(AOptions: THeroDefinition);
 begin
   PrepareSlots;
+  FUseMapDefaults:=False;
+
   inherited VisitHeroDefinition(AOptions);
   Load(AOptions.Artifacts);
 end;
