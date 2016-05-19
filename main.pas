@@ -245,6 +245,8 @@ type
     procedure MapViewPaint(Sender: TObject);
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure MinimapMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure ObjectsSearchButtonClick(Sender: TObject);
     procedure ObjectsSearchChange(Sender: TObject);
     procedure ObjectsSearchEditingDone(Sender: TObject);
@@ -360,6 +362,7 @@ type
     procedure SetZoomIndex(AIndex: Integer);
     procedure SetTileSize(ASize: Integer);
 
+    procedure MapScrollByMinimap(x,y: integer);
     procedure SetMapPosition(APosition:TPoint);
     procedure SetMapViewMouse(x,y: integer);
 
@@ -1618,11 +1621,30 @@ begin
   FMapViewState.FinishFrame;
 end;
 
-procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+procedure TfMain.MapScrollByMinimap(x,y: integer);
 var
   cx,cy: Double;
   pos: TPoint;
+begin
+  //set map view center position to mouse pos
+
+  cx := x / (Minimap.Width);
+  cy := y / (Minimap.Height);
+
+  pos.x := round(cx * FMap.CurrentLevel.Width);
+  pos.y := round(cy * FMap.CurrentLevel.Height);
+
+  pos.x := pos.x- (FViewTilesH div 2);
+  pos.y := pos.y- (FViewTilesV div 2);
+
+  pos.x := Max(pos.x, 0);
+  pos.y := Max(pos.y, 0);
+
+  SetMapPosition(pos);
+end;
+
+procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 begin
   if not Assigned(FMap) then
   begin
@@ -1631,21 +1653,16 @@ begin
 
   if (Button = TMouseButton.mbLeft) and ([ssShift,ssCtrl,ssAlt] * Shift = []) then
   begin
-    //set map view center position to mouse pos
+    MapScrollByMinimap(X,Y);
+  end;
+end;
 
-    cx := X / (Minimap.Width);
-    cy := Y / (Minimap.Height);
-
-    pos.x := round(cx * FMap.CurrentLevel.Width);
-    pos.y := round(cy * FMap.CurrentLevel.Height);
-
-    pos.x := pos.x- (FViewTilesH div 2);
-    pos.y := pos.y- (FViewTilesV div 2);
-
-    pos.x := Max(pos.x, 0);
-    pos.y := Max(pos.y, 0);
-
-    SetMapPosition(pos);
+procedure TfMain.MinimapMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  if ssLeft in Shift then
+  begin
+    MapScrollByMinimap(X,Y);
   end;
 end;
 
