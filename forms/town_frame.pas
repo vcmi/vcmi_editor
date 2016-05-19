@@ -41,14 +41,10 @@ type
     TypLabel: TLabel;
     Typ: TLabel;
     TypPlaceholder: TLabel;
-    procedure NameCustomiseChange(Sender: TObject);
   private
     FObject: TTownOptions;
-    FCustomName: TLocalizedString;
-
   protected
     procedure Load; override;
-
     procedure UpdateControls; override;
   public
     procedure Commit; override;
@@ -61,47 +57,27 @@ implementation
 
 { TTownOptionsFrame }
 
-procedure TTownOptionsFrame.NameCustomiseChange(Sender: TObject);
-begin
-  UpdateControls;
-
-  DoUpdateText(edName, NameCustomise, FCustomName, '');
-end;
-
 procedure TTownOptionsFrame.Load;
 begin
+  inherited Load;
   ReadOwner(FObject, edOwner);
-
-  NameCustomise.Checked:=FObject.Name <> '';
-
-  FCustomName:=FObject.Name;
-
-  NameCustomiseChange(NameCustomise);
 end;
 
 procedure TTownOptionsFrame.UpdateControls;
 begin
   inherited UpdateControls;
-  edName.Enabled := NameCustomise.Checked;
 end;
 
 procedure TTownOptionsFrame.Commit;
 begin
   inherited Commit;
   WriteOwner(FObject, edOwner);
-  if NameCustomise.Checked then
-  begin
-    FObject.Name := edName.Text;
-  end
-  else
-  begin
-    FObject.Name := '';
-  end;
 end;
 
 procedure TTownOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
   ListsManager.FillWithPlayers(edOwner.Items, True);
+  AddStrEditor(AOptions, 'Name', edName, NameCustomise);
   inherited VisitTown(AOptions);
   FObject:=AOptions;
   Load;

@@ -18,11 +18,9 @@ type
     edAmount: TSpinEdit;
     GroupMessage: TGroupBox;
     edMessage: TMemo;
-    procedure cbRandomChange(Sender: TObject);
   private
     FOptions: TResourceOptions;
   protected
-    procedure UpdateControls; override;
   public
     procedure Commit; override;
     procedure VisitResource(AOptions: TResourceOptions); override;
@@ -34,40 +32,24 @@ implementation
 
 { TResourceFrame }
 
-procedure TResourceFrame.cbRandomChange(Sender: TObject);
-begin
-  UpdateControls;
-end;
-
-procedure TResourceFrame.UpdateControls;
-begin
-  inherited UpdateControls;
-  edAmount.Enabled:=not cbRandom.Checked;
-end;
 
 procedure TResourceFrame.Commit;
 begin
   inherited Commit;
   FOptions.GuardMessage := edMessage.Text;
-
-  if cbRandom.Checked then
-  begin
-    FOptions.Amount:=0;
-  end
-  else begin
-    FOptions.Amount:=edAmount.Value;
-  end;
 end;
 
 procedure TResourceFrame.VisitResource(AOptions: TResourceOptions);
 begin
-  inherited VisitResource(AOptions);
   FOptions := AOptions;
 
-  edAmount.Value:=AOptions.Amount;
-  cbRandom.Checked:=AOptions.Amount = 0;
+  AddIntEditor(AOptions, 'Amount', edAmount, cbRandom);
+
+  inherited VisitResource(AOptions);
 
   edMessage.Text:=AOptions.GuardMessage;
+
+  Load;
 
   UpdateControls;
 end;

@@ -73,6 +73,7 @@ type
 
     procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
+    procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit); unimplemented;
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; ACallback: TOnGetString);
 
@@ -479,6 +480,11 @@ begin
   begin
     AControl.Text := ADefault;
   end;
+end;
+
+procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
+begin
+  //todo
 end;
 
 procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;

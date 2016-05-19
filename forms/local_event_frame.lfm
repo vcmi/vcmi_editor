@@ -1,6 +1,4 @@
 inherited LocalEventFrame: TLocalEventFrame
-  DesignLeft = 542
-  DesignTop = 192
   object edActivableBy: TComboBox[0]
     Left = 16
     Height = 23

@@ -3,8 +3,6 @@ inherited ResourceFrame: TResourceFrame
   Width = 415
   ClientHeight = 316
   ClientWidth = 415
-  DesignLeft = 486
-  DesignTop = 187
   object GroupAmount: TGroupBox[0]
     Left = 8
     Height = 56
@@ -16,13 +14,12 @@ inherited ResourceFrame: TResourceFrame
     ClientWidth = 396
     TabOrder = 0
     object cbRandom: TCheckBox
-      Left = 319
+      Left = 322
       Height = 19
       Top = 8
-      Width = 65
+      Width = 62
       Anchors = [akTop, akRight]
-      Caption = 'Random'
-      OnChange = cbRandomChange
+      Caption = 'Custom'
       TabOrder = 0
     end
     object edAmount: TSpinEdit

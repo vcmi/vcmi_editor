@@ -85,7 +85,7 @@ type
   strict private
     FWidget: TCustomEdit;
     FCustomText: TLocalizedString;
-    FOnGetDefaultText:TOnGetString ;
+    FOnGetDefaultText:TOnGetString;
 
     function DoGetDefaultText: TLocalizedString;
   protected

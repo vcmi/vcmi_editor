@@ -1,6 +1,4 @@
 inherited WitchHutFrame: TWitchHutFrame
-  DesignLeft = 324
-  DesignTop = 228
   object edAllowedSkills: TCheckListBox[0]
     Left = 8
     Height = 208

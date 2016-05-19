@@ -3,8 +3,6 @@ inherited ScholarFrame: TScholarFrame
   Width = 423
   ClientHeight = 164
   ClientWidth = 423
-  DesignLeft = 412
-  DesignTop = 197
   object edBonusType: TRadioGroup[0]
     Left = 16
     Height = 49
