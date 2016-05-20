@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 331
+  Left = 282
   Height = 836
-  Top = 17
+  Top = 82
   Width = 1312
   Caption = 'VCMI editor'
   ClientHeight = 816
@@ -1288,12 +1288,12 @@ object fMain: TfMain
       Style = tbsDivider
     end
     object ToolButton18: TToolButton
-      Left = 265
+      Left = 273
       Top = 2
       Action = actProperties
     end
     object ToolButton19: TToolButton
-      Left = 301
+      Left = 309
       Top = 2
       Action = actDelete
     end
@@ -1303,7 +1303,7 @@ object fMain: TfMain
       Action = actZoomIn
     end
     object ToolButton9: TToolButton
-      Left = 260
+      Left = 268
       Height = 32
       Top = 2
       Width = 5
@@ -1311,7 +1311,7 @@ object fMain: TfMain
       Style = tbsDivider
     end
     object ToolButton10: TToolButton
-      Left = 228
+      Left = 232
       Top = 2
       Action = actZoomOut
     end
@@ -1373,7 +1373,7 @@ object fMain: TfMain
       object gbBrush: TGroupBox
         Left = 5
         Height = 50
-        Top = 162
+        Top = 146
         Width = 190
         Align = alTop
         BorderSpacing.Around = 5
@@ -1547,13 +1547,13 @@ object fMain: TfMain
       end
       object gbTerrain: TGroupBox
         Left = 5
-        Height = 152
+        Height = 136
         Top = 5
         Width = 190
         Align = alTop
         BorderSpacing.Around = 5
         Caption = 'Landscape'
-        ClientHeight = 132
+        ClientHeight = 116
         ClientWidth = 186
         TabOrder = 1
         object btnDirt: TSpeedButton
@@ -1657,7 +1657,7 @@ object fMain: TfMain
       object RoadType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 241
+        Top = 225
         Width = 190
         Align = alTop
         AutoFill = True
@@ -1678,7 +1678,7 @@ object fMain: TfMain
       object RiverType: TRadioGroup
         Left = 5
         Height = 19
-        Top = 217
+        Top = 201
         Width = 190
         Align = alTop
         AutoFill = True

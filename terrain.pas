@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, contnrs,
    fgl,
   editor_types, editor_graphics, vcmi_json,
-  filesystem_base, editor_classes, transitions, editor_gl;
+  filesystem_base, editor_classes, transitions, editor_gl, LazLoggerBase;
 
 const
 
@@ -619,6 +619,7 @@ begin
         end;
         PreparePattern(pattern);
         FViewMap.KeyData[GetTerrainGroup(template.Mapping[j].Identifier)].Add(pattern);
+        //DebugLn(['Loaded pattern ', pattern.Id]);
       end;
     end;
   finally

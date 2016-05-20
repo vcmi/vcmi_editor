@@ -29,7 +29,7 @@ uses
   ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
   map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect,
+  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect, map_format_json,
   player_options_form, edit_triggered_events, player_selection_form,
   types;
 
@@ -1479,6 +1479,11 @@ var
   FOldTileX: Integer;
   FOldTileY: Integer;
 begin
+  if not Assigned(FMap) then
+  begin
+    exit;
+  end;
+
   ResetFocus;
 
   FOldTileX := FMouseTileX;
@@ -2088,6 +2093,7 @@ end;
 procedure TfMain.UpdateWidgets;
 var
   s: String;
+  t: PMapTile;
 begin
   if Assigned(FMap) then
   begin
@@ -2145,10 +2151,15 @@ begin
   begin
     StatusBar.Panels[0].Text:=FSelectedObject.FormatDisplayName('');
   end
-  else
+  else if Assigned(FMap) and FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
   begin
+
+    t := FMap.CurrentLevel.Tile[FMouseTileX, FMouseTileY];
+
+    StatusBar.Panels[0].Text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
+  end
+  else
     StatusBar.Panels[0].Text := '';
-  end;
 end;
 
 procedure TfMain.ResetFocus;

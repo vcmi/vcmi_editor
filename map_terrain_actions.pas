@@ -609,6 +609,10 @@ var
         Res.NativeTiles.Insert(curTile)
       else
         Res.ForeignTiles.Insert(curTile)
+    end
+    else if (center.X = Coord.X) and (center.y = Coord.y) then
+    begin
+      res.centerPosValid:=true;
     end;
   end;
 
@@ -881,7 +885,7 @@ begin
          if vr.transitionReplacement = RULE_DIRT then
            Mapping := pattern.Mappings[0]
          else
-            Mapping := pattern.Mappings[1];
+           Mapping := pattern.Mappings[1];
       end;
 
       if not pattern.DiffImages then
@@ -1079,13 +1083,12 @@ begin
 
             if Assigned(patternForRule) then
             begin
-                rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
-                if rslt.result then
-                begin
-                  topPoints := Max(topPoints,rule.points);
-                end;
+              rslt := ValidateTerrainView(cur_tinfo,patternForRule,1);
+              if rslt.result then
+              begin
+                topPoints := Max(topPoints,rule.points);
+              end;
             end;
-
           end;
           rule.free;
           Continue;
