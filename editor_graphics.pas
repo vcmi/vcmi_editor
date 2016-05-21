@@ -50,8 +50,6 @@ type
     function GetFrameCount: Integer; inline;
 
     procedure MayBeUnBindTextures; inline;
-    procedure SetLoaded(AValue: Boolean);
-    procedure SetResourceID(AValue: AnsiString);
     procedure UnBindTextures;
   public
     constructor Create;
@@ -67,9 +65,9 @@ type
     property Width: UInt32 read FWidth;
     property Height: UInt32 read FHeight;
 
-    property ResourceID: AnsiString read FResourceID write SetResourceID;
+    property ResourceID: AnsiString read FResourceID write FResourceID;
 
-    property Loaded: Boolean read FLoaded write SetLoaded;
+    property Loaded: Boolean read FLoaded write FLoaded;
   end;
 
   { TDefMap }
@@ -786,18 +784,6 @@ begin
   if FTexturesBinded then
     UnBindTextures;
   FTexturesBinded := False;
-end;
-
-procedure TDefAnimation.SetLoaded(AValue: Boolean);
-begin
-  if FLoaded=AValue then Exit;
-  FLoaded:=AValue;
-end;
-
-procedure TDefAnimation.SetResourceID(AValue: AnsiString);
-begin
-  if FResourceID=AValue then Exit;
-  FResourceID:=AValue;
 end;
 
 procedure TDefAnimation.RenderBorder(AState: TLocalState; TileX, TileY: Integer);
