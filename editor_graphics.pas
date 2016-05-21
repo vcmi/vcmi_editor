@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
-  editor_utils, filesystem_base, editor_gl;
+  editor_utils, filesystem_base, editor_gl, glext40;
 
 type
   TRGBAPalette = packed array[0..255] of TRBGAColor;
@@ -499,7 +499,7 @@ begin
     raise Exception.Create('Unknown sprite compression format');
   end;
 
-  BindUncompressedPaletted(ATextureID,h.FullWidth,h.SpriteHeight, @FBuffer[0]);
+  BindUncompressedPaletted(ATextureID, h.FullWidth, h.SpriteHeight, @FBuffer[0]);
 end;
 
 procedure TDefFormatLoader.LoadFromStream(AStream: TStream);
@@ -564,34 +564,34 @@ begin
     BindPalette(FCurrentDef.FPaletteID,@palette);
   end;
 
-    total_entries := 0;
+  total_entries := 0;
 
-    for block_nomber := 0 to blockCount - 1 do
-    begin
-       AStream.Read(current_block_head{%H-},SizeOf(current_block_head));
+  for block_nomber := 0 to blockCount - 1 do
+  begin
+     AStream.Read(current_block_head{%H-},SizeOf(current_block_head));
 
-       total_in_block := current_block_head.totalInBlock;
+     total_in_block := current_block_head.totalInBlock;
 
-       SetLength(offsets, total_entries + total_in_block);
+     SetLength(offsets, total_entries + total_in_block);
 
-       //entries.Resize(total_entries + total_in_block);
+     //entries.Resize(total_entries + total_in_block);
 
-       //names
-       AStream.Seek(13*total_in_block,soCurrent);
+     //names
+     AStream.Seek(13*total_in_block,soCurrent);
 
-       //offcets
-       for i := 0 to total_in_block - 1 do
-       begin
-         AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
-         offsets[total_entries+i] := current_offcet+UInt32(orig_position);
+     //offcets
+     for i := 0 to total_in_block - 1 do
+     begin
+       AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
+       offsets[total_entries+i] := current_offcet+UInt32(orig_position);
 
-         //todo: use block_nomber to load heroes defs from mods
+       //todo: use block_nomber to load heroes defs from mods
 
-         //entries.Mutable[total_entries+i]^.group := block_nomber;
-       end;
+       //entries.Mutable[total_entries+i]^.group := block_nomber;
+     end;
 
-       total_entries += total_in_block;
-    end;
+     total_entries += total_in_block;
+  end;
 
   if mode <> TGraphicsLoadMode.LoadRest then
   begin
@@ -626,6 +626,8 @@ begin
       FCurrentDef.Loaded:=True;
     end;
   end;
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 end;
 
 procedure TDefFormatLoader.SetCurrentDef(AValue: TDefAnimation);

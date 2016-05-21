@@ -244,6 +244,8 @@ procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
 
+procedure BindUncompressedPalettedSub(ATextureId: GLuint; x, y, w, h: Int32; ARawImage: Pointer);
+
 procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure Unbind(var ATextureId: GLuint); inline;
@@ -299,7 +301,14 @@ begin
 
   glTexImage2D(GL_TEXTURE_2D, 0,GL_R8UI,w,h,0,GL_RED_INTEGER, GL_UNSIGNED_BYTE, ARawImage);
 
-   CheckGLErrors('Bind paletted');
+  CheckGLErrors('Bind paletted');
+end;
+
+procedure BindUncompressedPalettedSub(ATextureId: GLuint; x, y, w, h: Int32; ARawImage: Pointer);
+begin
+  glBindTexture(GL_TEXTURE_2D, ATextureId);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h,GL_RED_INTEGER,GL_UNSIGNED_BYTE, ARawImage);
+  CheckGLErrors('Bind paletted sub');
 end;
 
 procedure BindUncompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);
