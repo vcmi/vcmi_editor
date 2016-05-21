@@ -15,6 +15,10 @@
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
+      <Resources Count="2">
+        <Resource_0 FileName="shaders\default_v.glsl" Type="RCDATA" ResourceName="DEFAULT_VERTEX_SHADER"/>
+        <Resource_1 FileName="shaders\default_f.glsl" Type="RCDATA" ResourceName="DEFAULT_FRAGMENT_SHADER"/>
+      </Resources>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -24,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="3"/>
-      <BuildNr Value="73"/>
+      <BuildNr Value="74"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -140,7 +144,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="85">
+    <Units Count="87">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -596,6 +600,14 @@
         <Filename Value="field_editors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit84>
+      <Unit85>
+        <Filename Value="shaders\default_v.glsl"/>
+        <IsPartOfProject Value="True"/>
+      </Unit85>
+      <Unit86>
+        <Filename Value="shaders\default_f.glsl"/>
+        <IsPartOfProject Value="True"/>
+      </Unit86>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

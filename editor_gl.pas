@@ -26,90 +26,14 @@ unit editor_gl;
 interface
 
 uses
+  {$IFDEF WINDOWS}
+  windows,
+  {$ENDIF}
   Classes, SysUtils, math, matrix, GL, OpenGLContext, glext40, editor_types, editor_consts;
 
 const
-  SHADER_VERSION =  '#version 130'#13#10;
-
-  VERTEX_DEFAULT_SHADER =
-  SHADER_VERSION+
-  'uniform mat4 projMatrix;'#13#10+
-  'uniform mat4 translateMatrix;'#13#10+
-
-  'in vec2 coords;'#13#10+
-  'in vec2 uv;'#13#10+
-
-  'out vec2 UV;'#13#10+
-  'void main(){'+
-    'UV = uv;'+
-  	'gl_Position = projMatrix * translateMatrix * vec4(coords,0.0,1.0);'#13#10+
-  '}';
-
-  FRAGMENT_DEFAULT_SHADER =
-  SHADER_VERSION+
-  'const vec4 eps = vec4(0.009, 0.009, 0.009, 0.009);'+
-  'const vec4 maskColor = vec4(1.0, 1.0, 0.0, 0.0);'+
-  'uniform usampler2D bitmap;'+
-  'uniform sampler1D palette;'+
-  'uniform int useTexture = 0;'+
-  'uniform int usePalette = 0;'+
-  'uniform int useFlag = 0;'+
-  'uniform vec4 flagColor;'+
-  'uniform vec4 fragmentColor;'#13#10+
-  'in vec2 UV;'#13#10+
-  'out vec4 outColor;'#13#10+
-
-  'vec4 applyTexture(vec4 inColor)'+
-  '{'+
-      'if(useTexture == 1)'+
-      '{'+
-         'if(usePalette == 1)'+
-          '{'+
-              'return texelFetch(palette, int(texture(bitmap,UV).r), 0);'+
-          '}'+
-          'else'+
-          '{' +
-             // 'return texture(bitmap,UV);'+ //???
-          '}'+
-      '}'+
-       'return inColor;'+
-  '}'+
-
-  'vec4 applyFlag(vec4 inColor)' +
-  '{'+
-     'if(useFlag == 1)'+
-     '{'+
-        'if(all(greaterThanEqual(inColor,maskColor-eps)) && all(lessThanEqual(inColor,maskColor+eps)))'+
-        '  return flagColor;'+
-     '}'+
-     'return inColor;'+
-  '}'+
-
-  'void main(){'+
-      'outColor = applyTexture(fragmentColor);'+
-      'outColor = applyFlag(outColor);'+
-  '}';
-
-  //VERTEX_TERRAIN_SHADER =
-  //  SHADER_VERSION+
-  //  'uniform mat4 projMatrix;'#13#10+
-  //  'layout(location = 1) in vec2 coords;'#13#10+
-  //  'struct Tile{'+
-  //  '  uint upper;'+ //packed data     FTerType, FTerSubtype, FRiverType, FRiverDir
-  //  '  uint lower;'+ //packed data     FRoadType, FRoadDir,  FFlags, FOwner
-  //  '};'+
-  //  'layout(location = 2) in Tile tileIn'+
-  //  'out Tile tileOut'+
-  //  'void main(){'+
-  //    'tileOut = tileIn;'+
-  //    'gl_Position = projMatrix * vec4(coords,0.0,1.0);'#13#10+
-  //  '}';
-
-
-  //GEOMETRY_TERRAIN_SHADER =
-  //  SHADER_VERSION+
-  //  '';
-
+  DEFAULT_F_S_RES = 'DEFAULT_FRAGMENT_SHADER';
+  DEFAULT_V_S_RES = 'DEFAULT_VERTEX_SHADER';
 
 type
 
@@ -133,6 +57,17 @@ type
     procedure Unbind; inline;
   end;
 
+  { TShaderResourceStream }
+
+  TShaderResourceStream = class(TResourceStream)
+  private
+    FShaderType: GLenum;
+  public
+    constructor Create(const ResName: string; AShaderType: GLenum);
+
+    function Make: GLuint;
+  end;
+
   { TGlobalState }
 
   TGlobalState = class
@@ -141,12 +76,8 @@ type
        VERTEX_BUFFER_SIZE = 4 * 2 * 3 * 2; //4 rotation * 2 triangles * 3 poitns * 2 coordinates
        UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
   private
-
     FCoordAttribLocation: GLint;
     FUVAttribLocation: GLint;
-
-    //EmptyBufferData:array of GLfloat; //todo: use to initialize VBO
-  private
 
     DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
@@ -340,46 +271,19 @@ begin
       DebugLogger.DebugLn(Stage +': Gl error '+IntToHex(err,8));
     end;
 
-  until err = GL_NO_ERROR ;
-
-
+  until err = GL_NO_ERROR;
 end;
 
 function MakeShader(const ShaderSource: AnsiString; ShaderType: GLenum): GLuint;
 var
-  shader_object: GLuint;
-  status: Integer;
-  info_log_len: GLint;
-
-  info_log: string;
+  stm: TShaderResourceStream;
 begin
-  Result := 0;
-  shader_object := glCreateShader(ShaderType);
-
-  if shader_object = 0 then
-  begin
-    CheckGLErrors('MakeShader');
-    Exit;
+  stm := TShaderResourceStream.Create(ShaderSource, ShaderType);
+  try
+    Result := stm.Make;
+  finally
+    stm.Free;
   end;
-
-  glShaderSource(shader_object,1,@(ShaderSource),nil);
-  glCompileShader(shader_object);
-  status := GL_FALSE;
-  glGetShaderiv(shader_object,GL_COMPILE_STATUS,@status);
-
-  if status <> GL_TRUE then
-  begin
-    glGetShaderiv(shader_object,GL_INFO_LOG_LENGTH, @info_log_len);
-    SetLength(info_log,info_log_len);
-    glGetShaderInfoLog(shader_object,info_log_len,@info_log_len,@info_log[1]);
-
-    DebugLn('Shader compile log:');
-    DebugLn(info_log);
-    exit;
-  end;
-
-  Result := shader_object;
-
 end;
 
 function MakeShaderProgram(const AVertexSource: AnsiString;
@@ -424,6 +328,53 @@ begin
 
   if doVertex then glDeleteShader(vertex_shader); //always mark shader for deletion
   if doFragment then glDeleteShader(fragment_shader);
+end;
+
+{ TShaderResourceStream }
+
+constructor TShaderResourceStream.Create(const ResName: string; AShaderType: GLenum);
+begin
+  inherited Create(HINSTANCE, ResName, RT_RCDATA);
+  FShaderType := AShaderType;
+end;
+
+function TShaderResourceStream.Make: GLuint;
+var
+  status: Integer;
+  info_log_len: GLint;
+
+  info_log: string;
+
+  p: Pointer;
+  sizes: array[0..0] of GLint;
+begin
+  Result := glCreateShader(FShaderType);
+
+  if Result = 0 then
+  begin
+    CheckGLErrors('MakeShader');
+    Exit;
+  end;
+
+  p := Memory;
+
+  sizes[0] := Size;
+
+  glShaderSource(Result,1, @p, @sizes);
+  glCompileShader(Result);
+  status := GL_FALSE;
+  glGetShaderiv(Result,GL_COMPILE_STATUS,@status);
+
+  if status <> GL_TRUE then
+  begin
+    glGetShaderiv(Result,GL_INFO_LOG_LENGTH, @info_log_len);
+    SetLength(info_log,info_log_len);
+    glGetShaderInfoLog(Result,info_log_len,@info_log_len,@info_log[1]);
+
+    DebugLn('Shader compile log:');
+    DebugLn(info_log);
+    exit(0);
+  end;
 end;
 
 { TGLSprite }
@@ -527,7 +478,7 @@ end;
 
 procedure TGlobalState.Init;
 begin
-  DefaultProgram := MakeShaderProgram(VERTEX_DEFAULT_SHADER, FRAGMENT_DEFAULT_SHADER);
+  DefaultProgram := MakeShaderProgram(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
   if DefaultProgram = 0 then
     raise Exception.Create('Error compiling default shader');
 
