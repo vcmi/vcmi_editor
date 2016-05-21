@@ -212,6 +212,21 @@ type
     property TerrainType:TPatternTemplates read FTerrainType;
   end;
 
+  //todo: use terrain configuration
+
+  { TTerrainConfig }
+
+  TTerrainConfigItem = class(TNamedCollectionItem)
+  published
+
+  end;
+
+  { TTerriainConfig }
+
+  TTerriainConfig = class(specialize TGNamedCollection<TTerrainConfigItem>)
+  public
+    constructor Create;
+  end;
 
   {$pop}
 
@@ -283,7 +298,8 @@ const
   );
 
 
-  TERRAIN_CONFIG_FILE = 'config/terrainViewPatterns.json';
+  TERRAIN_PATTERNS_CONFIG_FILE = 'config/terrainViewPatterns.json';
+  TERRAIN_CONFIG_FILE = 'config/terrains.json';
 
 procedure SetView(out V: TTerrainViewInterval; min,max: uint8);
 begin
@@ -366,6 +382,13 @@ begin
   finally
     o.Free;
   end;
+end;
+
+{ TTerriainConfig }
+
+constructor TTerriainConfig.Create;
+begin
+  inherited;
 end;
 
 { TMappingTemplates }
@@ -955,7 +978,7 @@ procedure TTerrainManager.LoadConfig;
 var
   config: TJsonResource;
 begin
-  config := TJsonResource.Create(TERRAIN_CONFIG_FILE);
+  config := TJsonResource.Create(TERRAIN_PATTERNS_CONFIG_FILE);
   try
     config.Load(ResourceLoader);
     config.DestreamTo(FPatternConfig,'');
