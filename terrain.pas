@@ -251,10 +251,8 @@ type
     procedure LoadTerrainGraphics;
 
     procedure Render(AState: TLocalState; const tt: TTerrainType; sbt: UInt8; Flags: UInt8);
-
-    procedure RenderRoad(AState: TLocalState; const rdt: TRoadType; const Dir: UInt8; Flags: UInt8);
-
     procedure RenderRiver(AState: TLocalState; const rt: TRiverType; const Dir: UInt8; Flags: UInt8);
+    procedure RenderRoad(AState: TLocalState; const rdt: TRoadType; const Dir: UInt8; Flags: UInt8);
 
     function GetDefaultTerrain(const Level: Integer): TTerrainType;
     function GetRandomNormalSubtype(const tt: TTerrainType): UInt8;
@@ -1016,19 +1014,19 @@ begin
   FTerrainDefs[tt].RenderF(AState, sbt, Flags);
 end;
 
-procedure TTerrainManager.RenderRiver(AState: TLocalState; const rt: TRiverType; const Dir: UInt8;  Flags: UInt8);
-begin
-  if rt <> TRiverType.noRiver then
-  begin
-    FRiverDefs[rt].RenderF(AState, dir, Flags shr 2);
-  end;
-end;
-
 procedure TTerrainManager.RenderRoad(AState: TLocalState; const rdt: TRoadType; const Dir: UInt8; Flags: UInt8);
 begin
   if rdt <> TRoadType.noRoad then
   begin
     FRoadDefs[rdt].RenderF(AState, dir, Flags shr 4);
+  end;
+end;
+
+procedure TTerrainManager.RenderRiver(AState: TLocalState; const rt: TRiverType; const Dir: UInt8; Flags: UInt8);
+begin
+  if rt <> TRiverType.noRiver then
+  begin
+    FRiverDefs[rt].RenderF(AState, dir, Flags shr 2);
   end;
 end;
 

@@ -28,12 +28,8 @@ uses
   editor_utils, filesystem_base, editor_gl;
 
 type
-
   TRGBAPalette = packed array[0..255] of TRBGAColor;
-
-
   TDefEntries = specialize gvector.TVector<TGLSprite>;
-
 
   { TDefAnimation }
 
@@ -130,7 +126,6 @@ type
     procedure LoadDef(const AResourceName:string; ADef: TDefAnimation; ALoadComplete: Boolean);
 
     function DoGetGraphics (const AResourceName:string; ALoadComplete: Boolean): TDefAnimation;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -157,7 +152,6 @@ type
   end;
 
 implementation
-
 
 type
 
@@ -222,8 +216,6 @@ const
 
   PLAYER_COLOR_INDEX = 5;
 
-
-
   //DEF_TYPE_MAP_OBJECT = $43;
 
 function CompareDefs(const d1,d2: TDefAnimation): integer;
@@ -247,7 +239,6 @@ procedure TDefFormatLoader.IncreaseBuffer(ANewSize: SizeInt);
 begin
   if ANewSize > Length(FBuffer) then
   begin
-
     ANewSize := (ANewSize div INITIAL_BUFFER_SIZE + 1)*INITIAL_BUFFER_SIZE;
 
     SetLength(FBuffer, ANewSize);
@@ -258,7 +249,6 @@ procedure TDefFormatLoader.IncreaseDefBuffer(ANewSize: SizeInt);
 begin
   if ANewSize > Length(FDefBuffer) then
   begin
-
     ANewSize := (ANewSize div INITIAL_BUFFER_SIZE + 1)*INITIAL_BUFFER_SIZE;
 
     SetLength(FDefBuffer, ANewSize);
@@ -279,7 +269,6 @@ var
     if Count > 0 then
       Skip(Count);
   end;
-
 var
   h: TH3SpriteHeader;
   RightMargin, BottomMargin: Int32;
@@ -316,7 +305,6 @@ var
     begin
       AStream.Seek(BaseOffsetor + SizeOf(UInt32)*row, soFromBeginning);
       AStream.Read(BaseOffset,SizeOf(BaseOffset));
-
 
       SkipIfPositive(h.LeftMargin);
       TotalRowLength :=  0;
@@ -376,7 +364,6 @@ var
          end;
          Skip(Value);
          TotalRowLength+=value;
-
       until TotalRowLength >= h.SpriteWidth ;
 
       SkipIfPositive(RightMargin);
@@ -399,8 +386,6 @@ var
     SegmentType, code, value: UInt8;
     len: Integer;
     RowAdd: Int32;
-
-
   begin
     for row := 0 to h.SpriteHeight - 1 do
     begin
@@ -428,8 +413,7 @@ var
          end;
          Skip(len);
 
-         TotalRowLength += ifthen(h.LeftMargin>=0,value, value+h.LeftMargin );
-
+         TotalRowLength += ifthen(h.LeftMargin>=0,value, value+h.LeftMargin);
       until TotalRowLength>=h.SpriteWidth;
 
       SkipIfPositive(RightMargin);
@@ -438,10 +422,8 @@ var
 
       if (add>0) then
          ftcp += add+RowAdd;
-
     end;
   end;
-
 begin
   PEntry := FCurrentDef.entries.Mutable[SpriteIndex];
 
@@ -450,10 +432,8 @@ begin
   AStream.Seek(BaseOffset,soBeginning);
   AStream.Read(h{%H-},SizeOf(h));
 
-
   BaseOffset := AStream.Position;
   BaseOffsetor := BaseOffset;
-
 
   with h do
   begin
@@ -499,7 +479,6 @@ begin
 
   IncreaseBuffer(h.FullWidth*h.FullHeight);
 
-
   if (h.TopMargin > 0) or (BottomMargin > 0) or (h.LeftMargin > 0) or (RightMargin > 0) then
     FillChar(FBuffer[0], Length(FBuffer) ,0); //todo: use horz marging in texture coords
 
@@ -521,7 +500,6 @@ begin
   else
     raise Exception.Create('Unknown sprite compression format');
   end;
-
 
   BindUncompressedPaletted(ATextureID,h.FullWidth,h.SpriteHeight, @FBuffer[0]);
 end;
@@ -571,7 +549,6 @@ begin
 
   if mode <> TGraphicsLoadMode.LoadRest then
   begin
-
     for i := 0 to 7 do
     begin
       palette[i] := STANDARD_COLORS[i];
@@ -587,7 +564,6 @@ begin
 
     glGenTextures(1,@FCurrentDef.FPaletteID);
     BindPalette(FCurrentDef.FPaletteID,@palette);
-
   end;
 
     total_entries := 0;
@@ -617,7 +593,6 @@ begin
        end;
 
        total_entries += total_in_block;
-
     end;
 
   if mode <> TGraphicsLoadMode.LoadRest then
@@ -740,8 +715,7 @@ begin
   else
     FDefLoader.Mode := TGraphicsLoadMode.LoadFisrt;
 
-  ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+AResourceName);
-
+  ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/'+AResourceName);
 end;
 
 function TGraphicsManager.DoGetGraphics(const AResourceName: string;
@@ -749,7 +723,7 @@ function TGraphicsManager.DoGetGraphics(const AResourceName: string;
 var
   res_index: Integer;
 begin
-  res_index :=  FNameToDefMap.IndexOf(AResourceName);
+  res_index := FNameToDefMap.IndexOf(AResourceName);
 
   if res_index >= 0 then
   begin
