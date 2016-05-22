@@ -84,7 +84,6 @@ type
     DefaultProjMatrixUniform: GLint;
     DefaultTranslateMatrixUniform: GLint;
     UseTextureUniform: GLint;
-    UsePaletteUniform: GLint;
     UseFlagUniform: GLint;
     PaletteUniform: GLint;
     BitmapUniform: GLint;
@@ -138,7 +137,6 @@ type
     procedure SetTranslation(X,Y: Integer);
 
     procedure SetUseFlag(const Value: Boolean);
-    procedure SetUsePalette(const Value: Boolean);
     procedure SetUseTexture(const Value: Boolean);
     procedure UseNoTextures;
     procedure UsePalettedTextures;
@@ -488,7 +486,6 @@ begin
   DefaultTranslateMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('translateMatrix'));
 
   UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
-  UsePaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('usePalette'));
   UseTextureUniform:=glGetUniformLocation(DefaultProgram, PChar('useTexture'));
 
   PaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('palette'));
@@ -620,7 +617,6 @@ begin
   glDisable(GL_SCISSOR_TEST);
 end;
 
-
 procedure TLocalState.SetScissor;
 begin
   glScissor(0, 0, FContext.Width, FContext.Height);
@@ -665,17 +661,15 @@ begin
     1:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
       y := 0+ASprite^.TopMargin;
-
     end;
     2:begin
       x := 0;//+ round(factor * ASprite.LeftMargin);
       y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
-
     end;
     3:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
       y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
-     end;
+    end;
   end;
 
   DoRenderSprite(ASprite^, x,y,w,h, mir);
@@ -688,11 +682,11 @@ var
   y,
   TopMargin: Int32;
 begin
-    H := ASprite^.SpriteHeight;
-    W := ASprite^.Width;
-    TopMargin := ASprite^.TopMargin;
-    x := 0;//+round(factor * ASprite^.LeftMargin);
-    y := 0 +TopMargin;
+  H := ASprite^.SpriteHeight;
+  W := ASprite^.Width;
+  TopMargin := ASprite^.TopMargin;
+  x := 0;//+round(factor * ASprite^.LeftMargin);
+  y := 0 +TopMargin;
 
   DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
@@ -778,7 +772,6 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glBindVertexArray(0);
-
 end;
 
 procedure TLocalState.SetupRectVAO;
@@ -849,11 +842,6 @@ begin
   glUniform1i(GlobalContextState.UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TLocalState.SetUsePalette(const Value: Boolean);
-begin
-  glUniform1i(GlobalContextState.UsePaletteUniform, ifthen(Value, 1, 0));
-end;
-
 procedure TLocalState.SetUseTexture(const Value: Boolean);
 begin
   glUniform1i(GlobalContextState.UseTextureUniform, ifthen(Value, 1, 0));
@@ -864,7 +852,6 @@ begin
   FCurrentProgram := GlobalContextState.DefaultProgram;
   glUseProgram(GlobalContextState.DefaultProgram);
   SetUseFlag(false);
-  SetUsePalette(false);
   SetUseTexture(False);
 end;
 
@@ -873,12 +860,10 @@ begin
   FCurrentProgram := GlobalContextState.DefaultProgram;
   glUseProgram(GlobalContextState.DefaultProgram);
 
-  SetUsePalette(true);
   SetUseTexture(true);
 
   glUniform1i(GlobalContextState.BitmapUniform, 0); //texture unit0
   glUniform1i(GlobalContextState.PaletteUniform, 1);//texture unit1
-
 end;
 
 
