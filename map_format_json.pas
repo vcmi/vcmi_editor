@@ -367,10 +367,6 @@ begin
 
   FTileExpression := TRegExpr.Create;
 
-  //1-tt, 2 - tst ,  4-pt, 5-pst, 7-rt, 8 - rst , 10- flags
-
-//  FTileExpression.Expression:='^(\w{2,2})(\d+)((p\w)(\d+))?((r\w)(\d+))?(f(\d+))?$';
-
   //1-tt, 2 - tcode, 3 - tflip , 4-road (5 6 7) 8 - river (9 10 11)
 
   FTileExpression.Expression:='^(\w{2,2})(\d+)(.)((p\w)(\d+)(.))?((r\w)(\d+)(.))?$';
