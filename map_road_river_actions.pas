@@ -110,7 +110,8 @@ type
 
     procedure Redo; override;
     procedure Undo; override;
-    procedure Execute; override;
+
+    function Execute: boolean; override;
 
   end;
 
@@ -543,7 +544,7 @@ begin
   ChangeTiles(FOldTileInfos);
 end;
 
-procedure TEditRoadRiver.Execute;
+function TEditRoadRiver.Execute: boolean;
 
   procedure CopyTile(const Coord: TMapCoord; var Stop: Boolean);
   var
@@ -556,6 +557,7 @@ var
   it: TTileRoadInfoSet.TIterator;
   r: TMapRect;
 begin
+  Result := true;
   it := FInQueue.Min;
 
   if Assigned(it) then
@@ -586,7 +588,6 @@ begin
   FreeAndNil(FOutQueue);
 
   Redo;
-
 end;
 
 { TEditRoad }

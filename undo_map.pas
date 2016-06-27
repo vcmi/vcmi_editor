@@ -165,7 +165,13 @@ var
   i: Integer;
 begin
   SetItemState(AItem,TUndoItemState.Idle);
-  AItem.Execute;
+
+  if not AItem.Execute then
+  begin
+    AItem.Free;
+    Exit;
+  end;
+
   CheckInvalidatedRegions(AItem);
   SetItemState(AItem,TUndoItemState.ReDone);
   for i := FItemStack.Count - 1 downto Max(FCurrentPosition+1, 0) do

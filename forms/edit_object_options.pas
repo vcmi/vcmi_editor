@@ -98,7 +98,7 @@ type
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
-    procedure EditObject(Obj: TMapObject);
+    function EditObject(Obj: TMapObject): TModalResult;
   end;
 
 
@@ -135,7 +135,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TEditObjectOptions.EditObject(Obj: TMapObject);
+function TEditObjectOptions.EditObject(Obj: TMapObject): TModalResult;
 begin
   FActiveEditors.Clear;
   FMap := Obj.GetMap;
@@ -146,7 +146,7 @@ begin
   HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
   Caption:=Obj.DisplayName;
-  ShowModal;
+  Result := ShowModal;
 end;
 
 procedure TEditObjectOptions.HideAllTabs;

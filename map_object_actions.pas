@@ -27,7 +27,7 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, typinfo, undo_base, undo_map, Map, editor_types, map_objects, editor_str_consts, map_actions,
+  Classes, SysUtils, Controls, typinfo, undo_base, undo_map, Map, editor_types, map_objects, editor_str_consts, map_actions,
   editor_gl, editor_consts, map_rect, vcmi_json, edit_object_options, vcmi_fpjsonrtti, gset, fpjson;
 
 type
@@ -114,7 +114,7 @@ type
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
-    procedure Execute; override;
+    function Execute: boolean; override;
     function GetDescription: string; override;
     procedure Redo; override;
     procedure Undo; override;
@@ -134,7 +134,7 @@ type
 
   TDeleteObject = class(TObjectAction)
   public
-    procedure Execute; override;
+    function Execute: boolean; override;
     function GetDescription: string; override;
     procedure Redo; override;
     procedure Undo; override;
@@ -152,7 +152,7 @@ type
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
 
-    procedure Execute; override;
+    function Execute: boolean; override;
     procedure Redo; override;
     procedure Undo; override;
 
@@ -172,7 +172,7 @@ type
     procedure SetX(AValue: Integer);
     procedure SetY(AValue: Integer);
   public
-    procedure Execute; override;
+    function Execute: boolean; override;
     function GetDescription: string; override;
     procedure Redo; override;
     procedure Undo; override;
@@ -204,14 +204,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TEditObject.Execute;
+function TEditObject.Execute: boolean;
 var
   edit_form: TEditObjectOptions;
 begin
   edit_form := TEditObjectOptions.Create(nil);
   try
     FOldOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
-    edit_form.EditObject(TargetObject);
+    Result := edit_form.EditObject(TargetObject) = mrok;
     FNewOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
   finally
     edit_form.Free;
@@ -429,8 +429,9 @@ begin
   FY:=AValue;
 end;
 
-procedure TAddObject.Execute;
+function TAddObject.Execute: boolean;
 begin
+  Result := true;
   TargetObject := TMapObject.Create(nil);
   TargetObject.AssignTemplate(Template);
 
@@ -469,8 +470,9 @@ end;
 
 { TDeleteObject }
 
-procedure TDeleteObject.Execute;
+function TDeleteObject.Execute: boolean;
 begin
+  Result := true;
   Redo;
 end;
 
@@ -514,8 +516,9 @@ begin
   FY:=AValue;
 end;
 
-procedure TMoveObject.Execute;
+function TMoveObject.Execute: boolean;
 begin
+  Result := true;
   FOldL:=TargetObject.L;
   FOldX:=TargetObject.X;
   FOldY:=TargetObject.Y;

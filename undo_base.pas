@@ -42,8 +42,8 @@ type
   public
     procedure Undo; virtual; abstract;
     procedure Redo; virtual; abstract;
-
-    procedure Execute; virtual; abstract;
+    //return true if action was actually executed
+    function Execute: boolean; virtual; abstract;
     property Description: string read GetDescription;
   end;
 

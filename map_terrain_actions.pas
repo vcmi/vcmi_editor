@@ -158,7 +158,7 @@ type
 
     procedure Redo; override;
     procedure Undo; override;
-    procedure Execute; override;
+    function Execute: boolean; override;
     function GetDescription: string; override;
 
     procedure AddTile(X,Y: integer); override;
@@ -366,7 +366,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TEditTerrain.Execute;
+function TEditTerrain.Execute: boolean;
 var
   old_info, new_info: TTileTerrainInfo;
 
@@ -378,6 +378,7 @@ var
 
   current: PTileTerrainInfo;
 begin
+  Result := true;
   FInQueue := TTileSet.Create;
   FOutQueue := TTileSet.Create;
   FInvalidated := TTileSet.Create;
