@@ -37,7 +37,7 @@ type
     procedure Commit; virtual; abstract;
     procedure Load; virtual; abstract;
     procedure ReloadDefaults; virtual;
-    function IsDirty: Boolean; virtual; deprecated; //should be abstract
+    function IsDirty: Boolean; virtual; abstract;
   end;
 
   { TBaseFieldEditor }
@@ -49,6 +49,8 @@ type
     FPropInfo: PPropInfo;
 
     FEditorControl: TWinControl;
+
+    function IsCustomized: Boolean; virtual;
   public
     constructor Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl);
   end;
@@ -67,7 +69,8 @@ type
     procedure StashCustom; virtual; abstract;
     procedure RestoreCustom; virtual; abstract;
 
-    function IsDefault: Boolean;
+    function IsCustomized: Boolean; override;
+    function IsInitialDefault: Boolean;
 
     procedure SaveCustom; virtual; abstract;
     procedure SaveDefault; virtual; abstract;
@@ -90,9 +93,7 @@ type
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
 
     procedure Commit; override;
-
     function IsDirty: Boolean; override;
-
     procedure Load; override;
   end;
 
@@ -101,6 +102,7 @@ type
 
   TOptStringFieldEditor = class(TBaseOptFieldEditor)
   strict private
+    FOldValue: string;
     FWidget: TCustomEdit;
     FCustomText: TLocalizedString;
     FOnGetDefaultText:TOnGetString;
@@ -117,9 +119,10 @@ type
     procedure SaveDefault; override;
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
-    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; ACallback: TOnGetString);
+    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; AGetDefaultValue: TOnGetString);
 
     procedure Load; override;
+    function IsDirty: Boolean; override;
     procedure ReloadDefaults; override;
   end;
 
@@ -127,11 +130,13 @@ type
 
   TIntEditor = class(TBaseFieldEditor)
   private
+    FOldValue: Int64;
     FWidget: TCustomSpinEdit;
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
 
     procedure Commit; override;
+    function IsDirty: Boolean; override;
     procedure Load; override;
   end;
 
@@ -139,6 +144,7 @@ type
 
   TOptIntEditor = class(TBaseOptFieldEditor)
   private
+    FOldValue: Int64;
     FWidget: TCustomSpinEdit;
     FDefaultValue: LongInt;
     FCustomValue: LongInt;
@@ -153,6 +159,8 @@ type
     procedure SaveDefault; override;
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
+    function IsDirty: Boolean; override;
+    procedure Load; override;
   end;
 
 
@@ -201,11 +209,6 @@ begin
   //do nothing
 end;
 
-function TAbstractFieldEditor.IsDirty: Boolean;
-begin
-  Result := true;
-end;
-
 { TBaseOptFieldEditor }
 
 procedure TBaseOptFieldEditor.CheckChange(Sender: TObject);
@@ -222,6 +225,11 @@ begin
   end;
 end;
 
+function TBaseOptFieldEditor.IsCustomized: Boolean;
+begin
+  Result := FCheck.State in [cbChecked];
+end;
+
 constructor TBaseOptFieldEditor.Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl;
   ACheck: TCustomCheckBox);
 begin
@@ -233,7 +241,7 @@ end;
 
 procedure TBaseOptFieldEditor.Commit;
 begin
-  if FCheck.State in [cbChecked] then
+  if IsCustomized then
   begin
     SaveCustom;
   end
@@ -245,7 +253,7 @@ end;
 
 procedure TBaseOptFieldEditor.Load;
 begin
-  if IsDefault then
+  if IsInitialDefault then
   begin
     LoadDefault;
     FCheck.State:=cbUnchecked;
@@ -259,7 +267,7 @@ begin
   UpdateControls;
 end;
 
-function TBaseOptFieldEditor.IsDefault: Boolean;
+function TBaseOptFieldEditor.IsInitialDefault: Boolean;
 begin
   Result := IsDefaultValue(FTarget, FPropInfo);
 end;
@@ -316,6 +324,24 @@ begin
   end;
 end;
 
+function TOptIntEditor.IsDirty: Boolean;
+begin
+  if IsCustomized then
+  begin
+    Result := FOldValue = FWidget.Value;
+  end
+  else
+  begin
+    Result := FOldValue = FDefaultValue;
+  end;
+end;
+
+procedure TOptIntEditor.Load;
+begin
+  FOldValue := GetOrdProp(FTarget, FPropInfo);
+  inherited Load;
+end;
+
 { TIntEditor }
 
 constructor TIntEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
@@ -329,9 +355,15 @@ begin
   SetOrdProp(FTarget, FPropInfo, FWidget.Value);
 end;
 
+function TIntEditor.IsDirty: Boolean;
+begin
+  Result:=FWidget.Value <> FOldValue;
+end;
+
 procedure TIntEditor.Load;
 begin
-  FWidget.Value := GetOrdProp(FTarget, FPropInfo);
+  FOldValue:=GetOrdProp(FTarget, FPropInfo);
+  FWidget.Value := FOldValue;
 end;
 
 { TOptStringFieldEditor }
@@ -387,28 +419,46 @@ begin
 end;
 
 constructor TOptStringFieldEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;
-  ACheck: TCustomCheckBox; ACallback: TOnGetString);
+  ACheck: TCustomCheckBox; AGetDefaultValue: TOnGetString);
 begin
   Create(ATarget, APropName, AWidget, ACheck);
-  FOnGetDefaultText := ACallback;
+  FOnGetDefaultText := AGetDefaultValue;
 end;
 
 procedure TOptStringFieldEditor.Load;
 begin
   FCustomText := GetStrProp(FTarget, FPropInfo);
+  FOldValue := FCustomText;
   inherited Load;
+end;
+
+function TOptStringFieldEditor.IsDirty: Boolean;
+begin
+  if IsCustomized then
+  begin
+    Result := FOldValue = FCustomText;
+  end
+  else
+  begin
+    Result := FOldValue = '';
+  end;
 end;
 
 procedure TOptStringFieldEditor.ReloadDefaults;
 begin
   inherited ReloadDefaults;
-  if FCheck.State <> cbChecked then
+  if not IsCustomized then
   begin
     FWidget.Text := DoGetDefaultText();
   end;
 end;
 
 { TBaseFieldEditor }
+
+function TBaseFieldEditor.IsCustomized: Boolean;
+begin
+  Result := true;
+end;
 
 constructor TBaseFieldEditor.Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl);
 begin

@@ -36,8 +36,6 @@ type
     procedure InstanceTypeChanged(ANewValue: AnsiString);
   end;
 
-   //todo: FIXME reload defaults of all frames (f.e. on type change)
-
   { TBaseOptionsFrame }
 
   TBaseOptionsFrame = class(TFrame, IObjectOptionsVisitor, IObjectOptionsNotify)

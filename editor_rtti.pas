@@ -46,7 +46,6 @@ var
   DefValue: Int64;
   SValue: String;
 begin
-
   PropType := PropertyInfo^.PropType;
 
   case PropType^.Kind of
