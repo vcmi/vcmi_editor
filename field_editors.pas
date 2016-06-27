@@ -37,6 +37,7 @@ type
     procedure Commit; virtual; abstract;
     procedure Load; virtual; abstract;
     procedure ReloadDefaults; virtual;
+    function IsDirty: Boolean; virtual; deprecated; //should be abstract
   end;
 
   { TBaseFieldEditor }
@@ -78,6 +79,23 @@ type
     procedure Commit; override;
     procedure Load; override;
   end;
+
+  { TStringFieldEditor }
+
+  TStringFieldEditor = class(TBaseFieldEditor)
+  strict private
+    FOldValue: string;
+    FWidget: TCustomEdit;
+  public
+    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
+
+    procedure Commit; override;
+
+    function IsDirty: Boolean; override;
+
+    procedure Load; override;
+  end;
+
 
   { TOptStringFieldEditor }
 
@@ -146,15 +164,46 @@ type
     procedure Commit;
     procedure Load;
     procedure ReloadDefaults;
+
+    function IsDirty: Boolean;
   end;
 
 implementation
+
+{ TStringFieldEditor }
+
+constructor TStringFieldEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
+begin
+  FWidget := AWidget;
+  inherited Create(ATarget, APropName, AWidget);
+end;
+
+procedure TStringFieldEditor.Commit;
+begin
+  SetStrProp(FTarget, FPropInfo, FWidget.Text);
+end;
+
+function TStringFieldEditor.IsDirty: Boolean;
+begin
+  Result:=FOldValue <> FWidget.Text;
+end;
+
+procedure TStringFieldEditor.Load;
+begin
+  FOldValue:= GetStrProp(FTarget, FPropInfo);
+  FWidget.Text := FOldValue;
+end;
 
 { TAbstractFieldEditor }
 
 procedure TAbstractFieldEditor.ReloadDefaults;
 begin
   //do nothing
+end;
+
+function TAbstractFieldEditor.IsDirty: Boolean;
+begin
+  Result := true;
 end;
 
 { TBaseOptFieldEditor }
@@ -403,8 +452,20 @@ var
 begin
   for i := 0 to Count - 1 do
   begin
-    Items[i].ReloadDefaults;;
+    Items[i].ReloadDefaults;
   end;
+end;
+
+function TFieldEditors.IsDirty: Boolean;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+  begin
+    if Items[i].IsDirty then
+      exit(True);
+  end;
+  Result := False;
 end;
 
 end.

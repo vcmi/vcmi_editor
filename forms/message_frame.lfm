@@ -3,7 +3,9 @@ inherited MessageFrame: TMessageFrame
   Width = 398
   ClientHeight = 208
   ClientWidth = 398
-  object Label1: TLabel[0]
+  DesignLeft = 414
+  DesignTop = 102
+  object lbMessage: TLabel[0]
     Left = 8
     Height = 15
     Top = 2

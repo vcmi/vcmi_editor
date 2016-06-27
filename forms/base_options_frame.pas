@@ -73,7 +73,7 @@ type
 
     procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
-    procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit); unimplemented;
+    procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; ACallback: TOnGetString);
 
@@ -81,6 +81,9 @@ type
     procedure AddIntEditor(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit; ACheck: TCustomCheckBox);
 
     procedure NotifyInstanceTypeChange(ANewValue: AnsiString);
+
+    //true if has changes in FFieldEditors
+    function InternalIsDirty: Boolean;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -119,13 +122,12 @@ type
 
     procedure VisitHero({%H-}AOptions: THeroOptions);virtual;
   public //map options
-
     procedure VisitHeroDefinition({%H-}AOptions: THeroDefinition); virtual;
-
   public
     property ListsManager: TListsManager read FListsManager;
     property Map: TVCMIMap read FMap write SetMap;
 
+    //true if has changes
     function IsDirty: Boolean; virtual;
 
     function Validate: String; virtual;
@@ -484,7 +486,7 @@ end;
 
 procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
 begin
-  //todo
+  FFieldEditors.Add(TStringFieldEditor.Create(ATarget, APropName, AWidget));
 end;
 
 procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit;
@@ -520,6 +522,11 @@ begin
   begin
     TBaseOptionsFrame(Owner).InstanceTypeChanged(ANewValue);
   end
+end;
+
+function TBaseOptionsFrame.InternalIsDirty: Boolean;
+begin
+  Result := FFieldEditors.IsDirty;
 end;
 
 procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions

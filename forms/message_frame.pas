@@ -33,12 +33,12 @@ type
 
   TMessageFrame = class(TBaseOptionsFrame)
     edMessage: TMemo;
-    Label1: TLabel;
-  private
-    FGuardedOptions: TGuardedObjectOptions;
-    FSignOptions: TSignBottleOptions;
+    lbMessage: TLabel;
   public
     procedure Commit; override;
+
+    function IsDirty: Boolean; override;
+
     procedure VisitArtifact(AOptions: TArtifactOptions); override;
     procedure VisitPandorasBox(AOptions: TPandorasOptions); override;
     procedure VisitSignBottle(AOptions: TSignBottleOptions); override;
@@ -53,37 +53,32 @@ implementation
 procedure TMessageFrame.Commit;
 begin
   inherited Commit;
+end;
 
-  if Assigned(FGuardedOptions) then
-  begin
-    FGuardedOptions.GuardMessage:=edMessage.Text;
-  end;
-  if Assigned(FSignOptions) then
-  begin
-    FSignOptions.Text:=edMessage.Text;
-  end;
-
+function TMessageFrame.IsDirty: Boolean;
+begin
+  Result:=InternalIsDirty;
 end;
 
 procedure TMessageFrame.VisitArtifact(AOptions: TArtifactOptions);
 begin
   inherited VisitArtifact(AOptions);
-  FGuardedOptions := AOptions;
-  edMessage.Text:=FGuardedOptions.GuardMessage;
+  AddStrEditor(AOptions, 'GuardMessage', edMessage);
+  Load;
 end;
 
 procedure TMessageFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
   inherited VisitPandorasBox(AOptions);
-  FGuardedOptions := AOptions;
-  edMessage.Text:=FGuardedOptions.GuardMessage;
+  AddStrEditor(AOptions, 'GuardMessage', edMessage);
+  Load;
 end;
 
 procedure TMessageFrame.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
   inherited VisitSignBottle(AOptions);
-  FSignOptions := AOptions;
-  edMessage.Text := FSignOptions.Text;
+  AddStrEditor(AOptions, 'Text', edMessage);
+  Load;
 end;
 
 end.

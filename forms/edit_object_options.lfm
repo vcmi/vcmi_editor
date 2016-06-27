@@ -12,7 +12,6 @@ object EditObjectOptions: TEditObjectOptions
   Position = poMainFormCenter
   ShowInTaskBar = stNever
   LCLVersion = '1.6.1.0'
-  Visible = False
   object pcMain: TPageControl
     Left = 0
     Height = 569
@@ -80,6 +79,7 @@ object EditObjectOptions: TEditObjectOptions
     object actSave: TAction
       Caption = 'Save'
       OnExecute = actSaveExecute
+      OnUpdate = actSaveUpdate
       ShortCut = 16397
     end
     object actDontSave: TAction

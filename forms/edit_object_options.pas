@@ -51,6 +51,7 @@ type
     tsCommon: TTabSheet;
     procedure actDontSaveExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
+    procedure actSaveUpdate(Sender: TObject);
   strict private
     FMap: TVCMIMap;
 
@@ -116,6 +117,11 @@ procedure TEditObjectOptions.actSaveExecute(Sender: TObject);
 begin
   SaveChanges;
   ModalResult:=mrOK;
+end;
+
+procedure TEditObjectOptions.actSaveUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=FActiveEditors.IsDirty;
 end;
 
 procedure TEditObjectOptions.actDontSaveExecute(Sender: TObject);
