@@ -59,10 +59,9 @@ type
 
   TBaseOptFieldEditor = class abstract(TBaseFieldEditor)
   strict private
+    FCheck: TCustomCheckBox;
     procedure CheckChange(Sender: TObject);
   protected
-    FCheck: TCustomCheckBox;
-
     procedure LoadCustom; virtual; abstract;
     procedure LoadDefault; virtual; abstract;
 
@@ -215,7 +214,7 @@ procedure TBaseOptFieldEditor.CheckChange(Sender: TObject);
 begin
   UpdateControls;
 
-  if FCheck.State = cbChecked then
+  if IsCustomized then
   begin
     RestoreCustom;
   end
@@ -274,7 +273,7 @@ end;
 
 procedure TBaseOptFieldEditor.UpdateControls;
 begin
-  FEditorControl.Enabled := FCheck.State = cbChecked;
+  FEditorControl.Enabled := IsCustomized();
 end;
 
 { TOptIntEditor }

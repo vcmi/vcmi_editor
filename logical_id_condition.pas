@@ -58,6 +58,7 @@ type
     function IsPermissive: Boolean;
 
     procedure SetPermissive(AFullList: TStrings; const AValue: Boolean);
+    procedure SetPermissive(AFullList: THashedCollection; const AValue: Boolean);
 
   public //ISerializeNotify
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
@@ -231,6 +232,39 @@ begin
       if NoneOf.IndexOf(AFullList[idx]) < 0 then
       begin
         AnyOf.Add(AFullList[idx]);
+      end;
+    end;
+  end;
+end;
+
+procedure TLogicalIDCondition.SetPermissive(AFullList: THashedCollection; const AValue: Boolean);
+var
+  idx: Integer;
+  id: String;
+begin
+  if AValue then
+  begin
+    //anyOf -> noneOf
+
+    for idx := 0 to AFullList.Count - 1 do
+    begin
+      id := TNamedCollectionItem(AFullList.Items[idx]).Identifier;
+      if AnyOf.IndexOf(id) < 0 then
+      begin
+        NoneOf.Add(id);
+      end;
+    end;
+  end
+  else
+  begin
+    //noneOf -> anyOf
+
+    for idx := 0 to AFullList.Count - 1 do
+    begin
+      id := TNamedCollectionItem(AFullList.Items[idx]).Identifier;
+      if NoneOf.IndexOf(id) < 0 then
+      begin
+        AnyOf.Add(id);
       end;
     end;
   end;

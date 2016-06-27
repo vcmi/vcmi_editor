@@ -37,7 +37,6 @@ type
     procedure edAllowedSkillsClickCheck(Sender: TObject);
   private
     FObject: TWitchHutOptions;
-
   public
     constructor Create(TheOwner: TComponent); override;
     procedure VisitWitchHut(AOptions: TWitchHutOptions); override;
@@ -53,9 +52,8 @@ implementation
 procedure TWitchHutFrame.Commit;
 begin
   inherited Commit;
-
-  edAllowedSkills.SaveTo(ListsManager.SkillInfos, FObject.AllowedSkills, false);
-
+  //todo: allow permissive mode
+  edAllowedSkills.SaveTo(ListsManager.SkillInfos, FObject.AllowedSkills, False);
 end;
 
 constructor TWitchHutFrame.Create(TheOwner: TComponent);
@@ -99,7 +97,6 @@ begin
       edAllowedSkills.ItemEnabled[i] := True;
     end
   end;
-
 end;
 
 procedure TWitchHutFrame.VisitWitchHut(AOptions: TWitchHutOptions);

@@ -2370,8 +2370,6 @@ procedure TMapReaderH3m.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
   if IsAtLeastAB() then
   begin
-    AOptions.AllowedSkills.Clear;
-
     ReadBitmask(AOptions.AllowedSkills, 4, SECONDARY_SKILL_QUANTITY, @FMapEnv.lm.SkillNidToString, false);
   end
   else
