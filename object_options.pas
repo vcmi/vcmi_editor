@@ -873,8 +873,7 @@ implementation
 
 procedure TRewards.SetAllowedReward(AValue: TAllowedRewards);
 begin
-  AValue:=AValue - IMPOSSIBLE_REWARDS;
-  FAllowedReward:=AValue;
+  FAllowedReward := AValue - IMPOSSIBLE_REWARDS;
 end;
 
 constructor TRewards.Create(AOwner: IMapObject);
