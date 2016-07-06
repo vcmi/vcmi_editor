@@ -218,8 +218,8 @@ begin
     edSecondarySkills.Cells[0, row] := info.Name;
     edSecondarySkills.Objects[0, row] := info;
 
-    edSecondarySkills.Cells[1, row] := MasterySelector.Items[Integer(option.Level)];
-    edSecondarySkills.Objects[1, row] := TObject(PtrUint(option.Level));
+    edSecondarySkills.Cells[1, row] := MasterySelector.Items[Integer(option.Level)-1];
+    edSecondarySkills.Objects[1, row] := TObject(PtrUint( Integer(option.Level)-1));
   end;
 end;
 
@@ -277,7 +277,7 @@ begin
 
     option := AOptions.Add;
     option.Identifier := info.Identifier;
-    option.Level:=TSkillLevel(Integer(PtrUint(edSecondarySkills.Objects[1, i])));
+    option.Level:=TSkillLevel(Integer(PtrUint(edSecondarySkills.Objects[1, i]))+1);
   end;
 
 end;

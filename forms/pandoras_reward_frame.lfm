@@ -5,14 +5,16 @@ inherited PandorasRewardFrame: TPandorasRewardFrame
   ClientWidth = 544
   Constraints.MinHeight = 200
   Constraints.MinWidth = 530
+  DesignLeft = 606
+  DesignTop = 212
   object pcMain: TPageControl[0]
     Left = 0
     Height = 315
     Top = 0
     Width = 544
-    ActivePage = tsMain
+    ActivePage = tsSecondary
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'
