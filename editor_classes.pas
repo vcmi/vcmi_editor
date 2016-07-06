@@ -131,6 +131,8 @@ type
 
     function IndexOfName(const AName: String): Integer;
 
+    procedure Remove(AIdentifier: String);
+
     function FindItem(const AName: String): TNamedCollectionItem;
   end;
 
@@ -502,6 +504,15 @@ begin
 
     Assert(Items[Result] = item, 'THashedCollection desynch');
   end;
+end;
+
+procedure THashedCollection.Remove(AIdentifier: String);
+var
+  idx: Integer;
+begin
+  idx := IndexOfName(AIdentifier);
+  if idx>=0 then
+    Delete(idx);
 end;
 
 function THashedCollection.FindItem(const AName: String): TNamedCollectionItem;

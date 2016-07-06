@@ -91,7 +91,6 @@ type
   { TPlayerTowns }
 
   TPlayerTowns = class (specialize TGNamedCollection<TPlayerTown>)
-
   end;
 
   { TMainTownInfo }
@@ -140,6 +139,11 @@ type
 
     property Color: TPlayerColor read FColor;
 
+    procedure TownAdded(AObject: TMapObject);
+    procedure TownRemoved(AObject: TMapObject);
+    procedure HeroAdded(AObject: TMapObject);
+    procedure HeroRemoved(AObject: TMapObject);
+
     property Towns: TPlayerTowns read FTowns;
   public // ISerializeSpecial
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -155,7 +159,6 @@ type
     property CanPlay: TPlayableBy read FCanPlay write FCanPlay default TPlayableBy.None;
 
     property MainTown: TMainTownInfo read FMainTown write FMainTown stored HasMainTown;
-
     property MainHero: String read FMainHero write FMainHero;
   public
     property AITactics: TAITactics read FAITactics write FAITactics; //not used in vcmi (yet)
@@ -1865,6 +1868,62 @@ begin
   inherited Destroy;
 end;
 
+procedure TPlayerInfo.TownAdded(AObject: TMapObject);
+var
+  player_town: TPlayerTown;
+begin
+  player_town := Towns.Add;
+  player_town.MapObject := AObject;
+
+  if MainTown.MapObject = nil then
+  begin
+    MainTown.MapObject :=AObject;
+  end;
+end;
+
+procedure TPlayerInfo.TownRemoved(AObject: TMapObject);
+begin
+  Towns.Remove(AObject.Identifier);
+
+  if MainTown.MapObject = AObject then
+  begin
+    MainTown.MapObject:=nil;
+
+    if Towns.Count > 0 then
+    begin
+      MainTown.MapObject:= Towns.Items[0].MapObject;
+    end;
+  end;
+end;
+
+procedure TPlayerInfo.HeroAdded(AObject: TMapObject);
+var
+  player_hero: TPlayerHero;
+begin
+  player_hero := Heroes.Add;
+  player_hero.MapObject := AObject;
+
+  if MainHero = '' then
+  begin
+    MainHero:=player_hero.&type;
+  end;
+end;
+
+procedure TPlayerInfo.HeroRemoved(AObject: TMapObject);
+begin
+  Heroes.Remove(AObject.Identifier);
+
+  if MainHero = THeroOptions(AObject.Options).&type then
+  begin
+    MainHero:='';
+
+    if Heroes.Count > 0 then
+    begin
+      MainHero:=Heroes.Items[0].&type;
+    end;
+  end;
+end;
+
 procedure TPlayerInfo.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 begin
   AHandler.JSONToObject(ASrc as TJSONObject, Self);
@@ -2438,20 +2497,8 @@ begin
 end;
 
 procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
-
-  procedure Remove(ACollection: THashedCollection; AIdentifier: string);
-  var
-    idx: Integer;
-  begin
-    idx := ACollection.IndexOfName(AIdentifier);
-    if idx>=0 then
-      ACollection.Delete(idx);
-  end;
-
 var
   opt: TPlayerInfo;
-  player_hero: TPlayerHero;
-  player_town: TPlayerTown;
 begin
   if AOldOwner <> TPlayer.none then
   begin
@@ -2461,9 +2508,9 @@ begin
 
       case AObject.&Type of
         TYPE_HERO, TYPE_RANDOMHERO:
-            Remove(opt.Heroes, AObject.Identifier);
+          opt.HeroRemoved(AObject);
         TYPE_TOWN, TYPE_RANDOMTOWN:
-            Remove(opt.Towns, AObject.Identifier);
+          opt.TownRemoved(AObject);
       end;
     end
     else begin
@@ -2481,13 +2528,11 @@ begin
       case AObject.&Type of
         TYPE_HERO, TYPE_RANDOMHERO:
         begin
-          player_hero := opt.Heroes.Add;
-          player_hero.MapObject := AObject;
+          opt.HeroAdded(AObject);
         end;
         TYPE_TOWN, TYPE_RANDOMTOWN:
         begin
-          player_town := opt.Towns.Add;
-          player_town.MapObject := AObject;
+          opt.TownAdded(AObject);
         end;
       end;
     end

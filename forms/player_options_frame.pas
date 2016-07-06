@@ -218,7 +218,7 @@ begin
   FObject.MainTown.GenerateHero := edGenerateHero.Checked;
 
   if Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
-    FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TPlayerHero).Identifier
+    FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TPlayerHero).&type
   else
     FObject.MainHero := '';
 end;

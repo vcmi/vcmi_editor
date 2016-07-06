@@ -28,8 +28,8 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="4"/>
-      <BuildNr Value="77"/>
-      <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
+      <BuildNr Value="79"/>
+      <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="3">
