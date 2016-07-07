@@ -3736,4 +3736,10 @@ object fMain: TfMain
       6EFF6B706EFF6B706EFF6B706E00
     }
   end
+  object SearchTimer: TTimer
+    Enabled = False
+    OnTimer = SearchTimerTimer
+    left = 592
+    top = 352
+  end
 end

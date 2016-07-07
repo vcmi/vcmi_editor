@@ -154,6 +154,7 @@ type
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
+    SearchTimer: TTimer;
     ToolButton10: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
@@ -269,6 +270,7 @@ type
     procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
+    procedure SearchTimerTimer(Sender: TObject);
     procedure tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure VerticalAxisPaint(Sender: TObject);
@@ -1678,7 +1680,8 @@ end;
 
 procedure TfMain.ObjectsSearchChange(Sender: TObject);
 begin
-  //
+  SearchTimer.Enabled:=false;
+  SearchTimer.Enabled:=true;
 end;
 
 procedure TfMain.ObjectsSearchEditingDone(Sender: TObject);
@@ -2047,6 +2050,11 @@ begin
   InvalidateObjPos;
 end;
 
+procedure TfMain.SearchTimerTimer(Sender: TObject);
+begin
+  DoObjectsSearch;
+end;
+
 procedure TfMain.tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 begin
@@ -2174,6 +2182,7 @@ end;
 
 procedure TfMain.DoObjectsSearch;
 begin
+  SearchTimer.Enabled:=false;
   FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text);
   InvalidateObjects;
 end;
