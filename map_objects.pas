@@ -229,15 +229,27 @@ type
     constructor Create();
     destructor Destroy; override;
     procedure AddItem(AItem: TMapObjectTemplate);
-    procedure Intersect(ATarget:TSearchIndexBusket.TBusketData);
+    procedure Intersect(ATarget:TBusketData);
     procedure SaveTo(ATarget:TBusketData);
+  end;
+
+  { TSearchIndexMap }
+
+  TSearchIndexMap = class(specialize TFPGMap<string,TSearchIndexBusket>)
+  protected
+    procedure Deref(Item: Pointer); override;
+  public
+    constructor Create;
+
+    //true if found
+    function Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean;
   end;
 
   { TSearchIndex }
 
   TSearchIndex = class
   private
-    FHash: TFPHashObjectList; //contains TSearchIndexBusket
+    FMap: TSearchIndexMap; //contains TSearchIndexBusket
   public
     constructor Create();
     destructor Destroy; override;
@@ -298,6 +310,50 @@ const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
 
+  function CompareSearchIndexBusket(const d1,d2: TSearchIndexBusket): integer;
+  begin
+    Result := PtrInt(d1) - PtrInt(d2);
+  end;
+
+{ TSearchIndexMap }
+
+procedure TSearchIndexMap.Deref(Item: Pointer);
+begin
+  Finalize(string(Item^));
+  TSearchIndexBusket(Pointer(PByte(Item)+KeySize)^).Free;
+end;
+
+constructor TSearchIndexMap.Create;
+begin
+  inherited Create;
+  OnKeyCompare := @UTF8CompareStr;
+  OnDataCompare := @CompareSearchIndexBusket;
+
+  Sorted := True;
+  Duplicates:=dupError;
+end;
+
+function TSearchIndexMap.Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean;
+//var
+//  i: integer;
+begin
+  IdxLow := -1;
+  IdxHigh := -1;
+
+  if inherited Find(AKeyWord, IdxLow) then
+  begin
+    IdxHigh:=IdxLow;
+    Result := true;
+  end
+  else
+  begin
+
+    //todo: TSearchIndexMap partial compare
+
+    Result := false;
+  end;
+end;
+
 { TObjTemplateCompare }
 
 class function TObjTemplateCompare.c(a, b: TMapObjectTemplate): boolean;
@@ -338,7 +394,7 @@ begin
   end;
 end;
 
-procedure TSearchIndexBusket.Intersect(ATarget: TSearchIndexBusket.TBusketData);
+procedure TSearchIndexBusket.Intersect(ATarget: TBusketData);
 var
   it: TBusketData.TIterator;
   n: TBusketData.PNode;
@@ -374,66 +430,72 @@ end;
 
 constructor TSearchIndex.Create;
 begin
-  FHash := TFPHashObjectList.Create(true);;
+  FMap := TSearchIndexMap.Create();
 end;
 
 destructor TSearchIndex.Destroy;
 begin
-  FHash.Free;
+  FMap.Free;
   inherited Destroy;
 end;
 
 procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
 var
   busket: TSearchIndexBusket;
-  short_key: ShortString;
-  idx: Integer;
+  idx_low, idx_high: Integer;
 begin
-  short_key := AKeyWord;
-  idx := FHash.FindIndexOf(short_key);
+  idx_low := -1;
+  idx_high := -1;
 
-  if idx = -1 then
+  if not Fmap.Find(AKeyWord, idx_low, idx_high) then
   begin
     busket := TSearchIndexBusket.Create();
-    FHash.Add(short_key, busket);
+    FMap.Add(AKeyWord, busket);
   end
   else
   begin
-    busket := TSearchIndexBusket(FHash.Items[idx]);
+    busket := FMap.Data[idx_low];
   end;
 
   busket.AddItem(AItem);
 end;
 
-procedure TSearchIndex.Find(AKeyWord: String;
-  ATarget: TSearchIndexBusket.TBusketData);
+procedure TSearchIndex.Find(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
 var
-  short_key: ShortString;
-  idx: Integer;
+  idx_low, idx_high, i: Integer;
 begin
-  short_key := AKeyWord;
+  idx_low := -1;
+  idx_high := -1;
 
-  idx := FHash.FindIndexOf(short_key);
-
-  if idx >= 0 then
+  if Fmap.Find(AKeyWord, idx_low, idx_high)then
   begin
-    TSearchIndexBusket(FHash.Items[idx]).SaveTo(ATarget);
+    for i := idx_low to idx_high do
+    begin
+      FMap.Data[i].SaveTo(ATarget);
+    end;
   end;
 end;
 
-procedure TSearchIndex.Intersect(AKeyWord: String;
-  ATarget: TSearchIndexBusket.TBusketData);
+procedure TSearchIndex.Intersect(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
 var
-  short_key: ShortString;
-  idx: Integer;
+  idx_low, idx_high, i: Integer;
+
+  temp : TSearchIndexBusket;
 begin
-  short_key := AKeyWord;
+  idx_low := -1;
+  idx_high := -1;
 
-  idx := FHash.FindIndexOf(short_key);
-
-  if idx >= 0 then
+  if Fmap.Find(AKeyWord, idx_low, idx_high)then
   begin
-    TSearchIndexBusket(FHash.Items[idx]).Intersect(ATarget);
+    temp := TSearchIndexBusket.Create;
+
+    for i := idx_low to idx_high do
+    begin
+      FMap.Data[i].SaveTo(temp.data);
+    end;
+
+    temp.Intersect(ATarget);
+    temp.Free;
   end
   else
   begin

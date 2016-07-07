@@ -3735,6 +3735,7 @@ object fMain: TfMain
   end
   object SearchTimer: TTimer
     Enabled = False
+    Interval = 500
     OnTimer = SearchTimerTimer
     left = 592
     top = 352

@@ -2164,7 +2164,6 @@ begin
     status_text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
   end;
 
-
   if Assigned(FSelectedObject) then
   begin
     if status_text <> '' then
