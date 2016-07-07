@@ -445,10 +445,9 @@ end;
 procedure THeroFrame.edHeroClassChange(Sender: TObject);
 var
   class_info: THeroClassInfo;
+  hero_info: THeroInfo;
 
   editor: TCustomComboBox;
-  idx: Integer;
-  hero_type: String;
 begin
   if edType.Visible and Assigned(FHeroOptions) then
   begin
@@ -463,26 +462,16 @@ begin
     end
     else
     begin
+      hero_info := edType.SelectedInfo as THeroInfo;
+
+      if not Assigned(hero_info)then
+        hero_info := ListsManager.Heroes[FHeroOptions.&type];
+
       edType.Enabled:=true;
-      edType.ItemIndex := -1;
 
       class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
 
-      ListsManager.FillWithHeroesOfClass(edType.Items, class_info.Identifier);
-
-      hero_type :=  FHeroOptions.&type;
-
-      for idx := 0 to edType.Items.Count - 1 do
-      begin
-        if (edType.Items.Objects[idx] as TBaseInfo).Identifier = hero_type then
-        begin
-          edType.ItemIndex := idx;
-          break;
-        end;
-      end;
-
-      if (edType.ItemIndex = -1) and (edType.Items.Count >0) then
-        edType.ItemIndex := 0;
+      edType.ItemIndex := Map.FillWithAvilableHeroes(edType.Items, class_info.Identifier, hero_info);
     end;
   end;
 

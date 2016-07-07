@@ -618,6 +618,8 @@ type
     function IsEmpty: Boolean;
     function PeekFirst: THeroInfo;
 
+    function FillWithAvilableHeroes(AItems: TStrings; ASelected: THeroInfo): integer;
+
     property HeroClassInfo: THeroClassInfo read FInfo;
   end;
 
@@ -780,6 +782,9 @@ type
 
     //for use with combobox items; returns selected index; selected id required
     function FillWithAvilableClasses(AItems: TStrings; ASelected: AnsiString): integer;
+
+    //for use with combobox items; returns selected index
+    function FillWithAvilableHeroes(AItems: TStrings; AHeroClass: AnsiString; ASelected: THeroInfo): integer;
 
   published
     property Name:TLocalizedString read FName write SetName; //+
@@ -989,6 +994,41 @@ end;
 function THeroPool.PeekFirst: THeroInfo;
 begin
   Result := FPool.Objects[0] as THeroInfo;
+end;
+
+function THeroPool.FillWithAvilableHeroes(AItems: TStrings; ASelected: THeroInfo): integer;
+var
+  i: Integer;
+  info: THeroInfo;
+begin
+  Result := -1;
+  AItems.Clear;
+
+  if (FPool.Count = 0) and (not Assigned(ASelected)) then
+    raise Exception.Create('Hero pool is empty');
+
+  for i := 0 to FPool.Count - 1 do
+  begin
+    info :=  FPool.Objects[i] as THeroInfo;
+
+    if Assigned(ASelected) and (info.Identifier = ASelected.Identifier) then
+    begin
+      Result := i;
+    end;
+
+    AItems.AddObject(info.Name, info);
+  end;
+
+  if Assigned(ASelected) and (Result = -1) then
+  begin
+    AItems.InsertObject(0, ASelected.Name, ASelected);
+    Result := 0;
+  end;
+
+  if Result = -1 then
+  begin
+    Result := 0;
+  end;
 end;
 
 { TDefaultMapObjectCompare }
@@ -2867,7 +2907,24 @@ begin
   end;
 
   if Result = -1 then
-    raise Exception.CreateFmt('FillWithAvilableClasses: class not found %s',[ASelected]);
+    raise Exception.CreateFmt('FillWithAvilableClasses: class %s not found ',[ASelected]);
+end;
+
+function TVCMIMap.FillWithAvilableHeroes(AItems: TStrings; AHeroClass: AnsiString; ASelected: THeroInfo): integer;
+var
+  pool: THeroPool;
+begin
+  pool := FHeroPool.FindItem(AHeroClass);
+
+  if not Assigned(pool) then
+    raise Exception.CreateFmt('FillWithAvilableHeroes: class %s not found in pool',[AHeroClass]);
+
+  if ASelected.&Class <> AHeroClass then
+  begin
+    ASelected := nil;
+  end;
+
+  result := pool.FillWithAvilableHeroes(AItems, ASelected);
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;
