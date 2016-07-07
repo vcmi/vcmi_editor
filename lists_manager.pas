@@ -451,6 +451,7 @@ type
   public
     constructor Create(AOwner: TListsManager);
     procedure FillWithNotSpecial(AList: TLogicalIDCondition);
+    procedure FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
   end;
 
   { TListsManager }
@@ -776,6 +777,23 @@ begin
     if obj.Special then
     begin
       AList.NoneOf.Add(obj.Identifier);
+    end;
+  end;
+end;
+
+procedure THeroInfos.FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
+var
+  hero_info: THeroInfo;
+  i: Integer;
+begin
+  ATarget.Clear;
+  for i := 0 to Count - 1 do
+  begin
+    hero_info := Items[i];
+
+    if hero_info.&Class = AHeroClass then
+    begin
+      ATarget.AddObject(hero_info.Name, hero_info);
     end;
   end;
 end;
@@ -1516,22 +1534,9 @@ begin
   raise Exception.CreateFmt('Hero index not found: %d',[AIndex]);
 end;
 
-procedure TListsManager.FillWithHeroesOfClass(ATarget: TStrings;
-  AHeroClass: AnsiString);
-var
-  hero_info: THeroInfo;
-  i: Integer;
+procedure TListsManager.FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
 begin
-  ATarget.Clear;
-  for i := 0 to FHeroInfos.Count - 1 do
-  begin
-    hero_info := FHeroInfos.Items[i];
-
-    if hero_info.&Class = AHeroClass then
-    begin
-      ATarget.AddObject(hero_info.Name, hero_info);
-    end;
-  end;
+  HeroInfos.FillWithHeroesOfClass(ATarget, AHeroClass);
 end;
 
 procedure TListsManager.PreLoad;

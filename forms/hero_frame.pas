@@ -700,7 +700,7 @@ begin
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
 
-  edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
+  edHeroClass.ItemIndex := Map.FillWithAvilableClasses(edHeroClass.Items, GetHeroClass());
 
   edHeroClassChange(edHeroClass); //also loads type
 

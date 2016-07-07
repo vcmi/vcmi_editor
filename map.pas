@@ -605,15 +605,20 @@ type
   THeroPool = class (TNamedCollectionItem)
   strict private
     FPool: TStringList;
+    FInfo: THeroClassInfo;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+
+    procedure InitialFill(AClassInfo: THeroClassInfo; AFullList: THeroInfos);
 
     procedure AddHero(AHeroInfo: THeroInfo);
     procedure RemoveHero(AType: AnsiString);
 
     function IsEmpty: Boolean;
     function PeekFirst: THeroInfo;
+
+    property HeroClassInfo: THeroClassInfo read FInfo;
   end;
 
   { THeroClassPool }
@@ -623,7 +628,7 @@ type
     FFullList: THeroInfos;
     function GetPoolFromType(AType: AnsiString): THeroPool;
   public
-    constructor Create(AFullList: THeroInfos);
+    constructor Create(AHeroClassInfos: THeroClassInfos; AHeroInfos: THeroInfos);
 
     procedure HeroAdded(AObject: TMapObject);
     procedure HeroRemoved(AObject: TMapObject);
@@ -770,6 +775,12 @@ type
     function GetHeroName(AObject: TMapObject): TLocalizedString;
 
     function GetCurrentLevelDimensions: TMapRect;
+
+    //hero pool facade
+
+    //for use with combobox items; returns selected index; selected id required
+    function FillWithAvilableClasses(AItems: TStrings; ASelected: AnsiString): integer;
+
   published
     property Name:TLocalizedString read FName write SetName; //+
     property Description:TLocalizedString read FDescription write SetDescription; //+
@@ -823,20 +834,22 @@ begin
   Result := FindItem(info.&Class);
 end;
 
-constructor THeroClassPool.Create(AFullList: THeroInfos);
+constructor THeroClassPool.Create(AHeroClassInfos: THeroClassInfos; AHeroInfos: THeroInfos);
 var
   i: Integer;
-  info: THeroInfo;
+  c_info: THeroClassInfo;
   pool: THeroPool;
 begin
   inherited Create;
-  FFullList := AFullList;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList[i];
+  FFullList := AHeroInfos;
 
-    pool := EnsureItem(info.&Class);
-    pool.AddHero(info);
+  for i := 0 to AHeroClassInfos.Count - 1 do
+  begin
+    c_info := AHeroClassInfos.Items[i];
+
+    pool := EnsureItem(c_info.Identifier);
+
+    pool.InitialFill(c_info, AHeroInfos);
   end;
 end;
 
@@ -930,6 +943,26 @@ destructor THeroPool.Destroy;
 begin
   FPool.Free;
   inherited Destroy;
+end;
+
+procedure THeroPool.InitialFill(AClassInfo: THeroClassInfo; AFullList: THeroInfos);
+var
+  hero_info: THeroInfo;
+  i: Integer;
+begin
+  FInfo := AClassInfo;
+
+  FPool.Clear;
+
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    hero_info := AFullList.Items[i];
+
+    if hero_info.&Class = FInfo.Identifier then
+    begin
+      FPool.AddObject(hero_info.Identifier, hero_info);
+    end;
+  end;
 end;
 
 procedure THeroPool.AddHero(AHeroInfo: THeroInfo);
@@ -2485,7 +2518,7 @@ begin
 
   FVisibleObjectsQueue := TMapObjectQueue.Create;
 
-  FHeroPool := THeroClassPool.Create(env.lm.HeroInfos);
+  FHeroPool := THeroClassPool.Create(env.lm.HeroClassInfos, env.lm.HeroInfos);
 
   FIsDirty := False;
 end;
@@ -2805,6 +2838,36 @@ end;
 function TVCMIMap.GetCurrentLevelDimensions: TMapRect;
 begin
   Result := CurrentLevel.GetDimentions;
+end;
+
+function TVCMIMap.FillWithAvilableClasses(AItems: TStrings; ASelected: AnsiString): integer;
+var
+  i: Integer;
+  pool: THeroPool;
+begin
+  if ASelected = '' then
+    raise Exception.Create('FillWithAvilableClasses: no class selected');
+
+  Result := -1;
+  AItems.Clear;
+
+  for i := 0 to FHeroPool.Count - 1 do
+  begin
+    pool := FHeroPool.Items[i];
+
+    if ASelected = pool.Identifier then
+    begin
+      Result := AItems.Count;
+      AItems.AddObject(pool.HeroClassInfo.Name, pool.HeroClassInfo);
+    end
+    else if not pool.IsEmpty then
+    begin
+      AItems.AddObject(pool.HeroClassInfo.Name, pool.HeroClassInfo);
+    end;
+  end;
+
+  if Result = -1 then
+    raise Exception.CreateFmt('FillWithAvilableClasses: class not found %s',[ASelected]);
 end;
 
 function TVCMIMap.CurrentLevel: TMapLevel;
