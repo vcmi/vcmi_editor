@@ -195,12 +195,11 @@ type
 
   TObjectsSelection = class
   private
-    FManager: TObjectsManager;
     FData: TMapObjectTemplateList;
     function GetCount: Integer;
     function GetObjcts(AIndex: Integer): TMapObjectTemplate;
   public
-    constructor Create(AManager: TObjectsManager);
+    constructor Create();
     destructor Destroy; override;
     procedure Clear;
     property Count:Integer read GetCount;
@@ -505,9 +504,8 @@ begin
   Result := FData.Items[AIndex];
 end;
 
-constructor TObjectsSelection.Create(AManager: TObjectsManager);
+constructor TObjectsSelection.Create;
 begin
-  FManager := AManager;
   FData := TMapObjectTemplateList.Create(False);
 end;
 

@@ -946,7 +946,7 @@ begin
 
   FObjectBrush.VisibleObjects := FVisibleObjects;
 
-  FTemplatesSelection := TObjectsSelection.Create(FObjManager);
+  FTemplatesSelection := TObjectsSelection.Create();
 
   FObjManager.SelectAll(FTemplatesSelection);
 
@@ -1663,8 +1663,7 @@ begin
   end;
 end;
 
-procedure TfMain.MinimapMouseMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Integer);
+procedure TfMain.MinimapMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
   if ssLeft in Shift then
   begin
@@ -1679,7 +1678,7 @@ end;
 
 procedure TfMain.ObjectsSearchChange(Sender: TObject);
 begin
-  StatusBar.Panels[1].Text := ObjectsSearch.Text;
+  //
 end;
 
 procedure TfMain.ObjectsSearchEditingDone(Sender: TObject);
@@ -1762,7 +1761,7 @@ begin
   begin
     FNextDragSubject:=TDragSubject.MapTemplate;
     FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
-    DragManager.DragStart(self, True,0); //after state change
+    DragManager.DragStart(self, False,10); //after state change
     FActiveBrush := FIdleBrush;
   end;
 end;
