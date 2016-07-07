@@ -27,7 +27,7 @@ unit map_object_actions;
 interface
 
 uses
-  Classes, SysUtils, Controls, typinfo, undo_base, undo_map, Map, editor_types, map_objects, editor_str_consts, map_actions,
+  Classes, SysUtils, LCLType, Controls, Forms, typinfo, undo_base, undo_map, Map, editor_types, map_objects, editor_str_consts, map_actions,
   editor_gl, editor_consts, map_rect, vcmi_json, edit_object_options, vcmi_fpjsonrtti, gset, fpjson;
 
 type
@@ -335,10 +335,11 @@ begin
 
   case ot of
     TObjectOwnershipTrait.FreeIfDone:
-      if State = TUndoItemState.ReDone then
+      if State <> TUndoItemState.UnDone then
         FreeTargets;
+
     TObjectOwnershipTrait.FreeIfUndone:
-      if State = TUndoItemState.UnDone then
+      if State <> TUndoItemState.ReDone then
         FreeTargets;
   end;
 
@@ -431,20 +432,29 @@ end;
 
 function TAddObject.Execute: boolean;
 begin
-  Result := true;
   TargetObject := TMapObject.Create(nil);
-  TargetObject.AssignTemplate(Template);
+  try
+    TargetObject.AssignTemplate(Template);
 
-  TargetObject.L := l;
-  TargetObject.X := X;
-  TargetObject.Y := Y;
+    TargetObject.L := l;
+    TargetObject.X := X;
+    TargetObject.Y := Y;
 
-  TargetObject.Collection := FMap.Objects; //add object with valid configuration
+    TargetObject.Collection := FMap.Objects; //add object with valid configuration
 
-  if IsPublishedProp(TargetObject.Options, 'Owner') then
-  begin
-    TargetObject.Options.Owner := CurrentPlayer;
+    if IsPublishedProp(TargetObject.Options, 'Owner') then
+    begin
+      TargetObject.Options.Owner := CurrentPlayer;
+    end;
+    Result := true;
+  except
+    on e: Exception do
+    begin
+      Result := false;
+      Application.MessageBox(Pchar(e.Message), 'Error', MB_OK or MB_ICONERROR);
+    end;
   end;
+
   //(!)do not redo here
 end;
 

@@ -447,7 +447,7 @@ var
   idx: Integer;
   hero_type: String;
 begin
-  if edType.Visible and  Assigned(FHeroOptions) then
+  if edType.Visible and Assigned(FHeroOptions) then
   begin
     //fill hero types
     editor := Sender as TCustomComboBox;
@@ -711,8 +711,6 @@ begin
       edPatrol.Text:=IntToStr(FHeroOptions.PatrolRadius);
     end;
   end;
-
-
 end;
 
 procedure THeroFrame.VisitHeroDefinition(AOptions: THeroDefinition);

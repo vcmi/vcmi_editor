@@ -861,7 +861,7 @@ begin
 
         if pool.IsEmpty then
         begin
-          raise Exception.CreateFmt('No heroes of class %s is avilable',[AObject.Subtype]);
+          raise EAbort.CreateFmt('No heroes of class %s is avilable',[AObject.Subtype]);
         end
         else
         begin
@@ -945,7 +945,7 @@ begin
   if idx >=0 then
     FPool.Delete(idx)
   else
-    raise Exception.CreateFmt('Hero %s is not avilable',[AType]);
+    raise EAbort.CreateFmt('Hero %s is not avilable',[AType]);
 end;
 
 function THeroPool.IsEmpty: Boolean;

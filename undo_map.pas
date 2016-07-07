@@ -67,7 +67,7 @@ type
     procedure Undo; override;
     procedure Redo; override;
 
-    procedure ExecuteItem(AItem: TAbstractUndoItem); override;
+    function ExecuteItem(AItem: TAbstractUndoItem): boolean; override;
     function PeekCurrent: TAbstractUndoItem; override;
     function PeekNext: TAbstractUndoItem; override;
 
@@ -160,13 +160,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapUndoManager.ExecuteItem(AItem: TAbstractUndoItem);
+function TMapUndoManager.ExecuteItem(AItem: TAbstractUndoItem): boolean;
 var
   i: Integer;
 begin
   SetItemState(AItem,TUndoItemState.Idle);
+  Result := AItem.Execute;
 
-  if not AItem.Execute then
+  if not Result then
   begin
     AItem.Free;
     Exit;

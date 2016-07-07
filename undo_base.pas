@@ -67,7 +67,7 @@ type
     procedure Redo; virtual; abstract;
 
     //redo action (= first execute), push to stack, acquire ownership
-    procedure ExecuteItem(AItem: TAbstractUndoItem); virtual; abstract;
+    function ExecuteItem(AItem: TAbstractUndoItem): boolean; virtual; abstract;
 
     procedure Clear; virtual; abstract;
   end;

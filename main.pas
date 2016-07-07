@@ -522,9 +522,10 @@ begin
 
   action_item.CurrentPlayer:=p;
 
-  FOwner.FUndoManager.ExecuteItem(action_item);
-
-  FOwner.FSelectedObject := action_item.TargetObject;
+  if FOwner.FUndoManager.ExecuteItem(action_item) then
+  begin
+    FOwner.FSelectedObject := action_item.TargetObject;
+  end;
 end;
 
 procedure TTemplateDragProxy.Render(AState: TLocalState; x, y: integer);
