@@ -1324,9 +1324,6 @@ object fMain: TfMain
     Panels = <    
       item
         Width = 300
-      end    
-      item
-        Width = 50
       end>
     SimplePanel = False
   end

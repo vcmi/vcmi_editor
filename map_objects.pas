@@ -142,6 +142,8 @@ type
     FMapObjectGroup:TMapObjectGroup;
     function GetIndexAsID: TCustomID;
     procedure SetIndexAsID(AValue: TCustomID);
+  protected
+    function GetDisplayName: string; override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -172,6 +174,8 @@ type
     FName: TLocalizedString;
     FNid: TCustomID;
     FMapObjectTypes: TMapObjectTypes;
+  protected
+    function GetDisplayName: string; override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -280,6 +284,8 @@ type
     procedure SelectByKeywords(ATarget: TObjectsSelection; AInput: string);
     function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
     procedure BuildIndex;
+
+    function FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
   end;
 
 implementation
@@ -519,6 +525,18 @@ end;
 
 { TMapObjectGroup }
 
+function TMapObjectGroup.GetDisplayName: string;
+begin
+  if FName<>'' then
+  begin
+    Result := FName;
+  end
+  else
+  begin
+    Result:=inherited GetDisplayName;
+  end;
+end;
+
 constructor TMapObjectGroup.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -547,6 +565,18 @@ end;
 procedure TMapObjectType.SetIndexAsID(AValue: TCustomID);
 begin
   FNid := AValue;
+end;
+
+function TMapObjectType.GetDisplayName: string;
+begin
+  if FName<>'' then
+  begin
+    Result := FName;
+  end
+  else
+  begin
+    Result:=inherited GetDisplayName;
+  end;
 end;
 
 constructor TMapObjectType.Create(ACollection: TCollection);
@@ -866,6 +896,34 @@ begin
     end;
   end;
   keywords.Free;
+end;
+
+function TObjectsManager.FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
+var
+  group: TMapObjectGroup;
+  tp: TMapObjectType;
+
+  group_name: TLocalizedString;
+  tp_name: String;
+begin
+
+  group := FMapObjectGroups.FindItem(AType);
+
+  group_name := AType;
+
+  if Assigned(group) then
+  begin
+    group_name := group.DisplayName
+  end;
+
+  tp := group.Types.FindItem(ASybtype);
+
+  if Assigned(tp) then
+  begin
+    tp_name := tp.DisplayName
+  end;
+
+  Result := Format('%s:%s',[group_name, tp_name]);
 end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;

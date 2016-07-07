@@ -2100,7 +2100,7 @@ end;
 
 procedure TfMain.UpdateWidgets;
 var
-  s: String;
+  s, status_text: String;
   t: PMapTile;
 begin
   if Assigned(FMap) then
@@ -2155,19 +2155,25 @@ begin
     gbTerrain.Enabled := false;
   end;
 
-  if Assigned(FSelectedObject) then
-  begin
-    StatusBar.Panels[0].Text:=FSelectedObject.FormatDisplayName('');
-  end
-  else if Assigned(FMap) and FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
-  begin
+  status_text := '';
 
+  if Assigned(FMap) and FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
+  begin
     t := FMap.CurrentLevel.Tile[FMouseTileX, FMouseTileY];
 
-    StatusBar.Panels[0].Text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
-  end
-  else
-    StatusBar.Panels[0].Text := '';
+    status_text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
+  end;
+
+
+  if Assigned(FSelectedObject) then
+  begin
+    if status_text <> '' then
+      status_text := status_text + ' | ';
+
+    status_text := status_text + FSelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FSelectedObject.&Type, FSelectedObject.Subtype));
+  end;
+
+  StatusBar.Panels[0].Text:= status_text;
 end;
 
 procedure TfMain.ResetFocus;
