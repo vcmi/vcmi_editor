@@ -1141,7 +1141,6 @@ end;
 constructor TPrisonOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  &type := RootManager.ListsManager.HeroInfos.Items[0].Identifier;
 end;
 
 procedure TPrisonOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);

@@ -42,7 +42,7 @@ uses
   logical_expression, abandoned_frame, scholar_frame, creature_set_frame,
   resource_frame, pandoras_reward_frame, local_event_frame, hero_frame,
   editor_rtti, hero_artifacts_frame, message_frame, edit_hero_options,
-  hero_options_frame, player_options_form, 
+  player_options_form, 
 player_options_frame, position, hero_spells_frame, hero_skills_frame, 
 town_frame, town_buildings_frame, zipper_ex, edit_triggered_events, 
 locale_manager, player_selection_form, map_rect, town_spells_frame, logical_building_condition, quest_frame, 

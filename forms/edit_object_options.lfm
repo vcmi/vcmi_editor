@@ -77,7 +77,6 @@ object EditObjectOptions: TEditObjectOptions
     Top = 579
     Width = 570
     AutoSize = False
-    Caption = 'ErrorLabel'
     Font.Color = clRed
     ParentColor = False
     ParentFont = False

@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, FileUtil, strutils, typinfo, Forms, Controls, Graphics,
   Dialogs, StdCtrls, ComboEx, base_options_frame,
   gui_helpers, object_options, editor_consts, editor_types,
-  lists_manager, editor_classes, Map, LCLType, ExtCtrls, Spin,
+  lists_manager, editor_classes, Map, base_info, LCLType, ExtCtrls, Spin,
   rttiutils;
 
 type
@@ -84,14 +84,15 @@ type
     procedure CustomiseChange(Sender: TObject);
     procedure DefenceChange(Sender: TObject);
     procedure edExperienceEditingDone(Sender: TObject);
+    procedure edHeroClassChange(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
     procedure edSexChange(Sender: TObject);
     procedure edTypeChange(Sender: TObject);
     procedure KnowledgeChange(Sender: TObject);
     procedure SpellPowerChange(Sender: TObject);
-  private
+  strict private
     FOptions: IEditableHeroInfo;
-    FHeroOptions: THeroOptions;
+
     FHeroDefinition: THeroDefinition;
 
     function OptionsObj: TObject;
@@ -103,7 +104,10 @@ type
 
     procedure CommitHeroOptions;
     procedure CommitHeroDefinition;
+
+    procedure ReadHero(AOptions: THeroOptions);
   protected
+    FHeroOptions: THeroOptions;
     FEmptySkills:THeroPrimarySkills;
 
     FCustomFemale: Boolean;
@@ -125,7 +129,8 @@ type
 
     procedure LoadSkills;
     procedure ResetSkills;
-  protected
+
+    function GetHeroClass():AnsiString;
     procedure Load; override;
 
     procedure ApplyDefaults; override;
@@ -139,8 +144,6 @@ type
     procedure VisitNormalHero(AOptions: TNormalHeroOptions); override;
     procedure VisitRandomHero(AOptions: TRandomHeroOptions); override;
     procedure VisitPrison(AOptions: TPrisonOptions); override;
-
-    procedure ReadHero(AOptions: THeroOptions); virtual;
 
     procedure VisitHeroDefinition(AOptions: THeroDefinition); override;
   end;
@@ -168,8 +171,39 @@ begin
 end;
 
 procedure THeroFrame.edTypeChange(Sender: TObject);
+var
+  editor: TCustomComboBox;
+  info: TBaseInfo;
+  definition: THeroDefinition;
 begin
-  UpdateControls;
+  editor := Sender as TCustomComboBox;
+
+  if editor.Visible and editor.Enabled then
+  begin
+    FHeroTypeDefaults := nil;
+
+    info := editor.SelectedInfo;
+    definition := nil;
+    if Assigned(info) then
+    begin
+      FHeroTypeDefaults := info as THeroInfo;
+
+      definition := Map.PredefinedHeroes.FindItem(info.Identifier);
+
+      NotifyInstanceTypeChange(info.Identifier);
+    end;
+
+    FHeroMapDefaults := definition;
+  end
+  else
+  begin
+    NotifyInstanceTypeChange('');
+  end;
+
+  cbPortraitChange(cbPortrait);
+  cbExperienceChange(cbExperience);
+  cbSexChange(cbSex);
+  cbSkillsChange(cbSkills);
 end;
 
 procedure THeroFrame.KnowledgeChange(Sender: TObject);
@@ -241,6 +275,7 @@ begin
     FCustomFemale := GetDefaultSex = THeroSex.female;
   cbSexChange(cbSex);
 
+  UpdateControls();
 end;
 
 procedure THeroFrame.Save;
@@ -404,6 +439,52 @@ begin
   FCustomExperience := StrToInt64Def(edExperience.Text, 0);
 end;
 
+procedure THeroFrame.edHeroClassChange(Sender: TObject);
+var
+  class_info: THeroClassInfo;
+
+  editor: TCustomComboBox;
+  idx: Integer;
+  hero_type: String;
+begin
+  if edType.Visible and  Assigned(FHeroOptions) then
+  begin
+    //fill hero types
+    editor := Sender as TCustomComboBox;
+
+    if editor.ItemIndex < 0 then
+    begin
+      edType.ItemIndex := -1;
+      edType.Items.Clear;
+      edType.Enabled:=false;
+    end
+    else begin
+      edType.Enabled:=true;
+      edType.ItemIndex := -1;
+
+      class_info := editor.Items.Objects[editor.ItemIndex] as THeroClassInfo;
+
+      ListsManager.FillWithHeroesOfClass(edType.Items, class_info.Identifier);
+
+      hero_type :=  FHeroOptions.&type;
+
+      for idx := 0 to edType.Items.Count - 1 do
+      begin
+        if (edType.Items.Objects[idx] as TBaseInfo).Identifier = hero_type then
+        begin
+          edType.ItemIndex := idx;
+          break;
+        end;
+      end;
+
+      if (edType.ItemIndex = -1) and (edType.Items.Count >0) then
+        edType.ItemIndex := 0;
+    end;
+  end;
+
+  edTypeChange(edType);
+end;
+
 procedure THeroFrame.cbPortraitChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
@@ -494,6 +575,26 @@ begin
   Defence.Value    := src.Defence;
   SpellPower.Value := src.Spellpower;
   Knowledge.Value  := src.Knowledge;
+end;
+
+function THeroFrame.GetHeroClass: AnsiString;
+begin
+  if not Assigned(FHeroOptions) then
+  begin
+    exit('');//just to safe
+  end;
+
+  if FHeroOptions.&type = '' then
+  begin
+
+    if FHeroOptions.MapObject.GetID = TYPE_HERO then
+    begin
+      Exit(FHeroOptions.MapObject.GetSubId());
+    end;
+    exit('');
+  end;
+
+  Result := ListsManager.Heroes[FHeroOptions.&type].&Class;
 end;
 
 procedure THeroFrame.ApplyDefaults;
@@ -591,7 +692,9 @@ begin
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
 
-  NotifyInstanceTypeChange(AOptions.&Type);
+  edHeroClass.FillFromList(ListsManager.HeroClassInfos, GetHeroClass);
+
+  edHeroClassChange(edHeroClass); //also loads type
 
   Load;
 
@@ -608,6 +711,7 @@ begin
       edPatrol.Text:=IntToStr(FHeroOptions.PatrolRadius);
     end;
   end;
+
 
 end;
 

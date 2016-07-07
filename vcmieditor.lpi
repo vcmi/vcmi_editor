@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="5"/>
-      <BuildNr Value="79"/>
+      <BuildNr Value="80"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -144,7 +144,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="87">
+    <Units Count="86">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -493,121 +493,114 @@
         <ResourceBaseClass Value="Form"/>
       </Unit66>
       <Unit67>
-        <Filename Value="forms\hero_options_frame.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="HeroOptionsFrame"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Frame"/>
-      </Unit67>
-      <Unit68>
         <Filename Value="forms\player_options_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerOptionsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit68>
-      <Unit69>
+      </Unit67>
+      <Unit68>
         <Filename Value="forms\player_options_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit69>
-      <Unit70>
+      </Unit68>
+      <Unit69>
         <Filename Value="forms\position.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit70>
-      <Unit71>
+      </Unit69>
+      <Unit70>
         <Filename Value="forms\hero_spells_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroSpellsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit71>
-      <Unit72>
+      </Unit70>
+      <Unit71>
         <Filename Value="forms\hero_skills_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="HeroSkillsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit72>
-      <Unit73>
+      </Unit71>
+      <Unit72>
         <Filename Value="forms\town_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TownOptionsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit73>
-      <Unit74>
+      </Unit72>
+      <Unit73>
         <Filename Value="forms\town_buildings_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TownBuildingsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit74>
-      <Unit75>
+      </Unit73>
+      <Unit74>
         <Filename Value="zipper_ex.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit75>
-      <Unit76>
+      </Unit74>
+      <Unit75>
         <Filename Value="forms\edit_triggered_events.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TriggeredEventsForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit76>
-      <Unit77>
+      </Unit75>
+      <Unit76>
         <Filename Value="locale_manager.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit77>
-      <Unit78>
+      </Unit76>
+      <Unit77>
         <Filename Value="forms\player_selection_form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PlayerSelectionForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit78>
-      <Unit79>
+      </Unit77>
+      <Unit78>
         <Filename Value="map_rect.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit79>
-      <Unit80>
+      </Unit78>
+      <Unit79>
         <Filename Value="forms\town_spells_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TownSpellsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit80>
-      <Unit81>
+      </Unit79>
+      <Unit80>
         <Filename Value="logical_building_condition.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit81>
-      <Unit82>
+      </Unit80>
+      <Unit81>
         <Filename Value="forms\quest_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="QuestFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit82>
-      <Unit83>
+      </Unit81>
+      <Unit82>
         <Filename Value="forms\reward_frame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RewardFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
+      </Unit82>
+      <Unit83>
+        <Filename Value="field_editors.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit83>
       <Unit84>
-        <Filename Value="field_editors.pas"/>
+        <Filename Value="shaders\default_v.glsl"/>
         <IsPartOfProject Value="True"/>
       </Unit84>
       <Unit85>
-        <Filename Value="shaders\default_v.glsl"/>
-        <IsPartOfProject Value="True"/>
-      </Unit85>
-      <Unit86>
         <Filename Value="shaders\default_f.glsl"/>
         <IsPartOfProject Value="True"/>
-      </Unit86>
+      </Unit85>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
