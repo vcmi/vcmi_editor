@@ -326,7 +326,7 @@ end;
 constructor TSearchIndexMap.Create;
 begin
   inherited Create;
-  OnKeyCompare := @UTF8CompareStr;
+  OnKeyCompare := @CompareStr;
   OnDataCompare := @CompareSearchIndexBusket;
 
   Sorted := True;
