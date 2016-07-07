@@ -54,6 +54,9 @@ type
     Label1: TLabel;
     AvailableForLabel: TLabel;
     AvailableForPlaceholder: TLabel;
+    TypeHeaderLabel: TLabel;
+    TypeHeader: TLabel;
+    TypeHeaderPlaceholder: TLabel;
     lbAttack: TLabel;
     lbDefence: TLabel;
     lbSpellPower: TLabel;
@@ -67,11 +70,11 @@ type
     lbHeroClass: TLabel;
     lbOwner: TLabel;
     pnSkills: TPanel;
-    Placeholder1: TLabel;
+    HeroClassPlaceholder: TLabel;
     lbType: TLabel;
-    Placeholder2: TLabel;
-    Placeholder3: TLabel;
-    Placeholder5: TLabel;
+    TypePlaceholder: TLabel;
+    OwnerPlaceholder: TLabel;
+    PatrolPlaceholder: TLabel;
     Attack: TSpinEdit;
     Defence: TSpinEdit;
     SpellPower: TSpinEdit;
@@ -458,7 +461,8 @@ begin
       edType.Items.Clear;
       edType.Enabled:=false;
     end
-    else begin
+    else
+    begin
       edType.Enabled:=true;
       edType.ItemIndex := -1;
 
@@ -620,11 +624,11 @@ begin
 
   lbHeroClass.Visible:=False;
   edHeroClass.Visible:=False;
-  Placeholder1.Visible:=False;
+  HeroClassPlaceholder.Visible:=False;
 
   lbType.Visible:=False;
   edType.Visible:=False;
-  Placeholder2.Visible:=False;
+  TypePlaceholder.Visible:=False;
 
   ReadHero(AOptions);
 end;
@@ -635,7 +639,7 @@ begin
 
   lbOwner.Visible:=False;
   edOwner.Visible := False;
-  Placeholder3.Visible:=False;
+  OwnerPlaceholder.Visible:=False;
 
   ReadHero(AOptions);
 end;
@@ -688,6 +692,10 @@ begin
   FOptions := AOptions;
   FHeroOptions := AOptions;
 
+  TypeHeaderLabel.Visible:=false;
+  TypeHeader.Visible:=False;
+  TypeHeaderPlaceholder.Visible:=False;
+
   AvailableForPlaceholder.Visible:=false;
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
@@ -721,16 +729,25 @@ begin
   FOptions := AOptions;
   FHeroDefinition := AOptions;
 
+  TypeHeaderLabel.Visible:=True;
+  TypeHeader.Visible:=True;
+  TypeHeaderPlaceholder.Visible:=True;
+
   lbOwner.Visible:=false;
   edOwner.Visible:=false;
-  Placeholder3.Visible:=false;
+  OwnerPlaceholder.Visible:=false;
 
   lbPatrol.Visible:=false;
   edPatrol.Visible:=false;
-  Placeholder5.Visible:=false;
+  PatrolPlaceholder.Visible:=false;
 
-  edHeroClass.Enabled := false;
-  edType.Enabled:=false;
+  lbHeroClass.Visible:=False;
+  edHeroClass.Visible:=False;
+  HeroClassPlaceholder.Visible:=False;
+
+  lbType.Visible:=False;
+  edType.Visible:=False;
+  TypePlaceholder.Visible:=False;
 
   NotifyInstanceTypeChange(AOptions.Identifier);
 
@@ -740,8 +757,7 @@ begin
   FHeroTypeDefaults := h_info;
   FHeroMapDefaults := nil;
 
-  edHeroClass.FillFromList(ListsManager.HeroClassInfos, c_info.Identifier);
-  edType.FillFromList(ListsManager.HeroInfos, h_info.Identifier);
+  TypeHeader.Caption:=Format('%s %s',[c_info.Name, h_info.Name]);
 
   Load();
 
