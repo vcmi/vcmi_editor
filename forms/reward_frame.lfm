@@ -5,13 +5,15 @@ inherited RewardFrame: TRewardFrame
   ClientWidth = 400
   Constraints.MinHeight = 270
   Constraints.MinWidth = 400
+  DesignLeft = 614
+  DesignTop = 204
   object RewardsEdit: TListBox[0]
     Left = 10
-    Height = 256
-    Top = 50
+    Height = 266
+    Top = 40
     Width = 380
     Align = alClient
-    BorderSpacing.Top = 40
+    BorderSpacing.Top = 30
     BorderSpacing.Around = 10
     ClickOnSelChange = False
     ItemHeight = 0

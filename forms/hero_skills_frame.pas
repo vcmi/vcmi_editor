@@ -24,30 +24,31 @@ unit hero_skills_frame;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Grids,
-  StdCtrls, ExtCtrls, base_options_frame, gui_helpers, Map, editor_classes,
-  base_info, object_options, editor_types;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, ExtCtrls, ActnList, Buttons, base_options_frame, gui_helpers, Map, editor_classes,
+  base_info, object_options, editor_types, lists_manager;
 
 type
 
   { THeroSkillsFrame }
 
   THeroSkillsFrame = class(TBaseOptionsFrame)
+    act: TActionList;
+    actAdd: TAction;
+    actDelete: TAction;
+    ButtonAdd: TSpeedButton;
+    ButtonRemove: TSpeedButton;
     cbCustomise: TCheckBox;
-    edSecondarySkills: TStringGrid;
+    iml: TImageList;
     MasterySelector: TComboBox;
-    Panel1: TPanel;
-    SecondarySkillSelector: TComboBox;
+    SkillsEdit: TListBox;
+    SkillSelector: TComboBox;
+    procedure actAddExecute(Sender: TObject);
+    procedure actAddUpdate(Sender: TObject);
+    procedure actDeleteExecute(Sender: TObject);
+    procedure actDeleteUpdate(Sender: TObject);
     procedure cbCustomiseChange(Sender: TObject);
-    procedure edSecondarySkillsKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure edSecondarySkillsResize(Sender: TObject);
-    procedure edSecondarySkillsSelectEditor(Sender: TObject; aCol,
-      aRow: Integer; var Editor: TWinControl);
-    procedure MasterySelectorCloseUp(Sender: TObject);
-    procedure MasterySelectorEditingDone(Sender: TObject);
-    procedure SecondarySkillSelectorCloseUp(Sender: TObject);
-    procedure SecondarySkillSelectorEditingDone(Sender: TObject);
+    procedure SkillsEditSelectionChange(Sender: TObject; User: boolean);
   private
     FObject: THeroSecondarySkills;
     FCustomSkills, FDefaultSkills: THeroSecondarySkills;
@@ -56,6 +57,8 @@ type
     procedure LoadSkills(ASrc:THeroSecondarySkills);
 
     procedure LoadDefaultSkills(AHeroId: AnsiString);
+
+    function FormatInfo(AInfo: THeroSecondarySkill): TLocalizedString;
   protected
     procedure Load; override;
     procedure UpdateControls(); override;
@@ -79,12 +82,6 @@ implementation
 
 { THeroSkillsFrame }
 
-procedure THeroSkillsFrame.edSecondarySkillsKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  HandleStringGridKeyDown(Sender, Key, Shift);
-end;
-
 procedure THeroSkillsFrame.cbCustomiseChange(Sender: TObject);
 begin
   UpdateControls();
@@ -95,122 +92,141 @@ begin
   end
   else
   begin
+    SkillSelector.ItemIndex:=-1;
+    MasterySelector.ItemIndex:=-1;
+
     SaveSkills;
     LoadSkills(FDefaultSkills);
   end;
 end;
 
-procedure THeroSkillsFrame.edSecondarySkillsResize(Sender: TObject);
-begin
-  HandleStringGridResize(Sender);
-end;
-
-procedure THeroSkillsFrame.edSecondarySkillsSelectEditor(Sender: TObject; aCol,
-  aRow: Integer; var Editor: TWinControl);
+procedure THeroSkillsFrame.SkillsEditSelectionChange(Sender: TObject; User: boolean);
 var
-  grid: TCustomStringGrid;
+  idx: Integer;
+  o: THeroSecondarySkill;
 begin
-  grid := Sender as TCustomStringGrid;
+  if not cbCustomise.Checked then
+    exit;
 
-  case aCol of
-    0:
-    begin
-      Editor := SecondarySkillSelector;
+  idx := SkillsEdit.ItemIndex;
 
-      SecondarySkillSelector.FillFromList(ListsManager.SkillInfos,TBaseInfo(grid.Objects[grid.Col, Grid.Row]))
-    end;
-    1:
-    begin
-      Editor := MasterySelector;
-      MasterySelector.ItemIndex := Integer(PtrUInt(grid.Objects[grid.Col, Grid.Row])) - 1;
-    end
-  end;
-
-  Editor.BoundsRect := grid.CellRect(aCol,aRow);
-end;
-
-procedure THeroSkillsFrame.MasterySelectorCloseUp(Sender: TObject);
-begin
-  (Sender as TComboBox).EditingDone;
-end;
-
-procedure THeroSkillsFrame.MasterySelectorEditingDone(Sender: TObject);
-begin
-  edSecondarySkills.Cells[edSecondarySkills.Col,edSecondarySkills.Row]:=(Sender as TCustomComboBox).Text;
-
-  edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := TObject(PtrUint((Sender as TCustomComboBox).ItemIndex) + 1);
-end;
-
-procedure THeroSkillsFrame.SecondarySkillSelectorCloseUp(Sender: TObject);
-begin
-  (Sender as TComboBox).EditingDone;
-end;
-
-procedure THeroSkillsFrame.SecondarySkillSelectorEditingDone(Sender: TObject);
-var
-  editor : TCustomComboBox;
-begin
-
-  editor :=  (Sender as TCustomComboBox);
-
-  edSecondarySkills.Cells[edSecondarySkills.Col,edSecondarySkills.Row]:=editor.Text;
-
-  if editor.ItemIndex >=0 then
+  if idx < 0 then
   begin
-    edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := editor.Items.Objects[editor.ItemIndex];
-  end
-  else begin
-   edSecondarySkills.Objects[edSecondarySkills.Col,edSecondarySkills.Row] := nil;
+    SkillSelector.ItemIndex:=-1;
+    MasterySelector.ItemIndex:=-1;
+
+    exit;
   end;
 
+  o := SkillsEdit.Items.Objects[idx] as THeroSecondarySkill;
+
+  SkillSelector.SetValue(ListsManager.SkillInfos, o.Identifier);
+  MasterySelector.ItemIndex := Integer(o.Level) - 1;
+end;
+
+procedure THeroSkillsFrame.actAddUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=cbCustomise.Checked and (SkillSelector.ItemIndex>=0) and (MasterySelector.ItemIndex>=0);
+end;
+
+procedure THeroSkillsFrame.actAddExecute(Sender: TObject);
+var
+  i, matched: Integer;
+
+  skill_info: TBaseInfo;
+  mastery: TSkillLevel;
+
+  o: THeroSecondarySkill;
+begin
+  matched := -1;
+
+  skill_info := SkillSelector.SelectedInfo;
+
+  if not Assigned(skill_info) then
+    exit;
+
+  if MasterySelector.ItemIndex < 0 then
+    Exit;
+  mastery:=TSkillLevel(MasterySelector.ItemIndex+1);
+
+  for i := 0 to SkillsEdit.Items.Count - 1 do
+  begin
+    o := SkillsEdit.Items.Objects[i] as THeroSecondarySkill;
+
+    if o.Identifier = skill_info.Identifier then
+    begin
+      matched:=i;
+      break;
+    end;
+  end;
+
+  if matched < 0 then
+  begin
+    o := THeroSecondarySkill.Create(nil);
+    o.Identifier:=skill_info.Identifier;
+    o.Level:=mastery;
+    SkillsEdit.AddItem(FormatInfo(o), o);
+    FFreeList.Add(o);
+  end
+  else
+  begin
+    //update
+    o := SkillsEdit.Items.Objects[matched] as THeroSecondarySkill;
+    o.Level:=mastery;
+    SkillsEdit.Items[matched] := FormatInfo(o);
+    SkillsEdit.Items.Objects[matched] := o;
+  end;
+end;
+
+procedure THeroSkillsFrame.actDeleteExecute(Sender: TObject);
+var
+  idx: Integer;
+begin
+  idx := SkillsEdit.ItemIndex;
+
+  if idx >= 0 then
+    SkillsEdit.Items.Delete(idx);
+end;
+
+procedure THeroSkillsFrame.actDeleteUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=cbCustomise.Checked and (SkillsEdit.ItemIndex>=0);
 end;
 
 procedure THeroSkillsFrame.SaveSkills;
 var
   i: Integer;
-  info: TBaseInfo;
-  option: THeroSecondarySkill;
+  src, dst: THeroSecondarySkill;
 begin
   FCustomSkills.Clear;
-  for i := edSecondarySkills.FixedRows to edSecondarySkills.RowCount - 1 do
+
+  for i := 0 to SkillsEdit.Items.Count - 1 do
   begin
-    if Not Assigned(edSecondarySkills.Objects[0, i]) then
-    begin
-      Continue;
-    end;
+    src := SkillsEdit.Items.Objects[i] as THeroSecondarySkill;
 
-    info := edSecondarySkills.Objects[0, i] as TBaseInfo;
-
-    option := FCustomSkills.Add;
-    option.Identifier := info.Identifier;
-    option.Level:=TSkillLevel(Integer(PtrUint(edSecondarySkills.Objects[1, i])));
+    dst := FCustomSkills.Add;
+    dst.Assign(src);
   end;
 end;
 
 procedure THeroSkillsFrame.LoadSkills(ASrc: THeroSecondarySkills);
 var
   i: Integer;
-
-  option: THeroSecondarySkill;
-  row: Integer;
-  info: TBaseInfo;
+  src, dst: THeroSecondarySkill;
 begin
-  edSecondarySkills.Clean([gzNormal]);
-  edSecondarySkills.RowCount := edSecondarySkills.FixedRows;
+  FFreeList.Clear;
+  SkillsEdit.Clear;
 
   for i := 0 to ASrc.Count - 1 do
   begin
-    option := ASrc[i];
-    row := edSecondarySkills.RowCount;
-    edSecondarySkills.InsertColRow(false, row);
+    src := ASrc.Items[i];
 
-    info := ListsManager.SkillInfos.FindItem(option.Identifier);
+    dst := THeroSecondarySkill.Create(nil);
+    dst.Assign(src);
 
-    edSecondarySkills.Cells[0, row] := info.Name;
-    edSecondarySkills.Objects[0, row] := info;
+    SkillsEdit.AddItem(FormatInfo(dst), dst);
 
-    edSecondarySkills.Cells[1, row] := MasterySelector.Items[Integer(option.Level) - 1];
-    edSecondarySkills.Objects[1, row] := TObject(PtrUint(option.Level));
+    FFreeList.Add(dst);
   end;
 end;
 
@@ -241,8 +257,20 @@ begin
     FDefaultSkills.Assign(FHeroTypeDefaults.GetSecondarySkills);
 end;
 
+function THeroSkillsFrame.FormatInfo(AInfo: THeroSecondarySkill): TLocalizedString;
+var
+  skill_name, skill_mastery: TLocalizedString;
+begin
+  skill_name := ListsManager.GetSkill(AInfo.Identifier).Name;
+  skill_mastery:= MasterySelector.Items[Integer(AInfo.Level) - 1];
+
+  Result := Format('%s %s', [skill_mastery, skill_name]);
+end;
+
 procedure THeroSkillsFrame.Load;
 begin
+  SkillSelector.FillFromList(ListsManager.SkillInfos, '');
+
   cbCustomise.Checked:=FObject.Count <> 0;
 
   UpdateControls();
@@ -263,7 +291,9 @@ end;
 procedure THeroSkillsFrame.UpdateControls;
 begin
   inherited UpdateControls;
-  edSecondarySkills.Enabled := cbCustomise.Checked;
+  SkillsEdit.Enabled := cbCustomise.Checked;
+  SkillSelector.Enabled := cbCustomise.Checked;
+  MasterySelector.Enabled := cbCustomise.Checked;
 end;
 
 procedure THeroSkillsFrame.ApplyDefaults;

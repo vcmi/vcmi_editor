@@ -30,17 +30,13 @@ uses
 
 type
 
-
   { TRewardInfo }
 
   TRewardInfo = class
   public
     constructor Create(AMetaClassList: TMetaclassInfos; AReward: TReward);
-
     constructor Create(AMetaClass: TMetaclassInfo; AScope: AnsiString; AIdentifier: AnsiString; AValue: Int64);
-
     function ToString: ansistring; override;
-
     procedure SaveTo(AReward: TReward);
   public
     metaclass: TMetaclassInfo;
@@ -49,8 +45,7 @@ type
     value: Int64;
   end;
 
-
-  { TRewardFrame }
+    { TRewardFrame }
 
   TRewardFrame = class(TBaseOptionsFrame)
     act: TActionList;
@@ -70,7 +65,6 @@ type
     procedure MetaTypeEditSelect(Sender: TObject);
     procedure RewardsEditSelectionChange(Sender: TObject; User: boolean);
   private
-    FFreeList: TObjectList;
     FObject: TRewards;
 
     procedure SetupMetaTypes;
@@ -270,8 +264,8 @@ begin
 
     reward.value := AmountEdit.Value;
 
-    RewardsEdit.Items[i] := reward.ToString();
-    RewardsEdit.Items.Objects[i] := reward;
+    RewardsEdit.Items[matched] := reward.ToString();
+    RewardsEdit.Items.Objects[matched] := reward;
   end;
 end;
 
@@ -343,12 +337,10 @@ end;
 constructor TRewardFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
-  FFreeList := TObjectList.Create(true);
 end;
 
 destructor TRewardFrame.Destroy;
 begin
-  FFreeList.Free;
   inherited Destroy;
 end;
 

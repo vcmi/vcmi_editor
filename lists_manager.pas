@@ -559,6 +559,7 @@ type
     //secondary skills
     function SkillNidToString (ASkill: TCustomID): AnsiString;
     property SkillInfos: TSkillInfos read FSkillInfos;
+    function GetSkill(const AID: AnsiString): TSkillInfo;
 
     //Spells
     function SpellIndexToString (ASpell: TCustomID): AnsiString;
@@ -2312,6 +2313,11 @@ end;
 function TListsManager.SkillNidToString(ASkill: TCustomID): AnsiString;
 begin
   Result := editor_consts.SECONDARY_SKILL_NAMES[ASkill];
+end;
+
+function TListsManager.GetSkill(const AID: AnsiString): TSkillInfo;
+begin
+  Result := SkillInfos.FindItem(AID);
 end;
 
 function TListsManager.SpellIndexToString(ASpell: TCustomID): AnsiString;

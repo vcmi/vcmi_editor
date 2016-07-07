@@ -26,7 +26,7 @@ unit base_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, FileUtil, LCLType, Forms, Controls, ComCtrls,
+  Classes, SysUtils, gvector, contnrs, FileUtil, LCLType, Forms, Controls, ComCtrls,
   Spin, Grids, ExtCtrls, StdCtrls, editor_types, object_options, map,
   lists_manager, editor_consts, field_editors;
 
@@ -46,6 +46,7 @@ type
     FFieldEditors: TFieldEditors;
     procedure SetMap(AValue: TVCMIMap);
   protected
+    FFreeList: TObjectList; //for child classes
     FUseMapDefaults: Boolean;
 
     procedure ReadResourceSet(AParentControl: TWinControl; ASrc: TResourceSet);
@@ -290,6 +291,8 @@ begin
     raise Exception.Create('Invalid owner');
   end;
 
+  FFreeList := TObjectList.Create(true);
+
   inherited Create(TheOwner);
 
   FFieldEditors := TFieldEditors.Create;
@@ -297,6 +300,7 @@ end;
 
 destructor TBaseOptionsFrame.Destroy;
 begin
+  FFreeList.Free;
   FFieldEditors.Free;
   inherited Destroy;
 end;
