@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 282
+  Left = 290
   Height = 836
-  Top = 82
+  Top = 99
   Width = 1312
   Caption = 'VCMI editor'
   ClientHeight = 816

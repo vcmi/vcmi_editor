@@ -234,10 +234,8 @@ type
   TSearchIndex = class
   private
     FHash: TFPHashObjectList; //contains TSearchIndexBusket
-
-    FIndexSize: SizeInt;
   public
-    constructor Create(AIndexSize: SizeInt);
+    constructor Create();
     destructor Destroy; override;
     procedure AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
     procedure Find(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
@@ -368,9 +366,8 @@ end;
 
 { TSearchIndex }
 
-constructor TSearchIndex.Create(AIndexSize: SizeInt);
+constructor TSearchIndex.Create;
 begin
-  FIndexSize:=AIndexSize;
   FHash := TFPHashObjectList.Create(true);;
 end;
 
@@ -825,7 +822,7 @@ var
   obj_subtype: TMapObjectType;
 begin
   FillWithAllObjects(FAllTemplates);
-  FSearchIndex := TSearchIndex.Create(FAllTemplates.Count);
+  FSearchIndex := TSearchIndex.Create();
   keywords := TStringList.Create;
   keywords.Sorted:=true;
   keywords.Duplicates:=dupIgnore;
