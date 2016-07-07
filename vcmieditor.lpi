@@ -27,7 +27,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <RevisionNr Value="4"/>
+      <RevisionNr Value="5"/>
       <BuildNr Value="79"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable ProductVersion=""/>

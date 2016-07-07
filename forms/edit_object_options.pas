@@ -40,6 +40,7 @@ type
     actSave: TAction;
     btOk: TButton;
     btCancel: TButton;
+    ErrorLabel: TLabel;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
     tsReward: TTabSheet;
@@ -115,8 +116,18 @@ uses
 
 procedure TEditObjectOptions.actSaveExecute(Sender: TObject);
 begin
-  SaveChanges;
-  ModalResult:=mrOK;
+  try
+    ErrorLabel.Caption := '';
+    ErrorLabel.Visible:=False;
+    SaveChanges;
+    ModalResult:=mrOK;
+  except
+    on e: Exception do
+    begin
+      ErrorLabel.Caption := e.Message;
+      ErrorLabel.Visible:=True;
+    end;
+  end;
 end;
 
 procedure TEditObjectOptions.actSaveUpdate(Sender: TObject);

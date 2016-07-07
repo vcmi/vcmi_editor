@@ -451,7 +451,7 @@ type
     function GetSubId: AnsiString;
     function GetPlayer: TPlayer;
     procedure SetPlayer(AValue: TPlayer);
-
+    procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   published
     property X:integer read GetX write SetX;
@@ -598,10 +598,43 @@ type
   TInstanceMap = specialize TFPGMap<TInstanceID, TMapObject>;
 
 
+  { THeroPool }
+
+  //pool of heroes of same class
+
+  THeroPool = class (TNamedCollectionItem)
+  strict private
+    FPool: TStringList;
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+
+    procedure AddHero(AHeroInfo: THeroInfo);
+    procedure RemoveHero(AType: AnsiString);
+
+    function IsEmpty: Boolean;
+    function PeekFirst: THeroInfo;
+  end;
+
+  { THeroClassPool }
+
+  THeroClassPool = class (specialize TGNamedCollection<THeroPool>)
+  strict private
+    FFullList: THeroInfos;
+    function GetPoolFromType(AType: AnsiString): THeroPool;
+  public
+    constructor Create(AFullList: THeroInfos);
+
+    procedure HeroAdded(AObject: TMapObject);
+    procedure HeroRemoved(AObject: TMapObject);
+    procedure HeroChanged(AObject: TMapObject; AOldType, ANewType: AnsiString);
+  end;
+
+
   { TVCMIMap }
 
   TVCMIMap = class (TPersistent, IFPObserver, IReferenceNotify)
-  private
+  strict private
     FAllowedAbilities: TLogicalIDCondition;
     FAllowedArtifacts: TLogicalIDCondition;
     FAllowedSpells: TLogicalIDCondition;
@@ -626,15 +659,25 @@ type
     FRumors: TRumors;
 
     FIsDirty: boolean;
-
     FTrackObjectChanges: Boolean;
 
     FVisibleObjectsQueue : TMapObjectQueue;
 
-    //procedure Changed;
+    FDefeatIconIndex: Integer;
+    FDefeatString: TLocalizedString;
+    FTeams: TTeamSettings;
+    FVictoryIconIndex: Integer;
+    FVictoryString: TLocalizedString;
+
+    FHeroPool: THeroClassPool;
+
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
+
+    procedure MapObjectAdded(AObject: TMapObject);
+    procedure MapObjectRemoved(AObject: TMapObject);
+
     procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
     procedure SetCurrentLevelIndex(AValue: Integer);
     procedure SetDifficulty(AValue: TDifficulty);
@@ -644,11 +687,6 @@ type
 
     procedure SetIsDirty(AValue: Boolean);
   private
-    FDefeatIconIndex: Integer;
-    FDefeatString: TLocalizedString;
-    FTeams: TTeamSettings;
-    FVictoryIconIndex: Integer;
-    FVictoryString: TLocalizedString;
     type
       { TModRefCountInfo }
 
@@ -715,6 +753,7 @@ type
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
     property IsDirty: Boolean read FIsDirty write SetIsDirty;
+    property TrackObjectChanges: Boolean read FTrackObjectChanges;
 
     property TerrainManager: TTerrainManager read FTerrainManager;
     property ListsManager: TListsManager read FListsManager;
@@ -724,7 +763,7 @@ type
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
-
+    procedure NotifyHeroTypeChanged(AObject: TMapObject; AOldType, ANewType: AnsiString);
     procedure Loaded;
 
     //actual hero Name
@@ -773,6 +812,151 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
+
+{ THeroClassPool }
+
+function THeroClassPool.GetPoolFromType(AType: AnsiString): THeroPool;
+var
+  info: THeroInfo;
+begin
+  info := FFullList.FindItem(AType);
+  Result := FindItem(info.&Class);
+end;
+
+constructor THeroClassPool.Create(AFullList: THeroInfos);
+var
+  i: Integer;
+  info: THeroInfo;
+  pool: THeroPool;
+begin
+  inherited Create;
+  FFullList := AFullList;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList[i];
+
+    pool := EnsureItem(info.&Class);
+    pool.AddHero(info);
+  end;
+end;
+
+procedure THeroClassPool.HeroAdded(AObject: TMapObject);
+var
+  options: THeroOptions;
+  info: THeroInfo;
+
+  pool: THeroPool;
+  i: Integer;
+begin
+  options := AObject.Options as THeroOptions;
+
+  if options.&type = '' then
+  begin
+    //select type from pool, but DO NOT track this change
+
+    case AObject.&Type of
+      TYPE_HERO:
+      begin
+        pool := FindItem(AObject.Subtype);
+
+        if pool.IsEmpty then
+        begin
+          raise Exception.CreateFmt('No heroes of class %s is avilable',[AObject.Subtype]);
+        end
+        else
+        begin
+          info := pool.PeekFirst;
+          options.&type := info.Identifier;
+        end;
+      end;
+      TYPE_PRISON:
+      begin
+        for i := 0 to Count - 1 do
+        begin
+          pool := Items[i];
+          if not pool.IsEmpty then
+          begin
+            info := pool.PeekFirst;
+            options.&type := info.Identifier;
+            Break;
+          end;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    //just track as used
+    HeroChanged(AObject, '',  options.&type);
+  end;
+end;
+
+procedure THeroClassPool.HeroRemoved(AObject: TMapObject);
+var
+  options: THeroOptions;
+begin
+  options := AObject.Options as THeroOptions;
+
+  HeroChanged(AObject, options.&type, '');
+end;
+
+procedure THeroClassPool.HeroChanged(AObject: TMapObject; AOldType, ANewType: AnsiString);
+var
+  info: THeroInfo;
+begin
+  if AOldType <> '' then
+  begin
+    info := FFullList.FindItem(AOldType);
+    GetPoolFromType(AOldType).AddHero(info);
+  end;
+
+  if ANewType <> '' then
+  begin
+    GetPoolFromType(ANewType).RemoveHero(ANewType);
+  end
+end;
+
+{ THeroPool }
+
+constructor THeroPool.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FPool := TStringList.Create;
+  FPool.Sorted := true;
+  FPool.Duplicates:=dupIgnore;
+end;
+
+destructor THeroPool.Destroy;
+begin
+  FPool.Free;
+  inherited Destroy;
+end;
+
+procedure THeroPool.AddHero(AHeroInfo: THeroInfo);
+begin
+  FPool.AddObject(AHeroInfo.Identifier, AHeroInfo);
+end;
+
+procedure THeroPool.RemoveHero(AType: AnsiString);
+var
+  idx: Integer;
+begin
+  idx := FPool.IndexOf(AType);
+  if idx >=0 then
+    FPool.Delete(idx)
+  else
+    raise Exception.CreateFmt('Hero %s is not avilable',[AType]);
+end;
+
+function THeroPool.IsEmpty: Boolean;
+begin
+  Result := FPool.Count = 0;
+end;
+
+function THeroPool.PeekFirst: THeroInfo;
+begin
+  Result := FPool.Objects[0] as THeroInfo;
+end;
 
 { TDefaultMapObjectCompare }
 
@@ -1723,11 +1907,16 @@ begin
   begin
     GetMap.NotifyOwnerChanged(self, old, FPlayer);
 
-    if GetMap.FTrackObjectChanges then
+    if GetMap.TrackObjectChanges then
     begin
       GetMap.MapLevels[L].ObjectChanged(Self);
     end;
   end;
+end;
+
+procedure TMapObject.NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
+begin
+  GetMap.NotifyHeroTypeChanged(Self, AOldType, ANewType);
 end;
 
 function TMapObject.GetID: AnsiString;
@@ -2123,7 +2312,7 @@ begin
   Assert(Width>=0, 'Invalid width');
   if (Height=0) or (Width=0) or (Index <0) then Exit;
 
-  tt := Map.FTerrainManager.GetDefaultTerrain(Index);
+  tt := Map.TerrainManager.GetDefaultTerrain(Index);
 
   SetLength(FTiles,FWidth);
   for X := 0 to FWidth - 1 do
@@ -2132,7 +2321,7 @@ begin
     for Y := 0 to FHeight - 1 do
     begin
       t := @FTiles[X][Y];
-      t^.Create(tt, Map.FTerrainManager.GetRandomNormalSubtype(tt));
+      t^.Create(tt, Map.TerrainManager.GetRandomNormalSubtype(tt));
     end;
   end;
 end;
@@ -2173,6 +2362,36 @@ end;
 procedure TVCMIMap.AttachTo(AObserved: IFPObserved);
 begin
   AObserved.FPOAttachObserver(Self);
+end;
+
+procedure TVCMIMap.MapObjectAdded(AObject: TMapObject);
+begin
+  if FTrackObjectChanges then
+    FLevels[AObject.L].ObjectAdded(AObject);
+
+  NotifyOwnerChanged(AObject, TPlayer.none, AObject.GetPlayer());
+
+  if (AObject.&Type = TYPE_HERO)
+    or (AObject.&Type = TYPE_RANDOMHERO)
+    or (AObject.&Type = TYPE_PRISON)then
+  begin
+    FHeroPool.HeroAdded(AObject);
+  end;
+end;
+
+procedure TVCMIMap.MapObjectRemoved(AObject: TMapObject);
+begin
+  if FTrackObjectChanges then
+    FLevels[AObject.L].ObjectRemoved(AObject);
+
+  NotifyOwnerChanged(AObject, AObject.GetPlayer(),  TPlayer.none);
+
+  if (AObject.&Type = TYPE_HERO)
+    or (AObject.&Type = TYPE_RANDOMHERO)
+    or (AObject.&Type = TYPE_PRISON)then
+  begin
+    FHeroPool.HeroRemoved(AObject);
+  end;
 end;
 
 constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
@@ -2266,11 +2485,14 @@ begin
 
   FVisibleObjectsQueue := TMapObjectQueue.Create;
 
+  FHeroPool := THeroClassPool.Create(env.lm.HeroInfos);
+
   FIsDirty := False;
 end;
 
 destructor TVCMIMap.Destroy;
 begin
+  FHeroPool.Free;
   FTrackObjectChanges := false;
   FVisibleObjectsQueue.Free;
 
@@ -2315,32 +2537,17 @@ var
 begin
   FIsDirty := true;
 
-  if FTrackObjectChanges and (ASender = FObjects) then
-  begin
-    o := TMapObject(Data);
-    case Operation of
-      ooAddItem:
-      begin
-        FLevels[o.L].ObjectAdded(o);
-      end;
-      ooDeleteItem:
-      begin
-        FLevels[o.L].ObjectRemoved(o);
-      end;
-    end;
-  end;
-
   if (ASender = FObjects) then
   begin
     o := TMapObject(Data);
     case Operation of
       ooAddItem:
       begin
-        NotifyOwnerChanged(o, TPlayer.none, o.GetPlayer());
+        MapObjectAdded(o);
       end;
       ooDeleteItem:
       begin
-        NotifyOwnerChanged(o, o.GetPlayer(),  TPlayer.none);
+        MapObjectRemoved(o);
       end;
     end;
   end;
@@ -2540,6 +2747,11 @@ begin
       DebugLn(['invalid player color', Integer(ANewOwner)]);
     end;
   end;
+end;
+
+procedure TVCMIMap.NotifyHeroTypeChanged(AObject: TMapObject; AOldType, ANewType: AnsiString);
+begin
+  FHeroPool.HeroChanged(AObject, AOldType, ANewType);
 end;
 
 procedure TVCMIMap.Loaded;

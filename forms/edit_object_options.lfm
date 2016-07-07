@@ -60,7 +60,6 @@ object EditObjectOptions: TEditObjectOptions
     Width = 75
     Action = actSave
     Anchors = [akRight, akBottom]
-    ModalResult = 1
     TabOrder = 1
   end
   object btCancel: TButton
@@ -70,8 +69,19 @@ object EditObjectOptions: TEditObjectOptions
     Width = 75
     Action = actDontSave
     Anchors = [akRight, akBottom]
-    ModalResult = 2
     TabOrder = 2
+  end
+  object ErrorLabel: TLabel
+    Left = 14
+    Height = 23
+    Top = 579
+    Width = 570
+    AutoSize = False
+    Caption = 'ErrorLabel'
+    Font.Color = clRed
+    ParentColor = False
+    ParentFont = False
+    Visible = False
   end
   object act: TActionList
     left = 16

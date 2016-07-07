@@ -45,6 +45,9 @@ type
 
     procedure SetPlayer(AValue: TPlayer);
     function GetPlayer: TPlayer;
+
+    //for hero pool management
+    procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
   end;
 
   { TObjectOptions }
@@ -410,7 +413,7 @@ type
     FArtifacts: THeroArtifacts;
     FBiography: TLocalizedString;
     FExperience: UInt64;
-    FId: AnsiString;
+    FType: AnsiString;
     FName: TLocalizedString;
     FPatrolRadius: Integer;
     FPortrait: AnsiString;
@@ -424,7 +427,7 @@ type
     function IsPrimarySkillsStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetId(AValue: AnsiString);
+    procedure SetType(AValue: AnsiString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetPortrait(AValue: AnsiString);
     procedure SetTightFormation(AValue: Boolean);
@@ -456,7 +459,7 @@ type
     function GetPrimarySkills: THeroPrimarySkills;
     function GetSecondarySkills: THeroSecondarySkills;
   published
-    property &type: AnsiString read FId write SetId;
+    property &type: AnsiString read FType write SetType;
 
     property TightFormation: Boolean read GetTightFormation write SetTightFormation default false;
     property PatrolRadius: Integer read FPatrolRadius write SetPatrolRadius default -1;
@@ -2267,9 +2270,12 @@ begin
   Result := FSpellBook.Count >0;
 end;
 
-procedure THeroOptions.SetId(AValue: AnsiString);
+procedure THeroOptions.SetType(AValue: AnsiString);
 begin
-  FId:=AValue;
+  if FType = AValue then
+    Exit;
+  FObject.NotifyHeroTypeChanged(FType, AValue);
+  FType:=AValue;
 end;
 
 procedure THeroOptions.SetName(const AValue: TLocalizedString);
