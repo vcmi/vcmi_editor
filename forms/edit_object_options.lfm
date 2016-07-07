@@ -26,6 +26,7 @@ object EditObjectOptions: TEditObjectOptions
       Caption = 'Main options'
       ClientHeight = 541
       ClientWidth = 754
+      TabVisible = False
       object lbNothingToEdit: TLabel
         Left = 12
         Height = 15
@@ -34,23 +35,6 @@ object EditObjectOptions: TEditObjectOptions
         Caption = 'Object have no editable properties.'
         ParentColor = False
       end
-    end
-    object tsObject: TTabSheet
-      Caption = 'Specific options'
-    end
-    object tsArmy: TTabSheet
-    end
-    object tsArtifacts: TTabSheet
-      Caption = 'Artifacts'
-    end
-    object tsBuildings: TTabSheet
-      Caption = 'Buildings'
-    end
-    object tsSpells: TTabSheet
-      Caption = 'Spells'
-    end
-    object tsReward: TTabSheet
-      Caption = 'Reward'
     end
   end
   object btOk: TButton

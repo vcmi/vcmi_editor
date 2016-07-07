@@ -43,12 +43,6 @@ type
     ErrorLabel: TLabel;
     lbNothingToEdit: TLabel;
     pcMain: TPageControl;
-    tsReward: TTabSheet;
-    tsBuildings: TTabSheet;
-    tsSpells: TTabSheet;
-    tsArtifacts: TTabSheet;
-    tsArmy: TTabSheet;
-    tsObject: TTabSheet;
     tsCommon: TTabSheet;
     procedure actDontSaveExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
@@ -57,8 +51,6 @@ type
     FMap: TVCMIMap;
 
     FActiveEditors: TBaseOptionsFrameList;
-
-    procedure HideAllTabs;
 
     procedure SaveChanges;
 
@@ -160,17 +152,20 @@ begin
   FActiveEditors.Map:=FMap;
   FActiveEditors.ListsManager := RootManager.ListsManager;
 
-  HideAllTabs;
   Obj.Options.ApplyVisitor(Self);
+
+  if pcMain.PageCount <= 1 then
+  begin
+    tsCommon.TabVisible := true;
+    pcMain.ActivePage := tsCommon;
+  end
+  else
+  begin
+    pcMain.ActivePage := pcMain.Pages[1];
+  end;
+
   Caption:=Obj.DisplayName;
   Result := ShowModal;
-end;
-
-procedure TEditObjectOptions.HideAllTabs;
-begin
-  pcMain.HideAllTabs;
-  tsCommon.TabVisible := True;
-  pcMain.ActivePage := tsCommon;
 end;
 
 procedure TEditObjectOptions.SaveChanges;
@@ -180,26 +175,23 @@ end;
 
 procedure TEditObjectOptions.VisitDwelling(AOptions: TObjectOptions);
 begin
-  FActiveEditors.AddFrame(TFlaggableFrame,AOptions,tsCommon);
-  FActiveEditors.AddFrame(TDwellingFrame, AOptions,tsObject);
-  tsObject.TabVisible:=true;
+  FActiveEditors.AddFrame(TFlaggableFrame, AOptions, rsTabMainOptions, pcMain);
+  FActiveEditors.AddFrame(TDwellingFrame, AOptions, rsTabSpecificOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitGuardedObject(AOptions: TObjectOptions);
 begin
-  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, tsArmy);
-  tsArmy.Caption := rsGuards;
+  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, rsGuards, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitArmedObject(AOptions: TObjectOptions);
 begin
-  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, tsArmy);
-  tsArmy.Caption := rsArmy;
+  FActiveEditors.AddFrame(TCreatureSetFrame, AOptions, rsArmy, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
-  FActiveEditors.AddFrame(TAbandonedFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TAbandonedFrame, AOptions, rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitMine(AOptions: TMineOptions);
@@ -210,7 +202,7 @@ end;
 
 procedure TEditObjectOptions.VisitArtifact(AOptions: TArtifactOptions);
 begin
-  FActiveEditors.AddFrame(TMessageFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TMessageFrame, AOptions, rsTabMainOptions, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
@@ -222,17 +214,16 @@ end;
 
 procedure TEditObjectOptions.VisitGrail(AOptions: TGrailOptions);
 begin
-  FActiveEditors.AddFrame(TGrailFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TGrailFrame,AOptions,rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitHero(AOptions: THeroOptions);
 begin
-  FActiveEditors.AddFrame(THeroFrame, AOptions, tsCommon);
-  tsObject.Caption := 'Secondary skills';
-  FActiveEditors.AddFrame(THeroSkillsFrame, AOptions, tsObject);
+  FActiveEditors.AddFrame(THeroFrame, AOptions, rsTabMainOptions, pcMain);
+  FActiveEditors.AddFrame(THeroSkillsFrame, AOptions, rsTabSecondarySkills, pcMain);
   VisitArmedObject(AOptions);
-  FActiveEditors.AddFrame(THeroArtifactsFrame, AOptions, tsArtifacts);
-  FActiveEditors.AddFrame(THeroSpellsFrame, AOptions, tsSpells);
+  FActiveEditors.AddFrame(THeroArtifactsFrame, AOptions, rsTabArtifacts, pcMain);
+  FActiveEditors.AddFrame(THeroSpellsFrame, AOptions,rsTabSpells, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitHeroPlaceholder(
@@ -243,31 +234,31 @@ end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-  FActiveEditors.AddFrame(TLocalEventFrame, AOptions, tsCommon);
-  FActiveEditors.AddFrame(TPandorasRewardFrame ,AOptions, tsObject);
+  FActiveEditors.AddFrame(TLocalEventFrame, AOptions, rsTabMainOptions, pcMain);
+  FActiveEditors.AddFrame(TPandorasRewardFrame, AOptions, rsTabSpecificOptions, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitMonster(AOptions: TCreatureOptions);
 begin
-  FActiveEditors.AddFrame(TCreatureFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TCreatureFrame, AOptions, rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitOwnedObject(AOptions: TOwnedObjectOptions);
 begin
-  FActiveEditors.AddFrame(TFlaggableFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TFlaggableFrame, AOptions, rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
-  FActiveEditors.AddFrame(TMessageFrame,AOptions,tsCommon);
-  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,tsObject);
+  FActiveEditors.AddFrame(TMessageFrame,AOptions, rsTabMainOptions, pcMain);
+  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,rsTabSpecificOptions, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitQuestGuard(AOptions: TQuestGuardOptions);
 begin
-  FActiveEditors.AddFrame(TQuestFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TQuestFrame, AOptions, rsTabQuest, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitRandomDwelling(
@@ -290,29 +281,29 @@ end;
 
 procedure TEditObjectOptions.VisitResource(AOptions: TResourceOptions);
 begin
-  FActiveEditors.AddFrame(TResourceFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TResourceFrame, AOptions, rsTabMainOptions, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitScholar(AOptions: TScholarOptions);
 begin
-  FActiveEditors.AddFrame(TScholarFrame, AOptions, tsCommon);
+  FActiveEditors.AddFrame(TScholarFrame, AOptions, rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitSeerHut(AOptions: TSeerHutOptions);
 begin
-  FActiveEditors.AddFrame(TQuestFrame, AOptions, tsCommon);
-  FActiveEditors.AddFrame(TRewardFrame, AOptions, tsReward);
+  FActiveEditors.AddFrame(TQuestFrame, AOptions, rsTabQuest, pcMain);
+  FActiveEditors.AddFrame(TRewardFrame, AOptions, rsTabRewards, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitShrine(AOptions: TShrineOptions);
 begin
-  FActiveEditors.AddFrame(TShrineFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TShrineFrame,AOptions,rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitSignBottle(AOptions: TSignBottleOptions);
 begin
-  FActiveEditors.AddFrame(TMessageFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TMessageFrame,AOptions,rsTabMainOptions, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitNormalHero(AOptions: TNormalHeroOptions);
@@ -332,21 +323,21 @@ end;
 
 procedure TEditObjectOptions.VisitSpellScroll(AOptions: TSpellScrollOptions);
 begin
-  FActiveEditors.AddFrame(TSpellScrollFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TSpellScrollFrame,AOptions,rsTabMainOptions, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
 procedure TEditObjectOptions.VisitTown(AOptions: TTownOptions);
 begin
-  FActiveEditors.AddFrame(TTownOptionsFrame, AOptions,tsCommon);
+  FActiveEditors.AddFrame(TTownOptionsFrame, AOptions, rsTabMainOptions, pcMain);
   VisitArmedObject(AOptions);
-  FActiveEditors.AddFrame(TTownBuildingsFrame, AOptions, tsBuildings);
-  FActiveEditors.AddFrame(TTownSpellsFrame, AOptions, tsSpells);
+  FActiveEditors.AddFrame(TTownBuildingsFrame, AOptions, rsTabBuildings, pcMain);
+  FActiveEditors.AddFrame(TTownSpellsFrame, AOptions, rsTabSpells, pcMain);
 end;
 
 procedure TEditObjectOptions.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
-  FActiveEditors.AddFrame(TWitchHutFrame,AOptions,tsCommon);
+  FActiveEditors.AddFrame(TWitchHutFrame,AOptions,rsTabMainOptions, pcMain);
 end;
 
 end.

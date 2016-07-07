@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, ActnList, map, lists_manager, base_options_frame,
+  ComCtrls, ExtCtrls, ActnList, map, lists_manager, editor_str_consts, base_options_frame,
   hero_frame, hero_spells_frame, hero_artifacts_frame,
   hero_skills_frame;
 
@@ -41,10 +41,6 @@ type
     btCancel: TButton;
     btOk: TButton;
     pcMain: TPageControl;
-    tsSecondary: TTabSheet;
-    tsArtifacts: TTabSheet;
-    tsSpells: TTabSheet;
-    tsMain: TTabSheet;
     procedure actDontSaveExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
   private
@@ -103,15 +99,18 @@ constructor TEditHeroOptions.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   FEditors := TBaseOptionsFrameList.Create(Self);
-  pcMain.ActivePage := tsMain;
+
 end;
 
 procedure TEditHeroOptions.EditObject(AObject: THeroDefinition);
 begin
-  FEditors.AddFrame(THeroFrame, AObject, tsMain);
-  FEditors.AddFrame(THeroSkillsFrame, AObject, tsSecondary);
-  FEditors.AddFrame(THeroArtifactsFrame, AObject, tsArtifacts);
-  FEditors.AddFrame(THeroSpellsFrame, AObject, tsSpells);
+  FEditors.AddFrame(THeroFrame, AObject, rsTabMainOptions, pcMain);
+  FEditors.AddFrame(THeroSkillsFrame, AObject, rsTabSecondarySkills, pcMain);
+  FEditors.AddFrame(THeroArtifactsFrame, AObject, rsTabArtifacts, pcMain);
+  FEditors.AddFrame(THeroSpellsFrame, AObject, rsTabSpells, pcMain);
+
+  pcMain.ActivePage := pcMain.Pages[0];
+
   ShowModal;
 end;
 

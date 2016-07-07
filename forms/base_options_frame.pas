@@ -143,14 +143,17 @@ type
     FMap: TVCMIMap;
 
     FData:  TBaseOptionsFrameVector;
+
+    function CreateFrame(AClass: TBaseOptionsFrameClass; ACaption: string; AParent: TPageControl): TBaseOptionsFrame;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure InstanceTypeChanged(ANewValue: AnsiString);
 
-    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: TObjectOptions; AParent:TTabSheet);
-    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: THeroDefinition; AParent:TTabSheet);
+    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: TObjectOptions; ACaption: string; AParent: TPageControl);
+    procedure AddFrame(AClass: TBaseOptionsFrameClass; AOptions: THeroDefinition; ACaption: string; AParent: TPageControl);
+
     procedure Clear;
 
     procedure Commit;
@@ -164,6 +167,28 @@ type
 implementation
 
 { TBaseOptionsFrameList }
+
+function TBaseOptionsFrameList.CreateFrame(AClass: TBaseOptionsFrameClass; ACaption: string; AParent: TPageControl
+  ): TBaseOptionsFrame;
+var
+  ts: TTabSheet;
+begin
+  Assert(Assigned(FMap));
+  Assert(Assigned(FListsManager));
+
+  ts := TTabSheet.Create(AParent);
+  ts.PageControl := AParent;
+  ts.TabVisible:=true;
+  ts.Caption:=ACaption;
+
+  Result := AClass.Create(Self);
+  Result.Parent := ts;
+
+  Result.Align := alClient;
+  Result.Map := Map;
+
+  FData.PushBack(Result);
+end;
 
 constructor TBaseOptionsFrameList.Create(AOwner: TComponent);
 begin
@@ -188,39 +213,22 @@ begin
   end;
 end;
 
-procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass;
-  AOptions: TObjectOptions; AParent: TTabSheet);
+procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass; AOptions: TObjectOptions; ACaption: string;
+  AParent: TPageControl);
 var
   F: TBaseOptionsFrame;
 begin
-  Assert(Assigned(FMap));
-  Assert(Assigned(FListsManager));
-
-  F := AClass.Create(Self);
-  F.Parent := AParent;
-  F.Align := alClient;
-  F.Map := Map;
-  AOptions.ApplyVisitor(F); //do AFTER assign properties
-  FData.PushBack(F);
-  AParent.TabVisible := true;
+  F := CreateFrame(AClass, ACaption, AParent);
+  AOptions.ApplyVisitor(F);
 end;
 
-procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass;
-  AOptions: THeroDefinition; AParent: TTabSheet);
+procedure TBaseOptionsFrameList.AddFrame(AClass: TBaseOptionsFrameClass; AOptions: THeroDefinition; ACaption: string;
+  AParent: TPageControl);
 var
   F: TBaseOptionsFrame;
 begin
-  Assert(Assigned(FMap));
-  Assert(Assigned(FListsManager));
-
-  F := AClass.Create(Self);
-  F.Parent := AParent;
-  F.Align := alClient;
-  F.Map := Map;
-  F.VisitHeroDefinition(AOptions); //do AFTER assign properties
-  FData.PushBack(F);
-  AParent.TabVisible := true;
-
+  F := CreateFrame(AClass, ACaption, AParent);
+  F.VisitHeroDefinition(AOptions);
 end;
 
 procedure TBaseOptionsFrameList.Clear;

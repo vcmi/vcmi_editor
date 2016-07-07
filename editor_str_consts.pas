@@ -71,6 +71,15 @@ resourcestring
   rsAllSpells = 'All spells';
   rsSpellsOfLevel = 'Spells of level %d';
 
+  rsTabMainOptions = 'Main options';
+  rsTabSpecificOptions = 'Specific options';
+  rsTabSecondarySkills = 'Secondary skills';
+  rsTabArtifacts = 'Artifacts';
+  rsTabSpells = 'Spells';
+  rsTabQuest = 'Quest';
+  rsTabRewards = 'Reward';
+  rsTabBuildings = 'Buildings';
+
 implementation
 
 end.
