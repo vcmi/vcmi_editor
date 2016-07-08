@@ -2344,6 +2344,7 @@ procedure THeroOptions.SetType(AValue: AnsiString);
 begin
   if FType = AValue then
     Exit;
+  FObject.NotifyReferenced(FType, AValue);
   FObject.NotifyHeroTypeChanged(FType, AValue);
   FType:=AValue;
 end;
@@ -2360,6 +2361,10 @@ end;
 
 procedure THeroOptions.SetPortrait(AValue: AnsiString);
 begin
+  if FPortrait = AValue then
+    Exit;
+  FObject.NotifyReferenced(FPortrait, AValue);
+
   FPortrait:=AValue;
 end;
 

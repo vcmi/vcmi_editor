@@ -229,6 +229,7 @@ const
   TYPE_RANDOMTOWN = 'randomTown';
   TYPE_ARTIFACT = 'artifact';
   TYPE_RESOURCE = 'resource';
+  TYPE_HERO_PLACEHOLDER = 'heroPlaceholder';
 
 const
 

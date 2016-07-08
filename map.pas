@@ -76,16 +76,20 @@ type
     procedure UpdateMod(AInfo: TModRefCountInfo);
     procedure UpdateAll;
 
+    procedure ReferenceMod(AIdentifier: AnsiString);
+    procedure DeReferenceMod(AIdentifier: AnsiString);
   public
     constructor Create(AModsCondition: TLogicalIDCondition);
 
     procedure UpdateForced(ASource: TModUsage);
+    procedure AddFrom(ASource: TModUsage);
+    procedure RemoveFrom(ASource: TModUsage);
 
     procedure Assign(Source: TPersistent); override;
 
     procedure ForceMod(AIdentifier: AnsiString; AForce: Boolean);
-    procedure ReferenceMod(AIdentifier: AnsiString);
-    procedure DeReferenceMod(AIdentifier: AnsiString);
+
+    procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
   end;
 
 {$push}
@@ -430,8 +434,9 @@ type
 
   TMapObject = class (TNamedCollectionItem, IMapObject)
   strict private
+    FModUsage: TModUsage;
     FPosition: TPosition;
-    FIsHero: Boolean;
+    FIsHero, FIsHeroLike: Boolean;
     FLastFrame: Integer;
     FLastTick: DWord;
     FOptions: TObjectOptions;
@@ -453,7 +458,7 @@ type
 
     procedure UpdateIdentifier;
   protected
-    procedure TypeChanged;
+    procedure RecreateOptions;
     procedure SetCollection(Value: TCollection); override;
     function GetDisplayName: string; override;
   public
@@ -923,6 +928,45 @@ begin
   end;
 end;
 
+procedure TModUsage.AddFrom(ASource: TModUsage);
+var
+  i: Integer;
+  s_item, d_item: TModRefCountInfo;
+begin
+  for i := 0 to ASource.Count - 1 do
+  begin
+    s_item := ASource.Items[i];
+
+    d_item := EnsureItem(s_item.Identifier);
+
+    d_item.RefCount := d_item.RefCount+s_item.RefCount;
+
+    UpdateMod(d_item);
+  end;
+end;
+
+procedure TModUsage.RemoveFrom(ASource: TModUsage);
+var
+  i: Integer;
+  s_item, d_item: TModRefCountInfo;
+begin
+  for i := 0 to ASource.Count - 1 do
+  begin
+    s_item := ASource.Items[i];
+
+    d_item := EnsureItem(s_item.Identifier);
+
+    d_item.RefCount := d_item.RefCount - s_item.RefCount;
+
+    if d_item.RefCount < 0 then
+    begin
+      raise Exception.Create('Negative mod refcount');
+    end;
+
+    UpdateMod(d_item);
+  end;
+end;
+
 procedure TModUsage.Assign(Source: TPersistent);
 begin
   inherited Assign(Source);
@@ -966,9 +1010,33 @@ begin
   mod_info := EnsureItem(AIdentifier);
   mod_info.RefCount:=mod_info.RefCount-1;
 
+  if mod_info.RefCount < 0 then
+  begin
+    raise Exception.Create('Negative mod refcount');
+  end;
+
   if (mod_info.RefCount = 0) and (not mod_info.Forced) then
   begin
     UpdateMod(mod_info);
+  end;
+end;
+
+procedure TModUsage.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+var
+  mod_id: AnsiString;
+begin
+  mod_id:=ExtractModID(AOldIdentifier);
+
+  if mod_id <> '' then
+  begin
+    DeReferenceMod(mod_id);
+  end;
+
+  mod_id:=ExtractModID(ANewIdentifier);
+
+  if mod_id <> '' then
+  begin
+    ReferenceMod(mod_id);
   end;
 end;
 
@@ -1805,15 +1873,17 @@ begin
   FOptions := TObjectOptions.Create(Self);
   FPlayer:=TPlayer.none;
   FPosition := TPosition.Create;
+  FModUsage := TModUsage.Create(nil);
   inherited Create(ACollection);
 end;
 
 destructor TMapObject.Destroy;
 begin
   inherited Destroy;
+  FreeAndNil(FModUsage);
   FreeAndNil(FTemplate);
   FreeAndNil(FOptions);
-  FPosition.Free;
+  FreeAndNil(FPosition);
 end;
 
 function TMapObject.GetPlayer: TPlayer;
@@ -1856,10 +1926,9 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.FDef.RenderO(AState, Frame, Ax,Ay,GetPlayer);
+  Template.FDef.RenderO(AState, Frame, Ax, Ay, GetPlayer);
 
-  if (owner <> TPlayer.none) and
-    ((&type = 'hero') or (&type = 'randomHero') or (&type = 'heroPlaceholder')) then
+  if (owner <> TPlayer.none) and FIsHeroLike then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);
   end;
@@ -1914,7 +1983,7 @@ begin
   if FSubtype=AValue then Exit;
   NotifyReferenced(FSubtype,AValue);
   FSubtype:=AValue;
-  TypeChanged;
+  RecreateOptions;
 end;
 
 procedure TMapObject.SetType(AValue: AnsiString);
@@ -1922,10 +1991,12 @@ begin
   if FType=AValue then Exit;
   NotifyReferenced(FType,AValue);
   FType:=AValue;
-  TypeChanged;
+  RecreateOptions;
   UpdateIdentifier;
 
   FIsHero := AValue = TYPE_HERO;
+
+  FIsHeroLike:= (AValue = TYPE_HERO) or (AValue = TYPE_RANDOMHERO) or (AValue = TYPE_HERO_PLACEHOLDER);
 end;
 
 procedure TMapObject.SetX(AValue: integer);
@@ -1946,7 +2017,7 @@ begin
   end;
 end;
 
-procedure TMapObject.TypeChanged;
+procedure TMapObject.RecreateOptions;
 begin
   FreeAndNil(FOptions);
 
@@ -1961,8 +2032,13 @@ begin
   //notify old collection
   if Assigned(Collection) then
   begin
-    GetMap.NotifyReferenced(FType, '');
-    GetMap.NotifyReferenced(FSubtype, '');
+    GetMap.ModUsage.RemoveFrom(FModUsage);
+  end;
+
+  //notify new collection
+  if Assigned(Value) then
+  begin
+    TMapObjects(Value).Map.ModUsage.AddFrom(FModUsage);
   end;
 
   inherited SetCollection(Value);
@@ -1970,8 +2046,6 @@ begin
   //notify new collection
   if Assigned(Collection) then
   begin
-    GetMap.NotifyReferenced('', FType);
-    GetMap.NotifyReferenced('', FSubtype);
     UpdateIdentifier;
   end;
 end;
@@ -2059,6 +2133,8 @@ end;
 procedure TMapObject.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString
   );
 begin
+  FModUsage.NotifyReferenced(AOldIdentifier, ANewIdentifier);
+
   if Assigned(Collection) then
   begin
     GetMap.NotifyReferenced(AOldIdentifier, ANewIdentifier);
@@ -2811,22 +2887,8 @@ begin
 end;
 
 procedure TVCMIMap.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
-var
-  mod_id: AnsiString;
 begin
-  mod_id:=ExtractModID(AOldIdentifier);
-
-  if mod_id <> '' then
-  begin
-    FModUsage.DeReferenceMod(mod_id);
-  end;
-
-  mod_id:=ExtractModID(ANewIdentifier);
-
-  if mod_id <> '' then
-  begin
-    FModUsage.ReferenceMod(mod_id);
-  end;
+  FModUsage.NotifyReferenced(AOldIdentifier, ANewIdentifier);
 end;
 
 procedure TVCMIMap.NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
