@@ -45,6 +45,7 @@ type
     cbSkillsNegate: TComboBox;
     cbArtifactsNegate: TComboBox;
     AllMods: TComboBox;
+    cbHeroesNegate: TComboBox;
     edAllowedHeroes: TCheckListBox;
     edSpells: TCheckListBox;
     edAbilities: TCheckListBox;
@@ -54,13 +55,12 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
     lbRequiredMods: TLabel;
     edRequiredMods: TListBox;
     lMapName: TLabel;
     lMapDescription: TLabel;
     edDescription: TMemo;
-    Panel1: TPanel;
-    Panel2: TPanel;
     Panel3: TPanel;
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
@@ -243,6 +243,7 @@ begin
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
   edAllowedHeroes.FillFrom(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);
+  cbHeroesNegate.ItemIndex := ifthen(FMap.AllowedHeroes.IsPermissive, 1, 0);
 
   UpdateControls;
 end;
@@ -264,7 +265,7 @@ begin
 
   edAbilities.SaveTo    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
   edSpells.SaveTo       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
+  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, cbHeroesNegate.ItemIndex = 1);
   edArtifacts.SaveTo    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
   FMap.ModUsage.UpdateForced(FModUsageCache);
