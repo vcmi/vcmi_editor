@@ -24,7 +24,7 @@ unit map_objects;
 interface
 
 uses
-  Classes, SysUtils, fgl, typinfo, FileUtil, LazUTF8, fpjson, editor_types,
+  Classes, SysUtils, math, fgl, typinfo, FileUtil, LazUTF8, fpjson, editor_types,
   filesystem_base, editor_graphics, editor_classes, h3_txt,
   lists_manager, vcmi_json, contnrs, gset, gvector, RegExpr;
 
@@ -242,7 +242,7 @@ type
     constructor Create;
 
     //true if found
-    function Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean;
+    function Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean; overload;
   end;
 
   { TSearchIndex }
@@ -310,6 +310,11 @@ const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
 
+  function CompareStringProxy(const s1,s2: string): integer;
+  begin
+    Result := UTF8CompareStr(s1, s2);
+  end;
+
   function CompareSearchIndexBusket(const d1,d2: TSearchIndexBusket): integer;
   begin
     Result := PtrInt(d1) - PtrInt(d2);
@@ -326,7 +331,7 @@ end;
 constructor TSearchIndexMap.Create;
 begin
   inherited Create;
-  OnKeyCompare := @CompareStr;
+  OnKeyCompare := @CompareStringProxy;
   OnDataCompare := @CompareSearchIndexBusket;
 
   Sorted := True;
@@ -334,23 +339,50 @@ begin
 end;
 
 function TSearchIndexMap.Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean;
-//var
-//  i: integer;
+
+  function PartialMatched(idx: integer): boolean;
+  begin
+    result := UTF8Pos(AKeyWord,Keys[idx]) = 1;
+  end;
+
 begin
   IdxLow := -1;
   IdxHigh := -1;
 
-  if inherited Find(AKeyWord, IdxLow) then
+  if Find(AKeyWord, IdxLow) then
   begin
     IdxHigh:=IdxLow;
     Result := true;
   end
   else
   begin
+    //find firts true partial match
 
-    //todo: TSearchIndexMap partial compare
+    while (IdxLow < Count) and not PartialMatched(IdxLow) do
+    begin
+      Inc(IdxLow);
+    end;
 
-    Result := false;
+    if IdxLow >= Count then
+    begin
+      IdxLow := -1;
+      IdxHigh := -1;
+
+      Result := false;
+      Exit;
+    end;
+
+    //find end of matched region
+
+    IdxHigh:=IdxLow;
+
+    while (IdxHigh < Count) and PartialMatched(IdxHigh) do
+    begin
+      Inc(IdxHigh);
+    end;
+
+    IdxHigh:=Min(IdxHigh-1, Count-1);
+    Result := true;
   end;
 end;
 
@@ -442,19 +474,18 @@ end;
 procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
 var
   busket: TSearchIndexBusket;
-  idx_low, idx_high: Integer;
+  idx: Integer;
 begin
-  idx_low := -1;
-  idx_high := -1;
+  idx := -1;
 
-  if not Fmap.Find(AKeyWord, idx_low, idx_high) then
+  if not Fmap.Find(AKeyWord, idx) then
   begin
     busket := TSearchIndexBusket.Create();
     FMap.Add(AKeyWord, busket);
   end
   else
   begin
-    busket := FMap.Data[idx_low];
+    busket := FMap.Data[idx];
   end;
 
   busket.AddItem(AItem);
