@@ -163,7 +163,7 @@ type
 
   { TModConfig }
 
-  TModConfig =class (TBaseConfig)
+  TModConfig = class (TBaseConfig)
   private
     FConflicts: TStringList;
     FDepends: TStringList;
