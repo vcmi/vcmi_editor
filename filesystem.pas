@@ -353,6 +353,8 @@ type
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
 
     function GetModDepenencies(AModId: AnsiString): TStringDynArray;
+
+    function GetEnabledMods: TStringDynArray;
   public
     property Configs:TIdToConfigMap read FConfigMap;
   end;
@@ -1024,6 +1026,17 @@ begin
   for i := 0 to AConfig.Depends.Count - 1 do
   begin
     Result[i] := AConfig.Depends[i];
+  end;
+end;
+
+function TFSManager.GetEnabledMods: TStringDynArray;
+var
+  i: Integer;
+begin
+  SetLength(Result, FMods.Count);
+  for i := 0 to FMods.Count - 1 do
+  begin
+    Result[i] := FMods.Items[i].ID;
   end;
 end;
 

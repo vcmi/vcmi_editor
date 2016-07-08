@@ -52,6 +52,42 @@ type
     Levels: Integer;
   end;
 
+  { TModRefCountInfo }
+
+  TModRefCountInfo = class(TNamedCollectionItem)
+  private
+    FForced: boolean;
+    FRefCount: Integer;
+    procedure SetForced(AValue: boolean);
+    procedure SetRefCount(AValue: Integer);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  public
+    property RefCount: Integer read FRefCount write SetRefCount;
+    property Forced: boolean read FForced write SetForced;
+  end;
+
+
+  { TModUsage }
+
+  TModUsage = class (specialize TGNamedCollection <TModRefCountInfo>)
+  strict private
+    FModsCondition: TLogicalIDCondition;
+    procedure UpdateMod(AInfo: TModRefCountInfo);
+    procedure UpdateAll;
+
+  public
+    constructor Create(AModsCondition: TLogicalIDCondition);
+
+    procedure UpdateForced(ASource: TModUsage);
+
+    procedure Assign(Source: TPersistent); override;
+
+    procedure ForceMod(AIdentifier: AnsiString; AForce: Boolean);
+    procedure ReferenceMod(AIdentifier: AnsiString);
+    procedure DeReferenceMod(AIdentifier: AnsiString);
+  end;
+
 {$push}
 {$m+}
 
@@ -694,34 +730,6 @@ type
 
     procedure SetIsDirty(AValue: Boolean);
   private
-    type
-      { TModRefCountInfo }
-
-      TModRefCountInfo = class(TNamedCollectionItem)
-      private
-        FForced: boolean;
-        FRefCount: Integer;
-        procedure SetForced(AValue: boolean);
-        procedure SetRefCount(AValue: Integer);
-      public
-        property RefCount: Integer read FRefCount write SetRefCount;
-        property Forced: boolean read FForced write SetForced;
-      end;
-
-      { TModUsage }
-
-      TModUsage = class (specialize TGNamedCollection <TModRefCountInfo>)
-      strict private
-        FModsCondition: TLogicalIDCondition;
-        function GetMod(AIdentifier: AnsiString): TModRefCountInfo;
-        procedure UpdateMod(AIdentifier: AnsiString; AInfo: TModRefCountInfo);
-      public
-        constructor Create(AModsCondition: TLogicalIDCondition);
-        procedure ForceMod(AIdentifier: AnsiString; AForce: Boolean);
-        procedure ReferenceMod(AIdentifier: AnsiString);
-        procedure DeReferenceMod(AIdentifier: AnsiString);
-      end;
-
      var
        FModUsage:TModUsage;
 
@@ -826,6 +834,143 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
+
+{ TModRefCountInfo }
+
+procedure TModRefCountInfo.SetRefCount(AValue: Integer);
+begin
+  if FRefCount=AValue then Exit;
+  FRefCount:=AValue;
+end;
+
+procedure TModRefCountInfo.AssignTo(Dest: TPersistent);
+begin
+  inherited AssignTo(Dest);
+
+  if Dest is TModRefCountInfo then
+  begin
+    TModRefCountInfo(Dest).Forced:=Forced;
+    TModRefCountInfo(Dest).RefCount:=RefCount;
+  end;
+end;
+
+procedure TModRefCountInfo.SetForced(AValue: boolean);
+begin
+  if FForced=AValue then Exit;
+  FForced:=AValue;
+end;
+
+{ TModUsage }
+
+procedure TModUsage.UpdateMod(AInfo: TModRefCountInfo);
+var
+  idx: Integer;
+begin
+  if not Assigned(FModsCondition) then
+  begin
+    Exit;
+  end;
+
+  if (AInfo.Forced) or (AInfo.RefCount > 0 ) then
+  begin
+    FModsCondition.AllOf.Add(AInfo.Identifier);
+  end
+  else
+  begin
+    idx := FModsCondition.AllOf.IndexOf(AInfo.Identifier);
+    if idx >=0 then
+       FModsCondition.AllOf.Delete(idx);
+  end;
+end;
+
+procedure TModUsage.UpdateAll;
+var
+  i: Integer;
+begin
+  if not Assigned(FModsCondition) then
+  begin
+    Exit;
+  end;
+
+  FModsCondition.Clear;
+
+  for i := 0 to Count - 1 do
+  begin
+    UpdateMod(Items[i]);
+  end;
+end;
+
+constructor TModUsage.Create(AModsCondition: TLogicalIDCondition);
+begin
+  inherited Create;
+  FModsCondition := AModsCondition;
+end;
+
+procedure TModUsage.UpdateForced(ASource: TModUsage);
+var
+  i: Integer;
+  item: TItemType;
+begin
+  for i := 0 to Count - 1 do
+  begin
+    ForceMod(Items[i].Identifier, false);
+  end;
+
+  for i := 0 to ASource.Count - 1 do
+  begin
+    item := ASource.Items[i];
+    ForceMod(item.Identifier, item.Forced);
+  end;
+end;
+
+procedure TModUsage.Assign(Source: TPersistent);
+begin
+  inherited Assign(Source);
+
+  if Assigned(FModsCondition) and (Source is TModUsage) then
+  begin
+    UpdateAll;
+  end;
+end;
+
+procedure TModUsage.ForceMod(AIdentifier: AnsiString; AForce: Boolean);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := EnsureItem(AIdentifier);
+
+  if mod_info.Forced <> AForce then
+  begin
+    mod_info.Forced:=AForce;
+    UpdateMod(mod_info);
+  end;
+end;
+
+procedure TModUsage.ReferenceMod(AIdentifier: AnsiString);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := EnsureItem(AIdentifier);
+  mod_info.RefCount:=mod_info.RefCount+1;
+
+  if (mod_info.RefCount = 1) and (not mod_info.Forced) then
+  begin
+    UpdateMod(mod_info);
+  end;
+end;
+
+procedure TModUsage.DeReferenceMod(AIdentifier: AnsiString);
+var
+  mod_info: TModRefCountInfo;
+begin
+  mod_info := EnsureItem(AIdentifier);
+  mod_info.RefCount:=mod_info.RefCount-1;
+
+  if (mod_info.RefCount = 0) and (not mod_info.Forced) then
+  begin
+    UpdateMod(mod_info);
+  end;
+end;
 
 { THeroClassPool }
 
@@ -1176,95 +1321,6 @@ begin
   if FMapObject=AValue then Exit;
   FMapObject:=AValue;
   Identifier:=AValue.Identifier;
-end;
-
-{ TVCMIMap.TModRefCountInfo }
-
-procedure TVCMIMap.TModRefCountInfo.SetRefCount(AValue: Integer);
-begin
-  if FRefCount=AValue then Exit;
-  FRefCount:=AValue;
-end;
-
-procedure TVCMIMap.TModRefCountInfo.SetForced(AValue: boolean);
-begin
-  if FForced=AValue then Exit;
-  FForced:=AValue;
-end;
-
-{ TVCMIMap.TModUsage }
-
-function TVCMIMap.TModUsage.GetMod(AIdentifier: AnsiString): TModRefCountInfo;
-begin
-  Result := FindItem(AIdentifier);
-  if not Assigned(Result) then
-  begin
-    Result := TModRefCountInfo(ItemClass.Create(nil));
-    Result.Identifier := AIdentifier;
-    Result.Collection := self;
-  end;
-end;
-
-procedure TVCMIMap.TModUsage.UpdateMod(AIdentifier: AnsiString;
-  AInfo: TModRefCountInfo);
-var
-  idx: Integer;
-begin
-  if (AInfo.Forced) or (AInfo.RefCount > 0 ) then
-  begin
-    FModsCondition.AllOf.Add(AIdentifier);
-  end
-  else
-  begin
-    idx := FModsCondition.AllOf.IndexOf(AIdentifier);
-    if idx >=0 then
-       FModsCondition.AllOf.Delete(idx);
-  end;
-end;
-
-constructor TVCMIMap.TModUsage.Create(AModsCondition: TLogicalIDCondition);
-begin
-  inherited Create;
-  FModsCondition := AModsCondition;
-end;
-
-procedure TVCMIMap.TModUsage.ForceMod(AIdentifier: AnsiString; AForce: Boolean);
-var
-  mod_info: TModRefCountInfo;
-begin
-  mod_info := GetMod(AIdentifier);
-
-  if mod_info.Forced <> AForce then
-  begin
-    mod_info.Forced:=AForce;
-    UpdateMod(AIdentifier, mod_info);
-  end;
-end;
-
-procedure TVCMIMap.TModUsage.ReferenceMod(AIdentifier: AnsiString);
-var
-  mod_info: TModRefCountInfo;
-begin
-  mod_info := GetMod(AIdentifier);
-  mod_info.RefCount:=mod_info.RefCount+1;
-
-  if (mod_info.RefCount = 1) and (not mod_info.Forced) then
-  begin
-    UpdateMod(AIdentifier, mod_info);
-  end;
-end;
-
-procedure TVCMIMap.TModUsage.DeReferenceMod(AIdentifier: AnsiString);
-var
-  mod_info: TModRefCountInfo;
-begin
-  mod_info := GetMod(AIdentifier);
-  mod_info.RefCount:=mod_info.RefCount-1;
-
-  if (mod_info.RefCount = 0) and (not mod_info.Forced) then
-  begin
-    UpdateMod(AIdentifier, mod_info);
-  end;
 end;
 
 { TMapObjectAppearance }

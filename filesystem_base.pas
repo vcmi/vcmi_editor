@@ -52,6 +52,8 @@ type
     function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string):boolean;
 
     function GetModDepenencies(AModId: AnsiString): TStringDynArray;
+
+    function GetEnabledMods: TStringDynArray;
   end;
 
   { TBaseResource }

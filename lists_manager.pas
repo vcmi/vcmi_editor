@@ -550,6 +550,10 @@ type
 
     function SIDIdNID(AID: AnsiString): TCustomID;
 
+    //mods
+
+    function GetEnabledMods: TStringDynArray;
+
     //metaclasses
     property Metaclasses: TMetaclassInfos read FMetaclassInfos;
 
@@ -2308,6 +2312,11 @@ begin
     raise Exception.Create('Invalid string id '+AID);
   end;
 
+end;
+
+function TListsManager.GetEnabledMods: TStringDynArray;
+begin
+  Result := ResourceLoader.GetEnabledMods();
 end;
 
 function TListsManager.SkillNidToString(ASkill: TCustomID): AnsiString;

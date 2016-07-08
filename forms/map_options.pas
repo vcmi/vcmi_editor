@@ -26,8 +26,8 @@ interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, ActnList, gui_helpers,
-  edit_hero_options, Map, lists_manager, base_info, root_manager;
+  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, ActnList, Buttons, gui_helpers,
+  edit_hero_options, Map, lists_manager, base_info, root_manager, editor_classes;
 
 type
 
@@ -36,12 +36,15 @@ type
   TMapOptionsForm = class(TForm)
     act: TActionList;
     actDontSave: TAction;
+    actAddMod: TAction;
+    actRemoveMod: TAction;
     actSave: TAction;
     btOk: TButton;
     btCancel: TButton;
     cbSpellsNegate: TComboBox;
     cbSkillsNegate: TComboBox;
     cbArtifactsNegate: TComboBox;
+    AllMods: TComboBox;
     edAllowedHeroes: TCheckListBox;
     edSpells: TCheckListBox;
     edAbilities: TCheckListBox;
@@ -62,24 +65,39 @@ type
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
     tsMods: TTabSheet;
     tsArtifacts: TTabSheet;
     tsHeroes: TTabSheet;
     tsSpells: TTabSheet;
     tsAbilities: TTabSheet;
     tsMain: TTabSheet;
+    procedure actAddModExecute(Sender: TObject);
+    procedure actAddModUpdate(Sender: TObject);
     procedure actDontSaveExecute(Sender: TObject);
+    procedure actRemoveModExecute(Sender: TObject);
+    procedure actRemoveModUpdate(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
     procedure cbEnableLevelLimitChange(Sender: TObject);
     procedure edAllowedHeroesDblClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FMap: TVCMIMap;
+
+    FModUsageCache: TModUsage;
+
+    procedure LoadModUsage;
+
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
     procedure UpdateControls;
+
+    procedure Commit;
   public
-    { public declarations }
+    constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
+
     property Map: TVCMIMap read FMap write SetMap;
 
   end;
@@ -95,21 +113,7 @@ uses editor_types;
 
 procedure TMapOptionsForm.actSaveExecute(Sender: TObject);
 begin
-  //todo: validate
-  //todo: save
-
-  FMap.Difficulty := TDifficulty(edDifficulty.ItemIndex);
-  FMap.HeroLevelLimit:=edLevelLimit.Value;
-
-  FMap.Name := edName.Text;
-  FMap.Description := edDescription.Text;
-
-  edAbilities.SaveTo    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
-  edSpells.SaveTo       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
-  edArtifacts.SaveTo    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
-
-  FMap.IsDirty:=True;
+  Commit;
 
   ModalResult := mrOK;
 end;
@@ -117,6 +121,43 @@ end;
 procedure TMapOptionsForm.actDontSaveExecute(Sender: TObject);
 begin
   ModalResult := mrCancel;
+end;
+
+procedure TMapOptionsForm.actAddModUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:= AllMods.ItemIndex >= 0;
+end;
+
+procedure TMapOptionsForm.actAddModExecute(Sender: TObject);
+begin
+  FModUsageCache.EnsureItem(AllMods.Items[AllMods.ItemIndex]).Forced := true;
+  LoadModUsage;
+end;
+
+procedure TMapOptionsForm.actRemoveModExecute(Sender: TObject);
+var
+  item: TModRefCountInfo;
+begin
+  item := edRequiredMods.Items.Objects[edRequiredMods.ItemIndex] as TModRefCountInfo;
+  item.Forced:=False;
+
+  LoadModUsage;
+end;
+
+procedure TMapOptionsForm.actRemoveModUpdate(Sender: TObject);
+var
+  flag: Boolean;
+  item: TModRefCountInfo;
+begin
+  flag := (edRequiredMods.ItemIndex >= 0);
+
+  if flag then
+  begin
+    item := edRequiredMods.Items.Objects[edRequiredMods.ItemIndex] as TModRefCountInfo;
+    flag := item.Forced and (item.RefCount = 0);
+  end;
+
+  (Sender as TAction).Enabled:= flag;
 end;
 
 procedure TMapOptionsForm.cbEnableLevelLimitChange(Sender: TObject);
@@ -155,10 +196,36 @@ begin
   pcMain.ActivePage := tsMain;
 end;
 
-procedure TMapOptionsForm.ReadData;
+procedure TMapOptionsForm.LoadModUsage;
 var
-  mod_id: AnsiString;
+  i: Integer;
+  item: TModRefCountInfo;
 begin
+  edRequiredMods.Items.BeginUpdate;
+  try
+    edRequiredMods.Clear;
+
+    for i := 0 to FModUsageCache.Count - 1 do
+    begin
+      item := FModUsageCache.Items[i];
+
+      if item.Forced or (item.RefCount > 0) then
+      begin
+        edRequiredMods.AddItem(item.Identifier, item);
+      end;
+    end;
+  finally
+    edRequiredMods.Items.EndUpdate;
+  end;
+end;
+
+procedure TMapOptionsForm.ReadData;
+begin
+  AllMods.Items.Clear;
+  AllMods.Items.AddStrings(FMap.ListsManager.GetEnabledMods());
+
+  FModUsageCache.Assign(FMap.ModUsage);
+  LoadModUsage;
 
   edDifficulty.ItemIndex := Integer(FMap.Difficulty);
   edLevelLimit.Value := FMap.HeroLevelLimit;
@@ -177,17 +244,44 @@ begin
 
   edAllowedHeroes.FillFrom(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);
 
-  for mod_id in FMap.Mods.AllOf do
-  begin
-    edRequiredMods.AddItem(mod_id, nil);
-  end;
-
   UpdateControls;
 end;
 
 procedure TMapOptionsForm.UpdateControls;
 begin
  //
+end;
+
+procedure TMapOptionsForm.Commit;
+begin
+  //todo: validate
+
+  FMap.Difficulty := TDifficulty(edDifficulty.ItemIndex);
+  FMap.HeroLevelLimit:=edLevelLimit.Value;
+
+  FMap.Name := edName.Text;
+  FMap.Description := edDescription.Text;
+
+  edAbilities.SaveTo    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
+  edSpells.SaveTo       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, True);
+  edArtifacts.SaveTo    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
+
+  FMap.ModUsage.UpdateForced(FModUsageCache);
+
+  FMap.IsDirty:=True;
+end;
+
+constructor TMapOptionsForm.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+  FModUsageCache := TModUsage.Create(nil);
+end;
+
+destructor TMapOptionsForm.Destroy;
+begin
+  FModUsageCache.Free;
+  inherited Destroy;
 end;
 
 procedure TMapOptionsForm.SetMap(AValue: TVCMIMap);
