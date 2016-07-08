@@ -727,12 +727,12 @@ begin
   begin
     new_item := TNamedCollectionItem(ACollection.Add);
 
-    if new_item.UseMeta and (item is TVCMIJsonObject) then
+    if {new_item.UseMeta and} (item is TVCMIJsonObject) then
     begin
       meta := TVCMIJsonObject(Item).Meta;
       new_item.Meta:=Meta;
     end
-    else if new_item.UseMeta and (item is TVCMIJsonArray) then
+    else if {new_item.UseMeta and} (item is TVCMIJsonArray) then
     begin
       meta := TVCMIJsonObject(Item).Meta;
       new_item.Meta:=Meta;
@@ -742,7 +742,7 @@ begin
       new_item.Identifier := AName;
     end;
 
-    if meta <> '' then
+    if new_item.UseMeta and (meta <> '') then
     begin
       new_item.Identifier :=  Meta + ':' + AName;
     end

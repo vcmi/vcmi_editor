@@ -852,7 +852,7 @@ end;
 
 class function THeroInfo.UseMeta: boolean;
 begin
-  Result:=True;
+  Result:=False;
 end;
 
 function THeroInfo.GetPortrait: AnsiString;
@@ -868,7 +868,7 @@ end;
 function THeroInfo.GetSex: THeroSex;
 begin
   if Female then
-     Result := THeroSex.female
+    Result := THeroSex.female
   else
     Result := THeroSex.male;
 end;
