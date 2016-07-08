@@ -61,7 +61,6 @@ type
     lMapName: TLabel;
     lMapDescription: TLabel;
     edDescription: TMemo;
-    Panel3: TPanel;
     pcMain: TPageControl;
     edDifficulty: TRadioGroup;
     edLevelLimit: TSpinEdit;
