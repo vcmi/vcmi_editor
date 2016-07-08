@@ -2223,6 +2223,7 @@ begin
   FReward := TRewards.Create(AObject);
   //FRewardResources := TProxyResourceSet.Create(FReward);
   FRewardResources := TResourceSet.Create();
+  FCharacter := TCreatureCharacter.aggressive;
 end;
 
 destructor TCreatureOptions.Destroy;
