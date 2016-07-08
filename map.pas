@@ -708,11 +708,9 @@ type
         property Forced: boolean read FForced write SetForced;
       end;
 
-      TModRefCountInfos = specialize TGNamedCollection <TModRefCountInfo>;
-
       { TModUsage }
 
-      TModUsage = class (TModRefCountInfos)
+      TModUsage = class (specialize TGNamedCollection <TModRefCountInfo>)
       strict private
         FModsCondition: TLogicalIDCondition;
         function GetMod(AIdentifier: AnsiString): TModRefCountInfo;
@@ -2760,7 +2758,6 @@ procedure TVCMIMap.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
 var
   mod_id: AnsiString;
 begin
-
   mod_id:=ExtractModID(AOldIdentifier);
 
   if mod_id <> '' then

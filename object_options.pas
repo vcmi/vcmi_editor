@@ -219,7 +219,7 @@ type
   { THeroArtifacts }
 
   THeroArtifacts = class
-  private
+  strict private
     FOwner: IReferenceNotify;
     FSlots: array[0..ARTIFACT_SLOT_COUNT-1] of AnsiString;
     FBackpack: TStrings;
@@ -279,6 +279,8 @@ type
     FOwner: IMapObject;
     FAllowedReward: TAllowedRewards;
     procedure SetAllowedReward(AValue: TAllowedRewards);
+  protected
+    procedure ItemIdentifierChanged(Item: TCollectionItem; AOldName: String; ANewName: String); override;
   public
     constructor Create(AOwner: IMapObject);
     property AllowedReward:TAllowedRewards read FAllowedReward write SetAllowedReward;
@@ -602,7 +604,7 @@ type
   { TScholarOptions }
 
   TScholarOptions = class(TObjectOptions)
-  private
+  strict private
     FReward: TRewards;
     FRewardPrimSkill: AnsiString;
     FRewardSecSkill: AnsiString;
@@ -650,12 +652,13 @@ type
   TSpellScrollOptions = class(TArtifactOptions)
   private
     FSpell: AnsiString;
+    procedure SetSpell(AValue: AnsiString);
   public
     constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
-    property Spell: AnsiString read FSpell write FSpell;
+    property Spell: AnsiString read FSpell write SetSpell;
   end;
 
   { TResourceOptions }
@@ -900,12 +903,15 @@ type
 
 implementation
 
-{ TProxyResourceSet }
+{ TReward }
 
-constructor TProxyResourceSet.Create(AData: TRewards);
+procedure TReward.AssignTo(Dest: TPersistent);
 begin
-  inherited Create;
-  FData := AData;
+  if Dest is TReward then
+  begin
+    Value:=TReward(Dest).Value;
+  end;
+  inherited AssignTo(Dest);
 end;
 
 { TRewards }
@@ -913,6 +919,12 @@ end;
 procedure TRewards.SetAllowedReward(AValue: TAllowedRewards);
 begin
   FAllowedReward := AValue - IMPOSSIBLE_REWARDS;
+end;
+
+procedure TRewards.ItemIdentifierChanged(Item: TCollectionItem; AOldName: String; ANewName: String);
+begin
+  inherited ItemIdentifierChanged(Item, AOldName, ANewName);
+  FOwner.NotifyReferenced(AOldName, ANewName);
 end;
 
 constructor TRewards.Create(AOwner: IMapObject);
@@ -965,15 +977,12 @@ begin
   item.Value:=AValue;
 end;
 
-{ TReward }
+{ TProxyResourceSet }
 
-procedure TReward.AssignTo(Dest: TPersistent);
+constructor TProxyResourceSet.Create(AData: TRewards);
 begin
-  if Dest is TReward then
-  begin
-    Value:=TReward(Dest).Value;
-  end;
-  inherited AssignTo(Dest);
+  inherited Create;
+  FData := AData;
 end;
 
 { TMineOptions }
@@ -1984,6 +1993,13 @@ begin
   Spell := '';
 end;
 
+procedure TSpellScrollOptions.SetSpell(AValue: AnsiString);
+begin
+  if FSpell=AValue then Exit;
+  MapObject.NotifyReferenced(FSpell, AValue);
+  FSpell:=AValue;
+end;
+
 constructor TSpellScrollOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
@@ -2037,6 +2053,7 @@ end;
 procedure TScholarOptions.SetRewardSpell(AValue: AnsiString);
 begin
   if FRewardSpell=AValue then Exit;
+  MapObject.NotifyReferenced(FRewardSpell, AValue);
   FRewardSpell:=AValue;
 end;
 
