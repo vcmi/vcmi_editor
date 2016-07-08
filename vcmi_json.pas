@@ -744,7 +744,7 @@ begin
 
     if meta <> '' then
     begin
-      new_item.Identifier :=  Meta + '.' + AName;
+      new_item.Identifier :=  Meta + ':' + AName;
     end
     else
     begin
@@ -1197,8 +1197,6 @@ begin
 
     for key in all_fields do
     begin
-      //id := Key;
-
       ParseObjectId(Key, other_mod_id, id);
 
       if other_mod_id = mod_id then
