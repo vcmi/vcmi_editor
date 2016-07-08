@@ -135,12 +135,15 @@ type
   private
     Fvalue: array[TResType] of Integer;
 
-    function GetAmount(AType: TResType): integer;
-    procedure SetAmount(AType: TResType; AValue: integer);
+  protected
+    function GetAmount(AType: TResType): integer; virtual;
+    procedure SetAmount(AType: TResType; AValue: integer); virtual;
+
   public
     property Amount[AType: TResType]: integer read GetAmount write SetAmount;
-    function IsEmpty: Boolean;
-    procedure Clear;
+    function IsEmpty: Boolean; virtual;
+    procedure Clear; virtual;
+
   published
     property Wood: integer index TResType.wood read GetAmount write SetAmount default 0;
     property Mercury: integer index TResType.mercury read GetAmount write SetAmount default 0;
@@ -283,13 +286,26 @@ type
     procedure AddReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
   end;
 
+
+  { TProxyResourceSet }
+
+  TProxyResourceSet = class(TResourceSet)
+  strict private
+    FData: TRewards;
+  public
+    constructor Create(AData: TRewards);
+
+  end
+  unimplemented;
+
 {$pop}
 
   { TCustomObjectOptions }
 
   TCustomObjectOptions = class(TObjectOptions)
 
-  end;
+  end
+  unimplemented;
 
   { TGuardedObjectOptions }
 
@@ -510,12 +526,14 @@ type
     FAmount: Integer;
     FNeverFlees: boolean;
     FNoGrowing: boolean;
+    FReward: TRewards;
     FRewardArtifact: AnsiString;
     FRewardMessage: TLocalizedString;
     FRewardResources: TResourceSet;
     function IsRewardArtifactStored: Boolean;
     function IsRewardMessageStored: Boolean;
     function IsRewardResourcesStored: Boolean;
+    function IsRewardStored: Boolean;
     procedure SetAmount(AValue: Integer);
     procedure SetNeverFlees(AValue: boolean);
     procedure SetNoGrowing(AValue: boolean);
@@ -533,8 +551,11 @@ type
     property Character: TCreatureCharacter read FCharacter write FCharacter nodefault;
 
     property RewardMessage: TLocalizedString read FRewardMessage write SetRewardMessage stored IsRewardMessageStored;
+
     property RewardResources: TResourceSet read FRewardResources stored IsRewardResourcesStored;
     property RewardArtifact: AnsiString read FRewardArtifact write SetRewardArtifact stored IsRewardArtifactStored;
+
+    property Reward: TRewards read FReward stored false;//todo: Creature full reward support in format version 1.1
   end;
 
   { TSeerHutOptions }
@@ -871,6 +892,14 @@ type
   end;
 
 implementation
+
+{ TProxyResourceSet }
+
+constructor TProxyResourceSet.Create(AData: TRewards);
+begin
+  inherited Create;
+  FData := AData;
+end;
 
 { TRewards }
 
@@ -2133,6 +2162,11 @@ begin
   Result := (not FRewardResources.IsEmpty);
 end;
 
+function TCreatureOptions.IsRewardStored: Boolean;
+begin
+  Result := false;
+end;
+
 procedure TCreatureOptions.SetNoGrowing(AValue: boolean);
 begin
   FNoGrowing := AValue;
@@ -2153,12 +2187,15 @@ end;
 constructor TCreatureOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
-  FRewardResources := TResourceSet.Create;
+  FReward := TRewards.Create(AObject);
+  //FRewardResources := TProxyResourceSet.Create(FReward);
+  FRewardResources := TResourceSet.Create();
 end;
 
 destructor TCreatureOptions.Destroy;
 begin
   FRewardResources.Free;
+  FReward.Free;
   inherited Destroy;
 end;
 
