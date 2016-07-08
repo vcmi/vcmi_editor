@@ -375,6 +375,7 @@ type
     FMorale: Int32;
     FPrimarySkills: TRewardPrimarySkills;
     FResources: TResourceSet;
+    FReward: TRewards;
     FSecondarySkills: THeroSecondarySkills;
     FSpells: TStrings;
     function IsArtifactsStored: Boolean;
@@ -401,7 +402,9 @@ type
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
 
     property Artifacts: TStrings read FArtifacts stored IsArtifactsStored;
-    property Spells:TStrings read FSpells stored IsSpellsStored;
+    property Spells: TStrings read FSpells stored IsSpellsStored;
+
+    property Reward: TRewards read FReward stored false;//todo: Pandoras box full reward support in format version 1.1
   end;
 
   { TLocalEventOptions }
@@ -600,6 +603,7 @@ type
 
   TScholarOptions = class(TObjectOptions)
   private
+    FReward: TRewards;
     FRewardPrimSkill: AnsiString;
     FRewardSecSkill: AnsiString;
     FRewardSpell: AnsiString;
@@ -608,6 +612,7 @@ type
     procedure SetRewardSpell(AValue: AnsiString);
   public
     constructor Create(AObject: IMapObject); override;
+    destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
 
     procedure Clear; override;
@@ -615,6 +620,8 @@ type
     property RewardPrimSkill: AnsiString read FRewardPrimSkill write SetRewardPrimSkill;
     property RewardSkill: AnsiString read FRewardSecSkill write SetRewardSecSkill;
     property RewardSpell: AnsiString read FRewardSpell write SetRewardSpell;
+
+    property Reward: TRewards read FReward stored false;//todo: Shcolar full reward support in format version 1.1
   end;
 
   { TGarrisonOptions }
@@ -1821,6 +1828,7 @@ end;
 constructor TPandorasOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
+  FReward := TRewards.Create(AObject);
   FCreatures := TCreatureSet.Create(AObject);
   FResources := TResourceSet.Create;
   FPrimarySkills := TRewardPrimarySkills.Create;
@@ -1837,6 +1845,7 @@ begin
   FPrimarySkills.free;
   FResources.Free;
   FreeAndNil(FCreatures);
+  FReward.Free;
   inherited Destroy;
 end;
 
@@ -2034,6 +2043,13 @@ end;
 constructor TScholarOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
+  FReward := TRewards.Create(AObject);
+end;
+
+destructor TScholarOptions.Destroy;
+begin
+  FReward.Free;
+  inherited Destroy;
 end;
 
 procedure TScholarOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
