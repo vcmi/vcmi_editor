@@ -40,8 +40,8 @@ type
   { IMapObject }
 
   IMapObject = interface(IReferenceNotify)
-    function GetID: AnsiString;
-    function GetSubId: AnsiString;
+    function GetType: AnsiString;
+    function GetSubtype: AnsiString;
 
     procedure SetPlayer(AValue: TPlayer);
     function GetPlayer: TPlayer;

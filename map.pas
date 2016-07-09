@@ -435,6 +435,9 @@ type
 
   TMapObject = class (TNamedCollectionItem, IMapObject, ISerializeSpecial)
   strict private
+    FMapObjectGroup: TMapObjectGroup;
+    FMapObjectType: TMapObjectType;
+
     FModUsage: TModUsage;
     FPosition: TPosition;
     FIsHero, FIsHeroLike: Boolean;
@@ -442,13 +445,9 @@ type
     FLastTick: DWord;
     FOptions: TObjectOptions;
     FPlayer: TPlayer;
-    FSubtype: AnsiString;
     FTemplate: TMapObjectAppearance;
-    FType: AnsiString;
     function GetIdx: integer;
     function GetL: integer; inline;
-    function GetSubtype: AnsiString;
-    function GetType: AnsiString;
     function GetX: integer; inline;
     function GetY: integer; inline;
 
@@ -460,8 +459,8 @@ type
     procedure SetY(AValue: integer);
 
     procedure UpdateIdentifier;
-  protected
     procedure RecreateOptions;
+  protected
     procedure SetCollection(Value: TCollection); override;
     function GetDisplayName: string; override;
   public
@@ -493,8 +492,9 @@ type
 
     function HasOptions: boolean;
   public //IMapObject
-    function GetID: AnsiString;
-    function GetSubId: AnsiString;
+    function GetType: AnsiString;
+    function GetSubtype: AnsiString;
+
     function GetPlayer: TPlayer;
     procedure SetPlayer(AValue: TPlayer);
     procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
@@ -1907,12 +1907,18 @@ end;
 
 function TMapObject.GetSubtype: AnsiString;
 begin
-  Result := FSubtype;
+  if Assigned(FMapObjectType) then
+    Result := FMapObjectType.Identifier
+  else
+    Result := '';
 end;
 
 function TMapObject.GetType: AnsiString;
 begin
-  Result := FType;
+  if Assigned(FMapObjectGroup) then
+    Result := FMapObjectGroup.Identifier
+  else
+    Result := '';
 end;
 
 function TMapObject.GetX: integer;
@@ -1993,19 +1999,37 @@ begin
 end;
 
 procedure TMapObject.SetSubtype(AValue: AnsiString);
+var
+  old_subtype: AnsiString;
 begin
-  if FSubtype=AValue then Exit;
-  NotifyReferenced(FSubtype,AValue);
-  FSubtype:=AValue;
+  old_subtype:=GetSubtype;
+
+  if old_subtype=AValue then Exit;
+
+  Assert(Assigned(FMapObjectGroup));
+
+  NotifyReferenced(old_subtype,AValue);
+
+  FMapObjectType := FMapObjectGroup.Types.FindItem(AValue);
+
   RecreateOptions;
 end;
 
 procedure TMapObject.SetType(AValue: AnsiString);
+var
+  old_type: AnsiString;
 begin
-  if FType=AValue then Exit;
-  NotifyReferenced(FType,AValue);
-  FType:=AValue;
+  old_type:=GetType;
+
+  if old_type=AValue then Exit;
+
+  NotifyReferenced(old_type,AValue);
+
+  FMapObjectGroup := RootManager.ObjectsManager.MapObjectGroups.FindItem(AValue);
+  FMapObjectType := nil; //???
+
   RecreateOptions;
+
   UpdateIdentifier;
 
   FIsHero := AValue = TYPE_HERO;
@@ -2025,9 +2049,9 @@ end;
 
 procedure TMapObject.UpdateIdentifier;
 begin
-  if(FType <> '') and (Identifier = '') and (Assigned(Collection)) then
+  if(GetType <> '') and (Identifier = '') and (Assigned(Collection)) then
   begin
-    Identifier := StripScope(FType)+'_'+IntToStr((Collection as TMapObjects).GenerateIdentifier());
+    Identifier := StripScope(GetType)+'_'+IntToStr((Collection as TMapObjects).GenerateIdentifier());
   end;
 end;
 
@@ -2035,9 +2059,9 @@ procedure TMapObject.RecreateOptions;
 begin
   FreeAndNil(FOptions);
 
-  if (FType <> '') and (FSubtype <> '') then
+  if (GetType <> '') and (GetSubtype <> '') then
   begin
-    FOptions := TObjectOptions.CreateByID(FType, FSubtype,Self);
+    FOptions := TObjectOptions.CreateByID(GetType, GetSubtype,Self);
   end;
 end;
 
@@ -2131,16 +2155,6 @@ end;
 procedure TMapObject.NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
 begin
   GetMap.NotifyHeroTypeChanged(Self, AOldType, ANewType);
-end;
-
-function TMapObject.GetID: AnsiString;
-begin
-  Result := &type;
-end;
-
-function TMapObject.GetSubId: AnsiString;
-begin
-  Result := subtype;
 end;
 
 procedure TMapObject.NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString

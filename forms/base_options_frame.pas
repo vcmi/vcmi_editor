@@ -668,7 +668,7 @@ end;
 
 procedure TBaseOptionsFrame.VisitTown(AOptions: TTownOptions);
 begin
-  case AOptions.MapObject.GetID of
+  case AOptions.MapObject.GetType of
     TYPE_TOWN: VisitNormalTown(AOptions);
     TYPE_RANDOMTOWN: VisitRandomTown(AOptions);
   end;

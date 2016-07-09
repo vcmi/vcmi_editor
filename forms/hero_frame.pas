@@ -580,9 +580,9 @@ begin
   if FHeroOptions.&type = '' then
   begin
 
-    if FHeroOptions.MapObject.GetID = TYPE_HERO then
+    if FHeroOptions.MapObject.GetType = TYPE_HERO then
     begin
-      Exit(FHeroOptions.MapObject.GetSubId());
+      Exit(FHeroOptions.MapObject.GetSubtype());
     end;
     exit('');
   end;

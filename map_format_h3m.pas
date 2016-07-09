@@ -1760,7 +1760,7 @@ begin
   MayBeReadGuardsWithMessage(AOptions);
   AOptions.Amount := FSrc.ReadDWord;
 
-  if AOptions.MapObject.GetSubId = 'gold' then
+  if AOptions.MapObject.GetSubtype = 'gold' then
   begin
     AOptions.Amount := AOptions.Amount * 100;
   end;
@@ -2283,9 +2283,9 @@ var
   b, faction_index: TCustomID;
 begin
 
-  if AOptions.MapObject.GetID = TYPE_TOWN then
+  if AOptions.MapObject.GetType = TYPE_TOWN then
   begin
-    faction := FMapEnv.lm.GetFaction(AOptions.MapObject.GetSubId);
+    faction := FMapEnv.lm.GetFaction(AOptions.MapObject.GetSubtype);
     faction_index := faction.Index;
   end
   else

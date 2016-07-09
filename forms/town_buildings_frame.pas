@@ -359,7 +359,7 @@ begin
 
   FObject := AOptions;
 
-  town_type := AOptions.MapObject.GetSubId;
+  town_type := AOptions.MapObject.GetSubtype;
 
   FConfig := ListsManager.GetFaction(town_type).Town;
 

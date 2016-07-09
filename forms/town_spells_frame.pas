@@ -239,7 +239,7 @@ var
   factionId: String;
   faction: TFactionInfo;
 begin
-  factionId := AOptions.MapObject.GetSubId;
+  factionId := AOptions.MapObject.GetSubtype;
 
   faction := ListsManager.GetFaction(factionId);
 
