@@ -51,8 +51,6 @@ type
     FRiverTypeMap: TRiverTypeMap;
 
     FTileExpression : TRegExpr;
-    procedure BeforeReadObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
-    procedure AfterReadObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   protected
     FDestreamer: TVCMIJSONDestreamer;
 
@@ -68,9 +66,6 @@ type
   { TMapWriterJson }
 
   TMapWriterJson = class abstract(TBaseMapFormatHandler)
-  private
-    procedure BeforeWriteObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
-    procedure AfterWriteObject(Sender : TObject; AObject : TObject; JSON : TJSONObject);
   protected
     FStreamer: TVCMIJSONStreamer;
     function EncodeTile(tile: PMapTile): TJSONStringType;
@@ -85,39 +80,6 @@ type
 implementation
 
 { TMapWriterJson }
-
-procedure TMapWriterJson.BeforeWriteObject(Sender: TObject; AObject: TObject;
-  JSON: TJSONObject);
-begin
-
-end;
-
-procedure TMapWriterJson.AfterWriteObject(Sender: TObject; AObject: TObject;
-  JSON: TJSONObject);
-var
-  opt_json: TJSONData;
-  map_object: TMapObject;
-begin
-  if (AObject is TMapObject) then
-  begin
-    //manual streaming of Options
-    map_object :=TMapObject(AObject);
-    if map_object.HasOptions then
-    begin
-      opt_json := (Sender as TVCMIJSONStreamer).ObjectToJsonEx(map_object.Options);
-
-      //store only not empty options
-      if opt_json.Count > 0 then
-      begin
-        JSON.Add('options', opt_json);
-      end
-      else
-      begin
-        FreeAndNil(opt_json);
-      end;
-    end;
-  end;
-end;
 
 function TMapWriterJson.EncodeTile(tile: PMapTile): TJSONStringType;
 begin
@@ -203,8 +165,6 @@ begin
   inherited Create(AMapEnv);
   FStreamer := TVCMIJSONStreamer.Create(nil);
   FStreamer.Options := [jsoTStringsAsArray];
-  FStreamer.BeforeStreamObject := @BeforeWriteObject;
-  FStreamer.AfterStreamObject := @AfterWriteObject;
 end;
 
 destructor TMapWriterJson.Destroy;
@@ -214,23 +174,6 @@ begin
 end;
 
 { TMapReaderJson }
-
-procedure TMapReaderJson.BeforeReadObject(Sender: TObject; AObject: TObject;
-  JSON: TJSONObject);
-begin
-
-end;
-
-procedure TMapReaderJson.AfterReadObject(Sender: TObject; AObject: TObject;
-  JSON: TJSONObject);
-begin
-  if (AObject is TMapObject) and (JSON.IndexOfName('options') >= 0) and (JSON.Types['options']=jtObject) then
-  begin
-    //manual destreaming of Options
-
-    (Sender as TVCMIJSONDestreamer).JSONToObjectEx(JSON.Objects['options'], (AObject as TMapObject).Options);
-  end;
-end;
 
 procedure TMapReaderJson.DeStreamTile(Encoded: string; Tile: PMapTile);
 
@@ -349,10 +292,8 @@ begin
   inherited Create(AMapEnv);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
   FDestreamer.CaseInsensitive := True;
-  FDestreamer.BeforeReadObject := @BeforeReadObject;
-  FDestreamer.AfterReadObject := @AfterReadObject;
 
-   FTerrainTypeMap := TTerrainTypeMap.Create;
+  FTerrainTypeMap := TTerrainTypeMap.Create;
   FRoadTypeMap := TRoadTypeMap.Create;
   FRiverTypeMap := TRiverTypeMap.Create;
 

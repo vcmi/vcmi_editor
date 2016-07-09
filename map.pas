@@ -433,7 +433,7 @@ type
 
   { TMapObject }
 
-  TMapObject = class (TNamedCollectionItem, IMapObject)
+  TMapObject = class (TNamedCollectionItem, IMapObject, ISerializeSpecial)
   strict private
     FModUsage: TModUsage;
     FPosition: TPosition;
@@ -488,6 +488,8 @@ type
     function GetRegion(AX, AY: integer): TMapRect;
 
     function EqualPosition(APosition: TPosition): Boolean;
+
+    function HasOptions: boolean;
   public //IMapObject
     function GetID: AnsiString;
     function GetSubId: AnsiString;
@@ -495,6 +497,9 @@ type
     procedure SetPlayer(AValue: TPlayer);
     procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+  public //ISerializeSpecial
+    function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+    procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   published
     property X:integer read GetX write SetX;
     property Y:integer read GetY write SetY;
@@ -506,7 +511,6 @@ type
     property Template: TMapObjectAppearance read FTemplate;
   public
     property Options: TObjectOptions read FOptions;
-    function HasOptions: boolean;
   end;
 
 
@@ -2135,6 +2139,39 @@ begin
   if Assigned(Collection) then
   begin
     GetMap.NotifyReferenced(AOldIdentifier, ANewIdentifier);
+  end;
+end;
+
+function TMapObject.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
+var
+  opt_json: TJSONData;
+begin
+  Result := AHandler.ObjectToJson(Self);
+
+  if HasOptions then
+  begin
+    opt_json := AHandler.ObjectToJsonEx(Options);
+
+    //store only not empty options
+    if opt_json.Count > 0 then
+    begin
+      (Result as TJSONObject).Add('options', opt_json);
+    end
+    else
+    begin
+      FreeAndNil(opt_json);
+    end;
+  end;
+end;
+
+procedure TMapObject.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+begin
+  AHandler.JSONToObject(ASrc as TJSONObject, Self);
+
+  //destream Options after all other properties
+  if (TJSONObject(ASrc).IndexOfName('options') >= 0) and (TJSONObject(ASrc).Types['options']=jtObject) then
+  begin
+    AHandler.JSONToObjectEx(TJSONObject(ASrc).Objects['options'], Options);
   end;
 end;
 
