@@ -26,7 +26,7 @@ interface
 uses
   Classes, SysUtils, math, fgl, typinfo, FileUtil, LazUTF8, fpjson, editor_types,
   filesystem_base, editor_graphics, editor_classes, h3_txt,
-  lists_manager, vcmi_json, contnrs, gset, gvector, RegExpr;
+  lists_manager, vcmi_json, editor_gl, contnrs, gset, gvector, RegExpr;
 
 type
 
@@ -109,6 +109,8 @@ type
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     property MapObjectType: TMapObjectType read FMapObjectType;
     class function UseMeta: boolean; override;
+
+    procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -174,12 +176,17 @@ type
     FName: TLocalizedString;
     FNid: TCustomID;
     FMapObjectTypes: TMapObjectTypes;
+    FIsHero, FIsHeroLike: Boolean;
   protected
     function GetDisplayName: string; override;
+    procedure SetIdentifier(AValue: AnsiString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     class function UseMeta: boolean; override;
+
+    property IsHero: Boolean read FIsHero;
+    property IsHeroLike: Boolean read FIsHeroLike;
   published
     property Index: TCustomID read FNid write FNid default ID_INVALID;
     property Types:TMapObjectTypes read FMapObjectTypes;
@@ -630,6 +637,14 @@ begin
   end;
 end;
 
+procedure TMapObjectGroup.SetIdentifier(AValue: AnsiString);
+begin
+  inherited SetIdentifier(AValue);
+
+  FIsHero := AValue = TYPE_HERO;
+  FIsHeroLike:= (AValue = TYPE_HERO) or (AValue = TYPE_RANDOMHERO) or (AValue = TYPE_HERO_PLACEHOLDER);
+end;
+
 constructor TMapObjectGroup.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -743,6 +758,22 @@ end;
 class function TMapObjectTemplate.UseMeta: boolean;
 begin
   Result:=True;
+end;
+
+procedure TMapObjectTemplate.RenderIcon(AState: TLocalState; AX, AY, dim: integer; color: TPlayer);
+var
+  h: integer;
+begin
+  AState.SetTranslation(Ax,Ay);
+
+  FDef.RenderIcon(AState, dim, color);
+
+  h := FDef.Height;
+
+  if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
+  begin
+    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, h);
+  end;
 end;
 
 { TLegacyObjTemplate }

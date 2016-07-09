@@ -548,14 +548,12 @@ procedure TfMain.actCreateMapExecute(Sender: TObject);
 var
   frm: TNewMapForm;
   params: TMapCreateParams;
-
 begin
   if not CheckUnsavedMap then
     Exit;
 
   frm := TNewMapForm.Create(nil);
   try
-
     if frm.Execute(params) then
     begin
       FMapFilename := '';
@@ -565,11 +563,9 @@ begin
       FMap.Loaded;
       MapChanded;
     end;
-
   finally
     frm.Free;
   end;
-
 end;
 
 procedure TfMain.actAnimateObjectsExecute(Sender: TObject);
@@ -1831,10 +1827,8 @@ begin
       cx := col * FObjectCellSize;
       cy := row * FObjectCellSize;
 
-      FObjectsViewState.SetTranslation(cx,cy);
-
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.Def.RenderIcon(FObjectsViewState, FObjectCellSize, FCurrentPlayer);
+      o_def.RenderIcon(FObjectsViewState, cx, cy, FObjectCellSize, FCurrentPlayer);
     end;
   end;
 

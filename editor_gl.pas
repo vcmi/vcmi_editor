@@ -157,6 +157,8 @@ type
     procedure RenderSpriteSimple(ASprite: PGLSprite);
     procedure RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
 
+    procedure RenderSpriteOverlayIcon(ASprite: PGLSprite; dim: Integer; main_h: integer);
+
     procedure StopDrawing;
 
     procedure EnableScissor(); inline;
@@ -687,7 +689,6 @@ begin
   TopMargin := ASprite^.TopMargin;
   x := 0;//+round(factor * ASprite^.LeftMargin);
   y := 0 +TopMargin;
-
   DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
 
@@ -701,19 +702,33 @@ var
   TopMargin: Int32;
 begin
   cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
-
   factor := Min((dim-1) / cur_dim, 1); //no zoom
-
   h := round(Double(ASprite^.SpriteHeight) * factor);
   w := round(Double(ASprite^.Width) * factor);
-
   TopMargin := dim - 1 - h;
-
-
   x := 0;//+round(factor * ASprite.LeftMargin);
   y := 0 +TopMargin;
-
   DoRenderSprite(ASprite^, x,y,w,h, 0);
+end;
+
+procedure TLocalState.RenderSpriteOverlayIcon(ASprite: PGLSprite; dim: Integer; main_h: integer);
+var
+  factor: Double;
+  cur_dim: integer;
+  H,W,
+  x,
+  y,
+  TopMargin: Int32;
+begin
+  cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
+  factor := Min((dim-1) / cur_dim, 1); //no zoom
+  h := round(Double(ASprite^.SpriteHeight) * factor);
+  w := round(Double(ASprite^.Width) * factor);
+  TopMargin := dim - 1 - round(Double(main_h) * factor);
+  x := 0;//+round(factor * ASprite.LeftMargin);
+  y := TopMargin;
+  DoRenderSprite(ASprite^, x,y,w,h, 0);
+
 end;
 
 

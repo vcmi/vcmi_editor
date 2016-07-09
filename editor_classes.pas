@@ -95,9 +95,10 @@ type
   private
     FIdentifier: AnsiString;
     FMeta: AnsiString;
-    procedure SetIdentifier(AValue: AnsiString);
     procedure SetMeta(AValue: AnsiString);
   protected
+    procedure SetIdentifier(AValue: AnsiString); virtual;
+
     procedure AssignTo(Dest: TPersistent); override;
     function GetDisplayName: string; override;
     procedure SetDisplayName(const Value: string); override;

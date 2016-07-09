@@ -57,6 +57,8 @@ type
 
     procedure RenderBorder(AState: TLocalState; TileX,TileY: Integer);
     procedure RenderIcon(AState: TLocalState; dim:integer; color: TPlayer = TPlayer.none);
+    procedure RenderOverlayIcon(AState: TLocalState; dim:integer; h: integer);
+
     procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags:UInt8);
     procedure RenderO(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
@@ -812,6 +814,16 @@ begin
   end;
   AState.SetPlayerColor(color);
   AState.RenderSpriteIcon(entries.Mutable[0], dim);
+end;
+
+procedure TDefAnimation.RenderOverlayIcon(AState: TLocalState; dim: integer; h: integer);
+begin
+  if entries.Size = 0 then
+  begin
+    Exit;
+  end;
+  //AState.SetPlayerColor(color);
+  AState.RenderSpriteOverlayIcon(entries.Mutable[0], dim, h);
 end;
 
 procedure TDefAnimation.RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags: UInt8);

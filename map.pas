@@ -440,7 +440,6 @@ type
 
     FModUsage: TModUsage;
     FPosition: TPosition;
-    FIsHero, FIsHeroLike: Boolean;
     FLastFrame: Integer;
     FLastTick: DWord;
     FOptions: TObjectOptions;
@@ -1940,7 +1939,7 @@ procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer
 var
   owner : TPlayer;
 begin
-  if FIsHero and (FTemplate.EditorAnimation = '') then
+  if FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
   begin
     Frame := 2;
   end;
@@ -1948,7 +1947,7 @@ begin
   owner := GetPlayer;
   Template.Def.RenderO(AState, Frame, Ax, Ay, GetPlayer);
 
-  if (owner <> TPlayer.none) and FIsHeroLike then
+  if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
   end;
@@ -2031,10 +2030,6 @@ begin
   RecreateOptions;
 
   UpdateIdentifier;
-
-  FIsHero := AValue = TYPE_HERO;
-
-  FIsHeroLike:= (AValue = TYPE_HERO) or (AValue = TYPE_RANDOMHERO) or (AValue = TYPE_HERO_PLACEHOLDER);
 end;
 
 procedure TMapObject.SetX(AValue: integer);
