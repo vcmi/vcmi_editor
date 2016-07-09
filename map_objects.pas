@@ -110,7 +110,10 @@ type
     property MapObjectType: TMapObjectType read FMapObjectType;
     class function UseMeta: boolean; override;
 
+    //for palette
     procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
+    //for map
+    procedure RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer = TPlayer.none);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -764,7 +767,7 @@ procedure TMapObjectTemplate.RenderIcon(AState: TLocalState; AX, AY, dim: intege
 var
   h: integer;
 begin
-  AState.SetTranslation(Ax,Ay);
+  AState.SetTranslation(Ax, Ay);
 
   FDef.RenderIcon(AState, dim, color);
 
@@ -773,6 +776,16 @@ begin
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, h);
+  end;
+end;
+
+procedure TMapObjectTemplate.RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer);
+begin
+  Def.RenderO(AState, 0, AX, AY, color);
+
+  if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
+  begin
+    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderO(AState, 0, AX, AY);
   end;
 end;
 

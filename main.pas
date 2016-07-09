@@ -538,7 +538,7 @@ begin
   cx := (x+1) * TILE_SIZE;
   cy := (y+1) * TILE_SIZE;
 
-  FDraggingTemplate.Def.RenderO(AState, 0,cx, cy, FOwner.FCurrentPlayer);
+  FDraggingTemplate.RenderFloating(AState, cx, cy, FOwner.FCurrentPlayer);
 end;
 
 

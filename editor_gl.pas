@@ -728,9 +728,7 @@ begin
   x := 0;//+round(factor * ASprite.LeftMargin);
   y := TopMargin;
   DoRenderSprite(ASprite^, x,y,w,h, 0);
-
 end;
-
 
 procedure TLocalState.SetOrtho(left, right, bottom, top: GLfloat);
 var
