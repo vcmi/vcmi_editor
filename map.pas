@@ -447,6 +447,8 @@ type
     FType: AnsiString;
     function GetIdx: integer;
     function GetL: integer; inline;
+    function GetSubtype: AnsiString;
+    function GetType: AnsiString;
     function GetX: integer; inline;
     function GetY: integer; inline;
 
@@ -505,11 +507,11 @@ type
     property Y:integer read GetY write SetY;
     property L:integer read GetL write SetL;
 
-    property &Type: AnsiString read FType write SetType;
-    property Subtype: AnsiString read FSubtype write SetSubtype;
-
     property Template: TMapObjectAppearance read FTemplate;
-  public
+  public //manual streamimg
+    property &Type: AnsiString read GetType write SetType;
+    property Subtype: AnsiString read GetSubtype write SetSubtype;
+
     property Options: TObjectOptions read FOptions;
   end;
 
@@ -1903,6 +1905,16 @@ begin
   Result := FPosition.L;
 end;
 
+function TMapObject.GetSubtype: AnsiString;
+begin
+  Result := FSubtype;
+end;
+
+function TMapObject.GetType: AnsiString;
+begin
+  Result := FType;
+end;
+
 function TMapObject.GetX: integer;
 begin
   Result := FPosition.X;
@@ -2145,8 +2157,12 @@ end;
 function TMapObject.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
 var
   opt_json: TJSONData;
+  res: TJSONObject;
 begin
-  Result := AHandler.ObjectToJson(Self);
+  res := AHandler.ObjectToJson(Self);
+
+  res.Add('type', &Type);
+  res.Add('subtype', Subtype);
 
   if HasOptions then
   begin
@@ -2155,17 +2171,27 @@ begin
     //store only not empty options
     if opt_json.Count > 0 then
     begin
-      (Result as TJSONObject).Add('options', opt_json);
+      res.Add('options', opt_json);
     end
     else
     begin
       FreeAndNil(opt_json);
     end;
   end;
+
+  Result := res;
 end;
 
 procedure TMapObject.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
+var
+  ASrcObj: TJSONObject;
 begin
+  ASrcObj := ASrc as TJSONObject;
+
+  //type must be loaded before subtype
+  &Type:=ASrcObj.Strings['type'];
+  Subtype:=ASrcObj.Strings['subtype'];
+
   AHandler.JSONToObject(ASrc as TJSONObject, Self);
 
   //destream Options after all other properties
