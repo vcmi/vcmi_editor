@@ -383,7 +383,6 @@ type
   strict private
     mask_w, mask_h: Integer;
     FOwner: TMapObject;
-  private
     FDef: TDefAnimation;
     FIsVisitable: Boolean;
     FAnimation: AnsiString;
@@ -405,7 +404,7 @@ type
     constructor Create(AOwner: TMapObject);
     destructor Destroy; override;
 
-    procedure Assign(AOther: TMapObjectTemplate);
+    procedure Assign(ASource: TMapObjectTemplate);
     procedure BeforeSerialize(Sender:TObject);
     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
     procedure AfterSerialize(Sender:TObject; AData: TJSONData);
@@ -415,13 +414,15 @@ type
 
     procedure RenderOverlay(AState: TLocalState);
 
-    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+    Procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
 
     property Visitable: Boolean read FIsVisitable;
     function IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
 
     property Width: Integer read mask_w;
     property Height: Integer read mask_h;
+
+    property Def: TDefAnimation read FDef;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -1534,17 +1535,14 @@ begin
   inherited Destroy;
 end;
 
-procedure TMapObjectAppearance.Assign(AOther: TMapObjectTemplate);
+procedure TMapObjectAppearance.Assign(ASource: TMapObjectTemplate);
 begin
-  FAnimation := AOther.Animation;
-  FEditorAnimation := AOther.EditorAnimation;
-  FVisitableFrom.Assign(AOther.VisitableFrom);
-  FMask.Assign(AOther.Mask);
-
-  SetDef(AOther.Def);
-
-
-  FZIndex := AOther.ZIndex;
+  FAnimation := ASource.Animation;
+  FEditorAnimation := ASource.EditorAnimation;
+  FVisitableFrom.Assign(ASource.VisitableFrom);
+  FMask.Assign(ASource.Mask);
+  SetDef(ASource.Def);
+  FZIndex := ASource.ZIndex;
 end;
 
 procedure TMapObjectAppearance.BeforeSerialize(Sender: TObject);
@@ -1854,8 +1852,8 @@ var
   h: UInt32;
 begin
   //TODO: use MASK
-  w := Template.FDef.Width div TILE_SIZE;
-  h := Template.FDef.Height div TILE_SIZE;
+  w := Template.Def.Width div TILE_SIZE;
+  h := Template.Def.Height div TILE_SIZE;
   Result := (L = ALevel)
     and (X>=AX) and (Y>=AY)
     and (X-w<AX) and (Y-h<AY);
@@ -1908,7 +1906,7 @@ end;
 
 function TMapObject.GetY: integer;
 begin
-   Result := FPosition.Y;
+  Result := FPosition.Y;
 end;
 
 function TMapObject.HasOptions: boolean;
@@ -1926,11 +1924,11 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.FDef.RenderO(AState, Frame, Ax, Ay, GetPlayer);
+  Template.Def.RenderO(AState, Frame, Ax, Ay, GetPlayer);
 
   if (owner <> TPlayer.none) and FIsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);
+    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
   end;
 end;
 
@@ -1946,7 +1944,7 @@ begin
 
     FLastTick := new_tick;
 
-    if FLastFrame >= Template.FDef.FrameCount then
+    if FLastFrame >= Template.Def.FrameCount then
       FLastFrame := 0;
   end;
 
@@ -1960,7 +1958,7 @@ end;
 
 procedure TMapObject.RenderSelectionRect(AState: TLocalState);
 begin
-  Template.FDef.RenderBorder(AState,X,Y);
+  Template.Def.RenderBorder(AState,X,Y);
 end;
 
 procedure TMapObject.RenderStatic(AState: TLocalState);
@@ -2021,7 +2019,7 @@ procedure TMapObject.RecreateOptions;
 begin
   FreeAndNil(FOptions);
 
-  if (FType <>'') and (FSubtype<>'') then
+  if (FType <> '') and (FSubtype <> '') then
   begin
     FOptions := TObjectOptions.CreateByID(FType, FSubtype,Self);
   end;
@@ -2035,7 +2033,7 @@ begin
     GetMap.ModUsage.RemoveFrom(FModUsage);
   end;
 
-  //notify new collection
+  //notify new collection before inherited call because of hero pool
   if Assigned(Value) then
   begin
     TMapObjects(Value).Map.ModUsage.AddFrom(FModUsage);
@@ -2043,7 +2041,6 @@ begin
 
   inherited SetCollection(Value);
 
-  //notify new collection
   if Assigned(Collection) then
   begin
     UpdateIdentifier;
