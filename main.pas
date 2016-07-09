@@ -541,7 +541,6 @@ begin
   FDraggingTemplate.RenderFloating(AState, cx, cy, FOwner.FCurrentPlayer);
 end;
 
-
 { TfMain }
 
 procedure TfMain.actCreateMapExecute(Sender: TObject);

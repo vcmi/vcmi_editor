@@ -87,12 +87,12 @@ type
 
   { TMapObjectTemplate }
 
-  TMapObjectTemplate = class (TNamedCollectionItem)
-  private
+  TMapObjectTemplate = class (TNamedCollectionItem, ISerializeNotify)
+  strict private
     FDef: TDefAnimation;
     FMapObjectGroup:TMapObjectGroup;
     FMapObjectType: TMapObjectType;
-  strict private
+
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
@@ -100,8 +100,11 @@ type
     FVisitableFrom: TStrings;
     FMask: TStrings;
     FzIndex: Integer;
+    FIconSpriteIndex: integer;
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
+
+    procedure UpdateAnimation;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -114,6 +117,13 @@ type
     procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
     //for map
     procedure RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer = TPlayer.none);
+
+  public //ISerializeNotify
+    procedure BeforeSerialize(Sender:TObject);
+    procedure AfterSerialize(Sender:TObject; AData: TJSONData);
+
+    procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -715,25 +725,32 @@ end;
 
 procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
 begin
-  AValue := NormalizeResourceName(AValue);
-  if FAnimation=AValue then Exit;
-  FAnimation:=AValue;
-
-  //use this animation only if there is no editor animation
-  //todo: delay animation loading(load after serialize)
-
-  if FEditorAnimation='' then
-    FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FAnimation);
+  FAnimation:=NormalizeResourceName(AValue);
 end;
 
 procedure TMapObjectTemplate.SetEditorAnimation(AValue: AnsiString);
 begin
-  AValue := NormalizeResourceName(AValue);
+  FEditorAnimation := NormalizeResourceName(AValue);
+end;
 
-  if FEditorAnimation=AValue then Exit;
-  FEditorAnimation:=AValue;
+procedure TMapObjectTemplate.UpdateAnimation;
+begin
+  if FEditorAnimation='' then
+  begin
+    FDef := RootManager.GraphicsManager.GetGraphics(FAnimation);
+  end
+  else
+  begin
+    FDef := RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
+  end;
 
-  FDef := root_manager.RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
+  FIconSpriteIndex:=0;
+
+  if MapObjectGroup.IsHero and (FEditorAnimation='') then
+  begin
+    RootManager.GraphicsManager.LoadGraphics(FDef);
+    FIconSpriteIndex := 2;
+  end;
 end;
 
 constructor TMapObjectTemplate.Create(ACollection: TCollection);
@@ -748,6 +765,7 @@ begin
 
   FMapObjectGroup := (ACollection as TMapObjectTemplates).MapObjectType.FMapObjectGroup;
   FTags := TStringList.Create;
+  FIconSpriteIndex:=0;
 end;
 
 destructor TMapObjectTemplate.Destroy;
@@ -769,7 +787,7 @@ var
 begin
   AState.SetTranslation(Ax, Ay);
 
-  FDef.RenderIcon(AState, dim, color);
+  FDef.RenderIcon(AState, FIconSpriteIndex, dim, color);
 
   h := FDef.Height;
 
@@ -781,12 +799,32 @@ end;
 
 procedure TMapObjectTemplate.RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer);
 begin
-  Def.RenderO(AState, 0, AX, AY, color);
+  Def.RenderO(AState, FIconSpriteIndex, AX, AY, color);
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(color).RenderO(AState, 0, AX, AY);
   end;
+end;
+
+procedure TMapObjectTemplate.BeforeSerialize(Sender: TObject);
+begin
+
+end;
+
+procedure TMapObjectTemplate.AfterSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TMapObjectTemplate.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+
+end;
+
+procedure TMapObjectTemplate.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+  UpdateAnimation;
 end;
 
 { TLegacyObjTemplate }
@@ -849,8 +887,8 @@ begin
 
         ATarget.Add(obj_template);
 
-        Assert(Assigned(obj_template.FMapObjectGroup));
-        Assert(Assigned(obj_template.FMapObjectType));
+        Assert(Assigned(obj_template.MapObjectGroup));
+        Assert(Assigned(obj_template.MapObjectType));
       end;
     end;
   end;

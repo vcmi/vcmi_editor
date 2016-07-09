@@ -56,7 +56,7 @@ type
     destructor Destroy; override;
 
     procedure RenderBorder(AState: TLocalState; TileX,TileY: Integer);
-    procedure RenderIcon(AState: TLocalState; dim:integer; color: TPlayer = TPlayer.none);
+    procedure RenderIcon(AState: TLocalState; const SpriteIndex: UInt8; dim:integer; color: TPlayer = TPlayer.none);
     procedure RenderOverlayIcon(AState: TLocalState; dim:integer; h: integer);
 
     procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags:UInt8);
@@ -806,14 +806,14 @@ begin
   AState.StopDrawing;
 end;
 
-procedure TDefAnimation.RenderIcon(AState: TLocalState; dim: integer; color: TPlayer);
+procedure TDefAnimation.RenderIcon(AState: TLocalState; const SpriteIndex: UInt8; dim: integer; color: TPlayer);
 begin
-  if entries.Size = 0 then
+  if entries.Size < SpriteIndex + 1 then
   begin
     Exit;
   end;
   AState.SetPlayerColor(color);
-  AState.RenderSpriteIcon(entries.Mutable[0], dim);
+  AState.RenderSpriteIcon(entries.Mutable[SpriteIndex], dim);
 end;
 
 procedure TDefAnimation.RenderOverlayIcon(AState: TLocalState; dim: integer; h: integer);
