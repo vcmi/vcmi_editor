@@ -351,6 +351,8 @@ type
 
     FMapViewState, FObjectsViewState: TLocalState;
 
+    FAnimTick: int64;
+
     function GetObjIdx(col, row:integer): integer;
 
     function getMapHeight: Integer;
@@ -420,7 +422,7 @@ implementation
 uses
   map_format, map_format_h3m, editor_str_consts,
   root_manager, map_format_zip, editor_consts, map_options,
-  new_map, edit_object_options, Math, lazutf8classes;
+  new_map, edit_object_options, Math, lazutf8classes, LazUTF8SysUtils;
 
 {$R *.lfm}
 
@@ -1542,6 +1544,9 @@ var
   scissor_y: Integer;
 
   o: TMapObject;
+
+  new_tick: Int64;
+  new_anim_frame: Boolean;
 begin
   if not FMapViewState.StartFrame then
   begin
@@ -1583,11 +1588,25 @@ begin
 
   FMapViewState.SetUseFlag(true);
 
-  for o in FVisibleObjects do
+  new_tick := LazUTF8SysUtils.GetTickCount64;
+
+  new_anim_frame := false;
+
+  if abs(new_tick - FAnimTick) > 155 then
   begin
-    if actAnimateObjects.Checked then
-      o.RenderAnim(FMapViewState)
-    else
+    new_anim_frame := true;
+
+    FAnimTick := new_tick;
+  end;
+
+  if actAnimateObjects.Checked then
+  begin
+    for o in FVisibleObjects do
+      o.RenderAnim(FMapViewState, new_anim_frame);
+  end
+  else
+  begin
+    for o in FVisibleObjects do
       o.RenderStatic(FMapViewState);
   end;
 

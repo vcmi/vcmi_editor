@@ -1293,7 +1293,7 @@ begin
       FCurrentObject.Template.VisitableFrom.Assign(template.VisitableFrom);
       FCurrentObject.Template.ZIndex:=template.ZIndex;
 
-      //DebugLn(['Reading ', x,' ' , y, ' ', l, ' TID ', tid, ' ID ', FCurrentObject.GetID, ' subid ',  FCurrentObject.GetSubId]);
+      //DebugLn(['Reading ', i,' [', x,' ' , y, ' ', l, '] TID ', tid, ' ID ', FCurrentObject.GetType, ' subid ',  FCurrentObject.GetSubtype]);
 
       FSrc.Skip(5); //junk
 

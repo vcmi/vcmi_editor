@@ -45,11 +45,8 @@ type
 
     entries: TDefEntries;
 
-    FTexturesBinded: boolean;
-
     function GetFrameCount: Integer; inline;
 
-    procedure MayBeUnBindTextures; inline;
     procedure UnBindTextures;
   public
     constructor Create;
@@ -533,9 +530,6 @@ var
 begin
   Assert(Assigned(FCurrentDef),'TDefFormatLoader.LoadFromStream: nil CurrentDef');
 
-  if Mode <> TGraphicsLoadMode.LoadRest then
-    FCurrentDef.MayBeUnBindTextures;
-
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
@@ -697,6 +691,10 @@ end;
 
 procedure TGraphicsManager.LoadGraphics(Adef: TDefAnimation);
 begin
+  if Adef.Loaded then
+  begin
+    Exit;
+  end;
   FDefLoader.CurrentDef := ADef;
   FDefLoader.Mode := TGraphicsLoadMode.LoadRest;
   ResourceLoader.LoadResource(FDefLoader,TResourceType.Animation,'SPRITES/'+ADef.ResourceID);
@@ -767,12 +765,11 @@ end;
 constructor TDefAnimation.Create;
 begin
   entries := TDefEntries.Create;
-  FTexturesBinded := false;
 end;
 
 destructor TDefAnimation.Destroy;
 begin
-  MayBeUnBindTextures;
+  UnBindTextures;
 
   entries.Destroy;
   inherited Destroy;
@@ -781,13 +778,6 @@ end;
 function TDefAnimation.GetFrameCount: Integer;
 begin
   Result := entries.Size;
-end;
-
-procedure TDefAnimation.MayBeUnBindTextures;
-begin
-  if FTexturesBinded then
-    UnBindTextures;
-  FTexturesBinded := False;
 end;
 
 procedure TDefAnimation.RenderBorder(AState: TLocalState; TileX, TileY: Integer);

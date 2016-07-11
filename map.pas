@@ -441,7 +441,6 @@ type
     FModUsage: TModUsage;
     FPosition: TPosition;
     FLastFrame: Integer;
-    FLastTick: DWord;
     FOptions: TObjectOptions;
     FPlayer: TPlayer;
     FTemplate: TMapObjectAppearance;
@@ -467,7 +466,7 @@ type
     destructor Destroy; override;
     procedure RenderStatic(AState: TLocalState); inline;
     procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
-    procedure RenderAnim(AState: TLocalState); inline;
+    procedure RenderAnim(AState: TLocalState; ANextFrame: Boolean); inline;
 
     procedure RenderOverlay(AState: TLocalState); inline;
 
@@ -1953,17 +1952,11 @@ begin
   end;
 end;
 
-procedure TMapObject.RenderAnim(AState: TLocalState);
-var
-  new_tick: DWord;
+procedure TMapObject.RenderAnim(AState: TLocalState; ANextFrame: Boolean);
 begin
-  new_tick := GetTickCount;
-
-  if abs(new_tick - FLastTick) > 155 then
+  if ANextFrame then
   begin
     Inc(FLastFrame);
-
-    FLastTick := new_tick;
 
     if FLastFrame >= Template.Def.FrameCount then
       FLastFrame := 0;
