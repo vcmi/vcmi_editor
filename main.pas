@@ -285,13 +285,15 @@ type
     const
       OBJ_PER_ROW = 3;
       OBJ_CELL_SIZE = 60;
+      OBJ_BORDER_WIDTH = 2;
 
       FTileSizes: array [0..3] of Integer = (8, 16, 24, 32);
   private
     FZoomIndex: integer;
 
     FObjectsPerRow: Integer;
-    FObjectCellSize: Integer;
+    FObjectCellSize,FObjectCellTotalSize: Integer;
+    FObjectBorderWidth: Integer;
 
     FZbuffer: TZBuffer;
 
@@ -888,6 +890,8 @@ begin
   FObjectCellSize:=OBJ_CELL_SIZE;
   FObjectsPerRow:=OBJ_PER_ROW;
   FRealTileSize := TILE_SIZE;
+  FObjectBorderWidth:=OBJ_BORDER_WIDTH;
+  FObjectCellTotalSize:=FObjectCellSize+FObjectBorderWidth*2;
 
   FZbuffer := TZBuffer.Create;
   pnHAxis.DoubleBuffered := True;
@@ -1181,7 +1185,7 @@ begin
   sbObjects.Min := 0;
   sbObjects.Max := Max(0, FObjectRows - 1);
 
-  sbObjects.PageSize := ObjectsView.Height div FObjectCellSize;
+  sbObjects.PageSize := ObjectsView.Height div FObjectCellTotalSize;
   sbObjects.Position:=0;
 
   FViewObjectRowsH := sbObjects.PageSize;
@@ -1600,6 +1604,8 @@ begin
     end;
   end;
 
+  glLineWidth(1.5);
+
   if actViewGrid.Checked then
   begin
     RenderGrid();
@@ -1750,8 +1756,8 @@ var
   row: Integer;
   o_idx: Integer;
 begin
-  col := x div FObjectCellSize;
-  row := y div FObjectCellSize;
+  col := x div FObjectCellTotalSize;
+  row := y div FObjectCellTotalSize;
 
   o_idx := GetObjIdx(col, row);
 
@@ -1773,7 +1779,7 @@ var
   o_idx: Integer;
   o_def: TMapObjectTemplate;
   cx: Integer;
-  cy: Integer;
+  cy, sh: Integer;
 begin
   if not FObjectsViewState.StartFrame then
   begin
@@ -1794,19 +1800,28 @@ begin
   FObjectsViewState.StartDrawingRects;
   FObjectsViewState.SetFragmentColor(GRID_COLOR);
 
+  cy := 0;
+
+  glLineWidth(FObjectBorderWidth);
+
+  sh := FObjectBorderWidth;
+
   for row := 0 to FViewObjectRowsH + 1 do
   begin
+    cx := 0;
     for col := 0 to FObjectsPerRow - 1 do
     begin
       o_idx := GetObjIdx(col, row);
 
       if o_idx >= FObjectCount then
         break;
-      cx := col * FObjectCellSize;
-      cy := row * FObjectCellSize;
 
-      FObjectsViewState.RenderRect(cx,cy,FObjectCellSize,FObjectCellSize);
+      FObjectsViewState.RenderRect(cx+sh ,cy+sh,FObjectCellTotalSize-sh,FObjectCellTotalSize-sh);
+
+      cx += FObjectCellTotalSize;
     end;
+
+    cy += FObjectCellTotalSize;
   end;
 
   FObjectsViewState.StopDrawing;
@@ -1815,20 +1830,24 @@ begin
   FObjectsViewState.SetUseFlag(true);
   FObjectsViewState.StartDrawingSprites();
 
+  cy := 0;
+
   for row := 0 to FViewObjectRowsH + 1 do
   begin
+    cx := 0;
     for col := 0 to FObjectsPerRow - 1 do
     begin
       o_idx := GetObjIdx(col, row);
 
       if o_idx >= FObjectCount then
         break;
-      cx := col * FObjectCellSize;
-      cy := row * FObjectCellSize;
 
       o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.RenderIcon(FObjectsViewState, cx, cy, FObjectCellSize, FCurrentPlayer);
+      o_def.RenderIcon(FObjectsViewState, cx+FObjectBorderWidth, cy+FObjectBorderWidth, FObjectCellSize, FCurrentPlayer);
+      cx += FObjectCellTotalSize;
     end;
+
+    cy += FObjectCellTotalSize;
   end;
 
   FObjectsViewState.DisableScissor();

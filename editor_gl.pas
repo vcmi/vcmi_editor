@@ -559,8 +559,6 @@ procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
 var
   vertex_data: packed array[1..8] of GLfloat;
 begin
-  glLineWidth(1.5);
-
   vertex_data[1] := X;         vertex_data[2] := Y;
   vertex_data[3] := X + dimx;  vertex_data[4] := Y;
   vertex_data[5] := X + dimx;  vertex_data[6] := Y + dimy;
@@ -571,7 +569,6 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glDrawArrays(GL_LINE_LOOP,0,4);
-  glLineWidth(1);
 end;
 
 procedure TLocalState.RenderSolidRect(x, y: Integer; dimx, dimy: integer;
@@ -702,10 +699,10 @@ var
   TopMargin: Int32;
 begin
   cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
-  factor := Min((dim-1) / cur_dim, 1); //no zoom
+  factor := Min((dim) / cur_dim, 1); //no zoom
   h := round(Double(ASprite^.SpriteHeight) * factor);
   w := round(Double(ASprite^.Width) * factor);
-  TopMargin := dim - 1 - h;
+  TopMargin := dim - h;
   x := 0;//+round(factor * ASprite.LeftMargin);
   y := 0 +TopMargin;
   DoRenderSprite(ASprite^, x,y,w,h, 0);
@@ -721,10 +718,10 @@ var
   TopMargin: Int32;
 begin
   cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
-  factor := Min((dim-1) / cur_dim, 1); //no zoom
+  factor := Min((dim) / cur_dim, 1); //no zoom
   h := round(Double(ASprite^.SpriteHeight) * factor);
   w := round(Double(ASprite^.Width) * factor);
-  TopMargin := dim - 1 - round(Double(main_h) * factor);
+  TopMargin := dim - round(Double(main_h) * factor);
   x := 0;//+round(factor * ASprite.LeftMargin);
   y := TopMargin;
   DoRenderSprite(ASprite^, x,y,w,h, 0);
