@@ -114,7 +114,6 @@ type
 
     FCurrentProgram: GLuint;
 
-    FTranslateMaxrix: Tmatrix4_single;
     FScale: GLfloat;
 
     procedure Init;
@@ -511,7 +510,6 @@ constructor TLocalState.Create(AContext: TOpenGLControl);
 begin
   FInitialised := False;
   FContext := AContext;
-  FTranslateMaxrix.init_identity;
   FScale:=1.0;
 end;
 
@@ -756,6 +754,8 @@ begin
 end;
 
 procedure TLocalState.SetTranslation(X, Y: Integer);
+var
+  FTranslateMaxrix: Tmatrix4_single;
 begin
   FTranslateMaxrix.init_identity;
   FTranslateMaxrix.data[0,0] := FScale;

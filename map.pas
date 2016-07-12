@@ -1812,7 +1812,6 @@ end;
 
 class function TBlitOrderCompare.c(a, b: TMapObject): boolean;
 begin
-
   if a.Template.ZIndex < b.Template.ZIndex then
   begin
     Exit(True);

@@ -30,12 +30,14 @@ uses
 type
   TRGBAPalette = packed array[0..255] of TRBGAColor;
   TDefEntries = specialize gvector.TVector<TGLSprite>;
+  TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
+  TGraphicsLoadFlag = (None, First, Complete);
 
   { TDefAnimation }
 
   TDefAnimation = class
   private
-    FLoaded: Boolean;
+    FLoaded: TGraphicsLoadFlag;
     FPaletteID: GLuint;
     FResourceID: AnsiString;
 
@@ -66,7 +68,7 @@ type
 
     property ResourceID: AnsiString read FResourceID write FResourceID;
 
-    property Loaded: Boolean read FLoaded write FLoaded;
+    property Loaded: TGraphicsLoadFlag read FLoaded write FLoaded;
   end;
 
   { TDefMap }
@@ -78,34 +80,32 @@ type
     constructor Create;
   end;
 
-  TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
-
   { TDefFormatLoader }
 
   TDefFormatLoader = class (IResource)
   strict private
     const
-      INITIAL_BUFFER_SIZE = 32768;
-  strict private
-    FBuffer: packed array of byte; //indexed bitmap
-    FDefBuffer: packed array of byte;
+        INITIAL_BUFFER_SIZE = 32768;
 
-    palette: TRGBAPalette;
-    procedure IncreaseBuffer(ANewSize: SizeInt);
-    procedure IncreaseDefBuffer(ANewSize: SizeInt);
+    var
+      FMode: TGraphicsLoadMode;
+      FBuffer: packed array of byte; //indexed bitmap
+      FDefBuffer: packed array of byte;
+      FCurrentDef: TDefAnimation;
+
+      palette: TRGBAPalette;
+      procedure IncreaseBuffer(ANewSize: SizeInt);
+      procedure IncreaseDefBuffer(ANewSize: SizeInt);
   private
-    FCurrentDef: TDefAnimation;
-    FMode: TGraphicsLoadMode;
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
 
-    procedure SetCurrentDef(AValue: TDefAnimation);
   public
     procedure LoadFromStream(AStream: TStream);//IResource
   public
     constructor Create;
     destructor Destroy; override;
 
-    property CurrentDef: TDefAnimation read FCurrentDef write SetCurrentDef;
+    property CurrentDef: TDefAnimation read FCurrentDef write FCurrentDef;
     property Mode: TGraphicsLoadMode read FMode write FMode;
   end;
 
@@ -530,6 +530,21 @@ var
 begin
   Assert(Assigned(FCurrentDef),'TDefFormatLoader.LoadFromStream: nil CurrentDef');
 
+  if FCurrentDef.Loaded = TGraphicsLoadFlag.Complete then
+  begin
+    exit;
+  end;
+
+  if (Mode = TGraphicsLoadMode.LoadComplete) and (FCurrentDef.Loaded = TGraphicsLoadFlag.First) then
+  begin
+    Mode := TGraphicsLoadMode.LoadRest;
+  end;
+
+  if (Mode = TGraphicsLoadMode.LoadRest) and (FCurrentDef.Loaded = TGraphicsLoadFlag.None) then
+  begin
+    Mode := TGraphicsLoadMode.LoadComplete;
+  end;
+
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
@@ -598,6 +613,7 @@ begin
     TGraphicsLoadMode.LoadFisrt: begin
       GenerateTextureIds(1,0);
       LoadSprite(AStream, 0, id_s[0], offsets[0]);
+      FCurrentDef.Loaded:= TGraphicsLoadFlag.First;
     end;
     TGraphicsLoadMode.LoadRest:
     begin
@@ -610,7 +626,7 @@ begin
         end;
       end;
 
-      FCurrentDef.Loaded:=True;
+      FCurrentDef.Loaded:= TGraphicsLoadFlag.Complete;
     end;
     TGraphicsLoadMode.LoadComplete:
     begin
@@ -619,17 +635,11 @@ begin
       begin
         LoadSprite(AStream, i, id_s[i], offsets[i]);
       end;
-      FCurrentDef.Loaded:=True;
+      FCurrentDef.Loaded:= TGraphicsLoadFlag.Complete;
     end;
   end;
 
   glBindTexture(GL_TEXTURE_2D, 0);
-end;
-
-procedure TDefFormatLoader.SetCurrentDef(AValue: TDefAnimation);
-begin
-  if FCurrentDef = AValue then Exit;
-  FCurrentDef := AValue;
 end;
 
 { TGraphicsCosnumer }
@@ -691,7 +701,7 @@ end;
 
 procedure TGraphicsManager.LoadGraphics(Adef: TDefAnimation);
 begin
-  if Adef.Loaded then
+  if Adef.Loaded = TGraphicsLoadFlag.Complete then
   begin
     Exit;
   end;
@@ -729,7 +739,7 @@ begin
   begin
     Result := FNameToDefMap.Data[res_index];
 
-    if ALoadComplete and not Result.Loaded then
+    if ALoadComplete then
     begin
       LoadGraphics(Result);
     end;
@@ -765,6 +775,7 @@ end;
 constructor TDefAnimation.Create;
 begin
   entries := TDefEntries.Create;
+  FLoaded := TGraphicsLoadFlag.None;
 end;
 
 destructor TDefAnimation.Destroy;
