@@ -355,6 +355,7 @@ type
 
   TArtifactInfo = class(TBaseInfo)
   private
+    FClass: TArtifactClass;
     FGraphics: TArtifactGraphics;
     FTexts: TArtifactTexts;
     FSlot: TStrings;
@@ -367,6 +368,7 @@ type
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
   published
+    property &Class: TArtifactClass read FClass write FClass;
     property Graphics: TArtifactGraphics read FGraphics;
 
     property Slot: TStrings read FSlot;
@@ -1766,25 +1768,44 @@ const
 
 var
   artraits: TTextResource;
-  i: SizeInt;
+
   slots: TJSONArray;
 
-  procedure LoadSlots();
+  procedure LoadSlots(idx: SizeInt);
   var
     ofs: SizeInt;
   begin
     for ofs in [0..ARTIFACT_SLOT_COUNT-1] do
     begin
-      if artraits.Value[2+ofs, i+2] = 'x' then
+      if artraits.Value[2+ofs, idx+2] = 'x' then
       begin
         slots.Add(H3_ART_SLOTS[ofs]);
       end;
     end;
   end;
 
+  function GetArtClass(idx: SizeInt): TArtifactClass;
+  var
+    v: string;
+  begin
+    v := artraits.Value[2+ARTIFACT_SLOT_COUNT, idx+2];
+
+    case v of
+      'S':Result := TArtifactClass.SPECIAL ;
+      'T': Result := TArtifactClass.TREASURE;
+      'N': Result := TArtifactClass.MINOR;
+      'J': Result := TArtifactClass.MAJOR;
+      'R': Result := TArtifactClass.RELIC;
+      else
+        Result := TArtifactClass.SPECIAL;
+    end;
+  end;
+
 var
   legacy_data: TJsonObjectList;
   o: TJSONObject;
+  i: SizeInt;
+  c: TArtifactClass;
 begin
 
   legacy_data := TJsonObjectList.Create(true);
@@ -1799,8 +1820,12 @@ begin
       o.GetOrCreateObject('text').Strings['name'] := artraits.Value[0,i+2];
 
       slots := CreateJSONArray([]);
-      LoadSlots();
+      LoadSlots(i);
       o.Add('slot', slots);
+      c := GetArtClass(i);
+
+      o.Add('class', GetEnumName(TypeInfo(TArtifactClass), Integer(c)));
+
       legacy_data.Add(o);
     end;
 
