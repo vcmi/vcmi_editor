@@ -243,50 +243,6 @@ begin
   end;
 end;
 
-procedure SaveCheckListBox(ATarget: TCustomCheckListBox; ADest: TStrings);
-var
-  info: TBaseInfo;
-  i: Integer;
-begin
-  ADest.Clear;
-  for i := 0 to ATarget.Items.Count - 1 do
-  begin
-    info := ATarget.Items.Objects[i] as TBaseInfo;
-    if ATarget.Checked[i] then
-    begin
-      ADest.Add(info.Identifier);
-    end;
-  end;
-end;
-
-procedure SaveCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
-var
-  info: TBaseInfo;
-  i: Integer;
-begin
-  ADest.Clear;
-
-  for i := 0 to ATarget.Items.Count - 1 do
-  begin
-    info := ATarget.Items.Objects[i] as TBaseInfo;
-
-    if Permissive then
-    begin
-     if not ATarget.Checked[i] then
-      begin
-        ADest.NoneOf.Add(info.Identifier);
-      end;
-    end
-    else
-    begin
-      if ATarget.Checked[i] then
-      begin
-        ADest.AnyOf.Add(info.Identifier);
-      end;
-    end;
-  end;
-
-end;
 
 { TPageControlHelper }
 
@@ -459,14 +415,48 @@ begin
 end;
 
 procedure TCheckListBoxHelper.SaveTo(ADest: TStrings);
+var
+  info: TBaseInfo;
+  i: Integer;
 begin
-  SaveCheckListBox(Self,ADest);
+  ADest.Clear;
+  for i := 0 to Items.Count - 1 do
+  begin
+    info := Items.Objects[i] as TBaseInfo;
+    if Checked[i] then
+    begin
+      ADest.Add(info.Identifier);
+    end;
+  end;
 end;
 
 procedure TCheckListBoxHelper.SaveTo(AFullList: THashedCollection;
   ADest: TLogicalIDCondition; Permissive: Boolean);
+var
+  info: TBaseInfo;
+  i: Integer;
 begin
-  SaveCheckListBox(Self,AFullList, ADest, Permissive);
+  ADest.Clear;
+
+  for i := 0 to Items.Count - 1 do
+  begin
+    info := Items.Objects[i] as TBaseInfo;
+
+    if Permissive then
+    begin
+     if not Checked[i] then
+      begin
+        ADest.NoneOf.Add(info.Identifier);
+      end;
+    end
+    else
+    begin
+      if Checked[i] then
+      begin
+        ADest.AnyOf.Add(info.Identifier);
+      end;
+    end;
+  end;
 end;
 
 procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
