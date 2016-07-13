@@ -22,12 +22,14 @@ unit map_options;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, ActnList, Buttons, gui_helpers,
-  edit_hero_options, Map, lists_manager, base_info, root_manager, editor_classes;
+  StdCtrls, ComCtrls, ExtCtrls, Spin, CheckLst, ActnList, Buttons,  base_info, gui_helpers,
+  edit_hero_options, Map, lists_manager, root_manager, editor_classes;
 
 type
 
@@ -219,6 +221,12 @@ begin
 end;
 
 procedure TMapOptionsForm.ReadData;
+
+  function ArtifactFilter(ATarget: TBaseInfo): Boolean;
+  begin
+    Result := TArtifactInfo(ATarget).&Class <> TArtifactClass.SPECIAL;
+  end;
+
 begin
   AllMods.Items.Clear;
   AllMods.Items.AddStrings(FMap.ListsManager.GetEnabledMods());
@@ -238,7 +246,7 @@ begin
   edSpells.FillFrom(FMap.ListsManager.SpellInfos, FMap.AllowedSpells);
   cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);
 
-  edArtifacts.FillFrom(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts);
+  edArtifacts.FillFrom(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, @ArtifactFilter);
   cbArtifactsNegate.ItemIndex := ifthen(FMap.AllowedArtifacts.IsPermissive, 1, 0);
 
   edAllowedHeroes.FillFrom(Fmap.ListsManager.HeroInfos, FMap.AllowedHeroes);

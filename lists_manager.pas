@@ -381,6 +381,7 @@ type
 
   TArtifactInfos = class(specialize TGNamedCollection<TArtifactInfo>)
   public
+    //all not special
     procedure FillWithAllIds(AList: TLogicalIDCondition);
   end;
 
@@ -961,8 +962,17 @@ end;
 { TArtifactInfos }
 
 procedure TArtifactInfos.FillWithAllIds(AList: TLogicalIDCondition);
+var
+  info: TArtifactInfo;
+  idx: Integer;
 begin
   AList.Clear;
+  for idx := 0 to Count - 1 do
+  begin
+    info := Items[idx];
+    if info.&Class <> TArtifactClass.SPECIAL then
+      AList.AnyOf.Add(info.Identifier);
+  end;
 
   //todo: exclude overpowered
 end;
