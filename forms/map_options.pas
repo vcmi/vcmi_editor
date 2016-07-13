@@ -227,6 +227,11 @@ procedure TMapOptionsForm.ReadData;
     Result := TArtifactInfo(ATarget).&Class <> TArtifactClass.SPECIAL;
   end;
 
+  function SpellFilter(ATarget: TBaseInfo): Boolean;
+  begin
+    Result := TSpellInfo(ATarget).&type <> TSpellType.ability;
+  end;
+
 begin
   AllMods.Items.Clear;
   AllMods.Items.AddStrings(FMap.ListsManager.GetEnabledMods());
@@ -243,7 +248,7 @@ begin
   edAbilities.FillFrom(FMap.ListsManager.SkillInfos, FMap.AllowedAbilities);
   cbSkillsNegate.ItemIndex:=ifthen(FMap.AllowedAbilities.IsPermissive, 1, 0);
 
-  edSpells.FillFrom(FMap.ListsManager.SpellInfos, FMap.AllowedSpells);
+  edSpells.FillFrom(FMap.ListsManager.SpellInfos, FMap.AllowedSpells, @SpellFilter);
   cbSpellsNegate.ItemIndex := ifthen(FMap.AllowedSpells.IsPermissive, 1, 0);
 
   edArtifacts.FillFrom(FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, @ArtifactFilter);
@@ -270,10 +275,10 @@ begin
   FMap.Name := edName.Text;
   FMap.Description := edDescription.Text;
 
-  edAbilities.SaveTo    (FMap.ListsManager.SkillInfos,    Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
-  edSpells.SaveTo       (FMap.ListsManager.SpellInfos,    FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
-  edAllowedHeroes.SaveTo(FMap.ListsManager.HeroInfos,     FMap.AllowedHeroes, cbHeroesNegate.ItemIndex = 1);
-  edArtifacts.SaveTo    (FMap.ListsManager.ArtifactInfos, FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
+  edAbilities.SaveTo    (Fmap.AllowedAbilities, cbSkillsNegate.ItemIndex = 1);
+  edSpells.SaveTo       (FMap.AllowedSpells, cbSpellsNegate.ItemIndex = 1);
+  edAllowedHeroes.SaveTo(FMap.AllowedHeroes, cbHeroesNegate.ItemIndex = 1);
+  edArtifacts.SaveTo    (FMap.AllowedArtifacts, cbArtifactsNegate.ItemIndex = 1);
 
   FMap.ModUsage.UpdateForced(FModUsageCache);
 

@@ -208,7 +208,7 @@ begin
   else
      FObject.CanPlay := TPlayableBy(edCanPlay.ItemIndex+1);
 
-  edAllowedFactions.SaveTo(FMap.ListsManager.FactionInfos, FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
+  edAllowedFactions.SaveTo(FObject.AllowedFactions, AllowedFactionsPermissive.Checked);
 
   if Assigned(edMainTown.Items.Objects[edMainTown.ItemIndex]) then
     FObject.MainTown.MapObject := (edMainTown.Items.Objects[edMainTown.ItemIndex] as TPlayerTown).MapObject

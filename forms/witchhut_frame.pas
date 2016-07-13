@@ -53,7 +53,7 @@ procedure TWitchHutFrame.Commit;
 begin
   inherited Commit;
   //todo: allow permissive mode
-  edAllowedSkills.SaveTo(ListsManager.SkillInfos, FObject.AllowedSkills, False);
+  edAllowedSkills.SaveTo(FObject.AllowedSkills, False);
 end;
 
 constructor TWitchHutFrame.Create(TheOwner: TComponent);

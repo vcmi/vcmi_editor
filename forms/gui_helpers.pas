@@ -44,7 +44,7 @@ type
     procedure LoadItems(ASrc: TStrings);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings);
     procedure SaveTo(ADest: TStrings);
-    procedure SaveTo(AFullList: THashedCollection; ADest: TLogicalIDCondition; Permissive: Boolean);
+    procedure SaveTo(ADest: TLogicalIDCondition; Permissive: Boolean);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
     function SelectedInfo: TBaseInfo;
@@ -430,8 +430,7 @@ begin
   end;
 end;
 
-procedure TCheckListBoxHelper.SaveTo(AFullList: THashedCollection;
-  ADest: TLogicalIDCondition; Permissive: Boolean);
+procedure TCheckListBoxHelper.SaveTo(ADest: TLogicalIDCondition; Permissive: Boolean);
 var
   info: TBaseInfo;
   i: Integer;

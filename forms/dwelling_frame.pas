@@ -145,7 +145,7 @@ end;
 
 procedure TDwellingFrame.SaveFactions;
 begin
-  edFaction.SaveTo(ListsManager.FactionInfos, FOptions.AllowedFactions, false);
+  edFaction.SaveTo(FOptions.AllowedFactions, false);
 end;
 
 procedure TDwellingFrame.LoadLink;
