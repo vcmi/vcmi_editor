@@ -211,7 +211,7 @@ var
   i: Integer;
   info: TBaseInfo;
 begin
-  FillItems(ATarget.Items, AFullList);
+  FillItems(ATarget.Items, AFullList, AFilter);
 
   for i := 0 to ATarget.Items.Count - 1 do
   begin
@@ -263,42 +263,29 @@ procedure SaveCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedColle
 var
   info: TBaseInfo;
   i: Integer;
-
-  ban_list: TStringList;
 begin
   ADest.Clear;
 
-  ban_list := TStringList.Create;
-
-  try
-    for i := 0 to ATarget.Items.Count - 1 do
-    begin
-      info := ATarget.Items.Objects[i] as TBaseInfo;
-      if not ATarget.Checked[i] then
-      begin
-        ban_list.Add(info.Identifier);
-      end;
-    end;
+  for i := 0 to ATarget.Items.Count - 1 do
+  begin
+    info := ATarget.Items.Objects[i] as TBaseInfo;
 
     if Permissive then
     begin
-      ADest.NoneOf.Assign(ban_list);
-    end
-    else begin
-      for i := 0 to AFullList.Count - 1 do
+     if not ATarget.Checked[i] then
       begin
-        info := AFullList.Items[i] as TBaseInfo;
-
-        if ban_list.IndexOf(info.Identifier) < 0 then
-        begin
-          ADest.AnyOf.Add(info.Identifier);
-        end;
+        ADest.NoneOf.Add(info.Identifier);
+      end;
+    end
+    else
+    begin
+      if ATarget.Checked[i] then
+      begin
+        ADest.AnyOf.Add(info.Identifier);
       end;
     end;
-
-  finally
-    ban_list.Free;
   end;
+
 end;
 
 { TPageControlHelper }
