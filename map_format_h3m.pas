@@ -578,7 +578,7 @@ begin
   begin
     cnt := ifthen(IsAtLeastAB(),18,17);
 
-    ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString, false);
+    ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString, true);
   end;
 end;
 
@@ -1574,7 +1574,7 @@ begin
     if IsAtLeastAB() then
     begin
       Attr.MainTown.GenerateHero := FSrc.ReadBoolean;
-      SkipNotImpl(1); //todo: in VCMI it is GenerateHero
+      FSrc.Skip(1); //in VCMI it is GenerateHero and not used
     end
     else
     begin
