@@ -168,7 +168,7 @@ type
     FHeroes: TPlayerHeroes;
 
     FMainTown: TMainTownInfo;
-    FMainHero: String;
+    FMainHero: AnsiString;
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
@@ -185,6 +185,8 @@ type
     procedure HeroRemoved(AObject: TMapObject);
 
     property Towns: TPlayerTowns read FTowns;
+
+    procedure SetMainHero(AObject: TMapObject);
   public // ISerializeSpecial
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
@@ -199,7 +201,9 @@ type
     property CanPlay: TPlayableBy read FCanPlay write FCanPlay default TPlayableBy.None;
 
     property MainTown: TMainTownInfo read FMainTown write FMainTown stored HasMainTown;
-    property MainHero: String read FMainHero write FMainHero;
+
+    //object instance id (not type)
+    property MainHero: AnsiString read FMainHero write FMainHero;
   public
     property AITactics: TAITactics read FAITactics write FAITactics; //not used in vcmi (yet)
   public //special streaming
@@ -2375,6 +2379,14 @@ begin
       MainHero:=Heroes.Items[0].&type;
     end;
   end;
+end;
+
+procedure TPlayerInfo.SetMainHero(AObject: TMapObject);
+begin
+  if Assigned(AObject) then
+    FMainHero := AObject.Identifier
+  else
+    FMainHero:='';
 end;
 
 procedure TPlayerInfo.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);

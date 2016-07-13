@@ -142,10 +142,10 @@ begin
 
   for i := 0 to FObject.Heroes.Count - 1 do
   begin
-    edMainHero.AddItem(FObject.Heroes[i].MapObject.FormatDisplayName(FMap.GetHeroName(FObject.Heroes[i].MapObject)), FObject.Heroes[i]);
+    edMainHero.AddItem(FObject.Heroes[i].MapObject.FormatDisplayName(FMap.GetHeroName(FObject.Heroes[i].MapObject)), FObject.Heroes[i].MapObject);
 
-    if(FObject.MainHero = FObject.Heroes[i].&type) then
-      selected_idx := i+1;
+    if(FObject.MainHero <> '') and (FObject.MainHero = FObject.Heroes[i].MapObject.Identifier) then
+      selected_idx := i+1;//current index + 1 for "none"
   end;
 
   edMainHero.ItemIndex := selected_idx;
@@ -218,7 +218,7 @@ begin
   FObject.MainTown.GenerateHero := edGenerateHero.Checked;
 
   if Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
-    FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TPlayerHero).&type
+    FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TMapObject).Identifier
   else
     FObject.MainHero := '';
 end;

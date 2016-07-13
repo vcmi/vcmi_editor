@@ -45,6 +45,8 @@ type
 
   TH3MQuestIdentifierMap = specialize TFPGMap<UInt32, TMapObject>;
 
+  TResolveProc = procedure (AValue: TMapObject) of object;
+
   { TLegacyMapObjectTemplate }
 
   TLegacyMapObjectTemplate = class (TCollectionItem)
@@ -113,9 +115,6 @@ type
   { TPositionResolveRequest }
 
   TPositionResolveRequest = class
-  public
-    Type
-      TResolveProc = procedure (AValue: TMapObject) of object;
   private
     FAllowedTypes: TStrings;
     FPosition: TPosition;
@@ -135,6 +134,23 @@ type
 
   TPositionResolveRequests = specialize TFPGObjectList<TPositionResolveRequest>;
 
+  { THeroResolveRequest }
+
+  THeroResolveRequest = class
+  private
+    FOwner: TPlayer;
+    FResolveProc: TResolveProc;
+    Ftype: AnsiString;
+    procedure SetOwner(AValue: TPlayer);
+    procedure Settype(AValue: AnsiString);
+  public
+    property Owner: TPlayer read FOwner write SetOwner;
+    property &type: AnsiString read Ftype write Settype;
+    property ResolveProc:TResolveProc read FResolveProc write FResolveProc;
+  end;
+
+  THeroResolveRequests = specialize TFPGObjectList<THeroResolveRequest>;
+
    { TMapReaderH3m }
 
    TMapReaderH3m = class(TBaseMapFormatHandler, IMapReader, IObjectOptionsVisitor)
@@ -149,6 +165,7 @@ type
      FQuestIdentifierMap: TH3MQuestIdentifierMap;
      FQILinksToResolve: TQIResolveRequests;
      FPositionsToResolve: TPositionResolveRequests;
+     FHeroesToResolve: THeroResolveRequests;
 
      class procedure CheckMapVersion(const AVersion: DWord); static;
 
@@ -161,6 +178,7 @@ type
      procedure PushQIResolveRequest(AIdent: UInt32; AResolveProc: TQIResolveRequest.TResolveProc);
      procedure ResolveQuestIdentifiers;
      procedure ResolveTownPositions;
+     procedure ResolveHeroes;
      procedure ResolveAll;
    strict private
      type
@@ -194,7 +212,7 @@ type
      procedure ReadPosition(APosition: TPosition);
    strict private
      procedure ReadPlayerInfos(Attrs: TPlayerInfos);//+
-     procedure ReadPlayerInfo(Attr: TPlayerInfo);//+?
+     procedure ReadPlayerInfo(APlayer: TPlayer; Attr: TPlayerInfo);//+?
      procedure ReadSVLC();//+
      procedure ReadTeams();//+
      procedure ReadAllowedHeros();//+
@@ -264,6 +282,18 @@ type
 implementation
 
 uses LazLoggerBase, editor_consts, editor_utils;
+
+{ THeroResolveRequest }
+
+procedure THeroResolveRequest.Settype(AValue: AnsiString);
+begin
+  Ftype:=AValue;
+end;
+
+procedure THeroResolveRequest.SetOwner(AValue: TPlayer);
+begin
+  FOwner:=AValue;
+end;
 
 { TPositionResolveRequest }
 
@@ -402,6 +432,7 @@ begin
   FQuestIdentifierMap := TH3MQuestIdentifierMap.Create;
   FQILinksToResolve := TQIResolveRequests.Create(True);
   FPositionsToResolve := TPositionResolveRequests.Create(True);
+  FHeroesToResolve := THeroResolveRequests.Create(True);
   FTemplates  := TLegacyMapObjectTemplates.Create(AMapEnv.tm.GraphicsManager);
 end;
 
@@ -1458,7 +1489,7 @@ begin
   end;
 end;
 
-procedure TMapReaderH3m.ReadPlayerInfo(Attr: TPlayerInfo);
+procedure TMapReaderH3m.ReadPlayerInfo(APlayer: TPlayer; Attr: TPlayerInfo);
 var
   faction_mask_size: integer;
   faction_count: Integer;
@@ -1471,6 +1502,8 @@ var
   CanHumanPlay: Boolean;
   CanComputerPlay: Boolean;
   request: TPositionResolveRequest;
+  main_hero_type: String;
+  hero_request: THeroResolveRequest;
 begin
   CanHumanPlay := FSrc.ReadBoolean;
   CanComputerPlay := FSrc.ReadBoolean;
@@ -1527,14 +1560,15 @@ begin
 
   ReadBitmask(Attr.AllowedFactions,faction_mask_size,faction_count,@FMap.ListsManager.FactionIndexToString, False);
 
-  if not AllowedFactionsSet then
-  begin
-    Attr.AllowedFactions.Clear;
-  end;
+  //if not AllowedFactionsSet then
+  //begin
+  //  Attr.AllowedFactions.Clear; //???
+  //end;
 
   FSrc.Skip(1);//RandomFaction
 
   HasMainTown := FSrc.ReadBoolean;
+  //main town
   if HasMainTown then
   begin
     if IsAtLeastAB() then
@@ -1555,7 +1589,9 @@ begin
     ReadPosition(request.Position);
 
     FPositionsToResolve.Add(request);
-  end; //main town
+  end;
+
+  //main hero
   with Attr,FSrc do
   begin
     Skip(1);// RandomHero
@@ -1563,7 +1599,14 @@ begin
 
     if Main_Hero <> ID_RANDOM then
     begin
-      MainHero:=FMapEnv.lm.HeroIndexToString(Main_Hero);
+      main_hero_type := FMapEnv.lm.HeroIndexToString(Main_Hero);
+
+      hero_request := THeroResolveRequest.Create;
+      hero_request.ResolveProc:=@SetMainHero;
+      hero_request.&type:=main_hero_type;
+      hero_request.Owner := APlayer;
+
+      FHeroesToResolve.Add(hero_request);
 
       Skip(1); // MainHeroPortrait  unused
       SkipString; // MainHeroName unused
@@ -1590,7 +1633,7 @@ var
 begin
   for player_color in TPlayerColor do
   begin
-    ReadPlayerInfo(Attrs.GetPlayerInfo(Integer(player_color)));
+    ReadPlayerInfo(player_color, Attrs.GetPlayerInfo(Integer(player_color)));
   end;
 end;
 
@@ -2452,10 +2495,48 @@ begin
 
 end;
 
+procedure TMapReaderH3m.ResolveHeroes;
+var
+  req: THeroResolveRequest;
+  info: TPlayerInfo;
+  succ: Boolean;
+  i: Integer;
+  h: TPlayerHero;
+begin
+  while FHeroesToResolve.Count > 0 do
+  begin
+    req := FHeroesToResolve[0];
+
+    info := FMap.Players.GetPlayerInfo(Integer(req.Owner));
+
+    succ := false;
+
+    for i := 0 to info.Heroes.Count - 1 do
+    begin
+      h := info.Heroes[i];
+
+      if h.&type = req.&type then
+      begin
+        succ:=true;
+        req.ResolveProc(h.MapObject);
+        Break;
+      end;
+    end;
+
+    if not succ then
+    begin
+      raise Exception.CreateFmt('Hero %s request not resolved',[req.&type]);
+    end;
+
+    FHeroesToResolve.Delete(0);
+  end;
+end;
+
 procedure TMapReaderH3m.ResolveAll;
 begin
   ResolveQuestIdentifiers;
   ResolveTownPositions;
+  ResolveHeroes;
 end;
 
 procedure TMapReaderH3m.VisitAbandonedMine(AOptions: TAbandonedOptions);

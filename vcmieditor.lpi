@@ -171,7 +171,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="VCMImap.h3m"/>
+        <CommandLineParams Value="ObjectPropertyTest_v1.h3m"/>
         <WorkingDirectory Value="C:\projects\vcmi\editor\bin"/>
       </local>
       <environment>
