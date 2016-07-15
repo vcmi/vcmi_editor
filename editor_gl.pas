@@ -391,7 +391,6 @@ var
   uv_data: packed array of GLfloat;
   u: GLfloat;
   v: GLfloat;
-  mir: Integer;
 
   ofc: integer;
 
@@ -405,51 +404,45 @@ begin
 
   u:=1;
   v:=1;
+  ofc := 0;
 
-  for mir := 0 to 3 do
-  begin
-    ofc := mir * 12;
 
-    case mir of
-      0:begin
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+  //0
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
 
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-      end;
-      1: begin
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
 
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-        end;
-      2: begin
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+  //1
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
 
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-            uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-            uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-        end;
-      3:begin
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
 
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
-          uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
-          uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
-        end;
-     end;
+  //2
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
 
-  end;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+
+  //3
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := v;
+  uv_data[next_ofc()] := 0;   uv_data[next_ofc()] := 0;
+  uv_data[next_ofc()] := u;   uv_data[next_ofc()] := 0;
+
 
   glGenBuffers(1, @MirroredUVBuffer);
   glBindBuffer(GL_ARRAY_BUFFER,MirroredUVBuffer);
