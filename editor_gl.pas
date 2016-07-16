@@ -650,15 +650,15 @@ begin
     end;
     1:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+ASprite^.TopMargin;
+      y := 0+TopMargin;
     end;
     2:begin
       x := 0;//+ round(factor * ASprite.LeftMargin);
-      y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
+      y := 0+(ASprite^.Height - H - TopMargin);
     end;
     3:begin
       x := 0;//+round(factor * (ASprite.Width - ASprite.SpriteWidth - ASprite.LeftMargin));
-      y := 0+(ASprite^.Height - ASprite^.SpriteHeight - ASprite^.TopMargin);
+      y := 0+(ASprite^.Height - H - TopMargin);
     end;
   end;
 
@@ -676,7 +676,7 @@ begin
   W := ASprite^.Width;
   TopMargin := ASprite^.TopMargin;
   x := 0;//+round(factor * ASprite^.LeftMargin);
-  y := 0 +TopMargin;
+  y := TopMargin;
   DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
 
@@ -695,7 +695,7 @@ begin
   w := round(Double(ASprite^.Width) * factor);
   TopMargin := dim - h;
   x := 0;//+round(factor * ASprite.LeftMargin);
-  y := 0 +TopMargin;
+  y := TopMargin;
   DoRenderSprite(ASprite^, x,y,w,h, 0);
 end;
 
