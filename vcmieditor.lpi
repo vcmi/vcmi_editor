@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="7"/>
-      <BuildNr Value="89"/>
+      <BuildNr Value="90"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -64,11 +64,6 @@
               </Win32>
             </Options>
           </Linking>
-          <Other>
-            <CompilerMessages>
-              <IgnoredMessages idx5024="True"/>
-            </CompilerMessages>
-          </Other>
         </CompilerOptions>
       </Item2>
       <Item3 Name="Profile">
@@ -154,9 +149,6 @@
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
             </ConfigFile>
-            <CompilerMessages>
-              <IgnoredMessages idx5024="True"/>
-            </CompilerMessages>
           </Other>
         </CompilerOptions>
       </Item4>
@@ -204,15 +196,13 @@
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
             </ConfigFile>
-            <CompilerMessages>
-              <IgnoredMessages idx5024="True"/>
-            </CompilerMessages>
           </Other>
         </CompilerOptions>
       </Item5>
-      <SharedMatrixOptions Count="2">
+      <SharedMatrixOptions Count="3">
         <Item1 ID="127405509966" Modes="Debug-win64,Debug" Value="-dDEBUG"/>
         <Item2 ID="440454387983" Modes="Release,Release-win64" Value="-dRELEASE"/>
+        <Item3 ID="578114123011" Modes="Debug,Release,Profile,Release-win64,Debug-win64" Value="-vm5024"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -730,7 +720,6 @@
         <IOChecks Value="True"/>
         <RangeChecks Value="True"/>
         <OverflowChecks Value="True"/>
-        <StackChecks Value="True"/>
       </Checks>
     </CodeGeneration>
     <Linking>
@@ -751,9 +740,6 @@
       <ConfigFile>
         <StopAfterErrCount Value="10"/>
       </ConfigFile>
-      <CompilerMessages>
-        <IgnoredMessages idx5024="True"/>
-      </CompilerMessages>
     </Other>
   </CompilerOptions>
   <Debugging>
