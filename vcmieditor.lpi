@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="7"/>
-      <BuildNr Value="91"/>
+      <BuildNr Value="94"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -44,7 +44,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\release"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -76,7 +76,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\profile"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
           </SearchPaths>
           <CodeGeneration>
             <Optimizations>
@@ -102,7 +102,7 @@
           </Other>
         </CompilerOptions>
       </Item3>
-      <Item4 Name="Release-win64">
+      <Item4 Name="ReleaseWin64">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -112,7 +112,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -152,7 +152,7 @@
           </Other>
         </CompilerOptions>
       </Item4>
-      <Item5 Name="Debug-win64">
+      <Item5 Name="DebugWin64">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -162,7 +162,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
-            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -200,9 +200,9 @@
         </CompilerOptions>
       </Item5>
       <SharedMatrixOptions Count="3">
-        <Item1 ID="127405509966" Modes="Debug-win64,Debug" Value="-dDEBUG"/>
-        <Item2 ID="440454387983" Modes="Release,Release-win64" Value="-dRELEASE"/>
-        <Item3 ID="578114123011" Modes="Debug,Release,Profile,Release-win64,Debug-win64" Value="-vm5024"/>
+        <Item1 ID="127405509966" Modes="DebugWin64,Debug" Value="-dDEBUG"/>
+        <Item2 ID="440454387983" Modes="Release,ReleaseWin64" Value="-dRELEASE"/>
+        <Item3 ID="578114123011" Modes="Debug,Release,Profile,ReleaseWin64,DebugWin64" Value="-vm5024"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -705,7 +705,7 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
-      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\debug"/>
+      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
