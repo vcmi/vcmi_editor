@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="7"/>
-      <BuildNr Value="90"/>
+      <BuildNr Value="91"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -223,22 +223,19 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <RequiredPackages Count="5">
+    <RequiredPackages Count="4">
       <Item1>
         <PackageName Value="SynEdit"/>
       </Item1>
       <Item2>
-        <PackageName Value="LazControls"/>
+        <PackageName Value="csvdocument_package"/>
       </Item2>
       <Item3>
-        <PackageName Value="csvdocument_package"/>
+        <PackageName Value="LazOpenGLContext"/>
       </Item3>
       <Item4>
-        <PackageName Value="LazOpenGLContext"/>
-      </Item4>
-      <Item5>
         <PackageName Value="LCL"/>
-      </Item5>
+      </Item4>
     </RequiredPackages>
     <Units Count="86">
       <Unit0>
