@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="7"/>
-      <BuildNr Value="94"/>
+      <BuildNr Value="96"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -200,9 +200,9 @@
         </CompilerOptions>
       </Item5>
       <SharedMatrixOptions Count="3">
-        <Item1 ID="127405509966" Modes="DebugWin64,Debug" Value="-dDEBUG"/>
-        <Item2 ID="440454387983" Modes="Release,ReleaseWin64" Value="-dRELEASE"/>
-        <Item3 ID="578114123011" Modes="Debug,Release,Profile,ReleaseWin64,DebugWin64" Value="-vm5024"/>
+        <Item1 ID="127405509966" Targets="#project" Modes="DebugWin64,Debug" Value="-dDEBUG"/>
+        <Item2 ID="440454387983" Targets="#project" Modes="Release,ReleaseWin64" Value="-dRELEASE"/>
+        <Item3 ID="578114123011" Targets="#project" Modes="Debug,Release,Profile,ReleaseWin64,DebugWin64" Value="-vm5024"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
