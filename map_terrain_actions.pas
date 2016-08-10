@@ -515,13 +515,13 @@ end;
 procedure TEditTerrain.Redo;
 var
   new_info: TTileTerrainInfo;
-  i: Integer;
+  i: SizeInt;
   map_level: TMapLevel;
 begin
 
   map_level := FMap.MapLevels[Level];
 
-  for i := 0 to FNewTileInfos.Size - 1 do
+  for i := 0 to SizeInt(FNewTileInfos.Size) - 1 do
   begin
     new_info := FNewTileInfos[i];
 

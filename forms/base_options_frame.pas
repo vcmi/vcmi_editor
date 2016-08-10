@@ -26,7 +26,7 @@ unit base_options_frame;
 interface
 
 uses
-  Classes, SysUtils, gvector, contnrs, FileUtil, LCLType, Forms, Controls, ComCtrls,
+  Classes, SysUtils, fgl, contnrs, FileUtil, LCLType, Forms, Controls, ComCtrls,
   Spin, Grids, ExtCtrls, StdCtrls, editor_types, object_options, map,
   lists_manager, editor_consts, field_editors;
 
@@ -136,7 +136,7 @@ type
 
   { TBaseOptionsFrameList }
 
-  TBaseOptionsFrameVector = specialize TVector<TBaseOptionsFrame>;
+  TBaseOptionsFrameVector = specialize TFPGList<TBaseOptionsFrame>;
 
   TBaseOptionsFrameList = class(TComponent, IObjectOptionsNotify)
   private
@@ -188,7 +188,7 @@ begin
   Result.Align := alClient;
   Result.Map := Map;
 
-  FData.PushBack(Result);
+  FData.Add(Result);
 end;
 
 constructor TBaseOptionsFrameList.Create(AOwner: TComponent);
@@ -206,9 +206,9 @@ end;
 
 procedure TBaseOptionsFrameList.InstanceTypeChanged(ANewValue: AnsiString);
 var
-  i: SizeInt;
+  i: Integer;
 begin
-  for i := 0 to FData.Size - 1 do
+  for i := 0 to FData.Count - 1 do
   begin
     FData[i].InstanceTypeChanged(ANewValue);
   end;
@@ -239,9 +239,9 @@ end;
 
 procedure TBaseOptionsFrameList.Commit;
 var
-  i: SizeInt;
+  i: Integer;
 begin
-  for i := 0 to FData.Size - 1 do
+  for i := 0 to FData.Count - 1 do
   begin
     FData[i].Commit;
   end;
@@ -249,10 +249,10 @@ end;
 
 function TBaseOptionsFrameList.IsDirty: Boolean;
 var
-  i: SizeInt;
+  i: Integer;
 begin
   Result := false;
-  for i := 0 to FData.Size - 1 do
+  for i := 0 to FData.Count - 1 do
   begin
     if FData[i].IsDirty then
      Exit(True);
