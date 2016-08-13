@@ -89,11 +89,12 @@ end;
 
 function TTextResource.GetValue(Col, Row: Integer): TLocalizedString;
 begin
+  //TODO: use codepage from vcmi config
   row := row + TopRowSkip;
   {$IFDEF MSWindows}
   Result := WinCPToUTF8(FDoc.Cells[Col,Row]);
   {$ELSE}
-  Result := AnsiToUtf8(FDoc.Cells[Col,Row]);
+  Result := AnsiToUtf8(FDoc.Cells[Col,Row]);//THIS IS WRONG!
   {$ENDIF}
 end;
 

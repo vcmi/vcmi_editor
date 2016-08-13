@@ -475,7 +475,7 @@ type
         AProperty: ShortString;
       end;
 
-      TResolveRequests = specialize gvector.TVector<TResolveRequest>;
+      TResolveRequests = specialize TVector<TResolveRequest>;
   strict private
     FDestreamer: TVCMIJSONDestreamer;
 
