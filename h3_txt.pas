@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils,
-  CsvDocument,
+  vcmi_csvdocument,
   filesystem_base,editor_types;
 type
 

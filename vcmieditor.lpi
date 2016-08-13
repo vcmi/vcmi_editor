@@ -28,7 +28,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="7"/>
-      <BuildNr Value="97"/>
+      <BuildNr Value="100"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -223,21 +223,18 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="3">
       <Item1>
         <PackageName Value="SynEdit"/>
       </Item1>
       <Item2>
-        <PackageName Value="csvdocument_package"/>
+        <PackageName Value="LazOpenGLContext"/>
       </Item2>
       <Item3>
-        <PackageName Value="LazOpenGLContext"/>
-      </Item3>
-      <Item4>
         <PackageName Value="LCL"/>
-      </Item4>
+      </Item3>
     </RequiredPackages>
-    <Units Count="86">
+    <Units Count="88">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -694,6 +691,14 @@
         <Filename Value="shaders\default_f.glsl"/>
         <IsPartOfProject Value="True"/>
       </Unit85>
+      <Unit86>
+        <Filename Value="3rd_party\vcmi_csvdocument.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit86>
+      <Unit87>
+        <Filename Value="3rd_party\vcmi_csvreadwrite.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit87>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
