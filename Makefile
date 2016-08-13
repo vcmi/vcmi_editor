@@ -1,7 +1,7 @@
 all: vcmieditor
 
 vcmieditor:
-	lazbuild 3rd_party/csvdocument/csvdocument_package.lpk vcmieditor.lpr
+	lazbuild vcmieditor.lpr
 
 build_tests: vcmieditor tests/tests.lpi tests/tests.lpr
 	lazbuild tests/tests.lpr
@@ -13,4 +13,4 @@ clean_tests:
 	rm -rf tests/tests tests/*.o tests/*.ppu tests/*.compiled
 
 clean: clean_tests
-	rm -rf vcmieditor *.o *.ppu *.compiled 3rd_party/csvdocument/lib/
+	rm -rf vcmieditor *.o *.ppu *.compiled

@@ -3,14 +3,15 @@
 *.compiled
 *.o
 *.ppu
-/bin
-/units
-
 *.bak
 *.swp
-/3rd_party/csvdocument/lib
+
+/bin
+/bin64
+/units
+
 heap.trc
 
 tests/tests
 tests/tests.exe
-/bin64
+
