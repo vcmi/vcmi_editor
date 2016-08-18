@@ -1504,7 +1504,6 @@ begin
 
   LoadFSConfig;
   ProcessFSConfig(FConfig,FGamePath);
-
 end;
 
 end.

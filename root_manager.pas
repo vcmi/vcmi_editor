@@ -19,7 +19,7 @@
 }
 unit root_manager;
 
-{$mode objfpc}{$H+}
+{$I compilersetup.inc}
 
 interface
 
@@ -27,7 +27,7 @@ uses
   Classes, SysUtils,  FileUtil, LazFileUtils, LazLogger, gl, glext40, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, map_objects,
   editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types,
-  locale_manager, editor_classes;
+  locale_manager, editor_classes, vcmi.dirs.base;
 
 type
 
@@ -40,6 +40,8 @@ type
     type
       TLoadObjectProc = procedure(AProgess: IProgressCallback; APaths: TModdedConfigPaths) of object;
   private
+    FDirs: TDirs;
+
     FLocaleManager: TLocaleManager;
     FProgressForm:    TProgressForm;
     FHiddenForm:      TRootForm;
@@ -89,7 +91,9 @@ procedure TRootManager.DataModuleCreate(Sender: TObject);
 var
   log_name: string;
 begin
-  log_name := ExtractFilePath(ParamStr(0)) + 'editor.log';
+  FDirs := TDirs.GetActualClass.Create;
+
+  log_name := FDirs.UserCachePath + 'VCMI_Editor.log';
 
   if FileExistsUTF8(log_name) then
   begin
@@ -168,6 +172,7 @@ procedure TRootManager.DataModuleDestroy(Sender: TObject);
 begin
   GlobalContextState.Free;
   GlobalContextState := nil;
+  FDirs.Free;
 end;
 
 function TRootManager.GetResourceManager: IResourceLoader;

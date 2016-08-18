@@ -1,6 +1,6 @@
 { This file is a part of Map editor for VCMI project
 
-  Copyright (C) 2013-2016 Alexander Shishkin alexvins@users.sourceforge.net
+  Copyright (C) 2016 Alexander Shishkin alexvins@users.sourceforge.net
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
@@ -17,33 +17,50 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-program vcmieditor;
 
-{$mode objfpc}{$H+}
+unit vcmi.dirs.windows platform;
+
+{$I compilersetup.inc}
+
+interface
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
-  sysutils,
-  Interfaces, // this includes the LCL widgetset
-  Forms, main, root_manager;
+  Classes, SysUtils, vcmi.dirs.base;
 
-{$R *.res}
+type
 
+  { TDirsWindows }
+
+  TDirsWindows = class(TDirs)
+  protected
+    function GetUserProfilePath: AnsiString; override;
+  public
+    constructor Create; override;
+
+
+
+  end platform;
+
+
+implementation
+
+{ TDirsWindows }
+
+function TDirsWindows.GetUserProfilePath: AnsiString;
+var
+  s: AnsiString;
 begin
+  s:= GetEnvironmentVariable('HOMEDRIVE') + GetEnvironmentVariable('HOMEPATH');
 
-  {$IF DEFINED(DEBUG)}
-  if FileExists('heap.trc') then
-    DeleteFile('heap.trc');
-  SetHeapTraceOutput('heap.trc');
-  {$ENDIF DEBUG}
+  s := IncludeTrailingPathDelimiter(s);
 
-  Application.Title := 'VCMI Editor';
-  RequireDerivedFormResource := True;
-  Application.Initialize;
-  Application.CreateForm(TRootManager, RootManager);
-  Application.CreateForm(TfMain, fMain);
-  Application.Run;
+  result := IncludeTrailingPathDelimiter(s + 'Documents\My Games\vcmi');
+end;
+
+constructor TDirsWindows.Create;
+begin
+  inherited Create;
+end;
+
 end.
 

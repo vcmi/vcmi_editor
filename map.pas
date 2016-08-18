@@ -636,9 +636,7 @@ type
 
   { THeroDefinitions }
 
-  THeroDefinitionsCollection = specialize TGNamedCollection<THeroDefinition>;
-
-  THeroDefinitions = class (THeroDefinitionsCollection)
+  THeroDefinitions = class (specialize TGNamedCollection<THeroDefinition>)
   private
     FOwner: TVCMIMap;
   public
