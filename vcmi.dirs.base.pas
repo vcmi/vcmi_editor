@@ -103,6 +103,8 @@ begin
   begin
     FPathsConfig.LoadFromFile(s);
   end;
+
+  FPathsConfig.Insert(0, FExecutablePath);
 end;
 
 destructor TDirs.Destroy;
