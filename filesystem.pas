@@ -290,8 +290,6 @@ type
 
     FEnabledModList: TStringListUTF8;
 
-    function GetPrivateConfigPath: string;
-
     procedure SetCurrentVFSPath(ACurrentVFSPath: string);
 
     function MakeFullPath(const ARootPath: string; const RelPath: string):string;
@@ -365,7 +363,6 @@ uses
   LazLoggerBase, editor_consts, editor_utils;
 
 const
-  GAME_PATH_CONFIG = 'gamepath.txt';
   MOD_LIST_CONFIG = 'modlist.txt';
 
   RES_TO_EXT: array[TResourceType] of string = (
@@ -847,14 +844,12 @@ begin
   end;
 end;
 
-function TFSManager.GetPrivateConfigPath: string;
-begin
-  Result := ExtractFilePath(ParamStr(0));
-end;
-
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   AProgress.NextStage('Scanning filesystem ...');
+
+
+
   FCurrentLoadOrder:=0;
   ScanFilesystem;
   ScanMods;
@@ -898,10 +893,29 @@ end;
 procedure TFSManager.LoadFSConfig;
 var
   config_res: TJsonResource;
+
+  config_fn, tmp: AnsiString;
+  s: String;
 begin
-  config_res := TJsonResource.Create(FGamePath[0]+FS_CONFIG);
+  config_fn := '';
+
+  //find last one in game path
+  for s in FGamePath do
+  begin
+    tmp := IncludeTrailingPathDelimiter(s) + FS_CONFIG;
+
+    if FileExistsUTF8(tmp) then
+      config_fn:=tmp;
+  end;
+
+  if config_fn = '' then
+  begin
+    raise Exception.Create('Filesystem configuration not found');
+  end;
+
+  config_res := TJsonResource.Create(config_fn);
   try
-    LoadFileResource(config_res, FGamePath[0]+FS_CONFIG);
+    LoadFileResource(config_res, config_fn);
     config_res.DestreamTo(FConfig,FS_CONFIG_FIELD);
   finally
     config_res.Free;
@@ -1068,7 +1082,6 @@ procedure TFSManager.ScanMods;
 var
 
   mod_roots, mod_paths: TStringListUTF8;
-  mod_paths_config: String;
   mod_id: String;
   mod_idx: Integer;
   load_order, i: Integer;
@@ -1082,9 +1095,6 @@ begin
   mod_paths := TStringListUTF8.Create;
 
   try
-    mod_paths_config := GetPrivateConfigPath + 'modpath.txt';
-    if FileExistsUTF8(mod_paths_config) then
-      mod_roots.LoadFromFile(mod_paths_config);
     AddModPathsTo(mod_roots);
 
     for i := 0 to mod_roots.Count - 1 do
@@ -1331,8 +1341,7 @@ begin
   end;
 end;
 
-procedure TFSManager.ProcessConfigItem(APath: TFilesystemConfigPath;
-  ARootPath: TStrings);
+procedure TFSManager.ProcessConfigItem(APath: TFilesystemConfigPath; ARootPath: TStrings);
 var
   vfs_path: String;
   item: TFilesystemConfigItem ;
@@ -1373,8 +1382,7 @@ begin
   end;
 end;
 
-procedure TFSManager.ProcessFSConfig(AConfig: TFilesystemConfig;
-  ARootPath: TStrings);
+procedure TFSManager.ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
 var
   i: Integer;
 begin
