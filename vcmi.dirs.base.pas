@@ -25,7 +25,7 @@ unit vcmi.dirs.base;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, LazUTF8, LazFileUtils, LazUTF8Classes;
 
 type
   TDirs = class;
@@ -35,16 +35,18 @@ type
 
   TDirs = class
   private
-
+    FExecutablePath: AnsiString;
+    FPathsConfig: TStringListUTF8;
   protected
     function GetUserProfilePath: AnsiString; virtual;
     function GetUserCachePath: AnsiString; virtual;
-    function GetUserDataPath: AnsiString; virtual;
   public
     constructor Create; virtual;
+    destructor Destroy; override;
 
     property UserCachePath: AnsiString read GetUserCachePath;
-    property UserDataPath: AnsiString read GetUserDataPath;
+
+    procedure FillDataPaths(AList: TStringListUTF8); virtual;
 
     class function GetActualClass: TDirsClass;
   end;
@@ -71,17 +73,16 @@ implementation
 {$ENDIF}
 {$POP}
 
+const
+  GAME_PATH_CONFIG = 'gamepath.txt';
+
 
 { TDirs }
 
-function TDirs.GetUserDataPath: AnsiString;
-begin
-  Result := GetUserProfilePath();
-end;
 
 function TDirs.GetUserProfilePath: AnsiString;
 begin
-  Result := ExtractFilePath(ParamStr(0)); //fallback to executable path
+  Result := FExecutablePath; //fallback to executable path
 end;
 
 function TDirs.GetUserCachePath: AnsiString;
@@ -90,8 +91,31 @@ begin
 end;
 
 constructor TDirs.Create;
+var
+  s: AnsiString;
 begin
+  FPathsConfig := TStringListUTF8.Create;
+  FExecutablePath := ExtractFilePath(ParamStrUTF8(0));
 
+  s := FExecutablePath + GAME_PATH_CONFIG;
+
+  if FileExistsUTF8(s) then
+  begin
+    FPathsConfig.LoadFromFile(s);
+  end;
+end;
+
+destructor TDirs.Destroy;
+begin
+  FPathsConfig.Free;
+  inherited Destroy;
+end;
+
+procedure TDirs.FillDataPaths(AList: TStringListUTF8);
+begin
+  AList.AddStrings(FPathsConfig);
+
+  AList.Add(GetUserProfilePath());
 end;
 
 class function TDirs.GetActualClass: TDirsClass;

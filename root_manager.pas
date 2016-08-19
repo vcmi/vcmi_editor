@@ -60,7 +60,7 @@ type
 
     procedure DoLoadObjects(AMetaClass: AnsiString; ALoader: TLoadObjectProc);
 
-    procedure LoadObjects;
+    procedure LoadMapObjects;
   public
     procedure InitComplete;
 
@@ -133,6 +133,7 @@ begin
   GlobalContextState.Init;
 
   FResourceManager := TFSManager.Create(self);
+  FDirs.FillDataPaths(FResourceManager.GamePath);
   FResourceManager.Load(FProgressForm);
 
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
@@ -160,7 +161,7 @@ begin
   FTerrianManager.LoadConfig;
   FTerrianManager.LoadTerrainGraphics;
 
-  LoadObjects;
+  LoadMapObjects;
 
   ProgressForm.SetMax(1);
   ProgressForm.NextStage('Building objects search index ...');
@@ -210,7 +211,7 @@ begin
   end;
 end;
 
-procedure TRootManager.LoadObjects;
+procedure TRootManager.LoadMapObjects;
 var
   ObjectTypesConfig: TModdedConfigPaths;
 begin

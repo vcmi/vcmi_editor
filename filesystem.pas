@@ -280,7 +280,7 @@ type
     FModMap: TIdToModMap;
     FMods: TModConfigs;
 
-    FGamePath: TStringList;
+    FGamePath: TStringListUTF8;
 
     FCurrentLoadOrder: Integer;
 
@@ -322,7 +322,6 @@ type
     procedure ProcessFSConfig(AConfig: TFilesystemConfig; ARootPath: TStrings);
 
     procedure LoadFSConfig;
-    procedure GenerateGamepath;
     procedure ScanFilesystem;
 
     procedure AddModPathsTo(sl:TStrings);
@@ -357,6 +356,7 @@ type
     function GetEnabledMods: TStringDynArray;
   public
     property Configs:TIdToConfigMap read FConfigMap;
+    property GamePath: TStringListUTF8 read FGamePath;
   end;
 
 
@@ -666,7 +666,7 @@ constructor TFSManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FGamePath := TStringList.Create;
+  FGamePath := TStringListUTF8.Create;
   FConfig := TFilesystemConfig.Create;
   FResMap := TResIDToLocationMap.Create;
   FLodList := TLodList.Create(True);
@@ -908,24 +908,6 @@ begin
   end;
 end;
 
-procedure TFSManager.GenerateGamepath;
-{$IFDEF WIN32}
-var
-  s: String;
-{$ENDIF}
-begin
-  FGamePath.Append(ExtractFilePath(ParamStr(0)));
-  {$IFDEF WIN32}
-
-    s:= GetEnvironmentVariable('HOMEDRIVE') + GetEnvironmentVariable('HOMEPATH');
-
-    s := IncludeTrailingPathDelimiter(s);
-
-    FGamePath.Append(s + 'Documents\My Games\vcmi');
-
-  {$ENDIF}
-
-end;
 
 procedure TFSManager.LoadGameConfig;
 var
@@ -1485,17 +1467,8 @@ end;
 
 procedure TFSManager.ScanFilesystem;
 var
-  s: String;
   i: Integer;
 begin
-  s := ExtractFilePath(ParamStr(0))+GAME_PATH_CONFIG;
-  if FileExistsUTF8(s) then
-  begin
-    FGamePath.LoadFromFile(s);
-  end
-  else begin
-    GenerateGamepath;
-  end;
 
   for i := 0 to FGamePath.Count - 1 do
   begin

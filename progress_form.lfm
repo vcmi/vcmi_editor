@@ -11,6 +11,7 @@ object ProgressForm: TProgressForm
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
+  ShowInTaskBar = stNever
   LCLVersion = '1.6.1.0'
   object pbDetail: TProgressBar
     Left = 16

@@ -25,7 +25,7 @@ unit vcmi.dirs.windows platform;
 interface
 
 uses
-  Classes, SysUtils, vcmi.dirs.base;
+  Classes, SysUtils, LazUTF8, vcmi.dirs.base;
 
 type
 
@@ -36,25 +36,31 @@ type
     function GetUserProfilePath: AnsiString; override;
   public
     constructor Create; override;
-
-
-
   end platform;
 
 
 implementation
 
+uses windirs;
+
 { TDirsWindows }
 
 function TDirsWindows.GetUserProfilePath: AnsiString;
-var
-  s: AnsiString;
 begin
-  s:= GetEnvironmentVariable('HOMEDRIVE') + GetEnvironmentVariable('HOMEPATH');
+  result := GetWindowsSpecialDir(CSIDL_PERSONAL);
 
-  s := IncludeTrailingPathDelimiter(s);
+  if result = '' then
+  begin
+    result:= GetEnvironmentVariableUTF8('HOMEDRIVE') + GetEnvironmentVariableUTF8('HOMEPATH');
 
-  result := IncludeTrailingPathDelimiter(s + 'Documents\My Games\vcmi');
+    result := IncludeTrailingPathDelimiter(result);
+
+    result := result + 'Documents\My Games\vcmi\';
+  end
+  else
+  begin
+    Result := Result+'My Games\vcmi\';
+  end;
 end;
 
 constructor TDirsWindows.Create;
