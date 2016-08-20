@@ -439,6 +439,7 @@ end;
 destructor TMapReaderH3m.Destroy;
 begin
   FTemplates.Free;
+  FHeroesToResolve.Free;
   FPositionsToResolve.Free;
   FQILinksToResolve.Free;
   FQuestIdentifierMap.Free;
