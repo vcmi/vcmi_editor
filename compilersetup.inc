@@ -2,8 +2,9 @@
 {$ERROR Freepascal 3.0.0 + required}
 {$ENDIF}
 
-{$mode objfpc}{$H+}
-{.$modeswitch advancedrecords}
+{$mode objfpc}
+{$modeswitch advancedrecords}
+{$H+}
 {$SCOPEDENUMS ON}
 {$INLINE ON}
 

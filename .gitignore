@@ -5,6 +5,7 @@
 *.ppu
 *.bak
 *.swp
+*.lrt
 
 /bin
 /bin64
@@ -14,4 +15,5 @@ heap.trc
 
 tests/tests
 tests/tests.exe
+
 

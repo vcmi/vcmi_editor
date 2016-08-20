@@ -72,7 +72,7 @@ type
   { TFilesystemConfigItem }
 
   TFilesystemConfigItem = class(TCollectionItem)
-  private
+  strict private
     FPath: string;
     FType: string;
     procedure SetPath(AValue: string);
@@ -86,7 +86,6 @@ type
 
   TFilesystemConfigItems = class(specialize TGArrayCollection<TFilesystemConfigItem>)
   public
-
     constructor Create;
     destructor Destroy; override;
   end;
@@ -94,7 +93,7 @@ type
   { TFilesystemConfigPath }
 
   TFilesystemConfigPath = class(TNamedCollectionItem, IEmbeddedCollection)
-  private
+  strict private
     FItems: TFilesystemConfigItems;
   public
     constructor Create(ACollection: TCollection); override;
@@ -109,8 +108,6 @@ type
   { TFilesystemConfig }
 
   TFilesystemConfig = class (specialize TGNamedCollection<TFilesystemConfigPath>)
-  private
-
   public
     constructor Create;
     destructor Destroy; override;
@@ -122,7 +119,7 @@ type
   { TBaseConfig }
 
   TBaseConfig = class abstract
-  private
+  strict private
     FArtifacts: TStringList;
     FCreatures: TStringList;
     FFactions: TStringList;
@@ -164,7 +161,7 @@ type
   { TModConfig }
 
   TModConfig = class (TBaseConfig)
-  private
+  strict private
     FConflicts: TStringList;
     FDepends: TStringList;
     FDescription: string;
@@ -179,7 +176,6 @@ type
     function GetConflicts: TStrings;
     function GetDepends: TStrings;
     procedure SetDescription(AValue: string);
-    procedure SetDisabled(AValue: Boolean);
     procedure SetID(AValue: TModId);
     procedure SetLoadOrder(AValue: integer);
     procedure SetName(AValue: string);
@@ -189,7 +185,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Disabled:Boolean read FDisabled write SetDisabled;
+    property Disabled:Boolean read FDisabled write FDisabled;
     property ID: TModId read FID write SetID;
     //realtive (to mod root) mod path
     property Path: String read FPath write SetPath;
@@ -211,7 +207,6 @@ type
     property Filesystem: TFilesystemConfig read FFilesystem;
 
     property Version:string read FVersion write SetVersion;
-
   end;
 {$pop}
 
@@ -255,7 +250,7 @@ type
 
   TResIDCompare = class
   public
-    class function c(constref a:TResId;constref b:TResId):boolean;
+    class function c(constref a:TResId;constref b:TResId):boolean; inline;
   end;
 
   TResIDToLocationMap = specialize TMap<TResId, TResLocation,TResIDCompare>;
@@ -265,7 +260,7 @@ type
   { TFSManager }
 
   TFSManager = class (TComponent,IResourceLoader)
-  private
+  strict private
     FConfig: TFilesystemConfig;
     FGameConfig: TGameConfig;
     FResMap: TResIDToLocationMap;
@@ -280,7 +275,7 @@ type
     FModMap: TIdToModMap;
     FMods: TModConfigs;
 
-    FGamePath: TStringListUTF8;
+    FDataPath: TStringListUTF8;
 
     FCurrentLoadOrder: Integer;
 
@@ -354,7 +349,7 @@ type
     function GetEnabledMods: TStringDynArray;
   public
     property Configs:TIdToConfigMap read FConfigMap;
-    property GamePath: TStringListUTF8 read FGamePath;
+    property DataPath: TStringListUTF8 read FDataPath;
   end;
 
 
@@ -619,12 +614,6 @@ begin
   FDescription := AValue;
 end;
 
-procedure TModConfig.SetDisabled(AValue: Boolean);
-begin
-  if FDisabled = AValue then Exit;
-  FDisabled := AValue;
-end;
-
 procedure TModConfig.SetID(AValue: TModId);
 begin
   if FID = AValue then Exit;
@@ -663,7 +652,7 @@ constructor TFSManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FGamePath := TStringListUTF8.Create;
+  FDataPath := TStringListUTF8.Create;
   FConfig := TFilesystemConfig.Create;
   FResMap := TResIDToLocationMap.Create;
   FLodList := TLodList.Create(True);
@@ -699,7 +688,7 @@ begin
   FLodList.Free;
   FResMap.Free;
   FConfig.Free;
-  FGamePath.Free;
+  FDataPath.Free;
   inherited Destroy;
 end;
 
@@ -707,7 +696,7 @@ procedure TFSManager.AddModPathsTo(sl: TStrings);
 var
   s: String;
 begin
-  for s in FGamePath do
+  for s in FDataPath do
   begin
     sl.Append(IncludeTrailingPathDelimiter(s)+ 'Mods');
   end;
@@ -900,7 +889,7 @@ begin
   config_fn := '';
 
   //find last one in game path
-  for s in FGamePath do
+  for s in FDataPath do
   begin
     tmp := IncludeTrailingPathDelimiter(s) + FS_CONFIG;
 
@@ -1478,13 +1467,13 @@ var
   i: Integer;
 begin
 
-  for i := 0 to FGamePath.Count - 1 do
+  for i := 0 to FDataPath.Count - 1 do
   begin
-    FGamePath[i] := IncludeTrailingPathDelimiter(FGamePath[i]);
+    FDataPath[i] := IncludeTrailingPathDelimiter(FDataPath[i]);
   end;
 
   LoadFSConfig;
-  ProcessFSConfig(FConfig,FGamePath);
+  ProcessFSConfig(FConfig,FDataPath);
 end;
 
 end.

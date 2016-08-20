@@ -40,13 +40,17 @@ type
   protected
     function GetUserProfilePath: AnsiString; virtual;
     function GetUserCachePath: AnsiString; virtual;
+    function GetUserConfigPath: AnsiString; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
 
     property UserCachePath: AnsiString read GetUserCachePath;
+    property UserConfigPath: AnsiString read GetUserConfigPath;
 
     procedure FillDataPaths(AList: TStringListUTF8); virtual;
+
+    procedure CreatePaths;
 
     class function GetActualClass: TDirsClass;
   end;
@@ -79,6 +83,10 @@ const
 
 { TDirs }
 
+function TDirs.GetUserConfigPath: AnsiString;
+begin
+  Result := GetUserProfilePath();
+end;
 
 function TDirs.GetUserProfilePath: AnsiString;
 begin
@@ -118,6 +126,18 @@ begin
   AList.AddStrings(FPathsConfig);
 
   AList.Add(GetUserProfilePath());
+end;
+
+procedure TDirs.CreatePaths;
+begin
+  if not ForceDirectoriesUTF8(UserCachePath) then
+  begin
+    raise Exception.CreateFmt('Unbale to create path %s',[UserCachePath]);
+  end;
+  //if not ForceDirectoriesUTF8(UserCachePath) then
+  //begin
+  //  raise Exception.CreateFmt('Unbale to create path %s',[UserCachePath]);
+  //end;
 end;
 
 class function TDirs.GetActualClass: TDirsClass;

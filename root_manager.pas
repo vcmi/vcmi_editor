@@ -133,7 +133,7 @@ begin
   GlobalContextState.Init;
 
   FResourceManager := TFSManager.Create(self);
-  FDirs.FillDataPaths(FResourceManager.GamePath);
+  FDirs.FillDataPaths(FResourceManager.DataPath);
   FResourceManager.Load(FProgressForm);
 
   FGraphicsManager := TGraphicsManager.Create(FResourceManager);
