@@ -27,7 +27,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, SynEdit, SynHighlighterAny, Forms, Controls,
   Graphics, Dialogs, ActnList, StdCtrls, Map, fpjson, vcmi_json,
-  logical_event_condition, vcmi_fpjsonrtti;
+  logical_event_condition, field_editors, vcmi_fpjsonrtti;
 
 type
 
@@ -39,9 +39,14 @@ type
     actSave: TAction;
     btCancel: TButton;
     btOk: TButton;
+    DefeatText: TEdit;
+    DefeatTextLabel: TLabel;
+    VictoryText: TEdit;
     JsonEditor: TSynEdit;
     JsonSyn: TSynAnySyn;
     ErrorLabel: TLabel;
+    VictoryTextLabel: TLabel;
+    lbEvents: TLabel;
     procedure actDontSaveExecute(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
     procedure actSaveUpdate(Sender: TObject);
@@ -54,6 +59,8 @@ type
 
     FStreamer: TVCMIJSONStreamer;
     FDeStreamer: TVCMIJSONDestreamer;
+
+    FEditors: TFieldEditors;
 
     procedure SetMap(AValue: TVCMIMap);
     procedure ReadData;
@@ -87,6 +94,9 @@ begin
   end;
 
   FMap.TriggeredEvents.Assign(FBuffer);
+
+  FEditors.Commit;
+
   ModalResult:=mrOK;
 end;
 
@@ -113,6 +123,11 @@ begin
   FRawData := FStreamer.StreamCollection(FBuffer);
 
   JsonEditor.Text := FRawData.FormatJSON([foUseTabchar], 1);
+
+  FEditors.Add(TStringFieldEditor.Create(FMap,'VictoryString', VictoryText));
+  FEditors.Add(TStringFieldEditor.Create(FMap,'DefeatString', DefeatText));
+
+  FEditors.Load;
 end;
 
 constructor TTriggeredEventsForm.Create(TheOwner: TComponent);
@@ -122,10 +137,12 @@ begin
   FDeStreamer := TVCMIJSONDestreamer.Create(Self);
   FRawData := nil;
   FBuffer:=TTriggeredEvents.Create;
+  FEditors := TFieldEditors.Create;
 end;
 
 destructor TTriggeredEventsForm.Destroy;
 begin
+  FEditors.Free;
   FBuffer.Free;
   FRawData.Free;
   inherited Destroy;

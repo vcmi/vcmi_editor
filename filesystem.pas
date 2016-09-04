@@ -1111,7 +1111,6 @@ begin
           mod_paths.Append( IncludeTrailingPathDelimiter(APath) + AMod.Path);
         end;
 
-
         for APath in mod_roots do
         begin
           ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,mod_paths);
@@ -1302,8 +1301,6 @@ var
 
   mod_id: AnsiString;
 begin
-
-
   //DebugLn(['Processing mods in ',AModRoot,', parent =',AParentModID]);
 
   mod_dirs := FindAllDirectories(AModRoot, False);

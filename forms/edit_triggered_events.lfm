@@ -1,19 +1,22 @@
 object TriggeredEventsForm: TTriggeredEventsForm
   Left = 612
-  Height = 572
+  Height = 563
   Top = 166
-  Width = 773
+  Width = 586
   Caption = 'Victory-loss conditions'
-  ClientHeight = 572
-  ClientWidth = 773
-  LCLVersion = '1.4.5.0'
+  ClientHeight = 563
+  ClientWidth = 586
+  Constraints.MinHeight = 400
+  Constraints.MinWidth = 400
+  Position = poScreenCenter
+  LCLVersion = '1.6.1.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 597
+    Left = 410
     Height = 26
-    Top = 536
+    Top = 527
     Width = 81
     Action = actSave
     Anchors = [akRight, akBottom]
@@ -26,9 +29,9 @@ object TriggeredEventsForm: TTriggeredEventsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 688
+    Left = 501
     Height = 26
-    Top = 536
+    Top = 527
     Width = 75
     Action = actDontSave
     Anchors = [akRight, akBottom]
@@ -39,9 +42,9 @@ object TriggeredEventsForm: TTriggeredEventsForm
   end
   inline JsonEditor: TSynEdit
     Left = 8
-    Height = 504
-    Top = 8
-    Width = 754
+    Height = 375
+    Top = 128
+    Width = 567
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -537,8 +540,8 @@ object TriggeredEventsForm: TTriggeredEventsForm
   object ErrorLabel: TLabel
     Left = 16
     Height = 40
-    Top = 520
-    Width = 576
+    Top = 511
+    Width = 389
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'ErrorLabel'
@@ -548,6 +551,46 @@ object TriggeredEventsForm: TTriggeredEventsForm
     ParentFont = False
     Visible = False
     WordWrap = True
+  end
+  object lbEvents: TLabel
+    Left = 8
+    Height = 15
+    Top = 104
+    Width = 37
+    Caption = 'Events:'
+    ParentColor = False
+  end
+  object VictoryText: TEdit
+    Left = 8
+    Height = 23
+    Top = 24
+    Width = 568
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 3
+  end
+  object VictoryTextLabel: TLabel
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 62
+    Caption = 'Victory text:'
+    ParentColor = False
+  end
+  object DefeatText: TEdit
+    Left = 8
+    Height = 23
+    Top = 72
+    Width = 568
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 4
+  end
+  object DefeatTextLabel: TLabel
+    Left = 8
+    Height = 15
+    Top = 53
+    Width = 59
+    Caption = 'Defeat text:'
+    ParentColor = False
   end
   object act: TActionList
     left = 440
