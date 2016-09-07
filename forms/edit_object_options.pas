@@ -68,7 +68,7 @@ type
     procedure VisitPrison(AOptions: TPrisonOptions);//+
 
     procedure VisitMonster(AOptions: TCreatureOptions);//+
-    procedure VisitSeerHut(AOptions: TSeerHutOptions);
+    procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
     procedure VisitWitchHut(AOptions: TWitchHutOptions);//+
     procedure VisitScholar(AOptions: TScholarOptions);//+
     procedure VisitGarrison(AOptions: TGarrisonOptions);//+
@@ -84,7 +84,7 @@ type
     procedure VisitRandomDwelling(AOptions: TRandomDwellingOptions);//+
     procedure VisitRandomDwellingLVL(AOptions: TRandomDwellingLVLOptions);//+
     procedure VisitRandomDwellingTown(AOptions: TRandomDwellingTownOptions);//+
-    procedure VisitQuestGuard(AOptions:TQuestGuardOptions);
+    procedure VisitQuestGuard(AOptions:TQuestGuardOptions);//+
     procedure VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);
 
     procedure VisitOwnedObject(AOptions: TOwnedObjectOptions);//+

@@ -248,7 +248,15 @@ begin
     TJSONArray(Result).Add(GetEnumName(TypeInfo(TWinLossCondition), Integer(ConditionType)));
 
     o := AHandler.ObjectToJSON(Self);
-    TJSONArray(Result).Add(o);
+
+    if o.Count = 0 then
+    begin
+      o.Free;
+    end
+    else
+    begin
+      TJSONArray(Result).Add(o);
+    end;
   end;
 end;
 
