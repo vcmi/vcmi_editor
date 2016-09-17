@@ -683,6 +683,8 @@ type
     FSpells: TLogicalIDCondition;
     function GetTightFormation: Boolean;
     function HasFortStored: Boolean;
+    function IsBuildingsStored: Boolean;
+    function IsSpellsStored: Boolean;
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
@@ -692,8 +694,8 @@ type
   published
     property TightFormation: Boolean read GetTightFormation write SetTightFormation default false;
     property Name: TLocalizedString read FName write FName;
-    property Spells: TLogicalIDCondition read FSpells;
-    property Buildings: TLogicalIDCondition read FBuildings;
+    property Spells: TLogicalIDCondition read FSpells stored IsSpellsStored;
+    property Buildings: TLogicalIDCondition read FBuildings stored IsBuildingsStored;
 
     property HasFort: Boolean read FHasFort write FHasFort stored HasFortStored;
   end;
@@ -1960,6 +1962,16 @@ end;
 function TTownOptions.HasFortStored: Boolean;
 begin
   Result := FBuildings.IsEmpty;
+end;
+
+function TTownOptions.IsBuildingsStored: Boolean;
+begin
+  Result := not FBuildings.IsEmpty;
+end;
+
+function TTownOptions.IsSpellsStored: Boolean;
+begin
+  Result := not FSpells.IsEmpty;
 end;
 
 procedure TTownOptions.SetTightFormation(AValue: Boolean);

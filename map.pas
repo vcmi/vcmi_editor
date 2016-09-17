@@ -2390,7 +2390,7 @@ end;
 procedure TPlayerInfo.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 begin
   AHandler.JSONToObject(ASrc as TJSONObject, Self);
-  // heroes and towns are ignored, they will be refilled later
+  // heroes are ignored, they will be refilled later
 end;
 
 function TPlayerInfo.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;

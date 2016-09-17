@@ -580,7 +580,7 @@ type
     property RandomFaction: TFactionInfo read FRandomFaction;
 
     //Buildings
-    function BuildingIdToString (ABuilding: TCustomID): AnsiString; //vcmi id to string
+    function BuildingIdToString (ABuilding: TCustomID): AnsiString; deprecated; //vcmi id to string
 
     function BuildingIndexToString (ATown, ABuilding: TCustomID): AnsiString; //h3 id to string
 
