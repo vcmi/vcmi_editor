@@ -2368,13 +2368,13 @@ procedure TPlayerInfo.HeroRemoved(AObject: TMapObject);
 begin
   Heroes.Remove(AObject.Identifier);
 
-  if MainHero = THeroOptions(AObject.Options).&type then
+  if MainHero = AObject.Identifier then
   begin
     MainHero:='';
 
     if Heroes.Count > 0 then
     begin
-      MainHero:=Heroes.Items[0].&type;
+      MainHero:=Heroes.Items[0].Identifier;
     end;
   end;
 end;

@@ -138,17 +138,17 @@ begin
   edGenerateHero.Checked := FObject.MainTown.GenerateHero;
 
   selected_idx := 0;
-  edMainHero.AddItem(rsNone, nil);
 
   for i := 0 to FObject.Heroes.Count - 1 do
   begin
     edMainHero.AddItem(FObject.Heroes[i].MapObject.FormatDisplayName(FMap.GetHeroName(FObject.Heroes[i].MapObject)), FObject.Heroes[i].MapObject);
 
     if(FObject.MainHero <> '') and (FObject.MainHero = FObject.Heroes[i].MapObject.Identifier) then
-      selected_idx := i+1;//current index + 1 for "none"
+      selected_idx := i;
   end;
 
   edMainHero.ItemIndex := selected_idx;
+  edMainHero.Enabled:=edMainHero.Items.Count > 1;
   FillTeams;
 end;
 
