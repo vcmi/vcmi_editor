@@ -215,7 +215,7 @@
       <local>
         <FormatVersion Value="1"/>
         <CommandLineParams Value="ObjectPropertyTest_v1.h3m"/>
-        <WorkingDirectory Value="C:\projects\vcmi\editor\bin"/>
+        <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
         <UserOverrides Count="2">
