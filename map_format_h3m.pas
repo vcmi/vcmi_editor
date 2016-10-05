@@ -1500,8 +1500,7 @@ var
   AllowedFactionsSet: Boolean;
   HasMainTown: Boolean;
 
-  CanHumanPlay: Boolean;
-  CanComputerPlay: Boolean;
+  CanHumanPlay,  CanComputerPlay, hasRandomMainHero: Boolean;
   request: TPositionResolveRequest;
   main_hero_type: String;
   hero_request: THeroResolveRequest;
@@ -1595,23 +1594,31 @@ begin
   //main hero
   with Attr,FSrc do
   begin
-    Skip(1);// RandomHero
+    hasRandomMainHero := Fsrc.ReadBoolean;// RandomHero
     Main_Hero := ReadIDByte;
 
     if Main_Hero <> ID_RANDOM then
     begin
-      main_hero_type := FMapEnv.lm.HeroIndexToString(Main_Hero);
-
-      hero_request := THeroResolveRequest.Create;
-      hero_request.ResolveProc:=@SetMainHero;
-      hero_request.&type:=main_hero_type;
-      hero_request.Owner := APlayer;
-
-      FHeroesToResolve.Add(hero_request);
-
       Skip(1); // MainHeroPortrait  unused
       SkipString; // MainHeroName unused
     end;
+
+    if hasRandomMainHero then
+    begin
+      Main_Hero := ID_RANDOM;
+    end;
+
+    if Main_Hero <> ID_RANDOM then
+       main_hero_type := FMapEnv.lm.HeroIndexToString(Main_Hero)
+    else
+       main_hero_type := '';
+
+    hero_request := THeroResolveRequest.Create;
+    hero_request.ResolveProc:=@SetMainHero;
+    hero_request.&type:=main_hero_type;
+    hero_request.Owner := APlayer;
+
+    FHeroesToResolve.Add(hero_request);
   end;
 
   //plased heroes ignored
