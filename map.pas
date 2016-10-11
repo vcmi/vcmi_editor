@@ -1939,7 +1939,7 @@ procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer
 var
   owner : TPlayer;
 begin
-  if FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
+  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
   begin
     Frame := 2;
   end;
