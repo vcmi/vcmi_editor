@@ -1514,26 +1514,30 @@ end;
 
 procedure TfMain.MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  ss: TShiftState;
 begin
-  if [ssShift, ssCtrl] * Shift = [ssShift] then
+  ss := [ssShift, ssCtrl, ssAlt, ssAltGr] * Shift;
+
+  if ss = [ssShift] then
   begin
     DoMapViewWheelScroll(hScrollBar, Shift, WheelDelta, MousePos);
     Handled := True;
   end
-  else if [ssShift, ssCtrl] * Shift = [] then
+  else if ss = [] then
   begin
     DoMapViewWheelScroll(vScrollBar, Shift, WheelDelta, MousePos);
     Handled := True;
   end
-  else if [ssShift, ssCtrl] * Shift = [ssCtrl] then
+  else if ss = [ssCtrl] then
   begin
     DoMapLevelWheelScroll(Shift, WheelDelta);
+    Handled := True;
   end
   else
   begin
     Handled := false;
   end;
-
 end;
 
 procedure TfMain.MapViewPaint(Sender: TObject);
