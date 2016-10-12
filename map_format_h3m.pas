@@ -1613,12 +1613,15 @@ begin
     else
        main_hero_type := '';
 
-    hero_request := THeroResolveRequest.Create;
-    hero_request.ResolveProc:=@SetMainHero;
-    hero_request.&type:=main_hero_type;
-    hero_request.Owner := APlayer;
+    if main_hero_type <> '' then
+    begin
+      hero_request := THeroResolveRequest.Create;
+      hero_request.ResolveProc:=@SetMainHero;
+      hero_request.&type:=main_hero_type;
+      hero_request.Owner := APlayer;
 
-    FHeroesToResolve.Add(hero_request);
+      FHeroesToResolve.Add(hero_request);
+    end;
   end;
 
   //plased heroes ignored
