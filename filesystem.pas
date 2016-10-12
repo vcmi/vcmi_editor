@@ -1048,7 +1048,10 @@ begin
     if FileExistsUTF8(current_path) then
     begin
       if lod_file_exists then
-        raise Exception.Create('Duplicated lod file '+LodRelPath);
+      begin
+        DebugLn('Duplicated lod file %s',[LodRelPath]);
+        Continue;
+      end;
 
       lod_file_exists:=true;
 
