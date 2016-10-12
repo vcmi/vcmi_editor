@@ -25,11 +25,9 @@ unit stream_adapter;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, editor_types;
+  Classes, SysUtils, FileUtil, LazUTF8, editor_types;
 
 type
-
-  { TStreamWriteAdapter }
 
   { TStreamAdapter }
 
@@ -66,6 +64,8 @@ type
     function GetPos: Int64;
   end;
 
+  { TStreamWriteAdapter }
+
   TStreamWriteAdapter = object (TStreamAdapter)
   public
     constructor Create(dest: TStream);
@@ -75,9 +75,7 @@ type
     procedure WriteByte(V: uint8; rep:integer = 1); inline;
     procedure WriteWord(V: Word);inline;
     procedure WriteDword(V: DWord);inline;
-    procedure WriteBuffer(const Buffer; Count: Longint);{inline;}
-
-
+    procedure WriteBuffer(const Buffer; Count: Longint);
   end;
 
 
@@ -88,7 +86,7 @@ implementation
 
 constructor TStreamReadAdapter.Create(dest: TStream);
 begin
-   inherited Create(dest);
+  inherited Create(dest);
 end;
 
 function TStreamReadAdapter.ReadBoolean: Boolean;
@@ -134,7 +132,12 @@ end;
 
 function TStreamReadAdapter.ReadLocalizedString: TLocalizedString;
 begin
-  Result := AnsiToUtf8(ReadString); //TODO: select localization
+  //TODO: use codepage from vcmi config
+  {$IFDEF MSWindows}
+  Result := WinCPToUTF8(ReadString);
+  {$ELSE}
+  Result := AnsiToUtf8(ReadString);//THIS IS WRONG!
+  {$ENDIF}
 end;
 
 function TStreamReadAdapter.ReadString: AnsiString;
