@@ -141,7 +141,7 @@ type
     procedure SetType(AValue: TSpellType);
     procedure SetLevel(AValue: integer);
   public
-    function IsRegular: Boolean;
+    function IsValid: Boolean; override;
   published
     property level: integer read FLevel write SetLevel;
     property &type: TSpellType read FType write SetType;
@@ -1212,7 +1212,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if spell.IsRegular() then
+    if spell.IsValid() then
       AList.AnyOf.Add(spell.Identifier);
   end;
 end;
@@ -1226,7 +1226,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if spell.IsRegular() and ((ALevel = 0) or (spell.Level = ALevel)) then
+    if spell.IsValid() and ((ALevel = 0) or (spell.Level = ALevel)) then
       AList.AddObject(spell.Name, spell);
   end;
 end;
@@ -1245,7 +1245,7 @@ begin
   FLevel := AValue;
 end;
 
-function TSpellInfo.IsRegular: Boolean;
+function TSpellInfo.IsValid: Boolean;
 begin
   //todo: special flag
 

@@ -44,7 +44,6 @@ type
     procedure LoadItems(ASrc: TStrings);
 
     procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings);
-    procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
 
     procedure SaveTo(ADest: TStrings);
     procedure SaveTo(ADest: TLogicalIDCondition; Permissive: Boolean);
@@ -428,11 +427,6 @@ end;
 procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;  ASrc: TStrings);
 begin
   FillCheckListBox(Self,AFullList,ASrc, @filter_stub)
-end;
-
-procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
-begin
-  FillCheckListBox(Self,AFullList,ASrc, AFilter);
 end;
 
 procedure TCheckListBoxHelper.SaveTo(ADest: TStrings);

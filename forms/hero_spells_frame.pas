@@ -111,14 +111,8 @@ begin
 end;
 
 procedure THeroSpellsFrame.FillSpellbook(ASrc: TStrings);
-
-  function filter(ATarget: TBaseInfo): Boolean;
-  begin
-    Result := (ATarget is TSpellInfo) and TSpellInfo(ATarget).IsRegular();
-  end;
-
 begin
-  Spellbook.FillFrom(ListsManager.SpellInfos, ASrc, @filter);
+  Spellbook.FillFrom(ListsManager.SpellInfos, ASrc);
 end;
 
 constructor THeroSpellsFrame.Create(TheOwner: TComponent);
