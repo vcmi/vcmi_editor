@@ -1,11 +1,11 @@
 object fMain: TfMain
-  Left = 290
-  Height = 836
-  Top = 99
-  Width = 1312
+  Left = 329
+  Height = 844
+  Top = 95
+  Width = 1250
   Caption = 'VCMI editor'
-  ClientHeight = 816
-  ClientWidth = 1312
+  ClientHeight = 824
+  ClientWidth = 1250
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1020,24 +1020,181 @@ object fMain: TfMain
   OnResize = FormResize
   Position = poDefault
   LCLVersion = '1.6.1.0'
+  object pnTop: TPanel
+    Left = 0
+    Height = 34
+    Top = 0
+    Width = 1250
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 34
+    ClientWidth = 1250
+    TabOrder = 4
+    object MainToolBar: TToolBar
+      Left = 0
+      Height = 34
+      Top = 0
+      Width = 340
+      Align = alNone
+      AutoSize = True
+      BorderSpacing.Around = 1
+      ButtonHeight = 32
+      ButtonWidth = 32
+      Images = imlMainActions
+      TabOrder = 0
+      object ToolButton1: TToolButton
+        Left = 1
+        Top = 2
+        Action = actCreateMap
+        ShowCaption = False
+      end
+      object ToolButton2: TToolButton
+        Left = 37
+        Top = 2
+        Action = actOpenMap
+        ShowCaption = False
+      end
+      object ToolButton3: TToolButton
+        Left = 73
+        Top = 2
+        Action = actSaveMap
+        ShowCaption = False
+      end
+      object ToolButton4: TToolButton
+        Left = 109
+        Height = 32
+        Top = 2
+        Width = 5
+        Caption = 'ToolButton4'
+        Style = tbsDivider
+      end
+      object ToolButton5: TToolButton
+        Left = 114
+        Top = 2
+        Action = actUndo
+        ShowCaption = False
+      end
+      object ToolButton6: TToolButton
+        Left = 150
+        Top = 2
+        Action = actRedo
+        ShowCaption = False
+      end
+      object ToolButton7: TToolButton
+        Left = 186
+        Height = 32
+        Top = 2
+        Width = 5
+        Caption = 'ToolButton7'
+        Style = tbsDivider
+      end
+      object ToolButton18: TToolButton
+        Left = 263
+        Top = 2
+        Action = actProperties
+        ShowCaption = False
+      end
+      object ToolButton19: TToolButton
+        Left = 304
+        Top = 2
+        Action = actDelete
+        ShowCaption = False
+      end
+      object ToolButton8: TToolButton
+        Left = 191
+        Top = 2
+        Action = actZoomIn
+        ShowCaption = False
+      end
+      object ToolButton9: TToolButton
+        Left = 299
+        Height = 32
+        Top = 2
+        Width = 5
+        Caption = 'ToolButton9'
+        Style = tbsDivider
+      end
+      object ToolButton10: TToolButton
+        Left = 227
+        Top = 2
+        Action = actZoomOut
+        ShowCaption = False
+      end
+    end
+    object FilterToolBar: TToolBar
+      Left = 350
+      Height = 34
+      Top = 0
+      Width = 900
+      Align = alClient
+      BorderSpacing.Left = 350
+      ButtonHeight = 32
+      ButtonWidth = 32
+      Caption = 'FilterToolBar'
+      ShowCaptions = True
+      TabOrder = 1
+      object ToolButton11: TToolButton
+        Left = 1
+        Top = 2
+        Action = actFilterHeroes
+        Style = tbsCheck
+      end
+      object ToolButton12: TToolButton
+        Left = 46
+        Top = 2
+        Action = actFilterTowns
+        Style = tbsCheck
+      end
+      object ToolButton13: TToolButton
+        Left = 89
+        Top = 2
+        Action = actFilterArtifacts
+        Style = tbsCheck
+      end
+      object ToolButton14: TToolButton
+        Left = 199
+        Top = 2
+        Action = actFilterResources
+        Style = tbsCheck
+      end
+      object ToolButton15: TToolButton
+        Left = 260
+        Top = 2
+        Action = actFilterStatic
+        Style = tbsCheck
+      end
+      object ToolButton16: TToolButton
+        Left = 297
+        Top = 2
+        Action = actFilterOther
+        Style = tbsCheck
+      end
+      object ToolButton17: TToolButton
+        Left = 141
+        Top = 2
+        Action = actFilterCreatures
+        Style = tbsCheck
+      end
+    end
+  end
   object pnMap: TPanel
     Left = 202
-    Height = 759
+    Height = 767
     Top = 34
-    Width = 906
+    Width = 844
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 759
-    ClientWidth = 906
+    ClientHeight = 767
+    ClientWidth = 844
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 23
-      Height = 720
+      Height = 728
       Top = 23
-      Width = 867
+      Width = 805
       Align = alClient
       AutoResizeViewport = True
       OpenGLMajorVersion = 3
@@ -1058,8 +1215,8 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 743
-      Width = 870
+      Top = 751
+      Width = 808
       Align = alBottom
       BorderSpacing.Left = 18
       BorderSpacing.Right = 18
@@ -1069,8 +1226,8 @@ object fMain: TfMain
       OnScroll = hScrollBarScroll
     end
     object vScrollBar: TScrollBar
-      Left = 890
-      Height = 720
+      Left = 828
+      Height = 728
       Top = 23
       Width = 16
       Align = alRight
@@ -1082,17 +1239,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 720
+      Height = 728
       Top = 23
       Width = 23
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 720
+      ClientHeight = 728
       ClientWidth = 23
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 720
+        Height = 728
         Top = 0
         Width = 23
         Align = alClient
@@ -1103,19 +1260,19 @@ object fMain: TfMain
       Left = 23
       Height = 23
       Top = 0
-      Width = 865
+      Width = 803
       Align = alTop
       BorderSpacing.Left = 23
       BorderSpacing.Right = 18
       BevelOuter = bvNone
       ClientHeight = 23
-      ClientWidth = 865
+      ClientWidth = 803
       TabOrder = 4
       object HorisontalAxis: TPaintBox
         Left = 0
         Height = 23
         Top = 0
-        Width = 865
+        Width = 803
         Align = alClient
         ParentColor = False
         OnPaint = HorisontalAxisPaint
@@ -1123,28 +1280,28 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = 1108
-    Height = 759
+    Left = 1046
+    Height = 767
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 759
+    ClientHeight = 767
     ClientWidth = 204
     TabOrder = 1
     object pnObjects: TPanel
       Left = 0
-      Height = 736
+      Height = 744
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 736
+      ClientHeight = 744
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 736
+        Height = 744
         Top = 0
         Width = 16
         Align = alRight
@@ -1156,7 +1313,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 736
+        Height = 744
         Top = 0
         Width = 188
         Align = alClient
@@ -1236,91 +1393,11 @@ object fMain: TfMain
       end
     end
   end
-  object MainToolBar: TToolBar
-    Left = 0
-    Height = 34
-    Top = 0
-    Width = 1312
-    AutoSize = True
-    ButtonHeight = 32
-    ButtonWidth = 32
-    Images = imlMainActions
-    TabOrder = 2
-    object ToolButton1: TToolButton
-      Left = 1
-      Top = 2
-      Action = actCreateMap
-    end
-    object ToolButton2: TToolButton
-      Left = 37
-      Top = 2
-      Action = actOpenMap
-    end
-    object ToolButton3: TToolButton
-      Left = 73
-      Top = 2
-      Action = actSaveMap
-    end
-    object ToolButton4: TToolButton
-      Left = 109
-      Height = 32
-      Top = 2
-      Width = 5
-      Caption = 'ToolButton4'
-      Style = tbsDivider
-    end
-    object ToolButton5: TToolButton
-      Left = 114
-      Top = 2
-      Action = actUndo
-    end
-    object ToolButton6: TToolButton
-      Left = 150
-      Top = 2
-      Action = actRedo
-    end
-    object ToolButton7: TToolButton
-      Left = 186
-      Height = 32
-      Top = 2
-      Width = 10
-      Caption = 'ToolButton7'
-      Style = tbsDivider
-    end
-    object ToolButton18: TToolButton
-      Left = 273
-      Top = 2
-      Action = actProperties
-    end
-    object ToolButton19: TToolButton
-      Left = 309
-      Top = 2
-      Action = actDelete
-    end
-    object ToolButton8: TToolButton
-      Left = 196
-      Top = 2
-      Action = actZoomIn
-    end
-    object ToolButton9: TToolButton
-      Left = 268
-      Height = 32
-      Top = 2
-      Width = 5
-      Caption = 'ToolButton9'
-      Style = tbsDivider
-    end
-    object ToolButton10: TToolButton
-      Left = 232
-      Top = 2
-      Action = actZoomOut
-    end
-  end
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 793
-    Width = 1312
+    Top = 801
+    Width = 1250
     Panels = <    
       item
         Width = 300
@@ -1329,13 +1406,13 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 759
+    Height = 767
     Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 759
+    ClientHeight = 767
     ClientWidth = 202
-    TabOrder = 4
+    TabOrder = 3
     object pnMinimap: TPanel
       Left = 1
       Height = 204
@@ -1359,12 +1436,12 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 553
+      Height = 561
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 553
+      ClientHeight = 561
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
@@ -2151,6 +2228,56 @@ object fMain: TfMain
       ImageIndex = 9
       OnExecute = actZoomOutExecute
       OnUpdate = actZoomOutUpdate
+    end
+    object actFilterTowns: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Towns'
+      GroupIndex = 1000
+      OnExecute = actFilterTownsExecute
+    end
+    object actFilterHeroes: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Heroes'
+      Checked = True
+      GroupIndex = 1000
+      OnExecute = actFilterHeroesExecute
+    end
+    object actFilterResources: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Resources'
+      GroupIndex = 1000
+      OnExecute = actFilterResourcesExecute
+    end
+    object actFilterArtifacts: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Artifacts'
+      GroupIndex = 1000
+      OnExecute = actFilterArtifactsExecute
+    end
+    object actFilterStatic: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Static'
+      GroupIndex = 1000
+      OnExecute = actFilterStaticExecute
+    end
+    object actFilterOther: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Other'
+      GroupIndex = 1000
+      OnExecute = actFilterOtherExecute
+    end
+    object actFilterCreatures: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Creatures'
+      GroupIndex = 1000
+      OnExecute = actFilterCreaturesExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

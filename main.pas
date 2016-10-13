@@ -81,6 +81,13 @@ type
   TfMain = class(TForm)
     actDelete: TAction;
     actAnimateObjects: TAction;
+    actFilterTowns: TAction;
+    actFilterHeroes: TAction;
+    actFilterResources: TAction;
+    actFilterArtifacts: TAction;
+    actFilterStatic: TAction;
+    actFilterOther: TAction;
+    actFilterCreatures: TAction;
     actZoomOut: TAction;
     actZoomIn: TAction;
     actViewGrid: TAction;
@@ -143,6 +150,7 @@ type
     MapView: TOpenGLControl;
     ObjectsView: TOpenGLControl;
     OpenMapDialog: TOpenDialog;
+    pnTop: TPanel;
     pnObjectsSearch: TPanel;
     pnObjects: TPanel;
     pnTools: TPanel;
@@ -155,7 +163,15 @@ type
     StatusBar: TStatusBar;
     AnimTimer: TTimer;
     SearchTimer: TTimer;
+    FilterToolBar: TToolBar;
     ToolButton10: TToolButton;
+    ToolButton11: TToolButton;
+    ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
+    ToolButton14: TToolButton;
+    ToolButton15: TToolButton;
+    ToolButton16: TToolButton;
+    ToolButton17: TToolButton;
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton5: TToolButton;
@@ -181,6 +197,13 @@ type
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
+    procedure actFilterArtifactsExecute(Sender: TObject);
+    procedure actFilterCreaturesExecute(Sender: TObject);
+    procedure actFilterHeroesExecute(Sender: TObject);
+    procedure actFilterOtherExecute(Sender: TObject);
+    procedure actFilterResourcesExecute(Sender: TObject);
+    procedure actFilterStaticExecute(Sender: TObject);
+    procedure actFilterTownsExecute(Sender: TObject);
     procedure actMapOptionsExecute(Sender: TObject);
     procedure actOpenMapExecute(Sender: TObject);
     procedure actPlayerOptionsExecute(Sender: TObject);
@@ -271,8 +294,6 @@ type
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure SearchTimerTimer(Sender: TObject);
-    procedure tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
-      var Handled: Boolean);
     procedure VerticalAxisPaint(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -326,6 +347,8 @@ type
     FUndoManager: TMapUndoManager;
 
     FMinimap: TMinimap;
+
+    FObjectCategory: TObjectCategory;
 
     FTemplatesSelection: TObjectsSelection;
 
@@ -404,7 +427,8 @@ type
 
     procedure ResetFocus;
 
-    procedure DoObjectsSearch;
+    procedure DoObjectsSearch();
+    procedure DoObjectsCatSearch(ACategory: TObjectCategory);
 
   protected
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -585,6 +609,41 @@ end;
 procedure TfMain.actDeleteUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FSelectedObject);
+end;
+
+procedure TfMain.actFilterArtifactsExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Artifact);
+end;
+
+procedure TfMain.actFilterCreaturesExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Creature);
+end;
+
+procedure TfMain.actFilterHeroesExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Hero);
+end;
+
+procedure TfMain.actFilterOtherExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Other);
+end;
+
+procedure TfMain.actFilterResourcesExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Resource);
+end;
+
+procedure TfMain.actFilterStaticExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Static);
+end;
+
+procedure TfMain.actFilterTownsExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.Town);
 end;
 
 procedure TfMain.actMapOptionsExecute(Sender: TObject);
@@ -949,9 +1008,11 @@ begin
 
   FObjectBrush.VisibleObjects := FVisibleObjects;
 
+  FObjectCategory:=TObjectCategory.Hero;
+
   FTemplatesSelection := TObjectsSelection.Create();
 
-  FObjManager.SelectAll(FTemplatesSelection);
+  FObjManager.SelectAll(FTemplatesSelection, FObjectCategory);
 
   FMapViewState := TLocalState.Create(MapView);
   FObjectsViewState := TLocalState.Create(ObjectsView);
@@ -1689,7 +1750,7 @@ end;
 
 procedure TfMain.ObjectsSearchButtonClick(Sender: TObject);
 begin
-  DoObjectsSearch;
+  DoObjectsSearch();
 end;
 
 procedure TfMain.ObjectsSearchChange(Sender: TObject);
@@ -1700,7 +1761,7 @@ end;
 
 procedure TfMain.ObjectsSearchEditingDone(Sender: TObject);
 begin
-  DoObjectsSearch;
+  DoObjectsSearch();
 end;
 
 
@@ -2077,13 +2138,7 @@ end;
 
 procedure TfMain.SearchTimerTimer(Sender: TObject);
 begin
-  DoObjectsSearch;
-end;
-
-procedure TfMain.tsTerrainContextPopup(Sender: TObject; MousePos: TPoint;
-  var Handled: Boolean);
-begin
-
+  DoObjectsSearch();
 end;
 
 procedure TfMain.SetCurrentPlayer(APlayer: TPlayer);
@@ -2213,8 +2268,14 @@ end;
 procedure TfMain.DoObjectsSearch;
 begin
   SearchTimer.Enabled:=false;
-  FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text);
+  FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text, FObjectCategory);
   InvalidateObjects;
+end;
+
+procedure TfMain.DoObjectsCatSearch(ACategory: TObjectCategory);
+begin
+  FObjectCategory := ACategory;
+  DoObjectsSearch();
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);

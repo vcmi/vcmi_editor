@@ -21,6 +21,8 @@ unit map_objects;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
@@ -29,6 +31,9 @@ uses
   lists_manager, vcmi_json, editor_gl, contnrs, gset, gvector, RegExpr;
 
 type
+
+  TObjectCategory = (Artifact, Creature, Hero, Other, Resource, Static, Town);
+
 
   TLegacyTemplateId = UInt64;
 
@@ -185,11 +190,14 @@ type
 
   TMapObjectGroup = class (TNamedCollectionItem)
   private
+    FCategory: TObjectCategory;
     FHandler: AnsiString;
     FName: TLocalizedString;
     FNid: TCustomID;
     FMapObjectTypes: TMapObjectTypes;
     FIsHero, FIsHeroLike: Boolean;
+    procedure UpdateCategory;
+    procedure SetHandler(AValue: AnsiString);
   protected
     function GetDisplayName: string; override;
     procedure SetIdentifier(AValue: AnsiString); override;
@@ -200,12 +208,15 @@ type
 
     property IsHero: Boolean read FIsHero;
     property IsHeroLike: Boolean read FIsHeroLike;
+    property Category: TObjectCategory read FCategory;
   published
     property Index: TCustomID read FNid write FNid default ID_INVALID;
     property Types:TMapObjectTypes read FMapObjectTypes;
     property Name: TLocalizedString read FName write FName;
-    property Handler: AnsiString read FHandler write FHandler;
+    property Handler: AnsiString read FHandler write SetHandler;
   end;
+
+  TObjectGroupFilter = function (AObject: TMapObjectGroup): boolean is nested;
 
   TMapObjectGroups = specialize TGNamedCollection<TMapObjectGroup>;
 
@@ -283,8 +294,9 @@ type
   TObjectsManager = class (TGraphicsCosnumer)
   strict private
     FMapObjectGroups: TMapObjectGroups;
-    FAllTemplates: TMapObjectTemplateList; //for use in index
-    FSearchIndex: TSearchIndex;
+
+    FSearchIndexes: array [TObjectCategory] of TSearchIndex;
+
     FLegacyObjTypes: TLegacyIdMap;
     FProgress: IProgressCallback;
     FTextTokenizer: TRegExpr;
@@ -304,19 +316,22 @@ type
   private
     FListsManager: TListsManager;
     procedure SetListsManager(AValue: TListsManager);
-    procedure FillWithAllObjects(ATarget: TMapObjectTemplateList);
+    procedure FillWithAllObjects(ATarget: TMapObjectTemplateList; AFilter: TObjectGroupFilter);
+    procedure BuildIndex(ACategory: TObjectCategory);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property ListsManager:TListsManager read FListsManager write SetListsManager;
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
     property MapObjectGroups: TMapObjectGroups read FMapObjectGroups;
-    procedure SelectAll(ATarget: TObjectsSelection);
-    // AInput = space separated words
-    procedure SelectByKeywords(ATarget: TObjectsSelection; AInput: string);
-    function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
-    procedure BuildIndex;
 
+    procedure SelectAll(ATarget: TObjectsSelection; ACategory: TObjectCategory);
+
+    // AInput = space separated words
+    procedure SelectByKeywords(ATarget: TObjectsSelection; AInput: string; ACategory: TObjectCategory);
+    function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
+
+    procedure BuildIndex();
     function FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
   end;
 
@@ -638,6 +653,34 @@ end;
 
 { TMapObjectGroup }
 
+procedure TMapObjectGroup.UpdateCategory;
+begin
+  if IsHeroLike then
+    FCategory:=TObjectCategory.Hero
+
+  else if Handler = 'artifact' then
+    FCategory:=TObjectCategory.Artifact
+  else if Handler = 'monster' then
+    FCategory:=TObjectCategory.Creature
+  else if Handler = 'town' then
+    FCategory:=TObjectCategory.Town
+  else if Handler = 'static' then
+    FCategory:=TObjectCategory.Static
+  else if Handler = 'resource' then
+    FCategory:=TObjectCategory.Resource
+  else if Handler = 'town' then
+    FCategory:=TObjectCategory.Town
+  else
+    FCategory:=TObjectCategory.Other;
+end;
+
+procedure TMapObjectGroup.SetHandler(AValue: AnsiString);
+begin
+  if FHandler=AValue then Exit;
+  FHandler:=AValue;
+  UpdateCategory;
+end;
+
 function TMapObjectGroup.GetDisplayName: string;
 begin
   if FName<>'' then
@@ -656,6 +699,7 @@ begin
 
   FIsHero := AValue = TYPE_HERO;
   FIsHeroLike:= (AValue = TYPE_HERO) or (AValue = TYPE_RANDOMHERO) or (AValue = TYPE_HERO_PLACEHOLDER);
+  UpdateCategory;
 end;
 
 constructor TMapObjectGroup.Create(ACollection: TCollection);
@@ -837,23 +881,31 @@ end;
 { TObjectsManager }
 
 constructor TObjectsManager.Create(AOwner: TComponent);
+var
+  index: TObjectCategory;
 begin
   inherited Create(AOwner);
 
   FMapObjectGroups := TMapObjectGroups.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
 
-  FAllTemplates := TMapObjectTemplateList.Create(false);
 
   FTextTokenizer := TRegExpr.Create('[_\-\s\.:]+');
-  FTextTokenizer.Compile
+  FTextTokenizer.Compile;
+
+  for index in TObjectCategory do
+    FSearchIndexes[index] := TSearchIndex.Create();
 end;
 
 destructor TObjectsManager.Destroy;
+var
+  index: TSearchIndex;
 begin
   FTextTokenizer.Free;
-  FSearchIndex.Free;
-  FAllTemplates.Free;
+
+  for index in FSearchIndexes do
+    index.Free;
+
   FLegacyObjTypes.Free;
   FMapObjectGroups.Free;
   inherited Destroy;
@@ -865,7 +917,7 @@ begin
   FListsManager:=AValue;
 end;
 
-procedure TObjectsManager.FillWithAllObjects(ATarget: TMapObjectTemplateList);
+procedure TObjectsManager.FillWithAllObjects(ATarget: TMapObjectTemplateList; AFilter: TObjectGroupFilter);
 var
  i,j,k: Integer;
  obj_type: TMapObjectGroup;
@@ -876,6 +928,9 @@ begin
   for i := 0 to FMapObjectGroups.Count - 1 do
   begin
     obj_type := FMapObjectGroups.Items[i];
+
+    if not AFilter(obj_type) then
+      Continue;
 
     for j := 0 to obj_type.Types.Count - 1 do
     begin
@@ -943,13 +998,19 @@ begin
   end;
 end;
 
-procedure TObjectsManager.SelectAll(ATarget: TObjectsSelection);
+procedure TObjectsManager.SelectAll(ATarget: TObjectsSelection; ACategory: TObjectCategory);
+
+  function filter(Aobject: TMapObjectGroup): Boolean;
+  begin
+    Result := Aobject.Category = ACategory;
+  end;
+
 begin
   ATarget.Clear;
-  FillWithAllObjects(ATarget.FData);
+  FillWithAllObjects(ATarget.FData, @filter);
 end;
 
-procedure TObjectsManager.SelectByKeywords(ATarget: TObjectsSelection; AInput: string);
+procedure TObjectsManager.SelectByKeywords(ATarget: TObjectsSelection; AInput: string; ACategory: TObjectCategory);
 var
   keywords: TStringList;
   data: TSearchIndexBusket.TBusketData;
@@ -962,7 +1023,7 @@ begin
 
   if AInput = '' then
   begin
-    SelectAll(ATarget);
+    SelectAll(ATarget, ACategory);
     Exit;
   end;
 
@@ -974,13 +1035,13 @@ begin
 
   FTextTokenizer.Split(AInput, keywords);
 
-  FSearchIndex.Find(keywords[0], data);
+  FSearchIndexes[ACategory].Find(keywords[0], data);
 
   if not data.IsEmpty() then
   begin
     for i := 1 to keywords.Count - 1 do
     begin
-      FSearchIndex.Intersect(keywords[i], data);
+      FSearchIndexes[ACategory].Intersect(keywords[i], data);
       if data.IsEmpty then
         break;
     end;
@@ -1018,6 +1079,20 @@ end;
 
 procedure TObjectsManager.BuildIndex;
 var
+  idx: TObjectCategory;
+begin
+  for idx in TObjectCategory do
+  begin
+    BuildIndex(idx);
+  end;
+end;
+
+procedure TObjectsManager.BuildIndex(ACategory: TObjectCategory);
+  function filter_stub(AObject: TMapObjectGroup): Boolean;
+  begin
+    Result := AObject.Category = ACategory;
+  end;
+var
   idx: SizeInt;
   obj: TMapObjectTemplate;
   keyword, s: string;
@@ -1025,9 +1100,14 @@ var
   i: Integer;
   obj_type: TMapObjectGroup;
   obj_subtype: TMapObjectType;
+
+  FAllTemplates: TMapObjectTemplateList;
 begin
-  FillWithAllObjects(FAllTemplates);
-  FSearchIndex := TSearchIndex.Create();
+
+  FAllTemplates := TMapObjectTemplateList.Create(false);
+
+  FillWithAllObjects(FAllTemplates, @filter_stub);
+
   keywords := TStringList.Create;
   keywords.Sorted:=true;
   keywords.Duplicates:=dupIgnore;
@@ -1064,13 +1144,13 @@ begin
     keyword := NormalizeKeyWord(keyword);
     FTextTokenizer.Split(keyword, keywords);
 
-
     for i := 0 to keywords.Count - 1 do
     begin
-      FSearchIndex.AddToIndex(keywords[i], obj);
+      FSearchIndexes[ACategory].AddToIndex(keywords[i], obj);
     end;
   end;
   keywords.Free;
+  FAllTemplates.Free;
 end;
 
 function TObjectsManager.FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
