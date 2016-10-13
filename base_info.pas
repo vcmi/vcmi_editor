@@ -48,6 +48,8 @@ type
     constructor Create(ACollection: TCollection); override;
 
     property CollectionIndex: integer read GetCollectionIndex write SetCollectionIndex;
+
+    function IsValid: Boolean; virtual;
   published
     property Name: TLocalizedString read GetName write SetName;
     property Index: TCustomID read FIndex write SetIndex_ default ID_INVALID;
@@ -89,6 +91,11 @@ constructor TBaseInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FIndex := ID_INVALID;
+end;
+
+function TBaseInfo.IsValid: Boolean;
+begin
+  Result := true;
 end;
 
 function TBaseInfo.GetCollectionIndex: integer;

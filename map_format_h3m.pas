@@ -629,13 +629,14 @@ begin
 
     if IsAtLeastSoD() then
     begin
-      ReadArtifactsToSlot(obj,16);
+      ReadArtifactsToSlot(obj,16);//MACH4
     end;
+
     ReadArtifactsToSlot(obj,17); //spellbook
     if IsAtLeastAB() then
-    begin
-      ReadArtifactsToSlot(obj,18);
-    end;
+      ReadArtifactsToSlot(obj,18)//MISC5
+    else
+      skip(1);
 
     cnt := ReadWord;
     for i := 0 to cnt - 1 do
@@ -647,8 +648,7 @@ end;
 
 procedure TMapReaderH3m.ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);
 var
-  artmask: integer;
-  aid: Word;
+  artmask, aid: Word;
 
   artId: AnsiString;
 begin

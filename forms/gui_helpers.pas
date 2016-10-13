@@ -113,7 +113,8 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Objects[i] as TBaseInfo;
-    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+    if info.IsValid then
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
   end;
 end;
 
@@ -126,7 +127,9 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Items[i] as TBaseInfo;
-    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+
+    if info.IsValid then
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
   end;
 end;
 
@@ -141,7 +144,7 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Items[i] as TBaseInfo;
-    if AFilter(info) then
+    if info.IsValid and AFilter(info) then
     begin
       ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
       if(ASelected <>'') and (info.Identifier = ASelected) then
@@ -164,12 +167,14 @@ begin
   begin
     info := AFullList.Items[i] as TBaseInfo;
 
-    ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-    if(ASelected <>'') and (info.Identifier = ASelected) then
+    if info.IsValid then
     begin
-      Result := ATarget.Count - 1;
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+      if(ASelected <>'') and (info.Identifier = ASelected) then
+      begin
+        Result := ATarget.Count - 1;
+      end;
     end;
-
   end;
 end;
 
@@ -182,7 +187,7 @@ begin
   for i := 0 to AFullList.Count - 1 do
   begin
     info := AFullList.Items[i] as TBaseInfo;
-    if AFilter(info) then
+    if info.IsValid and AFilter(info) then
     begin
       ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
     end;

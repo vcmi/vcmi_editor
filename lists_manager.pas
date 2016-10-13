@@ -321,17 +321,22 @@ type
 
   TCreatureInfo = class(TBaseInfo)
   private
+    FDisabled: Boolean;
     FGraphics: TCreatureGraphics;
     FName: TCreatureName;
+    FSpecial: Boolean;
   protected
     function GetName: TLocalizedString; override;
     procedure SetName(const AValue: TLocalizedString); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+    function IsValid: Boolean; override;
   published
     property Name:TCreatureName read FName;
     property Graphics: TCreatureGraphics read FGraphics;
+    property Disabled: Boolean read FDisabled write FDisabled;
+    property Special: Boolean read FSpecial write FSpecial;
   end;
 
   { TCreatureInfos }
@@ -1094,6 +1099,11 @@ begin
   FName.Free;
   FGraphics.Free;
   inherited Destroy;
+end;
+
+function TCreatureInfo.IsValid: Boolean;
+begin
+  Result:=not Special and not Disabled;
 end;
 
 { TFactionInfo }

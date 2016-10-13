@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="8"/>
-      <BuildNr Value="104"/>
+      <BuildNr Value="105"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -214,6 +214,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="VCMI_Tests_2011b.h3m"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
