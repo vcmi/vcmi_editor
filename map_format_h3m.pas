@@ -1141,7 +1141,7 @@ begin
 
     if ReadBoolean then
     begin
-      AOptions.Portrait:=ReadID(@FMapEnv.lm.HeroIndexToString,1);
+      AOptions.Portrait:=ReadByte;
     end;
 
     MaybeReadSecondarySkills(AOptions.SecondarySkills);

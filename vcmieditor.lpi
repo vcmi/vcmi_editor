@@ -214,7 +214,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="VCMI_Tests_2011b.h3m"/>
+        <CommandLineParams Value="&quot;Vengeance is mine.h3m&quot;"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>

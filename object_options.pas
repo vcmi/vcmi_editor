@@ -437,7 +437,7 @@ type
     FType: AnsiString;
     FName: TLocalizedString;
     FPatrolRadius: Integer;
-    FPortrait: AnsiString;
+    FPortrait: Int32;
     FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
     FSecondarySkills: THeroSecondarySkills;
@@ -450,7 +450,6 @@ type
     function IsSpellBookStored: Boolean;
     procedure SetType(AValue: AnsiString);
     procedure SetPatrolRadius(AValue: Integer);
-    procedure SetPortrait(AValue: AnsiString);
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
@@ -472,7 +471,7 @@ type
     function GetName: TLocalizedString;
     procedure SetName(const AValue: TLocalizedString);
 
-    function GetPortrait: AnsiString;
+    function GetPortrait: Int32;
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -489,7 +488,7 @@ type
     property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: AnsiString read GetPortrait write SetPortrait;
+    property Portrait: Int32 read FPortrait write FPortrait default -1;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
@@ -2271,7 +2270,7 @@ begin
   Biography:='';
   Experience := 0;
   Name:='';
-  Portrait:='';
+  Portrait:=-1;
   PrimarySkills.Clear;
   SecondarySkills.Clear;
   Sex := THeroSex.default;
@@ -2337,11 +2336,6 @@ begin
   Result := FExperience;
 end;
 
-function THeroOptions.GetPortrait: AnsiString;
-begin
-  Result := FPortrait;
-end;
-
 function THeroOptions.IsSecondarySkillsStored: Boolean;
 begin
   Result := FSecondarySkills.Count > 0;
@@ -2366,18 +2360,14 @@ begin
   FName:=AValue;
 end;
 
+function THeroOptions.GetPortrait: Int32;
+begin
+  Result := FPortrait;
+end;
+
 procedure THeroOptions.SetPatrolRadius(AValue: Integer);
 begin
   FPatrolRadius:=AValue;
-end;
-
-procedure THeroOptions.SetPortrait(AValue: AnsiString);
-begin
-  if FPortrait = AValue then
-    Exit;
-  FObject.NotifyReferenced(FPortrait, AValue);
-
-  FPortrait:=AValue;
 end;
 
 procedure THeroOptions.SetSex(const AValue: THeroSex);

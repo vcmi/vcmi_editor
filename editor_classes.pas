@@ -250,7 +250,7 @@ type
     function GetBiography: TLocalizedString;
     function GetExperience: UInt64;
     function GetName: TLocalizedString;
-    function GetPortrait: AnsiString;
+    function GetPortrait: Int32;
     function GetPrimarySkills: THeroPrimarySkills;
     function GetSex: THeroSex;
     function GetSecondarySkills: THeroSecondarySkills;

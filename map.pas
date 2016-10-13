@@ -581,7 +581,7 @@ type
     FBiography: TLocalizedString;
     FExperience: UInt64;
     FName: TLocalizedString;
-    FPortrait: TIdentifier;
+    FPortrait: Int32;
     FPrimarySkills: THeroPrimarySkills;
     FSex: THeroSex;
     FSkills: THeroSecondarySkills;
@@ -591,7 +591,7 @@ type
     function IsPrimarySkillsStored: Boolean;
     function IsSkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetPortrait(AValue: TIdentifier);
+    procedure SetPortrait(AValue: Int32);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -612,7 +612,7 @@ type
     function GetName: TLocalizedString;
     procedure SetName(const AValue: TLocalizedString);
 
-    function GetPortrait: TIdentifier;
+    function GetPortrait: Int32;
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -626,7 +626,7 @@ type
     property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: TIdentifier read GetPortrait write SetPortrait;
+    property Portrait: Int32 read GetPortrait write SetPortrait default -1;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
@@ -1652,7 +1652,7 @@ begin
   FName:=AValue;
 end;
 
-procedure THeroDefinition.SetPortrait(AValue: TIdentifier);
+procedure THeroDefinition.SetPortrait(AValue: Int32);
 begin
   FPortrait:=AValue;
 end;
@@ -1687,7 +1687,7 @@ begin
   Result := FExperience;
 end;
 
-function THeroDefinition.GetPortrait: TIdentifier;
+function THeroDefinition.GetPortrait: Int32;
 begin
   Result := FPortrait;
 end;
@@ -1732,6 +1732,7 @@ begin
 
   FSex:=THeroSex.default;
   FAvailableFor := ALL_PLAYERS;
+  FPortrait:=-1;
 end;
 
 destructor THeroDefinition.Destroy;

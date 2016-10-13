@@ -425,11 +425,10 @@ type
 
     //IHeroInfo
     function GetHeroIdentifier: AnsiString;
-
+    function GetPortrait: Int32;
     function GetBiography: TLocalizedString;
     function GetExperience: UInt64;
     function GetName: TLocalizedString; override;
-    function GetPortrait: AnsiString;
     function GetSex: THeroSex;
 
     function GetPrimarySkills: THeroPrimarySkills;
@@ -865,9 +864,10 @@ begin
   Result:=False;
 end;
 
-function THeroInfo.GetPortrait: AnsiString;
+function THeroInfo.GetPortrait: Int32;
 begin
-  Result := Identifier;
+  //todo:  THeroInfo.GetPortrait
+  Result := -1;
 end;
 
 function THeroInfo.GetHeroIdentifier: AnsiString;

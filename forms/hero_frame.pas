@@ -114,7 +114,7 @@ type
     FEmptySkills:THeroPrimarySkills;
 
     FCustomFemale: Boolean;
-    FCustomPortrait: AnsiString;
+    FCustomPortrait: Int32;
     FCustomExperience: UInt64;
 
     FCustomSkills: THeroPrimarySkills;
@@ -125,7 +125,7 @@ type
     function GetDefaultExperience: UInt64;
     function GetDefaultName: TLocalizedString;
     function GetDefaultSex: THeroSex;
-    function GetDefaultPortrait: AnsiString;
+    function GetDefaultPortrait: Int32;
     function GetDefaultSkills: THeroPrimarySkills;
 
     procedure UpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
@@ -252,7 +252,7 @@ begin
     FCustomExperience := GetDefaultExperience();
   cbExperienceChange(cbExperience);
 
-  cbPortrait.Checked:=FOptions.GetPortrait <> '';
+  cbPortrait.Checked:=FOptions.GetPortrait <> -1;
   if cbPortrait.Checked then
     FCustomPortrait := FOptions.GetPortrait()
   else
@@ -401,14 +401,14 @@ begin
     Result := THeroSex.male;
 end;
 
-function THeroFrame.GetDefaultPortrait: AnsiString;
+function THeroFrame.GetDefaultPortrait: Int32;
 begin
-  if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetPortrait() <> '') then
+  if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetPortrait() <> -1) then
      FHeroMapDefaults.GetPortrait()
   else if Assigned(FHeroTypeDefaults) then
     Result := FHeroTypeDefaults.GetPortrait()
   else
-    Result := FOptions.GetHeroIdentifier();
+    Result := -1;
 end;
 
 function THeroFrame.GetDefaultSkills: THeroPrimarySkills;
