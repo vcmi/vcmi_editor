@@ -381,7 +381,7 @@ type
 
     procedure DoSetMapLevelIndex(ANewIndex: Integer);
 
-    procedure DoMapLevelWheelScroll(Shift: TShiftState; WheelDelta: Integer);
+    procedure DoMapLevelWheelScroll(WheelDelta: Integer);
 
     procedure DoMapViewWheelScroll(sb: TScrollBar;Shift: TShiftState; WheelDelta: Integer;MousePos: TPoint);
 
@@ -1289,7 +1289,7 @@ begin
   InvalidateMapContent;
 end;
 
-procedure TfMain.DoMapLevelWheelScroll(Shift: TShiftState; WheelDelta: Integer);
+procedure TfMain.DoMapLevelWheelScroll(WheelDelta: Integer);
 var
   direction : Integer;
 
@@ -1531,7 +1531,7 @@ begin
   end
   else if ss = [ssCtrl] then
   begin
-    DoMapLevelWheelScroll(Shift, WheelDelta);
+    DoMapLevelWheelScroll(WheelDelta);
     Handled := True;
   end
   else
