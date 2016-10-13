@@ -140,6 +140,8 @@ type
     FLevel: integer;
     procedure SetType(AValue: TSpellType);
     procedure SetLevel(AValue: integer);
+  public
+    function IsRegular: Boolean;
   published
     property level: integer read FLevel write SetLevel;
     property &type: TSpellType read FType write SetType;
@@ -1200,7 +1202,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if spell.&Type <> TSpellType.Ability then
+    if spell.IsRegular() then
       AList.AnyOf.Add(spell.Identifier);
   end;
 end;
@@ -1214,7 +1216,7 @@ begin
   for idx := 0 to Count - 1 do
   begin
     spell := Items[idx];
-    if (spell.&Type <> TSpellType.Ability) and ((ALevel = 0) or (spell.Level = ALevel)) then
+    if spell.IsRegular() and ((ALevel = 0) or (spell.Level = ALevel)) then
       AList.AddObject(spell.Name, spell);
   end;
 end;
@@ -1231,6 +1233,13 @@ procedure TSpellInfo.SetLevel(AValue: integer);
 begin
   if FLevel = AValue then Exit;
   FLevel := AValue;
+end;
+
+function TSpellInfo.IsRegular: Boolean;
+begin
+  //todo: special flag
+
+  Result := (level>0) and (&type <> TSpellType.ability);
 end;
 
 { TListsManager }

@@ -21,12 +21,14 @@ unit hero_spells_frame;
 
 {$I compilersetup.inc}
 
+{$MODESWITCH NESTEDPROCVARS}
+
 interface
 
 uses
   Classes, SysUtils, math, FileUtil, Forms, Controls, Graphics, Dialogs,
   CheckLst, ExtCtrls, StdCtrls, base_options_frame, gui_helpers, object_options,
-  Map, editor_classes, lists_manager;
+  Map, editor_classes, lists_manager, base_info;
 
 type
   //todo: use hero definition
@@ -49,6 +51,8 @@ type
     procedure cbCustomiseChange(Sender: TObject);
 
     procedure LoadDefaultSpells(AHeroId: AnsiString);
+
+    procedure FillSpellbook(ASrc: TStrings);
 
   protected
     procedure Load; override;
@@ -106,6 +110,17 @@ begin
     FDefaults.Assign(hero_info.SpellBook);
 end;
 
+procedure THeroSpellsFrame.FillSpellbook(ASrc: TStrings);
+
+  function filter(ATarget: TBaseInfo): Boolean;
+  begin
+    Result := (ATarget is TSpellInfo) and TSpellInfo(ATarget).IsRegular();
+  end;
+
+begin
+  Spellbook.FillFrom(ListsManager.SpellInfos, ASrc, @filter);
+end;
+
 constructor THeroSpellsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
@@ -127,13 +142,13 @@ end;
 
 procedure THeroSpellsFrame.Load;
 begin
-  Spellbook.FillFrom(ListsManager.SpellInfos, FCache);
+  FillSpellbook(FCache);
 end;
 
 procedure THeroSpellsFrame.ApplyDefaults;
 begin
   inherited ApplyDefaults;
-  Spellbook.FillFrom(ListsManager.SpellInfos, FCache);
+  FillSpellbook(FCache);
 end;
 
 procedure THeroSpellsFrame.ReloadDefaults;
@@ -145,7 +160,7 @@ end;
 procedure THeroSpellsFrame.Clear;
 begin
   Spellbook.SaveTo(FCache);
-  Spellbook.FillFrom(ListsManager.SpellInfos, FDefaults);
+  FillSpellbook(FDefaults);
 end;
 
 procedure THeroSpellsFrame.UpdateControls;

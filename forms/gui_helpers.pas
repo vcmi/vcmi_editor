@@ -42,12 +42,14 @@ type
   public
     procedure FillItems(AFullList: THashedCollection);
     procedure LoadItems(ASrc: TStrings);
+
     procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings);
+    procedure FillFrom(AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
+
     procedure SaveTo(ADest: TStrings);
     procedure SaveTo(ADest: TLogicalIDCondition; Permissive: Boolean);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
     procedure FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
-    function SelectedInfo: TBaseInfo;
   end;
 
   { TListBoxHelper }
@@ -96,6 +98,11 @@ type
   procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
 
 implementation
+
+function filter_stub(ATarget: TBaseInfo): Boolean;
+begin
+  Result := True;
+end;
 
 procedure FillItems(ATarget: TStrings; AFullList: TStrings);
 var
@@ -182,12 +189,12 @@ begin
   end;
 end;
 
-procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TStrings);
+procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
 var
   i: Integer;
   info: TBaseInfo;
 begin
-  FillItems(ATarget.Items, AFullList);
+  FillItems(ATarget.Items, AFullList, AFilter);
 
   if Assigned(ASrc) then
   begin
@@ -204,6 +211,11 @@ begin
       ATarget.Checked[i] := false;
     end;
   end;
+end;
+
+procedure FillCheckListBoxItems(ATarget: TCustomCheckListBox; AFullList: THashedCollection);
+begin
+  FillItems(ATarget.Items, AFullList, @filter_stub);
 end;
 
 procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
@@ -383,7 +395,7 @@ end;
 
 procedure TCheckListBoxHelper.FillItems(AFullList: THashedCollection);
 begin
-  FillCheckListBox(Self,AFullList,nil)
+  FillCheckListBoxItems(Self,AFullList);
 end;
 
 procedure TCheckListBoxHelper.LoadItems(ASrc: TStrings);
@@ -408,10 +420,14 @@ begin
   end;
 end;
 
-procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
-  ASrc: TStrings);
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;  ASrc: TStrings);
 begin
-  FillCheckListBox(Self,AFullList,ASrc)
+  FillCheckListBox(Self,AFullList,ASrc, @filter_stub)
+end;
+
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
+begin
+  FillCheckListBox(Self,AFullList,ASrc, AFilter);
 end;
 
 procedure TCheckListBoxHelper.SaveTo(ADest: TStrings);
@@ -460,12 +476,6 @@ end;
 
 procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
   ASrc: TLogicalIDCondition);
-
-  function filter_stub(ATarget: TBaseInfo): Boolean;
-  begin
-    Result := True;
-  end;
-
 begin
   FillCheckListBox(Self,AFullList,ASrc, @filter_stub);
 end;
@@ -475,12 +485,6 @@ procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
 begin
   FillCheckListBox(Self,AFullList,ASrc, AFilter);
 end;
-
-function TCheckListBoxHelper.SelectedInfo: TBaseInfo;
-begin
-  Result := GetSelectedInfo(Items,ItemIndex);
-end;
-
 
 { TListBoxHelper }
 
