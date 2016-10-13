@@ -1152,19 +1152,19 @@ object fMain: TfMain
         Style = tbsCheck
       end
       object ToolButton14: TToolButton
-        Left = 199
+        Left = 258
         Top = 2
         Action = actFilterResources
         Style = tbsCheck
       end
       object ToolButton15: TToolButton
-        Left = 260
+        Left = 319
         Top = 2
         Action = actFilterStatic
         Style = tbsCheck
       end
       object ToolButton16: TToolButton
-        Left = 297
+        Left = 356
         Top = 2
         Action = actFilterOther
         Style = tbsCheck
@@ -1173,6 +1173,12 @@ object fMain: TfMain
         Left = 141
         Top = 2
         Action = actFilterCreatures
+        Style = tbsCheck
+      end
+      object ToolButton20: TToolButton
+        Left = 199
+        Top = 2
+        Action = actFilterDwelling
         Style = tbsCheck
       end
     end
@@ -2278,6 +2284,13 @@ object fMain: TfMain
       Caption = 'Creatures'
       GroupIndex = 1000
       OnExecute = actFilterCreaturesExecute
+    end
+    object actFilterDwelling: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'Dwellings'
+      GroupIndex = 1000
+      OnExecute = actFilterDwellingExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

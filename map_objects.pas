@@ -32,7 +32,7 @@ uses
 
 type
 
-  TObjectCategory = (Artifact, Creature, Hero, Other, Resource, Static, Town);
+  TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
 
 
   TLegacyTemplateId = UInt64;
@@ -655,18 +655,23 @@ end;
 
 procedure TMapObjectGroup.UpdateCategory;
 begin
+  if (Handler='') or (Identifier = '') then
+    exit;
+
   if IsHeroLike then
     FCategory:=TObjectCategory.Hero
 
-  else if Handler = 'artifact' then
+  else if (Handler = 'artifact') or (Handler = 'randomArtifact') then
     FCategory:=TObjectCategory.Artifact
-  else if Handler = 'monster' then
+  else if (Handler = 'monster') or (Handler ='randomMonster') then
     FCategory:=TObjectCategory.Creature
-  else if Handler = 'town' then
+  else if (Handler = 'dwelling') or (Handler ='randomDwelling') then
+    FCategory:=TObjectCategory.Dwelling
+  else if (Handler = 'town') or (Handler = 'randomTown') then
     FCategory:=TObjectCategory.Town
   else if Handler = 'static' then
     FCategory:=TObjectCategory.Static
-  else if Handler = 'resource' then
+  else if (Handler = 'resource') or (Handler = 'randomResource') then
     FCategory:=TObjectCategory.Resource
   else if Handler = 'town' then
     FCategory:=TObjectCategory.Town
@@ -707,6 +712,7 @@ begin
   inherited Create(ACollection);
   FMapObjectTypes := TMapObjectTypes.Create(self);
   Index:=ID_INVALID;
+  FCategory:=TObjectCategory.Other;
 end;
 
 destructor TMapObjectGroup.Destroy;
