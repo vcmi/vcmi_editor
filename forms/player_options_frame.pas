@@ -137,7 +137,7 @@ begin
 
   edGenerateHero.Checked := FObject.MainTown.GenerateHero;
 
-  selected_idx := 0;
+  selected_idx := -1;
 
   for i := 0 to FObject.Heroes.Count - 1 do
   begin
@@ -217,7 +217,7 @@ begin
 
   FObject.MainTown.GenerateHero := edGenerateHero.Checked;
 
-  if Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
+  if (edMainHero.ItemIndex>=0) and Assigned(edMainHero.Items.Objects[edMainHero.ItemIndex]) then
     FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TMapObject).Identifier
   else
     FObject.MainHero := '';
