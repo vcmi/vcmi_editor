@@ -5,7 +5,7 @@
     <General>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="tests"/>
+      <Title Value="unit_tests"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -36,7 +36,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="tests.lpr"/>
+        <Filename Value="unit_tests.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -45,7 +45,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..;../3rd_party/fcl-stl"/>
+      <OtherUnitFiles Value=".."/>
     </SearchPaths>
   </CompilerOptions>
   <Debugging>

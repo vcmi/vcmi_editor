@@ -13,7 +13,5 @@
 
 heap.trc
 
-tests/tests
-tests/tests.exe
-
-
+/tests/unit_tests
+/tests/*.exe
