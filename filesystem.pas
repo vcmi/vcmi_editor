@@ -968,7 +968,7 @@ begin
 
   if not Assigned(it) then
   begin
-    raise Exception.Create('Res not found '+AName);
+    raise Exception.Create('Resource not found: '+AName);
   end;
 
   LoadSelected(it, AResource);

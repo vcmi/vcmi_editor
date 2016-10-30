@@ -269,7 +269,6 @@ var
 var
   h: TH3SpriteHeader;
   RightMargin, BottomMargin: Int32;
-  add: Int32;
 
   BaseOffset: Int32;
   BaseOffsetor: Int32;
@@ -294,7 +293,6 @@ var
   var
     row: Int32;
     TotalRowLength : Int32;
-    RowAdd: Int32;
     SegmentLength: Int32;
     SegmentType: UInt8;
   begin
@@ -323,12 +321,9 @@ var
 
          TotalRowLength += SegmentLength;
        until TotalRowLength>=(h.SpriteWidth);
-       RowAdd := h.SpriteWidth - TotalRowLength;
 
        SkipIfPositive(RightMargin);
 
-       if add >0 then
-         Skip(add+Int32(RowAdd));
      end;
   end;
 
@@ -337,7 +332,6 @@ var
     row: Integer;
     TotalRowLength: Integer;
     SegmentType, code, value: Byte;
-    RowAdd: Int32;
   begin
     BaseOffset := BaseOffsetor + AStream.ReadWord();
     AStream.Seek(BaseOffset,soBeginning);
@@ -364,13 +358,6 @@ var
       until TotalRowLength >= h.SpriteWidth ;
 
       SkipIfPositive(RightMargin);
-
-      RowAdd := h.SpriteWidth-TotalRowLength;
-
-      Skip(RowAdd);
-
-      if (add>0) then
-         ftcp += add;
     end;
   end;
 
@@ -382,7 +369,6 @@ var
 
     SegmentType, code, value: UInt8;
     len: Integer;
-    RowAdd: Int32;
   begin
     for row := 0 to h.SpriteHeight - 1 do
     begin
@@ -414,11 +400,6 @@ var
       until TotalRowLength>=h.SpriteWidth;
 
       SkipIfPositive(RightMargin);
-
-      RowAdd := h.SpriteWidth-TotalRowLength;
-
-      if (add>0) then
-         ftcp += add+RowAdd;
     end;
   end;
 begin
@@ -459,9 +440,6 @@ begin
   if RightMargin<0 then
      h.SpriteWidth+=RightMargin;
 
-  add := 4 - (h.FullWidth mod 4);
-  if add = 4 then
-     add :=0;
   PEntry^.PaletteID := FCurrentDef.FPaletteID;
   PEntry^.TextureId := ATextureID;
 
