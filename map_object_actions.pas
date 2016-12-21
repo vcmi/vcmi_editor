@@ -213,6 +213,7 @@ begin
     FOldOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
     Result := edit_form.EditObject(TargetObject) = mrok;
     FNewOptions := FStreamer.ObjectToJsonEx(TargetObject.Options);
+    TargetObject.ValidateAppearance;
   finally
     edit_form.Free;
   end;
@@ -222,12 +223,14 @@ procedure TEditObject.Redo;
 begin
   TargetObject.Options.Clear;
   FDestreamer.JSONToObjectEx(FNewOptions, TargetObject.Options);
+  TargetObject.ValidateAppearance;
 end;
 
 procedure TEditObject.Undo;
 begin
   TargetObject.Options.Clear;
   FDestreamer.JSONToObjectEx(FOldOptions, TargetObject.Options);
+  TargetObject.ValidateAppearance;
 end;
 
 function TEditObject.GetDescription: string;

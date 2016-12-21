@@ -448,6 +448,7 @@ type
     FOptions: TObjectOptions;
     FPlayer: TPlayer;
     FTemplate: TMapObjectAppearance;
+    FAppearanceValid: Boolean;
     function GetIdx: integer;
     function GetL: integer; inline;
     function GetX: integer; inline;
@@ -501,6 +502,8 @@ type
     procedure SetPlayer(AValue: TPlayer);
     procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+    procedure InvalidateAppearance;
+    procedure ValidateAppearance;
   public //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -2092,6 +2095,9 @@ begin
   Template.Assign(ATemplate);
   &Type:=ATemplate.MapObjectGroup.Identifier;
   Subtype := ATemplate.MapObjectType.Identifier;
+
+  FOptions.AssignTemplate(ATemplate);
+  FAppearanceValid:=True;//suppress invalidation
 end;
 
 function TMapObject.FormatDisplayName(ACustomName: TLocalizedString
@@ -2158,6 +2164,33 @@ begin
   end;
 end;
 
+procedure TMapObject.InvalidateAppearance;
+begin
+  FAppearanceValid:=false;
+end;
+
+procedure TMapObject.ValidateAppearance;
+var
+  new_template: TMapObjectTemplate;
+begin
+  if not FAppearanceValid then
+  begin
+    //TODO:ValidateAppearance
+
+    if Assigned(FOptions) and Assigned(FMapObjectGroup) and Assigned(FMapObjectType) then
+    begin
+      new_template := FOptions.SelectTemplate(FMapObjectType);
+
+      if Assigned(new_template) then
+      begin
+        FTemplate.Assign(new_template);
+      end;
+    end;
+
+    FAppearanceValid := true;
+  end;
+end;
+
 function TMapObject.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
 var
   opt_json: TJSONData;
@@ -2192,7 +2225,8 @@ var
 begin
   ASrcObj := ASrc as TJSONObject;
 
-  //type must be loaded before subtype
+  //type must be loaded first
+  //subtype must be loaded right after type
   &Type:=ASrcObj.Strings['type'];
   Subtype:=ASrcObj.Strings['subtype'];
 
@@ -2203,6 +2237,7 @@ begin
   begin
     AHandler.JSONToObjectEx(TJSONObject(ASrc).Objects['options'], Options);
   end;
+  ValidateAppearance;
 end;
 
 { TMapObjects }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -214,7 +214,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="ObjectPropertyTest_v1.h3m"/>
+        <CommandLineParams Value="VCMI_Tests_2013.h3m"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>

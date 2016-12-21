@@ -26,8 +26,12 @@ unit object_options;
 interface
 
 uses
-  Classes, SysUtils, math, typinfo, editor_types, editor_classes, root_manager,
-  editor_utils, logical_id_condition, vcmi_json, editor_consts, LazLoggerBase, fpjson;
+  Classes, SysUtils, math, typinfo, fpjson,
+
+  LazLoggerBase,
+
+  editor_types, editor_classes, root_manager,
+  editor_utils, logical_id_condition, vcmi_json, editor_consts, map_objects;
 
 type
 
@@ -48,6 +52,9 @@ type
 
     //for hero pool management
     procedure NotifyHeroTypeChanged(AOldType, ANewType: AnsiString);
+
+    //for filtered appearance
+    procedure InvalidateAppearance();
   end;
 
   { TObjectOptions }
@@ -79,6 +86,12 @@ type
     class function CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
 
     class function ZIndex: Integer; virtual;
+
+    //initialize options with external template
+    procedure AssignTemplate(ATemplate: TMapObjectTemplate); virtual;
+
+    //return template with best fit on current configuration, may return nil
+    function SelectTemplate(AType: TMapObjectType): TMapObjectTemplate; virtual;
   public
     property Owner: TPlayer read GetOwner write SetOwner;
   end;
@@ -674,7 +687,7 @@ type
 
   { TTownOptions }
 
-  TTownOptions = class(TOwnedArmedObjectOptions)
+  TTownOptions = class(TOwnedArmedObjectOptions, IFPObserver)
   private
     FBuildings: TLogicalIDCondition;
     FHasFort: Boolean;
@@ -684,19 +697,24 @@ type
     function HasFortStored: Boolean;
     function IsBuildingsStored: Boolean;
     function IsSpellsStored: Boolean;
+    procedure SetHasFort(AValue: Boolean);
     procedure SetTightFormation(AValue: Boolean);
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
+    procedure AssignTemplate(ATemplate: TMapObjectTemplate); override;
+    function SelectTemplate(AType: TMapObjectType): TMapObjectTemplate; override;
     procedure Clear; override;
+  public //IFPObserver
+    procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
   published
     property TightFormation: Boolean read GetTightFormation write SetTightFormation default false;
     property Name: TLocalizedString read FName write FName;
     property Spells: TLogicalIDCondition read FSpells stored IsSpellsStored;
     property Buildings: TLogicalIDCondition read FBuildings stored IsBuildingsStored;
 
-    property HasFort: Boolean read FHasFort write FHasFort stored HasFortStored;
+    property HasFort: Boolean read FHasFort write SetHasFort stored HasFortStored;
   end;
 
   { TAbandonedOptions }
@@ -1146,6 +1164,16 @@ end;
 class function TObjectOptions.ZIndex: Integer;
 begin
   Result := 0;
+end;
+
+procedure TObjectOptions.AssignTemplate(ATemplate: TMapObjectTemplate);
+begin
+  //do nothing by default
+end;
+
+function TObjectOptions.SelectTemplate(AType: TMapObjectType): TMapObjectTemplate;
+begin
+  Result := nil;
 end;
 
 procedure TObjectOptions.SetOwner(AValue: TPlayer);
@@ -1920,13 +1948,90 @@ begin
   Result := 3;
 end;
 
-
-
 { TTownOptions }
 
 procedure TTownOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin
   AVisitor.VisitTown(Self);
+end;
+
+procedure TTownOptions.AssignTemplate(ATemplate: TMapObjectTemplate);
+begin
+  inherited AssignTemplate(ATemplate);
+
+  //TODO: replace with generic solution
+  if ATemplate.Identifier = 'fort' then
+  begin
+    HasFort:=True;
+  end
+  else if ATemplate.Identifier = 'village' then
+  begin
+    HasFort:=false
+  end;
+end;
+
+function TTownOptions.SelectTemplate(AType: TMapObjectType): TMapObjectTemplate;
+var
+  template_id: AnsiString;
+
+  canditates: TStringList;
+begin
+  //todo: replace with logical condition
+  Result := nil;
+  canditates := TStringList.Create;
+  canditates.Sorted := false;
+  try
+    if Buildings.IsEmpty then
+    begin
+      if HasFort then
+      begin
+        canditates.Add('fort');
+      end
+      else
+      begin
+        canditates.Add('village');
+      end;
+    end
+    else
+    begin
+      if Buildings.IsRequired('capitol') and Buildings.IsRequired('castle') then
+      begin
+        canditates.Add('capitol');
+        canditates.Add('castle');
+        canditates.Add('citadel');
+        canditates.Add('fort');
+      end
+      else if Buildings.IsRequired('castle') then
+      begin
+        canditates.Add('castle');
+        canditates.Add('citadel');
+        canditates.Add('fort');
+      end
+      else if Buildings.IsRequired('citadel') then
+      begin
+        canditates.Add('citadel');
+        canditates.Add('fort');
+      end
+      else if Buildings.IsRequired('fort') then
+      begin
+        canditates.Add('fort');
+      end else
+      begin
+        canditates.Add('village');
+      end;
+    end;
+
+    for template_id in canditates do
+    begin
+      Result := AType.Templates.FindItem(template_id);
+      if Assigned(Result) then
+      begin
+        break;
+      end;
+    end;
+  finally
+    canditates.Free;
+  end;
 end;
 
 procedure TTownOptions.Clear;
@@ -1939,11 +2044,20 @@ begin
   Buildings.Clear;
 end;
 
+procedure TTownOptions.FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
+begin
+  if ASender = FBuildings then
+  begin
+    MapObject.InvalidateAppearance();
+  end;
+end;
+
 constructor TTownOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FSpells := TLogicalIDCondition.Create(AObject);
   FBuildings := TLogicalIDCondition.Create(AObject);
+  FBuildings.FPOAttachObserver(Self);
 end;
 
 destructor TTownOptions.Destroy;
@@ -1971,6 +2085,13 @@ end;
 function TTownOptions.IsSpellsStored: Boolean;
 begin
   Result := not FSpells.IsEmpty;
+end;
+
+procedure TTownOptions.SetHasFort(AValue: Boolean);
+begin
+  if FHasFort=AValue then Exit;
+  MapObject.InvalidateAppearance();
+  FHasFort:=AValue;
 end;
 
 procedure TTownOptions.SetTightFormation(AValue: Boolean);

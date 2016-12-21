@@ -169,6 +169,7 @@ type
     destructor Destroy; override;
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     class function UseMeta: boolean; override;
+    function HasFilters: Boolean;
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
     property Templates:TMapObjectTemplates read FTemplates;
@@ -771,6 +772,11 @@ begin
   Result:=true;
 end;
 
+function TMapObjectType.HasFilters: Boolean;
+begin
+  Result := FFilters.Count <> 0;
+end;
+
 { TMapObjectTemplate }
 
 procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
@@ -924,11 +930,28 @@ begin
 end;
 
 procedure TObjectsManager.FillWithAllObjects(ATarget: TMapObjectTemplateList; AFilter: TObjectGroupFilter);
+
+  procedure CopyTemplates(ASource: TMapObjectType);
+  var
+    k: Integer;
+    obj_template: TMapObjectTemplate;
+  begin
+    for k := 0 to ASource.Templates.count - 1 do
+    begin
+      obj_template := ASource.Templates[k];
+
+      ATarget.Add(obj_template);
+
+      Assert(Assigned(obj_template.MapObjectGroup));
+      Assert(Assigned(obj_template.MapObjectType));
+    end;
+  end;
+
 var
  i,j,k: Integer;
  obj_type: TMapObjectGroup;
  obj_subtype: TMapObjectType;
- obj_template: TMapObjectTemplate;
+ obj_template1, obj_template2: TMapObjectTemplate;
 begin
   ATarget.Clear;
   for i := 0 to FMapObjectGroups.Count - 1 do
@@ -942,14 +965,28 @@ begin
     begin
       obj_subtype := obj_type.Types[j];
 
-      for k := 0 to obj_subtype.Templates.count - 1 do
+      //TODO: replace stub with generic solution
+      if {obj_subtype.HasFilters} obj_type.Identifier = TYPE_TOWN then
       begin
-        obj_template := obj_subtype.Templates[k];
+        obj_template1 := obj_subtype.Templates.FindItem('fort');
+        if Assigned(obj_template1) then
+        begin
+          ATarget.Add(obj_template1);
+        end;
+        obj_template2 := obj_subtype.Templates.FindItem('village');
+        if Assigned(obj_template2) then
+        begin
+          ATarget.Add(obj_template2);
+        end;
 
-        ATarget.Add(obj_template);
-
-        Assert(Assigned(obj_template.MapObjectGroup));
-        Assert(Assigned(obj_template.MapObjectType));
+        if not Assigned(obj_template1) and not Assigned(obj_template2) then
+        begin
+          CopyTemplates(obj_subtype);
+        end;
+      end
+      else
+      begin
+        CopyTemplates(obj_subtype);
       end;
     end;
   end;
@@ -1100,12 +1137,12 @@ procedure TObjectsManager.BuildIndex(ACategory: TObjectCategory);
   end;
 var
   idx: SizeInt;
-  obj: TMapObjectTemplate;
   keyword, s: string;
   keywords: TStringList;
   i: Integer;
   obj_type: TMapObjectGroup;
   obj_subtype: TMapObjectType;
+  obj: TMapObjectTemplate;
 
   FAllTemplates: TMapObjectTemplateList;
 begin

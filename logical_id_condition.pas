@@ -52,6 +52,7 @@ type
     procedure Clear;
 
     function IsAllowed(AId: AnsiString): Boolean;
+    function IsRequired(AId: AnsiString): Boolean;
 
     function IsEmpty: Boolean;
 
@@ -67,10 +68,11 @@ type
     procedure BeforeDeSerialize(Sender:TObject; AData: TJSONData);
 
   public //IFPObserver
-    procedure FPOObservedChanged(ASender: TObject;
-      Operation: TFPObservedOperation; Data: Pointer);
-  public
+    procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
+
+  public //IReferenceNotify
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
+
   published
     property AnyOf: TStrings read FAnyOf write SetAnyOf stored isAnyOfStored;
     property AllOf: TStrings read FAllOf write SetAllOf stored isAllOfStored;
@@ -195,6 +197,11 @@ begin
   Result := (FNoneOf.IndexOf(AId)<0)
     and ((FAllOf.Count = 0) or (FAllOf.IndexOf(AId) >=0))
     and ((FAnyOf.Count = 0) or (FAnyOf.IndexOf(AId) >=0));
+end;
+
+function TLogicalIDCondition.IsRequired(AId: AnsiString): Boolean;
+begin
+  Result := (FNoneOf.IndexOf(AId) < 0) and (FAllOf.IndexOf(AId) >= 0);
 end;
 
 function TLogicalIDCondition.IsEmpty: Boolean;

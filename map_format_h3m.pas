@@ -1330,6 +1330,7 @@ begin
       FSrc.Skip(5); //junk
 
       FCurrentObject.Options.ApplyVisitor(Self);
+      FCurrentObject.ValidateAppearance;
     except
       on e:Exception do
       begin
