@@ -689,7 +689,10 @@ begin
   AvailableFor.Visible := false;
   AvailableForLabel.Visible:=False;
 
-  edHeroClass.ItemIndex := Map.FillWithAvilableClasses(edHeroClass.Items, GetHeroClass());
+  if edHeroClass.Visible then
+  begin
+    edHeroClass.ItemIndex := Map.FillWithAvilableClasses(edHeroClass.Items, GetHeroClass());
+  end;
 
   edHeroClassChange(edHeroClass); //also loads type
 
