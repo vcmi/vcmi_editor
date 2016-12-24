@@ -235,7 +235,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="91">
+    <Units Count="92">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -712,6 +712,10 @@
         <Filename Value="vcmi.dirs.xdg.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit90>
+      <Unit91>
+        <Filename Value="vcmi.image_loaders.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit91>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

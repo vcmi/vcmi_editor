@@ -360,10 +360,6 @@ uses
 const
   MOD_LIST_CONFIG = 'modlist.txt';
 
-  RES_TO_EXT: array[TResourceType] of string = (
-    '.TXT', '.JSON', '.DEF', '.MSK'
-  );
-
   CONFIG = 'config';
 
   FS_CONFIG = CONFIG+DirectorySeparator+'filesystem.json';
@@ -816,7 +812,7 @@ begin
 
     file_ext := ExtractFileExt(src_file_name);
 
-    if not MatchFilter(file_ext,res_typ) then
+    if not MatchFilter(file_ext, res_typ) then
       Continue;
 
     rel_path := CreateRelativePath(ExtractFilePath(src_file_name), MakeFullPath(FCurrentRootPath, FCurrentRelPath));
@@ -1206,30 +1202,46 @@ begin
   FCurrentVFSPath := SetDirSeparators(ACurrentVFSPath);
 end;
 
-function TFSManager.MakeFullPath(const ARootPath: string; const RelPath: string
-  ): string;
+function TFSManager.MakeFullPath(const ARootPath: string; const RelPath: string): string;
 begin
   Result := IncludeTrailingPathDelimiter(ARootPath)+ ExcludeLeadingPathDelimiter(RelPath);
   //Result := IncludeTrailingPathDelimiter(Result);
 end;
 
-function TFSManager.MatchFilter(const AExt: string; out AType: TResourceType
-  ): boolean;
+function TFSManager.MatchFilter(const AExt: string; out AType: TResourceType): boolean;
 var
-  fltr: TResourceType;
   temp: string;
 begin
   Result := False;
 
   temp  := Trim(UpperCase(AExt));
-  for fltr in TResourceType do
-  begin
-    if temp = RES_TO_EXT[fltr] then
-    begin
-      Result := True;
-      AType :=  fltr;
-      Exit;
-    end;
+
+  case temp of
+    '.TXT':
+      begin
+        AType := TResourceType.Text;
+        Result := true;
+      end;
+    '.JSON':
+      begin
+        AType := TResourceType.Json;
+        Result := true;
+      end;
+    '.DEF':
+      begin
+        AType := TResourceType.Animation;
+        Result := true;
+      end;
+    '.MSK':
+      begin
+        AType := TResourceType.Mask;
+        Result := true;
+      end;
+    '.BMP','.PCX','.PNG':
+      begin
+        AType := TResourceType.Image;
+        Result := true;
+      end;
   end;
 end;
 
