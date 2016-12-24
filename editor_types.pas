@@ -27,7 +27,7 @@ unit editor_types;
 interface
 
 uses
-  Classes, SysUtils, gvector;
+  Classes, SysUtils, gvector, FPimage;
 
 type
 {$push}
@@ -128,9 +128,15 @@ type
   end;
 
 type
+  TH3DefColor = packed record
+    r,g,b : UInt8;
+  end;
+
   TRBGAColor = packed record
     r,g,b,a : UInt8;
   end;
+
+  TRGBAPalette = packed array[0..255] of TRBGAColor;
 
   { TMapCoord }
 

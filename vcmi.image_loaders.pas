@@ -22,17 +22,22 @@ unit vcmi.image_loaders;
 interface
 
 uses
-  Classes, SysUtils, filesystem_base, vcmi.image_formats.builtin, vcmi.image_formats.h3pcx;
+  Classes, SysUtils, Graphics, filesystem_base, vcmi.image_formats.h3pcx;
 
 type
 
   { TImageResource }
 
   TImageResource = class(TBaseResource, IResource)
+  private
+    FData: TPicture;
   public
     constructor Create(APath: AnsiString);
+    destructor Destroy; override;
 
     procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
+
+    property Data: TPicture read FData;
   end;
 
 implementation
@@ -42,11 +47,31 @@ implementation
 constructor TImageResource.Create(APath: AnsiString);
 begin
   inherited Create(TResourceType.Image, APath);
+
+  FData := TPicture.Create;
+end;
+
+destructor TImageResource.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
 end;
 
 procedure TImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
+var
+  ext: AnsiString;
 begin
+  ext:=ExtractFileExt(AFileName);
 
+  if UpperCase(ext) <> '.PCX' then
+  begin
+    //assume anything else is supported out of the box
+    FData.LoadFromStreamWithFileExt(AStream, ext);
+  end
+  else
+  begin
+    LoadH3Pcx(AStream, FData);
+  end;
 end;
 
 end.

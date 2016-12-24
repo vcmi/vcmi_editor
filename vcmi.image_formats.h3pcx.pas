@@ -22,47 +22,120 @@ unit vcmi.image_formats.h3pcx;
 interface
 
 uses
-  Classes, SysUtils, FPImage;
+  Classes, SysUtils, FPImage, Graphics, IntfGraphics, GraphType, stream_adapter, editor_types;
 
-type
 
-  { TReaderH3PCX }
-
-  TReaderH3PCX = class (TFPCustomImageReader)
-  protected
-    procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
-    function  InternalCheck (Str:TStream) : boolean; override;
-  public
-    constructor Create; override;
-    destructor Destroy; override;
-  end;
+  procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
 
 implementation
 
-{ TReaderH3PCX }
+procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
+var
+  size, width, height: UInt32;
 
-procedure TReaderH3PCX.InternalRead(Str: TStream; Img: TFPCustomImage);
+  source: TStreamReadAdapter;
+  bmp: TBitmap;
+
+  procedure InitBitmap();
+  begin
+    bmp := ADest.Bitmap;
+    bmp.SetSize(width, height);
+  end;
+
+  procedure LoadH3Pcx24();
+  var
+    c: TH3DefColor;
+    i, j: Integer;
+  begin
+    InitBitmap();
+    bmp.BeginUpdate();
+    bmp.Canvas.Lock;
+    try
+
+      for i := 0 to height - 1 do
+      begin
+        for j := 0 to width - 1 do
+        begin
+          ASourceStream.Read(c, 3);
+          bmp.Canvas.Pixels[j,i] := RGBToColor(c.r, c.g, c.b);
+        end;
+      end;
+
+    finally
+      bmp.Canvas.Unlock;
+      bmp.EndUpdate()
+    end;
+  end;
+
+  procedure LoadH3Pcx8();
+  var
+    inft_image: TLazIntfImage;
+    initial_pos: Int64;
+    c: TH3DefColor;
+    buffer: packed array of byte;
+    i, j: Integer;
+    p: PByte;
+  begin
+    InitBitmap();
+    bmp.BeginUpdate();
+    inft_image := bmp.CreateIntfImage;
+    try
+      inft_image.UsePalette:=true;
+      inft_image.Palette.Create(256);
+      initial_pos := ASourceStream.Position;
+
+      //load palette from end of file
+      ASourceStream.Seek(size, soCurrent);
+
+      for i := 0 to 256 - 1 do
+      begin
+        ASourceStream.Read(c, 3);
+
+        inft_image.Palette.Color[i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
+      end;
+
+      //load graphics itself
+      ASourceStream.Seek(initial_pos, soBeginning);
+
+      SetLength(buffer, size);
+
+      ASourceStream.Read(buffer[0], size);
+
+      p := @buffer[0];
+
+      for i := 0 to height - 1 do
+      begin
+        for j := 0 to width - 1 do
+        begin
+          inft_image.Pixels[j, i] := p^;
+          inc(p);
+        end;
+      end;
+      bmp.LoadFromIntfImage(inft_image);
+    finally
+      inft_image.Free;
+      bmp.EndUpdate()
+    end;
+
+  end;
+
 begin
+  source.Create(ASourceStream);
 
+  size := source.ReadDWord;
+  width := source.ReadDWord;
+  height := source.ReadDWord;
+
+  if size = width * height * 3 then
+  begin
+    LoadH3Pcx24();
+  end
+  else if size = width * height then
+  begin
+    LoadH3Pcx8();
+  end;
 end;
 
-function TReaderH3PCX.InternalCheck(Str: TStream): boolean;
-begin
-
-end;
-
-constructor TReaderH3PCX.Create;
-begin
-  inherited Create;
-end;
-
-destructor TReaderH3PCX.Destroy;
-begin
-  inherited Destroy;
-end;
-
-initialization
-  ImageHandlers.RegisterImageReader ('H3 PCX Format', 'pcx', TReaderH3PCX);
 
 end.
 

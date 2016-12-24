@@ -71,7 +71,6 @@ type
 
     procedure Load(ALoader: IResourceLoader);
     function TryLoad(ALoader: IResourceLoader): Boolean;
-
   end;
 
   { TFSConsumer }

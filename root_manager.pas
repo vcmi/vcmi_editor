@@ -235,10 +235,26 @@ procedure TRootManager.LoadHeroPortraits;
 const
   ICON_WIDTH = 58;
   ICON_HEIGHT = 64;
+
+  procedure AddEmpty();
+  var
+    bmp: TBitmap;
+  begin
+    bmp := TBitmap.Create;
+    bmp.Width := ICON_WIDTH;
+    bmp.Height:=ICON_HEIGHT;
+
+    HeroIcons.Add(bmp, nil);
+    bmp.Free;
+  end;
+
 var
   i, portrait_count: Integer;
   info: THeroPortraitInfo;
-  bmp: TBitmap;
+
+
+  res: TImageResource;
+  path: AnsiString;
 begin
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
@@ -251,26 +267,39 @@ begin
 
     if info.IsEmpty then
     begin
-      bmp := TBitmap.Create;
-      bmp.Width := ICON_WIDTH;
-      bmp.Height:=ICON_HEIGHT;
-
-      HeroIcons.Add(bmp, nil);
-      bmp.Free;
+      AddEmpty();
       DebugLn('empty portrait info');
     end
     else
     begin
-      bmp := TBitmap.Create;
-      bmp.Width := ICON_WIDTH;
-      bmp.Height:=ICON_HEIGHT;
+      path := 'SPRITES\'+info.IconPath;
 
-      HeroIcons.Add(bmp, nil);
-      bmp.Free;
+      if not ResourceManager.ExistsResource(TResourceType.Image, path) then
+      begin
+        path := 'DATA\'+info.IconPath;
 
+        if not ResourceManager.ExistsResource(TResourceType.Image, path) then
+        begin
+          AddEmpty();
+          Continue;
+        end;
+      end;
 
+      res := TImageResource.Create(path);
+      res.Load(ResourceManager);
+
+      if Assigned(res.Data.Graphic) then
+      begin
+        HeroIcons.Add(res.Data.Graphic as TCustomBitmap, nil)
+      end
+      else
+      begin
+        AddEmpty();
+        DebugLn('Portrait loadind failed ', info.IconPath);
+      end;
+
+      res.Free;
     end;
-
   end;
 end;
 

@@ -29,7 +29,6 @@ uses
   editor_utils, filesystem_base, editor_gl, glext40;
 
 type
-  TRGBAPalette = packed array[0..255] of TRBGAColor;
   TDefEntries = specialize gvector.TVector<TGLSprite>;
   TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
   TGraphicsLoadFlag = (None, First, Complete);
@@ -151,10 +150,6 @@ type
 implementation
 
 type
-
-  TH3DefColor = packed record
-    r,g,b : UInt8;
-  end;
 
   TH3Palette = packed array [0..255] of TH3DefColor;
 
