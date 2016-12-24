@@ -46,7 +46,7 @@ type
   public
     constructor Create(APath: AnsiString);
     destructor Destroy; override;
-    procedure LoadFromStream(AStream: TStream); override;
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
 
     property Value[Col,Row: Integer]:TLocalizedString read GetValue; default;
     function HasCell(Col,Row: Integer):boolean;
@@ -103,7 +103,7 @@ begin
   Result := FDoc.HasCell(Col,Row);
 end;
 
-procedure TTextResource.LoadFromStream(AStream: TStream);
+procedure TTextResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 begin
   FDoc.LoadFromStream(AStream);
 end;

@@ -74,7 +74,7 @@ type
     procedure SetWidth(AValue: Byte);
   public
     constructor Create(APath: AnsiString);
-    procedure LoadFromStream(AStream: TStream); override;
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
     property Width: Byte read FWidth write SetWidth;
     property Height: Byte read FHeight write SetHeight;
     property Mask1:TDefBitmask read FMask1;//todo: rename and use
@@ -598,7 +598,7 @@ begin
   inherited Create(TResourceType.Mask, 'SPRITES/'+APath);
 end;
 
-procedure TMaskResource.LoadFromStream(AStream: TStream);
+procedure TMaskResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 begin
   Clear;
   AStream.Read(FWidth,1);
@@ -948,7 +948,7 @@ procedure TObjectsManager.FillWithAllObjects(ATarget: TMapObjectTemplateList; AF
   end;
 
 var
- i,j,k: Integer;
+ i,j: Integer;
  obj_type: TMapObjectGroup;
  obj_subtype: TMapObjectType;
  obj_template1, obj_template2: TMapObjectTemplate;

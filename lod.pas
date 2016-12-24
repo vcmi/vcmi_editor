@@ -107,16 +107,19 @@ end;
 procedure TLod.LoadResource(AResource: IResource; constref AItem: TLodItem);
 var
   stm: TZlibInputStream;
+  fname: AnsiString;
 begin
+  fname:=AItem.Filename;
   FFileStream.Seek(AItem.FileOffset,soBeginning);
   if AItem.FileLength <> 0 then
   begin
+    //todo: allow multithreaded use
     stm := TZlibInputStream.Create(GlobalZBuffer, FFileStream,AItem.UncompressedFileSize);
-    AResource.LoadFromStream(stm);
+    AResource.LoadFromStream(fname, stm);
     stm.free;
   end
   else begin
-    AResource.LoadFromStream(FFileStream);
+    AResource.LoadFromStream(fname, FFileStream);
   end;
 
 end;

@@ -336,11 +336,9 @@ type
 
     procedure Load(AProgress: IProgressCallback);
 
-    procedure LoadResource(AResource: IResource; AResType: TResourceType;
-      AName: string);
+    procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
 
-    function TryLoadResource(AResource: IResource; AResType: TResourceType;
-      AName: string): boolean;
+    function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string): boolean;
 
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
 
@@ -832,9 +830,6 @@ end;
 procedure TFSManager.Load(AProgress: IProgressCallback);
 begin
   AProgress.NextStage('Scanning filesystem ...');
-
-
-
   FCurrentLoadOrder:=0;
   ScanFilesystem;
   ScanMods;
@@ -848,31 +843,28 @@ begin
   stm := TFileStreamUTF8.Create(APath,fmOpenRead or fmShareDenyWrite);
   try
     stm.Seek(0,soBeginning);
-    AResource.LoadFromStream(stm);
+    AResource.LoadFromStream(APath, stm);
   finally
     stm.Free;
   end;
 end;
 
-procedure TFSManager.UnzipperCreateStream(Sender: TObject;
-  var AStream: TStream; AItem: TFullZipFileEntry);
+procedure TFSManager.UnzipperCreateStream(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
 begin
   FUnzipBuffer.Clear;
   AStream := FUnzipBuffer;
 end;
 
-procedure TFSManager.UnzipperDoneStream(Sender: TObject; var AStream: TStream;
-  AItem: TFullZipFileEntry);
+procedure TFSManager.UnzipperDoneStream(Sender: TObject; var AStream: TStream; AItem: TFullZipFileEntry);
 begin
   Assert(AStream = FUnzipBuffer);
 end;
 
-procedure TFSManager.LoadArchiveResource(AResource: IResource;
-  AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
+procedure TFSManager.LoadArchiveResource(AResource: IResource;  AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
 begin
   AArchive.UnZipOneFile(AEntry);
   FUnzipBuffer.Seek(0, soBeginning);
-  AResource.LoadFromStream(FUnzipBuffer);
+  AResource.LoadFromStream(AEntry.ArchiveFileName, FUnzipBuffer);
 end;
 
 procedure TFSManager.LoadFSConfig;
@@ -955,8 +947,7 @@ begin
   end;
 end;
 
-procedure TFSManager.LoadResource(AResource: IResource;
-  AResType: TResourceType; AName: string);
+procedure TFSManager.LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
 var
   it : TResIDToLocationMap.TIterator;
 begin
@@ -971,8 +962,7 @@ begin
   LoadSelected(it, AResource);
 end;
 
-function TFSManager.TryLoadResource(AResource: IResource;
-  AResType: TResourceType; AName: string): boolean;
+function TFSManager.TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string): boolean;
 var
   it : TResIDToLocationMap.TIterator;
 begin
@@ -985,8 +975,7 @@ begin
   end;
 end;
 
-function TFSManager.ExistsResource(AResType: TResourceType; AName: string
-  ): boolean;
+function TFSManager.ExistsResource(AResType: TResourceType; AName: string): boolean;
 var
   it : TResIDToLocationMap.TIterator;
 begin

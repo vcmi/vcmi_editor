@@ -34,7 +34,7 @@ type
   TResourceTypes = set of TResourceType;
 
   IResource = interface
-    procedure LoadFromStream(AStream: TStream);
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream);
   end;
 
   { TResourceLoader }
@@ -67,7 +67,7 @@ type
     property Typ: TResourceType read FTyp;
     property Path: AnsiString read FPath;
 
-    procedure LoadFromStream(AStream: TStream); virtual; abstract;
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); virtual; abstract;
 
     procedure Load(ALoader: IResourceLoader);
     function TryLoad(ALoader: IResourceLoader): Boolean;

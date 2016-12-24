@@ -22,9 +22,32 @@ unit vcmi.image_loaders;
 interface
 
 uses
-  Classes, SysUtils, vcmi.image_formats.builtin, vcmi.image_formats.h3pcx;
+  Classes, SysUtils, filesystem_base, vcmi.image_formats.builtin, vcmi.image_formats.h3pcx;
+
+type
+
+  { TImageResource }
+
+  TImageResource = class(TBaseResource, IResource)
+  public
+    constructor Create(APath: AnsiString);
+
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
+  end;
 
 implementation
+
+{ TImageResource }
+
+constructor TImageResource.Create(APath: AnsiString);
+begin
+  inherited Create(TResourceType.Image, APath);
+end;
+
+procedure TImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
+begin
+
+end;
 
 end.
 

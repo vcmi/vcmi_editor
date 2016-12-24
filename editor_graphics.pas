@@ -99,9 +99,8 @@ type
       procedure IncreaseDefBuffer(ANewSize: SizeInt);
   private
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
-
   public
-    procedure LoadFromStream(AStream: TStream);//IResource
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream);  //IResource
   public
     constructor Create;
     destructor Destroy; override;
@@ -480,7 +479,7 @@ begin
   BindUncompressedPaletted(ATextureID, h.FullWidth, h.SpriteHeight, @FBuffer[0]);
 end;
 
-procedure TDefFormatLoader.LoadFromStream(AStream: TStream);
+procedure TDefFormatLoader.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 var
   id_s: array of GLuint;
   total_entries: Integer;

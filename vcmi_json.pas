@@ -136,7 +136,7 @@ type
   public
     constructor Create(APath: AnsiString);
     destructor Destroy; override;
-    procedure LoadFromStream(AStream: TStream); override;
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
     property Root: TJSONObject read FRoot;
 
     procedure DestreamTo(AObject: TObject; AFieldName: string = '');
@@ -497,7 +497,7 @@ begin
   destreamer.Free;
 end;
 
-procedure TJsonResource.LoadFromStream(AStream: TStream);
+procedure TJsonResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 begin
   FreeAndNil(FRoot);
   FRoot := destreamer.JSONStreamToJSONObject(AStream,'');

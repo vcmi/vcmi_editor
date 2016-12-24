@@ -24,7 +24,7 @@ unit root_manager;
 interface
 
 uses
-  Classes, SysUtils,  FileUtil, LazFileUtils, LazLogger, gl, glext40, Forms, Controls,
+  Classes, SysUtils,  FileUtil, Graphics, LazFileUtils, LazLogger, gl, glext40, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, map_objects,
   editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types,
   locale_manager, editor_classes, vcmi.dirs.base, vcmi.image_loaders;
@@ -232,10 +232,16 @@ begin
 end;
 
 procedure TRootManager.LoadHeroPortraits;
+const
+  ICON_WIDTH = 58;
+  ICON_HEIGHT = 64;
 var
   i, portrait_count: Integer;
   info: THeroPortraitInfo;
+  bmp: TBitmap;
 begin
+  HeroIcons.Width:=ICON_WIDTH;
+  HeroIcons.Height:=ICON_HEIGHT;
   //TODO: TRootManager.LoadHeroPortraits
   portrait_count := FListsManager.HeroPortraits.Count;
 
@@ -243,12 +249,28 @@ begin
   begin
     info :=  FListsManager.HeroPortraits[i];
 
-    //HeroIcons.Add();
-
-    if not info.IsEmpty then
+    if info.IsEmpty then
     begin
+      bmp := TBitmap.Create;
+      bmp.Width := ICON_WIDTH;
+      bmp.Height:=ICON_HEIGHT;
+
+      HeroIcons.Add(bmp, nil);
+      bmp.Free;
+      DebugLn('empty portrait info');
+    end
+    else
+    begin
+      bmp := TBitmap.Create;
+      bmp.Width := ICON_WIDTH;
+      bmp.Height:=ICON_HEIGHT;
+
+      HeroIcons.Add(bmp, nil);
+      bmp.Free;
+
 
     end;
+
   end;
 end;
 

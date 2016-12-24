@@ -609,8 +609,8 @@ begin
     src := ListsManager.HeroPortraits.Items[i];
     dst := edPortrait.ItemsEx.Add;
 
-    dst.ImageIndex:= -1;//TODO: set actual image
-    dst.Caption:=src.Name;
+    dst.ImageIndex := i;
+    dst.Caption := src.Name;
   end;
 end;
 
