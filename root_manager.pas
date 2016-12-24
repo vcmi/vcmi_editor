@@ -27,7 +27,7 @@ uses
   Classes, SysUtils,  FileUtil, LazFileUtils, LazLogger, gl, glext40, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, map_objects,
   editor_graphics, lists_manager, OpenGLContext, editor_gl, editor_types,
-  locale_manager, editor_classes, vcmi.dirs.base;
+  locale_manager, editor_classes, vcmi.dirs.base, vcmi.image_loaders;
 
 type
 
@@ -236,6 +236,7 @@ var
   i, portrait_count: Integer;
   info: THeroPortraitInfo;
 begin
+  //TODO: TRootManager.LoadHeroPortraits
   portrait_count := FListsManager.HeroPortraits.Count;
 
   for i := 0 to portrait_count - 1 do

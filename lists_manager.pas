@@ -492,9 +492,11 @@ type
     FHeroIdentifier: AnsiString;
     FIconIndex: Int32;
     FIconPath: AnsiString;
+    FName: TLocalizedString;
     procedure SetHeroIdentifier(AValue: AnsiString);
     procedure SetIconIndex(AValue: Int32);
     procedure SetIconPath(AValue: AnsiString);
+    procedure SetName(AValue: TLocalizedString);
   public
     constructor Create(ACollection: TCollection); override;
 
@@ -503,6 +505,7 @@ type
     property HeroIdentifier: AnsiString read FHeroIdentifier write SetHeroIdentifier;
     property IconIndex: Int32 read FIconIndex write SetIconIndex;
     property IconPath: AnsiString read FIconPath write SetIconPath;
+    property Name: TLocalizedString read FName write SetName;
   end;
 
   { THeroPortraitInfos }
@@ -661,6 +664,9 @@ type
     procedure FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
 
     property HeroPortraits: THeroPortraitInfos read FHeroPortraits;
+
+    procedure SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
+    function LoadHeroPortrait(ASrc: TJSONData):Int32;
   end;
 
 implementation
@@ -707,6 +713,11 @@ end;
 procedure THeroPortraitInfo.SetIconPath(AValue: AnsiString);
 begin
   FIconPath:=AValue;
+end;
+
+procedure THeroPortraitInfo.SetName(AValue: TLocalizedString);
+begin
+  FName:=AValue;
 end;
 
 constructor THeroPortraitInfo.Create(ACollection: TCollection);
@@ -956,8 +967,7 @@ end;
 
 function THeroInfo.GetPortrait: Int32;
 begin
-  //todo:  THeroInfo.GetPortrait
-  Result := -1;
+  Result := FPortraitIndex;
 end;
 
 function THeroInfo.GetHeroIdentifier: AnsiString;
@@ -1666,6 +1676,60 @@ end;
 procedure TListsManager.FillWithHeroesOfClass(ATarget: TStrings; AHeroClass: AnsiString);
 begin
   HeroInfos.FillWithHeroesOfClass(ATarget, AHeroClass);
+end;
+
+procedure TListsManager.SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
+var
+  p_info: THeroPortraitInfo;
+begin
+  if AValue < 0 then
+  begin
+    //negative is default value - do not save
+    Exit;
+  end;
+  p_info := HeroPortraits.Items[AValue];
+
+  if p_info.HeroIdentifier <> '' then
+  begin
+    (ADest as TJSONObject).Strings['portrait'] := p_info.HeroIdentifier;
+  end
+  else
+  begin
+    (ADest as TJSONObject).Integers['portrait'] := AValue;
+  end;
+end;
+
+function TListsManager.LoadHeroPortrait(ASrc: TJSONData): Int32;
+var
+  hero_info: THeroInfo;
+  portrait_node: TJSONData;
+begin
+  Result := -1;
+  portrait_node := nil;
+
+  if (ASrc is TJSONObject) and (TJSONObject(ASrc).IndexOfName('portrait') >=0) then
+  begin
+    portrait_node := TJSONObject(ASrc).Elements['portrait'];
+  end;
+
+  if not Assigned(portrait_node) then
+  begin
+    Exit;
+  end;
+
+  if portrait_node is TJSONString then
+  begin
+    hero_info := Heroes[portrait_node.AsString];
+
+    if Assigned(hero_info) then
+    begin
+      Result := hero_info.PortraitIndex;
+    end;
+  end
+  else if portrait_node is TJSONNumber then
+  begin
+    Result := portrait_node.AsInteger;
+  end;
 end;
 
 procedure TListsManager.PreLoad;
@@ -2475,6 +2539,7 @@ begin
       info := FHeroPortraits.Items[index];
       info.IconIndex := index;
       info.IconPath:=frame_data.Strings['file'];
+      info.FName:='Custom'+IntToStr(index);
     end;
   finally
     image_list.Free;
@@ -2491,18 +2556,16 @@ begin
       //this is a hero from a mod
       //create new portrait info
       info := FHeroPortraits.Add;
-      hero_info.PortraitIndex := info.Index;
-      info.HeroIdentifier:=hero_info.Identifier;
       info.IconPath:=hero_info.Images.Large;
     end
     else
     begin
       //this is and OH3 hero
-      //setup cross-links
       info := FHeroPortraits.Items[hero_info.Index];
-      info.HeroIdentifier:=hero_info.Identifier;
-      hero_info.PortraitIndex := info.Index;
     end;
+    hero_info.PortraitIndex := info.Index;
+    info.HeroIdentifier:=hero_info.Identifier;
+    info.Name:=hero_info.Name;
   end;
 end;
 

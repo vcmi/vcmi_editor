@@ -464,9 +464,6 @@ type
     procedure SetType(AValue: AnsiString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetTightFormation(AValue: Boolean);
-
-    procedure SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
-    function LoadHeroPortrait(ASrc: TJSONData):Int32;
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
@@ -2378,7 +2375,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   SaveHeroSex(AData, Sex);
-  SaveHeroPortrait(AData, FPortrait);
+  RootManager.ListsManager.SaveHeroPortrait(AData, FPortrait);
 end;
 
 procedure THeroOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
@@ -2386,7 +2383,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   Sex:=LoadHeroSex(AData);
-  FPortrait:=LoadHeroPortrait(AData);
+  FPortrait:=RootManager.ListsManager.LoadHeroPortrait(AData);
 end;
 
 procedure THeroOptions.Clear;
@@ -2514,16 +2511,6 @@ begin
   Army.TightFormation:=AValue;
 end;
 
-procedure THeroOptions.SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
-begin
-
-end;
-
-function THeroOptions.LoadHeroPortrait(ASrc: TJSONData): Int32;
-begin
-  result := -1;
-end;
-
 constructor THeroOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
@@ -2535,6 +2522,7 @@ begin
   FSpellBook := TIdentifierList.Create(AObject);
 
   FPrimarySkills := THeroPrimarySkills.Create;
+  FPortrait := -1;
 end;
 
 destructor THeroOptions.Destroy;

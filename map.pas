@@ -629,12 +629,12 @@ type
     property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: Int32 read GetPortrait write SetPortrait default -1;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property Skills: THeroSecondarySkills read FSkills stored IsSkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
   public //manual streaming
     property Sex:THeroSex read FSex write SetSex default THeroSex.default;
+    property Portrait: Int32 read GetPortrait write SetPortrait default -1;
   end;
 
   { THeroDefinitions }
@@ -1755,6 +1755,7 @@ end;
 procedure THeroDefinition.AfterDeSerialize(Sender: TObject; AData: TJSONData);
 begin
   Sex:=LoadHeroSex(AData);
+  Portrait:=RootManager.ListsManager.LoadHeroPortrait(AData);
 end;
 
 procedure THeroDefinition.BeforeSerialize(Sender: TObject);
@@ -1765,6 +1766,7 @@ end;
 procedure THeroDefinition.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
   SaveHeroSex(AData, Sex);
+  RootManager.ListsManager.SaveHeroPortrait(AData, Portrait);
 end;
 
 function THeroDefinition.GetHeroIdentifier: AnsiString;

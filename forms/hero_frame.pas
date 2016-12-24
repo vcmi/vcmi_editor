@@ -89,6 +89,7 @@ type
     procedure edExperienceEditingDone(Sender: TObject);
     procedure edHeroClassChange(Sender: TObject);
     procedure edPatrolKeyPress(Sender: TObject; var Key: char);
+    procedure edPortraitSelect(Sender: TObject);
     procedure edSexChange(Sender: TObject);
     procedure edTypeChange(Sender: TObject);
     procedure KnowledgeChange(Sender: TObject);
@@ -111,7 +112,7 @@ type
     procedure ReadHero(AOptions: THeroOptions);
   protected
     FHeroOptions: THeroOptions;
-    FEmptySkills:THeroPrimarySkills;
+    FEmptySkills: THeroPrimarySkills;
 
     FCustomFemale: Boolean;
     FCustomPortrait: Int32;
@@ -132,6 +133,8 @@ type
 
     procedure LoadSkills;
     procedure ResetSkills;
+
+    procedure InitializePortraits;
 
     function GetHeroClass():AnsiString;
     procedure Load; override;
@@ -162,6 +165,14 @@ begin
   if not (key in DigitChars +[#8]) then
   begin
     Key:=#0;
+  end;
+end;
+
+procedure THeroFrame.edPortraitSelect(Sender: TObject);
+begin
+  if cbPortrait.Checked then
+  begin
+    FCustomPortrait:=edPortrait.ItemIndex;
   end;
 end;
 
@@ -252,7 +263,7 @@ begin
     FCustomExperience := GetDefaultExperience();
   cbExperienceChange(cbExperience);
 
-  cbPortrait.Checked:=FOptions.GetPortrait <> -1;
+  cbPortrait.Checked:=FOptions.GetPortrait() <> -1;
   if cbPortrait.Checked then
     FCustomPortrait := FOptions.GetPortrait()
   else
@@ -307,6 +318,15 @@ begin
   else
   begin
     FOptions.GetPrimarySkills.Clear;
+  end;
+
+  if cbPortrait.Checked then
+  begin
+    FOptions.SetPortrait(edPortrait.ItemIndex);
+  end
+  else
+  begin
+    FOptions.SetPortrait(-1);
   end;
 end;
 
@@ -482,16 +502,14 @@ procedure THeroFrame.cbPortraitChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
 
-  //todo:THeroFrame.cbPortraitChange
-
-  //if cbPortrait.Checked then
-  //begin
-  //  edPortrait.ItemIndex := FCustomPortrait;
-  //end
-  //else
-  //begin
-  //  edPortrait.ItemIndex := GetDefaultPortrait();
-  //end;
+  if cbPortrait.Checked then
+  begin
+    edPortrait.ItemIndex := FCustomPortrait;
+  end
+  else
+  begin
+    edPortrait.ItemIndex := GetDefaultPortrait();
+  end;
 end;
 
 procedure THeroFrame.cbSexChange(Sender: TObject);
@@ -579,6 +597,23 @@ begin
   Knowledge.Value  := src.Knowledge;
 end;
 
+procedure THeroFrame.InitializePortraits;
+var
+  src: THeroPortraitInfo;
+  dst: TComboExItem;
+  i: Integer;
+begin
+  edPortrait.ItemsEx.Clear;
+  for i := 0 to ListsManager.HeroPortraits.Count - 1 do
+  begin
+    src := ListsManager.HeroPortraits.Items[i];
+    dst := edPortrait.ItemsEx.Add;
+
+    dst.ImageIndex:= -1;//TODO: set actual image
+    dst.Caption:=src.Name;
+  end;
+end;
+
 function THeroFrame.GetHeroClass: AnsiString;
 begin
   if not Assigned(FHeroOptions) then
@@ -658,6 +693,8 @@ begin
   ListsManager.FillWithPlayers(edOwner.Items, False);
 
   FCustomSkills := THeroPrimarySkills.Create;
+
+  InitializePortraits;
 end;
 
 destructor THeroFrame.Destroy;

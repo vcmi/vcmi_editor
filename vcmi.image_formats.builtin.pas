@@ -1,5 +1,3 @@
-unit vcmi.image_loaders;
-
 { This file is a part of Map editor for VCMI project.
 
   Copyright (C) 2016 Alexander Shishkin alexvins@users.sourceforge.net
@@ -17,12 +15,14 @@ unit vcmi.image_loaders;
   Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 }
 
+unit vcmi.image_formats.builtin;
+
 {$I compilersetup.inc}
 
 interface
 
 uses
-  Classes, SysUtils, vcmi.image_formats.builtin, vcmi.image_formats.h3pcx;
+  FPReadBMP, FPReadJPEG, FPReadPNG, FPReadTGA, FPReadTiff;
 
 implementation
 

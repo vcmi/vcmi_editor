@@ -147,6 +147,7 @@ inherited HeroFrame: THeroFrame
     Images = RootManager.HeroIcons
     ItemHeight = 64
     ItemsEx = <>
+    OnSelect = edPortraitSelect
     ReadOnly = True
     TabOrder = 2
   end

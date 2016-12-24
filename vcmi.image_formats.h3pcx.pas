@@ -1,5 +1,3 @@
-unit vcmi.image_loaders;
-
 { This file is a part of Map editor for VCMI project.
 
   Copyright (C) 2016 Alexander Shishkin alexvins@users.sourceforge.net
@@ -17,14 +15,54 @@ unit vcmi.image_loaders;
   Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 }
 
+unit vcmi.image_formats.h3pcx;
+
 {$I compilersetup.inc}
 
 interface
 
 uses
-  Classes, SysUtils, vcmi.image_formats.builtin, vcmi.image_formats.h3pcx;
+  Classes, SysUtils, FPImage;
+
+type
+
+  { TReaderH3PCX }
+
+  TReaderH3PCX = class (TFPCustomImageReader)
+  protected
+    procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
+    function  InternalCheck (Str:TStream) : boolean; override;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+  end;
 
 implementation
+
+{ TReaderH3PCX }
+
+procedure TReaderH3PCX.InternalRead(Str: TStream; Img: TFPCustomImage);
+begin
+
+end;
+
+function TReaderH3PCX.InternalCheck(Str: TStream): boolean;
+begin
+
+end;
+
+constructor TReaderH3PCX.Create;
+begin
+  inherited Create;
+end;
+
+destructor TReaderH3PCX.Destroy;
+begin
+  inherited Destroy;
+end;
+
+initialization
+  ImageHandlers.RegisterImageReader ('H3 PCX Format', 'pcx', TReaderH3PCX);
 
 end.
 
