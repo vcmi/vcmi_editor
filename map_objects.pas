@@ -292,7 +292,7 @@ type
 
   { TObjectsManager }
 
-  TObjectsManager = class (TGraphicsCosnumer)
+  TObjectsManager = class (TGraphicsConsumer)
   strict private
     FMapObjectGroups: TMapObjectGroups;
 

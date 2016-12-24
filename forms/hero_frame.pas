@@ -404,7 +404,7 @@ end;
 function THeroFrame.GetDefaultPortrait: Int32;
 begin
   if Assigned(FHeroMapDefaults) and (FHeroMapDefaults.GetPortrait() <> -1) then
-     FHeroMapDefaults.GetPortrait()
+    Result := FHeroMapDefaults.GetPortrait()
   else if Assigned(FHeroTypeDefaults) then
     Result := FHeroTypeDefaults.GetPortrait()
   else
@@ -481,8 +481,17 @@ end;
 procedure THeroFrame.cbPortraitChange(Sender: TObject);
 begin
   CustomiseChange(Sender);
-  //todo: THeroFrame.cbPortraitChange
-//  UpdateText(edPortrait, cbPortrait, FCustomPortrait, GetDefaultPortrait);
+
+  //todo:THeroFrame.cbPortraitChange
+
+  //if cbPortrait.Checked then
+  //begin
+  //  edPortrait.ItemIndex := FCustomPortrait;
+  //end
+  //else
+  //begin
+  //  edPortrait.ItemIndex := GetDefaultPortrait();
+  //end;
 end;
 
 procedure THeroFrame.cbSexChange(Sender: TObject);

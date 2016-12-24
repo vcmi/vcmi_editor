@@ -464,6 +464,9 @@ type
     procedure SetType(AValue: AnsiString);
     procedure SetPatrolRadius(AValue: Integer);
     procedure SetTightFormation(AValue: Boolean);
+
+    procedure SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
+    function LoadHeroPortrait(ASrc: TJSONData):Int32;
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
@@ -472,7 +475,7 @@ type
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData); override;
 
     procedure Clear; override;
-  public//IHeroInfo
+  public//IEditableHeroInfo, IHeroInfo
     function GetHeroIdentifier: AnsiString;
 
     function GetBiography: TLocalizedString;
@@ -485,6 +488,7 @@ type
     procedure SetName(const AValue: TLocalizedString);
 
     function GetPortrait: Int32;
+    procedure SetPortrait(const AValue: Int32);
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -501,12 +505,14 @@ type
     property Biography: TLocalizedString read FBiography write SetBiography;
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Name: TLocalizedString read FName write SetName;
-    property Portrait: Int32 read FPortrait write FPortrait default -1;
     property PrimarySkills:THeroPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
     property SpellBook: TStrings read FSpellBook stored IsSpellBookStored;
   public //manual streaming
-     property Sex: THeroSex read FSex write SetSex;
+    property Sex: THeroSex read FSex write SetSex;
+    //internal icon index
+    //serialized as index in VCMI image list or as hero identifier
+    property Portrait: Int32 read FPortrait write FPortrait;
   end;
 
   { TNormalHeroOptions }
@@ -2372,6 +2378,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   SaveHeroSex(AData, Sex);
+  SaveHeroPortrait(AData, FPortrait);
 end;
 
 procedure THeroOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
@@ -2379,6 +2386,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   Sex:=LoadHeroSex(AData);
+  FPortrait:=LoadHeroPortrait(AData);
 end;
 
 procedure THeroOptions.Clear;
@@ -2486,6 +2494,11 @@ begin
   Result := FPortrait;
 end;
 
+procedure THeroOptions.SetPortrait(const AValue: Int32);
+begin
+  FPortrait:=AValue;
+end;
+
 procedure THeroOptions.SetPatrolRadius(AValue: Integer);
 begin
   FPatrolRadius:=AValue;
@@ -2499,6 +2512,16 @@ end;
 procedure THeroOptions.SetTightFormation(AValue: Boolean);
 begin
   Army.TightFormation:=AValue;
+end;
+
+procedure THeroOptions.SaveHeroPortrait(ADest: TJSONData; AValue: Int32);
+begin
+
+end;
+
+function THeroOptions.LoadHeroPortrait(ASrc: TJSONData): Int32;
+begin
+  result := -1;
 end;
 
 constructor THeroOptions.Create(AObject: IMapObject);

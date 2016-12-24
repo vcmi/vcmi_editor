@@ -129,7 +129,7 @@ type
 
   { TJsonResource }
 
-  TJsonResource = class (TBaseResource,IResource)
+  TJsonResource = class (TBaseResource, IResource)
   private
     FRoot: TJSONObject;
     destreamer: TVCMIJSONDestreamer;

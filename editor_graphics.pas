@@ -17,6 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
+
 unit editor_graphics;
 
 {$I compilersetup.inc}
@@ -85,7 +86,7 @@ type
   TDefFormatLoader = class (IResource)
   strict private
     const
-        INITIAL_BUFFER_SIZE = 32768;
+      INITIAL_BUFFER_SIZE = 32768;
 
     var
       FMode: TGraphicsLoadMode;
@@ -137,9 +138,9 @@ type
     function GetHeroFlagDef(APlayer: TPlayer): TDefAnimation;
   end;
 
-  { TGraphicsCosnumer }
+  { TGraphicsConsumer }
 
-  TGraphicsCosnumer = class abstract (TFSConsumer)
+  TGraphicsConsumer = class abstract (TFSConsumer)
   private
     FGraphicsManager: TGraphicsManager;
     procedure SetGraphicsManager(AValue: TGraphicsManager);
@@ -620,9 +621,9 @@ begin
   glBindTexture(GL_TEXTURE_2D, 0);
 end;
 
-{ TGraphicsCosnumer }
+{ TGraphicsConsumer }
 
-constructor TGraphicsCosnumer.Create(AOwner: TComponent);
+constructor TGraphicsConsumer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -632,7 +633,7 @@ begin
   end;
 end;
 
-procedure TGraphicsCosnumer.SetGraphicsManager(AValue: TGraphicsManager);
+procedure TGraphicsConsumer.SetGraphicsManager(AValue: TGraphicsManager);
 begin
   if FGraphicsManager = AValue then Exit;
   FGraphicsManager := AValue;

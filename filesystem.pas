@@ -964,6 +964,7 @@ procedure TFSManager.LoadResource(AResource: IResource;
 var
   it : TResIDToLocationMap.TIterator;
 begin
+  //todo: allow to merge (load from multiple locations) instread of override (f.e. json animation)
   it := SelectResource(AResType, AName);
 
   if not Assigned(it) then

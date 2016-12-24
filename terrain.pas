@@ -232,7 +232,7 @@ type
 
   { TTerrainManager }
 
-  TTerrainManager = class (TGraphicsCosnumer)
+  TTerrainManager = class (TGraphicsConsumer)
   private
     FTerrainDefs: array [TTerrainType] of TDefAnimation;
 

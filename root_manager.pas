@@ -34,6 +34,7 @@ type
   { TRootManager }
 
   TRootManager = class(TDataModule)
+    HeroIcons: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
@@ -61,6 +62,7 @@ type
     procedure DoLoadObjects(AMetaClass: AnsiString; ALoader: TLoadObjectProc);
 
     procedure LoadMapObjects;
+    procedure LoadHeroPortraits;
   public
     procedure InitComplete;
 
@@ -154,6 +156,9 @@ begin
   DoLoadObjects(SPELL_METACLASS, @FListsManager.LoadSpells);
 
   FListsManager.ProcessResolveRequests;
+  ProgressForm.NextStage('Loading hero portraits ...');
+  FListsManager.LoadHeroPortraits(ProgressForm);
+  LoadHeroPortraits;
 
   ProgressForm.NextStage('Loading terrain graphics ...');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
@@ -223,6 +228,26 @@ begin
     FObjManager.LoadObjects(ProgressForm, ObjectTypesConfig);
   finally
     ObjectTypesConfig.Free;
+  end;
+end;
+
+procedure TRootManager.LoadHeroPortraits;
+var
+  i, portrait_count: Integer;
+  info: THeroPortraitInfo;
+begin
+  portrait_count := FListsManager.HeroPortraits.Count;
+
+  for i := 0 to portrait_count - 1 do
+  begin
+    info :=  FListsManager.HeroPortraits[i];
+
+    //HeroIcons.Add();
+
+    if not info.IsEmpty then
+    begin
+
+    end;
   end;
 end;
 

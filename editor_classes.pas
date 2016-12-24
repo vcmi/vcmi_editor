@@ -262,7 +262,7 @@ type
     procedure SetName(const AValue: TLocalizedString);
     procedure SetSex(const AValue: THeroSex);
 
-    //todo: set portrait
+    procedure SetPortrait(const AValue: Int32);
   end;
 
   { TBaseIdentifierList }

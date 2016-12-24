@@ -67,7 +67,7 @@ type
     property Typ: TResourceType read FTyp;
     property Path: AnsiString read FPath;
 
-     procedure LoadFromStream(AStream: TStream); virtual; abstract;
+    procedure LoadFromStream(AStream: TStream); virtual; abstract;
 
     procedure Load(ALoader: IResourceLoader);
     function TryLoad(ALoader: IResourceLoader): Boolean;

@@ -6,4 +6,11 @@ object RootManager: TRootManager
   HorizontalOffset = 394
   VerticalOffset = 207
   Width = 302
+  object HeroIcons: TImageList
+    AllocBy = 16
+    Height = 64
+    Width = 58
+    left = 24
+    top = 16
+  end
 end

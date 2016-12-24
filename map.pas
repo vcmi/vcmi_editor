@@ -594,7 +594,6 @@ type
     function IsPrimarySkillsStored: Boolean;
     function IsSkillsStored: Boolean;
     function IsSpellBookStored: Boolean;
-    procedure SetPortrait(AValue: Int32);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -603,7 +602,7 @@ type
     procedure AfterDeSerialize(Sender: TObject; AData: TJSONData);
     procedure BeforeSerialize({%H-}Sender: TObject);
     procedure AfterSerialize(Sender: TObject; AData: TJSONData);
-  public//IHeroInfo
+  public//IEditableHeroInfo, IHeroInfo
     function GetHeroIdentifier: AnsiString;
 
     function GetBiography: TLocalizedString;
@@ -616,6 +615,7 @@ type
     procedure SetName(const AValue: TLocalizedString);
 
     function GetPortrait: Int32;
+    procedure SetPortrait(const AValue: Int32);
 
     function GetSex: THeroSex;
     procedure SetSex(const AValue: THeroSex);
@@ -1655,7 +1655,7 @@ begin
   FName:=AValue;
 end;
 
-procedure THeroDefinition.SetPortrait(AValue: Int32);
+procedure THeroDefinition.SetPortrait(const AValue: Int32);
 begin
   FPortrait:=AValue;
 end;
