@@ -1019,7 +1019,7 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.6.3.0'
   object pnTop: TPanel
     Left = 0
     Height = 34
@@ -1418,7 +1418,7 @@ object fMain: TfMain
     Align = alLeft
     ClientHeight = 767
     ClientWidth = 202
-    TabOrder = 3
+    TabOrder = 2
     object pnMinimap: TPanel
       Left = 1
       Height = 204
