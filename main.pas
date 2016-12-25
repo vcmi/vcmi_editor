@@ -89,6 +89,7 @@ type
     actFilterOther: TAction;
     actFilterCreatures: TAction;
     actFilterDwelling: TAction;
+    actFilterOnMap: TAction;
     actZoomOut: TAction;
     actZoomIn: TAction;
     actViewGrid: TAction;
@@ -176,6 +177,9 @@ type
     ToolButton18: TToolButton;
     ToolButton19: TToolButton;
     ToolButton20: TToolButton;
+    ToolButton21: TToolButton;
+    ToolButton22: TToolButton;
+    ToolButton23: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton7: TToolButton;
@@ -203,6 +207,7 @@ type
     procedure actFilterCreaturesExecute(Sender: TObject);
     procedure actFilterDwellingExecute(Sender: TObject);
     procedure actFilterHeroesExecute(Sender: TObject);
+    procedure actFilterOnMapExecute(Sender: TObject);
     procedure actFilterOtherExecute(Sender: TObject);
     procedure actFilterResourcesExecute(Sender: TObject);
     procedure actFilterStaticExecute(Sender: TObject);
@@ -632,6 +637,11 @@ end;
 procedure TfMain.actFilterHeroesExecute(Sender: TObject);
 begin
   DoObjectsCatSearch(TObjectCategory.Hero);
+end;
+
+procedure TfMain.actFilterOnMapExecute(Sender: TObject);
+begin
+  //
 end;
 
 procedure TfMain.actFilterOtherExecute(Sender: TObject);

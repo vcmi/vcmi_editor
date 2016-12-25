@@ -26,14 +26,13 @@ unit map_objects;
 interface
 
 uses
-  Classes, SysUtils, math, fgl, typinfo, FileUtil, LazUTF8, fpjson, editor_types,
-  filesystem_base, editor_graphics, editor_classes, h3_txt,
-  lists_manager, vcmi_json, editor_gl, contnrs, gset, gvector, RegExpr;
+  Classes, SysUtils, fgl, typinfo, FileUtil, LazUTF8, fpjson,
+  editor_types,  filesystem_base, editor_graphics, editor_classes, h3_txt,
+  lists_manager, vcmi_json, editor_gl, search_index;
 
 type
 
   TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
-
 
   TLegacyTemplateId = UInt64;
 
@@ -229,7 +228,7 @@ type
 
   { TObjectsSelection }
 
-  TObjectsSelection = class
+  TObjectsSelection = class(TObject, ISearchResult)
   private
     FData: TMapObjectTemplateList;
     function GetCount: Integer;
@@ -240,54 +239,8 @@ type
     procedure Clear;
     property Count:Integer read GetCount;
     property Objcts[AIndex: Integer]: TMapObjectTemplate read GetObjcts;
-  end;
-
-  { TObjTemplateCompare }
-
-  TObjTemplateCompare = class
-  public
-    class function c(a,b: TMapObjectTemplate): boolean;
-  end;
-
-  { TSearchIndexBusket }
-
-  TSearchIndexBusket = class
-  public
-    type
-      TDataVector = specialize gvector.TVector<TMapObjectTemplate>;
-      TBusketData = specialize gset.TSet<TMapObjectTemplate, TObjTemplateCompare>;
-    var
-      data: TBusketData;
-    constructor Create();
-    destructor Destroy; override;
-    procedure AddItem(AItem: TMapObjectTemplate);
-    procedure Intersect(ATarget:TBusketData);
-    procedure SaveTo(ATarget:TBusketData);
-  end;
-
-  { TSearchIndexMap }
-
-  TSearchIndexMap = class(specialize TFPGMap<string,TSearchIndexBusket>)
-  protected
-    procedure Deref(Item: Pointer); override;
-  public
-    constructor Create;
-
-    //true if found
-    function Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean; overload;
-  end;
-
-  { TSearchIndex }
-
-  TSearchIndex = class
-  private
-    FMap: TSearchIndexMap; //contains TSearchIndexBusket
-  public
-    constructor Create();
-    destructor Destroy; override;
-    procedure AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
-    procedure Find(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
-    procedure Intersect(AKeyWord: String; ATarget:TSearchIndexBusket.TBusketData);
+  public//ISearchResult
+    procedure Add(AObject: TObject);
   end;
 
   { TObjectsManager }
@@ -300,7 +253,6 @@ type
 
     FLegacyObjTypes: TLegacyIdMap;
     FProgress: IProgressCallback;
-    FTextTokenizer: TRegExpr;
     function TypToId(Typ,SubType: uint32):TLegacyTemplateId; inline;
     procedure LoadLegacy(AProgressCallback: IProgressCallback; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
     procedure MergeLegacy(ACombinedConfig: TJSONObject; AFullIdToDefMap: TLegacyObjConfigFullIdMap);
@@ -345,233 +297,6 @@ uses
 const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
-
-  function CompareStringProxy(const s1,s2: string): integer;
-  begin
-    Result := UTF8CompareStr(s1, s2);
-  end;
-
-  function CompareSearchIndexBusket(const d1,d2: TSearchIndexBusket): integer;
-  begin
-    Result := PtrInt(d1) - PtrInt(d2);
-  end;
-
-{ TSearchIndexMap }
-
-procedure TSearchIndexMap.Deref(Item: Pointer);
-begin
-  Finalize(string(Item^));
-  TSearchIndexBusket(Pointer(PByte(Item)+KeySize)^).Free;
-end;
-
-constructor TSearchIndexMap.Create;
-begin
-  inherited Create;
-  OnKeyCompare := @CompareStringProxy;
-  OnDataCompare := @CompareSearchIndexBusket;
-
-  Sorted := True;
-  Duplicates:=dupError;
-end;
-
-function TSearchIndexMap.Find(AKeyWord: String; out IdxLow: integer; out IdxHigh: integer): boolean;
-
-  function PartialMatched(idx: integer): boolean;
-  begin
-    result := UTF8Pos(AKeyWord,Keys[idx]) = 1;
-  end;
-
-begin
-  IdxLow := -1;
-  IdxHigh := -1;
-
-  if Find(AKeyWord, IdxLow) then
-  begin
-    IdxHigh:=IdxLow;
-    Result := true;
-  end
-  else
-  begin
-    //find firts true partial match
-
-    while (IdxLow < Count) and not PartialMatched(IdxLow) do
-    begin
-      Inc(IdxLow);
-    end;
-
-    if IdxLow >= Count then
-    begin
-      IdxLow := -1;
-      IdxHigh := -1;
-
-      Result := false;
-      Exit;
-    end;
-
-    //find end of matched region
-
-    IdxHigh:=IdxLow;
-
-    while (IdxHigh < Count) and PartialMatched(IdxHigh) do
-    begin
-      Inc(IdxHigh);
-    end;
-
-    IdxHigh:=Min(IdxHigh-1, Count-1);
-    Result := true;
-  end;
-end;
-
-{ TObjTemplateCompare }
-
-class function TObjTemplateCompare.c(a, b: TMapObjectTemplate): boolean;
-begin
-  Result := PtrInt(a) < PtrInt(b);
-end;
-
-{ TSearchIndexBusket }
-
-constructor TSearchIndexBusket.Create;
-begin
-  data := TBusketData.Create;
-end;
-
-destructor TSearchIndexBusket.Destroy;
-begin
-  data.Free;
-  inherited Destroy;
-end;
-
-procedure TSearchIndexBusket.AddItem(AItem: TMapObjectTemplate);
-begin
-  data.Insert(AItem);
-end;
-
-procedure TSearchIndexBusket.SaveTo(ATarget: TBusketData);
-var
-  it: TBusketData.TIterator;
-begin
-  it := data.Min;
-
-  if Assigned(it) then
-  begin
-    repeat
-      ATarget.Insert(it.Data);
-    until not it.Next;
-    it.free;
-  end;
-end;
-
-procedure TSearchIndexBusket.Intersect(ATarget: TBusketData);
-var
-  it: TBusketData.TIterator;
-  n: TBusketData.PNode;
-  to_delete: TDataVector;
-  i: SizeInt;
-begin
-  to_delete := TDataVector.Create;
-
-  it := ATarget.Min;
-
-  if Assigned(it) then
-  begin
-    repeat
-      n := data.NFind(it.Data);
-
-      if not Assigned(n) then
-      begin
-        to_delete.PushBack(it.data);
-      end;
-    until not it.Next;
-    it.free;
-  end;
-
-  for i := 0 to SizeInt(to_delete.Size) - 1 do
-  begin
-    ATarget.Delete(to_delete.Items[i]);
-  end;
-
-  to_delete.Free;
-end;
-
-{ TSearchIndex }
-
-constructor TSearchIndex.Create;
-begin
-  FMap := TSearchIndexMap.Create();
-end;
-
-destructor TSearchIndex.Destroy;
-begin
-  FMap.Free;
-  inherited Destroy;
-end;
-
-procedure TSearchIndex.AddToIndex(AKeyWord: String; AItem: TMapObjectTemplate);
-var
-  busket: TSearchIndexBusket;
-  idx: Integer;
-begin
-  idx := -1;
-
-  if not Fmap.Find(AKeyWord, idx) then
-  begin
-    busket := TSearchIndexBusket.Create();
-    FMap.Add(AKeyWord, busket);
-  end
-  else
-  begin
-    busket := FMap.Data[idx];
-  end;
-
-  busket.AddItem(AItem);
-end;
-
-procedure TSearchIndex.Find(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
-var
-  idx_low, idx_high, i: Integer;
-begin
-  idx_low := -1;
-  idx_high := -1;
-
-  if Fmap.Find(AKeyWord, idx_low, idx_high)then
-  begin
-    for i := idx_low to idx_high do
-    begin
-      FMap.Data[i].SaveTo(ATarget);
-    end;
-  end;
-end;
-
-procedure TSearchIndex.Intersect(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
-var
-  idx_low, idx_high, i: Integer;
-
-  temp : TSearchIndexBusket;
-begin
-  idx_low := -1;
-  idx_high := -1;
-
-  if Fmap.Find(AKeyWord, idx_low, idx_high)then
-  begin
-    temp := TSearchIndexBusket.Create;
-
-    for i := idx_low to idx_high do
-    begin
-      FMap.Data[i].SaveTo(temp.data);
-    end;
-
-    temp.Intersect(ATarget);
-    temp.Free;
-  end
-  else
-  begin
-    while not ATarget.IsEmpty do
-    begin
-      ATarget.Delete(ATarget.NMin^.Data);
-    end;
-  end;
-end;
 
 { TMaskResource }
 
@@ -650,6 +375,11 @@ end;
 procedure TObjectsSelection.Clear;
 begin
   FData.Clear;
+end;
+
+procedure TObjectsSelection.Add(AObject: TObject);
+begin
+  FData.Add(TMapObjectTemplate(AObject));
 end;
 
 { TMapObjectGroup }
@@ -901,10 +631,6 @@ begin
   FMapObjectGroups := TMapObjectGroups.Create;
   FLegacyObjTypes := TLegacyIdMap.Create;
 
-
-  FTextTokenizer := TRegExpr.Create('[_\-\s\.:]+');
-  FTextTokenizer.Compile;
-
   for index in TObjectCategory do
     FSearchIndexes[index] := TSearchIndex.Create();
 end;
@@ -913,8 +639,6 @@ destructor TObjectsManager.Destroy;
 var
   index: TSearchIndex;
 begin
-  FTextTokenizer.Free;
-
   for index in FSearchIndexes do
     index.Free;
 
@@ -1054,11 +778,6 @@ begin
 end;
 
 procedure TObjectsManager.SelectByKeywords(ATarget: TObjectsSelection; AInput: string; ACategory: TObjectCategory);
-var
-  keywords: TStringList;
-  data: TSearchIndexBusket.TBusketData;
-  i: Integer;
-  it: TSearchIndexBusket.TBusketData.TIterator;
 begin
   ATarget.Clear;
 
@@ -1067,43 +786,12 @@ begin
   if AInput = '' then
   begin
     SelectAll(ATarget, ACategory);
-    Exit;
-  end;
-
-  data := TSearchIndexBusket.TBusketData.Create;
-
-  keywords := TStringList.Create;
-  keywords.Sorted:=true;
-  keywords.Duplicates:=dupIgnore;
-
-  FTextTokenizer.Split(AInput, keywords);
-
-  FSearchIndexes[ACategory].Find(keywords[0], data);
-
-  if not data.IsEmpty() then
+  end
+  else
   begin
-    for i := 1 to keywords.Count - 1 do
-    begin
-      FSearchIndexes[ACategory].Intersect(keywords[i], data);
-      if data.IsEmpty then
-        break;
-    end;
+    FSearchIndexes[ACategory].Find(AInput, ATarget);
   end;
-
-  it := data.Min;
-
-  if Assigned(it) then
-  begin
-    repeat
-      ATarget.FData.Add(it.Data);
-    until not it.Next;
-    it.free;
-  end;
-
-  data.Free;
-  keywords.Free;
 end;
-
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TMapObjectType;
 var
@@ -1137,16 +825,14 @@ procedure TObjectsManager.BuildIndex(ACategory: TObjectCategory);
   end;
 var
   idx: SizeInt;
-  keyword, s: string;
+  s: string;
   keywords: TStringList;
-  i: Integer;
   obj_type: TMapObjectGroup;
   obj_subtype: TMapObjectType;
   obj: TMapObjectTemplate;
 
   FAllTemplates: TMapObjectTemplateList;
 begin
-
   FAllTemplates := TMapObjectTemplateList.Create(false);
 
   FillWithAllObjects(FAllTemplates, @filter_stub);
@@ -1167,30 +853,22 @@ begin
 
     if obj.Meta <> '' then
     begin
-      keyword := NormalizeKeyWord(obj.Meta);
-      FTextTokenizer.Split(keyword, keywords)
+      keywords.Add(obj.Meta);
     end;
 
     obj_type := obj.MapObjectGroup;
     if obj_type.Name <> '' then
-      keyword := obj_type.Name
+      keywords.Add(obj_type.Name)
     else
-      keyword := obj_type.Identifier;
-    keyword := NormalizeKeyWord(keyword);
-    FTextTokenizer.Split(keyword, keywords);
+      keywords.Add(obj_type.Identifier);
 
     obj_subtype := obj.MapObjectType;
     if obj_subtype.Name <> '' then
-      keyword := obj_subtype.Name
+      keywords.Add(obj_subtype.Name)
     else
-      keyword := obj_subtype.Identifier;
-    keyword := NormalizeKeyWord(keyword);
-    FTextTokenizer.Split(keyword, keywords);
+      keywords.Add(obj_subtype.Identifier);
 
-    for i := 0 to keywords.Count - 1 do
-    begin
-      FSearchIndexes[ACategory].AddToIndex(keywords[i], obj);
-    end;
+    FSearchIndexes[ACategory].AddToIndex(keywords, obj);
   end;
   keywords.Free;
   FAllTemplates.Free;

@@ -235,7 +235,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="93">
+    <Units Count="94">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -720,6 +720,10 @@
         <Filename Value="vcmi.image_formats.h3pcx.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit92>
+      <Unit93>
+        <Filename Value="search_index.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit93>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

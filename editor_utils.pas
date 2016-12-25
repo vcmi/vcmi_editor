@@ -54,7 +54,7 @@ type
   function NormalizeModId(AModId: TModId): TModId;
 
   function NormalizeResourceName(const AName: string): string;
-  function NormalizeKeyWord(const AName: string): string;
+  function NormalizeKeyWord(const AValue: string): string;
 
   function StripScope(const AIdentifier: string): string;
 
@@ -66,10 +66,17 @@ type
   function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out AIdentifier: AnsiString): Boolean;
   function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
 
+  function CompareStringProxy(const s1,s2: string): integer;
+
 implementation
 
 uses
   FileUtil;
+
+function CompareStringProxy(const s1,s2: string): integer;
+begin
+  Result := UTF8CompareStr(s1, s2);
+end;
 
 function ExtractModID(AIdentifier:AnsiString): AnsiString;
 var
@@ -140,9 +147,9 @@ begin
   Result := ExtractFileNameWithoutExt(Result);
 end;
 
-function NormalizeKeyWord(const AName: string): string;
+function NormalizeKeyWord(const AValue: string): string;
 begin
-  result := UTF8LowerCase(UTF8Trim(AName));
+  result := UTF8LowerCase(UTF8Trim(AValue));
 end;
 
 function StripScope(const AIdentifier: string): string;
