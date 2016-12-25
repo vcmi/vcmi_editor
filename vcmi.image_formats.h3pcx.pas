@@ -39,6 +39,7 @@ var
   procedure InitBitmap();
   begin
     bmp := ADest.Bitmap;
+    bmp.PixelFormat:=pfDevice;
     bmp.SetSize(width, height);
   end;
 
@@ -69,7 +70,7 @@ var
 
   procedure LoadH3Pcx8();
   var
-    inft_image: TLazIntfImage;
+    intf_image: TLazIntfImage;
     initial_pos: Int64;
     c: TH3DefColor;
     buffer: packed array of byte;
@@ -77,11 +78,10 @@ var
     p: PByte;
   begin
     InitBitmap();
-    bmp.BeginUpdate();
-    inft_image := bmp.CreateIntfImage;
+    intf_image := bmp.CreateIntfImage;
     try
-      inft_image.UsePalette:=true;
-      inft_image.Palette.Create(256);
+      intf_image.UsePalette:=true;
+      intf_image.Palette.Create(256);
       initial_pos := ASourceStream.Position;
 
       //load palette from end of file
@@ -91,7 +91,7 @@ var
       begin
         ASourceStream.Read(c, 3);
 
-        inft_image.Palette.Color[i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
+        intf_image.Palette.Color[i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
       end;
 
       //load graphics itself
@@ -107,16 +107,14 @@ var
       begin
         for j := 0 to width - 1 do
         begin
-          inft_image.Pixels[j, i] := p^;
+          intf_image.Pixels[j, i] := p^;
           inc(p);
         end;
       end;
-      bmp.LoadFromIntfImage(inft_image);
+      bmp.LoadFromIntfImage(intf_image);
     finally
-      inft_image.Free;
-      bmp.EndUpdate()
+      intf_image.Free;
     end;
-
   end;
 
 begin
