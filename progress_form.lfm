@@ -7,12 +7,12 @@ object ProgressForm: TProgressForm
   Caption = 'ProgressForm'
   ClientHeight = 320
   ClientWidth = 514
-  FormStyle = fsStayOnTop
+  FormStyle = fsSplash
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.6.3.0'
   object pbDetail: TProgressBar
     Left = 16
     Height = 20
