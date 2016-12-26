@@ -31,9 +31,6 @@ uses
   lists_manager, vcmi_json, editor_gl, search_index;
 
 type
-
-  TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
-
   TLegacyTemplateId = UInt64;
 
   TDefBitmask = packed array[0..5] of uint8; //top to bottom, right to left as in H3M
@@ -169,6 +166,7 @@ type
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     class function UseMeta: boolean; override;
     function HasFilters: Boolean;
+    procedure GetKeyWords(ATarget: TStrings);
   published
     property Index: TCustomID read GetIndexAsID write SetIndexAsID default ID_INVALID;
     property Templates:TMapObjectTemplates read FTemplates;
@@ -231,16 +229,17 @@ type
   TObjectsSelection = class(TObject, ISearchResult)
   private
     FData: TMapObjectTemplateList;
-    function GetCount: Integer;
     function GetObjcts(AIndex: Integer): TMapObjectTemplate;
   public
     constructor Create();
     destructor Destroy; override;
-    procedure Clear;
-    property Count:Integer read GetCount;
+
     property Objcts[AIndex: Integer]: TMapObjectTemplate read GetObjcts;
   public//ISearchResult
     procedure Add(AObject: TObject);
+    procedure Clear;
+    function GetCount: Integer;
+    procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer);
   end;
 
   { TObjectsManager }
@@ -278,14 +277,12 @@ type
     procedure LoadObjects(AProgressCallback: IProgressCallback; APaths: TModdedConfigPaths);
     property MapObjectGroups: TMapObjectGroups read FMapObjectGroups;
 
-    procedure SelectAll(ATarget: TObjectsSelection; ACategory: TObjectCategory);
-
     // AInput = space separated words
     procedure SelectByKeywords(ATarget: TObjectsSelection; AInput: string; ACategory: TObjectCategory);
     function ResolveLegacyID(Typ,SubType: uint32):TMapObjectType;
 
     procedure BuildIndex();
-    function FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
+    function FormatObjectName(AType, ASubtype: AnsiString): TLocalizedString;
   end;
 
 implementation
@@ -354,6 +351,14 @@ end;
 function TObjectsSelection.GetCount: Integer;
 begin
   Result := FData.Count;
+end;
+
+procedure TObjectsSelection.RenderIcon(AIndex: SizeInt; AState: TLocalState; AX, AY, dim: integer; color: TPlayer);
+var
+  o_def: TMapObjectTemplate;
+begin
+  o_def := FData.Items[AIndex];
+  o_def.RenderIcon(AState, AX, AY, dim, color);
 end;
 
 function TObjectsSelection.GetObjcts(AIndex: Integer): TMapObjectTemplate;
@@ -505,6 +510,24 @@ end;
 function TMapObjectType.HasFilters: Boolean;
 begin
   Result := FFilters.Count <> 0;
+end;
+
+procedure TMapObjectType.GetKeyWords(ATarget: TStrings);
+begin
+  if Meta <> '' then
+  begin
+    ATarget.Add(Meta);
+  end;
+
+  if FMapObjectGroup.Name <> '' then
+    ATarget.Add(FMapObjectGroup.Name)
+  else
+    ATarget.Add(FMapObjectGroup.Identifier);
+
+  if Name <> '' then
+    ATarget.Add(Name)
+  else
+    ATarget.Add(Identifier);
 end;
 
 { TMapObjectTemplate }
@@ -765,32 +788,9 @@ begin
   end;
 end;
 
-procedure TObjectsManager.SelectAll(ATarget: TObjectsSelection; ACategory: TObjectCategory);
-
-  function filter(Aobject: TMapObjectGroup): Boolean;
-  begin
-    Result := Aobject.Category = ACategory;
-  end;
-
-begin
-  ATarget.Clear;
-  FillWithAllObjects(ATarget.FData, @filter);
-end;
-
 procedure TObjectsManager.SelectByKeywords(ATarget: TObjectsSelection; AInput: string; ACategory: TObjectCategory);
 begin
-  ATarget.Clear;
-
-  AInput := UTF8Trim(UTF8LowerCase(AInput));
-
-  if AInput = '' then
-  begin
-    SelectAll(ATarget, ACategory);
-  end
-  else
-  begin
-    FSearchIndexes[ACategory].Find(AInput, ATarget);
-  end;
+  FSearchIndexes[ACategory].Find(AInput, ATarget);
 end;
 
 function TObjectsManager.ResolveLegacyID(Typ, SubType: uint32): TMapObjectType;
@@ -827,8 +827,6 @@ var
   idx: SizeInt;
   s: string;
   keywords: TStringList;
-  obj_type: TMapObjectGroup;
-  obj_subtype: TMapObjectType;
   obj: TMapObjectTemplate;
 
   FAllTemplates: TMapObjectTemplateList;
@@ -838,8 +836,8 @@ begin
   FillWithAllObjects(FAllTemplates, @filter_stub);
 
   keywords := TStringList.Create;
-  keywords.Sorted:=true;
-  keywords.Duplicates:=dupIgnore;
+  keywords.Sorted:=false;
+  keywords.Duplicates:=dupAccept;
 
   for idx := 0 to FAllTemplates.Count - 1 do
   begin
@@ -856,17 +854,7 @@ begin
       keywords.Add(obj.Meta);
     end;
 
-    obj_type := obj.MapObjectGroup;
-    if obj_type.Name <> '' then
-      keywords.Add(obj_type.Name)
-    else
-      keywords.Add(obj_type.Identifier);
-
-    obj_subtype := obj.MapObjectType;
-    if obj_subtype.Name <> '' then
-      keywords.Add(obj_subtype.Name)
-    else
-      keywords.Add(obj_subtype.Identifier);
+    obj.MapObjectType.GetKeyWords(keywords);
 
     FSearchIndexes[ACategory].AddToIndex(keywords, obj);
   end;
@@ -874,7 +862,7 @@ begin
   FAllTemplates.Free;
 end;
 
-function TObjectsManager.FormatObjectName(AType, ASybtype: AnsiString): TLocalizedString;
+function TObjectsManager.FormatObjectName(AType, ASubtype: AnsiString): TLocalizedString;
 var
   group: TMapObjectGroup;
   tp: TMapObjectType;
@@ -886,17 +874,19 @@ begin
   group := FMapObjectGroups.FindItem(AType);
 
   group_name := AType;
+  tp_name :=  ASubtype;
 
   if Assigned(group) then
   begin
-    group_name := group.DisplayName
-  end;
+    group_name := group.DisplayName;
 
-  tp := group.Types.FindItem(ASybtype);
+    tp := group.Types.FindItem(ASubtype);
 
-  if Assigned(tp) then
-  begin
-    tp_name := tp.DisplayName
+    if Assigned(tp) then
+    begin
+      tp_name := tp.DisplayName
+    end;
+
   end;
 
   Result := Format('%s:%s',[group_name, tp_name]);

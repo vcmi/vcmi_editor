@@ -27,7 +27,7 @@ uses
   {$ENDIF}{$ENDIF}
   sysutils,
   Interfaces, // this includes the LCL widgetset
-  Forms, main, root_manager, search_index;
+  Forms, main, root_manager;
 
 {$R *.res}
 

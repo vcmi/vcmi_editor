@@ -22,13 +22,20 @@ unit search_index;
 interface
 
 uses
-  Classes, SysUtils, fgl, gset, gvector, math, RegExpr, LazUTF8, editor_utils;
+  Classes, SysUtils, fgl, gset, gvector, math, RegExpr, LazUTF8, editor_utils, editor_types,  editor_gl;
 
 type
   {$INTERFACES CORBA}
 
+  { ISearchResult }
+
   ISearchResult = interface
     procedure Add(AObject: TObject);
+    procedure Clear;
+      function GetCount: SizeInt;
+    property Count: SizeInt read GetCount;
+
+    procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer);
   end;
 
   { TObjPtrLess }
@@ -50,6 +57,7 @@ type
     constructor Create();
     destructor Destroy; override;
     procedure AddItem(AItem: TObject);
+    procedure RemoveItem(AItem: TObject);
     procedure Intersect(ATarget:TBusketData);
     procedure SaveTo(ATarget:TBusketData);
   end;
@@ -70,18 +78,25 @@ type
 
   TSearchIndex = class
   private
+  type
+    TObjectsSet = specialize TSet<TObject, TObjPtrLess>;
+  private
+    FAll: TObjectsSet;
     FMap: TSearchIndexMap;
     FTextTokenizer: TRegExpr;
     procedure AddToIndex(AKeyWord: String; AItem: TObject);
+    procedure Find(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
+    procedure Intersect(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
+
+    procedure SelectAll(AResult: ISearchResult);
   public
     constructor Create();
     destructor Destroy; override;
 
-    procedure Find(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
-    procedure Intersect(AKeyWord: String; ATarget: TSearchIndexBusket.TBusketData);
-
     procedure AddToIndex(ARawKeyWords: TStrings; AItem: TObject);
+    procedure RemoveFromIndex(AItem: TObject);
 
+    // AInput = space separated words or empty string to get all
     procedure Find(AInput: string; AResult: ISearchResult);
   end;
 
@@ -99,10 +114,12 @@ begin
   FMap := TSearchIndexMap.Create();
   FTextTokenizer := TRegExpr.Create('[_\-\s\.:]+');
   FTextTokenizer.Compile;
+  FAll := TObjectsSet.Create;
 end;
 
 destructor TSearchIndex.Destroy;
 begin
+  FAll.Free;
   FTextTokenizer.Free;
   FMap.Free;
   inherited Destroy;
@@ -178,6 +195,8 @@ var
   keywords: TStringList;
   RawKeyWord, KeyWord: String;
 begin
+  FAll.Insert(AItem);
+
   keywords := TStringList.Create;
   keywords.Sorted:=true;
   keywords.Duplicates:=dupIgnore;
@@ -199,6 +218,19 @@ begin
   end;
 end;
 
+procedure TSearchIndex.RemoveFromIndex(AItem: TObject);
+var
+  i: Integer;
+begin
+  FAll.Delete(AItem);
+  //TODO: optimize
+
+  for i := 0 to FMap.Count - 1 do
+  begin
+    FMap.Data[i].RemoveItem(AItem);
+  end;
+end;
+
 procedure TSearchIndex.Find(AInput: string; AResult: ISearchResult);
 var
   keywords: TStringList;
@@ -206,7 +238,14 @@ var
   i: Integer;
   it: TSearchIndexBusket.TBusketData.TIterator;
 begin
+  AResult.Clear;
   AInput := UTF8Trim(UTF8LowerCase(AInput));
+
+  if AInput = '' then
+  begin
+    SelectAll(AResult);
+    Exit;
+  end;
 
   data := TSearchIndexBusket.TBusketData.Create;
 
@@ -240,6 +279,22 @@ begin
 
   data.Free;
   keywords.Free;
+end;
+
+procedure TSearchIndex.SelectAll(AResult: ISearchResult);
+var
+  it: TObjectsSet.TIterator;
+begin
+  AResult.Clear;
+  it := FAll.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      AResult.Add(it.Data);
+    until not it.Next;
+    it.free;
+  end;
 end;
 
 { TSearchIndexMap }
@@ -324,6 +379,11 @@ end;
 procedure TSearchIndexBusket.AddItem(AItem: TObject);
 begin
    data.Insert(AItem);
+end;
+
+procedure TSearchIndexBusket.RemoveItem(AItem: TObject);
+begin
+  data.Delete(AItem);
 end;
 
 procedure TSearchIndexBusket.Intersect(ATarget: TBusketData);

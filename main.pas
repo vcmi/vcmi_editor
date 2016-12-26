@@ -29,7 +29,7 @@ uses
   ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
   map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect, map_format_json,
+  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect, map_format_json, search_index,
   player_options_form, edit_triggered_events, player_selection_form,
   types;
 
@@ -282,6 +282,7 @@ type
     procedure ObjectsSearchButtonClick(Sender: TObject);
     procedure ObjectsSearchChange(Sender: TObject);
     procedure ObjectsSearchEditingDone(Sender: TObject);
+    procedure ObjectsViewClick(Sender: TObject);
     procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -359,6 +360,7 @@ type
     FObjectCategory: TObjectCategory;
 
     FTemplatesSelection: TObjectsSelection;
+    FMapObjectsSelection: TMapObjectsSelection;
 
     FVisibleObjectsValid: boolean;
     FVisibleObjects: TMapObjectList;
@@ -366,12 +368,10 @@ type
     FObjectCount: integer;
     FObjectRows: integer;
     FObjectReminder: integer;
-
     FObjectsVPos: Integer;
     FViewObjectRowsH: Integer;
 
     FDragging: TDragProxy;
-
     FSelectedObject: TMapObject;
 
     FMapDragging: boolean;
@@ -385,6 +385,7 @@ type
     FAnimTick: int64;
 
     function GetObjIdx(col, row:integer): integer;
+    function GetActiveSelection: ISearchResult;
 
     function getMapHeight: Integer;
     function getMapWidth: Integer;
@@ -400,6 +401,7 @@ type
     procedure SetTileSize(ASize: Integer);
 
     procedure MapScrollByMinimap(x,y: integer);
+    procedure MapScrollToObject(AObject:TMapObject);
     procedure SetMapPosition(APosition:TPoint);
     procedure SetMapViewMouse(x,y: integer);
 
@@ -411,9 +413,7 @@ type
     procedure MapChanded;
 
     procedure DoSetMapLevelIndex(ANewIndex: Integer);
-
     procedure DoMapLevelWheelScroll(WheelDelta: Integer);
-
     procedure DoMapViewWheelScroll(sb: TScrollBar;Shift: TShiftState; WheelDelta: Integer;MousePos: TPoint);
 
     procedure PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
@@ -437,7 +437,7 @@ type
 
     procedure DoObjectsSearch();
     procedure DoObjectsCatSearch(ACategory: TObjectCategory);
-
+    procedure UndoManagerOnActionPerformed(AItem: TAbstractUndoItem);
   protected
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
@@ -641,7 +641,7 @@ end;
 
 procedure TfMain.actFilterOnMapExecute(Sender: TObject);
 begin
-  //
+  DoObjectsSearch();
 end;
 
 procedure TfMain.actFilterOtherExecute(Sender: TObject);
@@ -1005,6 +1005,7 @@ begin
   FMinimap := TMinimap.Create(Self);
 
   FUndoManager.OnRegionInvalidated := @FMinimap.InvalidateRegion;
+  FUndoManager.OnActionPerformed:=@UndoManagerOnActionPerformed;
 
   FMap := TVCMIMap.CreateDefault(FEnv);
 
@@ -1029,8 +1030,7 @@ begin
   FObjectCategory:=TObjectCategory.Hero;
 
   FTemplatesSelection := TObjectsSelection.Create();
-
-  FObjManager.SelectAll(FTemplatesSelection, FObjectCategory);
+  FMapObjectsSelection := TMapObjectsSelection.Create();
 
   FMapViewState := TLocalState.Create(MapView);
   FObjectsViewState := TLocalState.Create(ObjectsView);
@@ -1076,7 +1076,7 @@ begin
   end;
 
   MapChanded;
-  InvalidateObjects;
+  DoObjectsSearch();
   UpdateWidgets;
 
   SetZoomIndex(3);
@@ -1092,6 +1092,7 @@ begin
 
   FUndoManager.Free;
 
+  FreeAndNil(FMapObjectsSelection);
   FreeAndNil(FTemplatesSelection);
   FreeAndNil(FVisibleObjects);
 end;
@@ -1146,6 +1147,18 @@ end;
 function TfMain.GetObjIdx(col, row: integer): integer;
 begin
    result := col + FObjectsPerRow * (row + FObjectsVPos);
+end;
+
+function TfMain.GetActiveSelection: ISearchResult;
+begin
+  if actFilterOnMap.Checked then
+  begin
+    Result := FMapObjectsSelection;
+  end
+  else
+  begin
+    Result := FTemplatesSelection;
+  end;
 end;
 
 procedure TfMain.HorisontalAxisPaint(Sender: TObject);
@@ -1241,8 +1254,12 @@ begin
 end;
 
 procedure TfMain.InvalidateObjects;
+var
+  ActiveSelection: ISearchResult;
 begin
-  FObjectCount := FTemplatesSelection.Count;
+  ActiveSelection :=  GetActiveSelection;
+
+  FObjectCount := ActiveSelection.Count;
 
   FObjectRows := FObjectCount div 3;
   FObjectReminder := FObjectCount mod 3;
@@ -1341,6 +1358,14 @@ begin
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
   InvalidateMapContent;
+
+  FMapObjectsSelection.Clear;
+
+  if actFilterOnMap.Checked then
+  begin
+    InvalidateObjects;
+  end;
+
   FUndoManager.Map := FMap;
   SetupLevelSelection;
 end;
@@ -1729,6 +1754,21 @@ begin
   SetMapPosition(pos);
 end;
 
+procedure TfMain.MapScrollToObject(AObject: TMapObject);
+var
+  pos: TPoint;
+begin
+  DoSetMapLevelIndex(AObject.L);
+  pos.x:=AObject.X;
+  pos.y:=AObject.Y;
+
+  pos.x := pos.x - FViewTilesH div 2;
+  pos.y := pos.y - FViewTilesV div 2;
+
+  FSelectedObject := AObject;
+  SetMapPosition(pos);
+end;
+
 procedure TfMain.MinimapMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
@@ -1767,6 +1807,10 @@ begin
   DoObjectsSearch();
 end;
 
+procedure TfMain.ObjectsViewClick(Sender: TObject);
+begin
+
+end;
 
 procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
@@ -1832,6 +1876,7 @@ var
   col: Integer;
   row: Integer;
   o_idx: Integer;
+  obj: TMapObject;
 begin
   col := x div FObjectCellTotalSize;
   row := y div FObjectCellTotalSize;
@@ -1840,9 +1885,18 @@ begin
 
   if (Button = TMouseButton.mbLeft) and (o_idx < FObjectCount) then
   begin
-    FNextDragSubject:=TDragSubject.MapTemplate;
-    FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
-    DragManager.DragStart(self, False,10); //after state change
+    if actFilterOnMap.Checked then
+    begin
+      obj := FMapObjectsSelection.Objcts[o_idx];
+      MapScrollToObject(obj);
+    end
+    else
+    begin
+      FNextDragSubject:=TDragSubject.MapTemplate;
+      FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
+      DragManager.DragStart(self, False,10); //after state change
+    end;
+
     FActiveBrush := FIdleBrush;
   end;
 end;
@@ -1854,9 +1908,9 @@ var
   row: Integer;
   col: Integer;
   o_idx: Integer;
-  o_def: TMapObjectTemplate;
   cx: Integer;
   cy, sh: Integer;
+  ActiveSelection: ISearchResult;
 begin
   if not FObjectsViewState.StartFrame then
   begin
@@ -1909,6 +1963,8 @@ begin
 
   cy := 0;
 
+  ActiveSelection := GetActiveSelection();
+
   for row := 0 to FViewObjectRowsH + 1 do
   begin
     cx := 0;
@@ -1919,8 +1975,7 @@ begin
       if o_idx >= FObjectCount then
         break;
 
-      o_def := FTemplatesSelection.Objcts[o_idx];
-      o_def.RenderIcon(FObjectsViewState, cx+FObjectBorderWidth, cy+FObjectBorderWidth, FObjectCellSize, FCurrentPlayer);
+      ActiveSelection.RenderIcon(o_idx,FObjectsViewState, cx+FObjectBorderWidth, cy+FObjectBorderWidth, FObjectCellSize, FCurrentPlayer);
       cx += FObjectCellTotalSize;
     end;
 
@@ -2271,7 +2326,23 @@ end;
 procedure TfMain.DoObjectsSearch;
 begin
   SearchTimer.Enabled:=false;
-  FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text, FObjectCategory);
+
+  if actFilterOnMap.Checked then
+  begin
+    if Assigned(FMap) then
+    begin
+      FMap.SelectByKeywords(FMapObjectsSelection, ObjectsSearch.Text, FObjectCategory);
+    end
+    else
+    begin
+      FMapObjectsSelection.Clear;
+    end;
+  end
+  else
+  begin
+    FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text, FObjectCategory);
+  end;
+
   InvalidateObjects;
 end;
 
@@ -2279,6 +2350,14 @@ procedure TfMain.DoObjectsCatSearch(ACategory: TObjectCategory);
 begin
   FObjectCategory := ACategory;
   DoObjectsSearch();
+end;
+
+procedure TfMain.UndoManagerOnActionPerformed(AItem: TAbstractUndoItem);
+begin
+  if actFilterOnMap.Checked then
+  begin
+    DoObjectsSearch;
+  end;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);

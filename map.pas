@@ -29,7 +29,7 @@ uses
   editor_types, editor_consts, terrain, editor_classes, editor_graphics,
   map_objects, object_options, lists_manager, logical_id_condition,
   logical_event_condition, vcmi_json, locale_manager,
-  editor_gl, map_rect, position, vcmi_fpjsonrtti;
+  editor_gl, map_rect, search_index, position, vcmi_fpjsonrtti;
 
 const
   MAP_DEFAULT_SIZE = 36;
@@ -449,6 +449,7 @@ type
     FPlayer: TPlayer;
     FTemplate: TMapObjectAppearance;
     FAppearanceValid: Boolean;
+    function GetCategory: TObjectCategory;
     function GetIdx: integer;
     function GetL: integer; inline;
     function GetX: integer; inline;
@@ -472,6 +473,9 @@ type
     procedure RenderStatic(AState: TLocalState); inline;
     procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
     procedure RenderAnim(AState: TLocalState; ANextFrame: Boolean); inline;
+
+    //for palette
+    procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer);
 
     procedure RenderOverlay(AState: TLocalState); inline;
 
@@ -504,6 +508,12 @@ type
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure InvalidateAppearance;
     procedure ValidateAppearance;
+
+    property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
+    property MapObjectType: TMapObjectType read FMapObjectType;
+
+    property Category: TObjectCategory read GetCategory;
+    procedure GetKeyWords(ATarget: TStrings);
   public //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -544,6 +554,23 @@ type
   TMapObjectList = class(specialize TFPGObjectList<TMapObject>)
   public
     constructor Create();
+  end;
+
+  { TMapObjectsSelection }
+
+  TMapObjectsSelection = class(TObject, ISearchResult)
+  strict private
+    FData:TMapObjectList;
+    function GetObjcts(AIndex: SizeInt): TMapObject;
+  public
+    constructor Create();
+    destructor Destroy; override;
+    property Objcts[AIndex: SizeInt]: TMapObject read GetObjcts;
+  public//ISearchResult
+    procedure Add(AObject: TObject);
+    procedure Clear;
+    function GetCount: SizeInt;
+    procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
   end;
 
   { TMapObjects }
@@ -729,6 +756,8 @@ type
 
     FHeroPool: THeroClassPool;
 
+    FSearchIndexes: array [TObjectCategory] of TSearchIndex;
+
     function GetCurrentLevelIndex: Integer; inline;
 
     procedure AttachTo(AObserved: IFPObserved);
@@ -744,6 +773,11 @@ type
     procedure SetName(AValue: TLocalizedString);
 
     procedure SetIsDirty(AValue: Boolean);
+
+    procedure AddToIndex(AObject: TMapObject);
+    procedure RemoveFromIndex(AObject: TMapObject);
+
+    procedure BuildSearchIndex;
   private
      var
        FModUsage:TModUsage;
@@ -775,6 +809,9 @@ type
     procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
 
     procedure SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
+
+    // AInput = space separated words or empty string to get all
+    procedure SelectByKeywords(ATarget: TMapObjectsSelection; AInput: string; ACategory: TObjectCategory);
 
     property CurrentLevelIndex: Integer read GetCurrentLevelIndex write SetCurrentLevelIndex;
 
@@ -849,6 +886,47 @@ implementation
 
 uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
   strutils, typinfo;
+
+{ TMapObjectsSelection }
+
+function TMapObjectsSelection.GetObjcts(AIndex: SizeInt): TMapObject;
+begin
+  Result := FData[AIndex];
+end;
+
+constructor TMapObjectsSelection.Create;
+begin
+  FData := TMapObjectList.Create();
+end;
+
+destructor TMapObjectsSelection.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
+
+procedure TMapObjectsSelection.Clear;
+begin
+  FData.Clear;
+end;
+
+function TMapObjectsSelection.GetCount: SizeInt;
+begin
+  Result := FData.Count;
+end;
+
+procedure TMapObjectsSelection.RenderIcon(AIndex: SizeInt; AState: TLocalState; AX, AY, dim: integer; color: TPlayer);
+var
+  o_def: TMapObject;
+begin
+  o_def := FData.Items[AIndex];
+  o_def.RenderIcon(AState, AX, AY, dim);
+end;
+
+procedure TMapObjectsSelection.Add(AObject: TObject);
+begin
+  FData.Add(TMapObject(AObject));
+end;
 
 { TModRefCountInfo }
 
@@ -1905,6 +1983,18 @@ begin
   Result := Index;
 end;
 
+function TMapObject.GetCategory: TObjectCategory;
+begin
+  if Assigned(FMapObjectGroup) then
+  begin
+    Result := FMapObjectGroup.Category;
+  end
+  else
+  begin
+    Result := TObjectCategory.Other;
+  end;
+end;
+
 function TMapObject.GetL: integer;
 begin
   Result := FPosition.L;
@@ -1951,7 +2041,7 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.Def.RenderO(AState, Frame, Ax, Ay, GetPlayer);
+  Template.Def.RenderO(AState, Frame, Ax, Ay, owner);
 
   if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
@@ -1970,6 +2060,27 @@ begin
   end;
 
   Render(AState, FLastFrame,(x+1)*TILE_SIZE,(y+1)*TILE_SIZE);
+end;
+
+procedure TMapObject.RenderIcon(AState: TLocalState; AX, AY, dim: integer);
+var
+  owner : TPlayer;
+  Frame: Integer;
+begin
+  AState.SetTranslation(Ax, Ay);
+  Frame := 0;
+  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
+  begin
+    Frame := 2;
+  end;
+
+  owner := GetPlayer;
+  Template.Def.RenderIcon(AState, Frame, dim, owner);
+
+  if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
+  begin
+    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderIcon(AState, 0, dim, owner);//todo: refactor
+  end;
 end;
 
 procedure TMapObject.RenderOverlay(AState: TLocalState);
@@ -2190,6 +2301,16 @@ begin
     end;
 
     FAppearanceValid := true;
+  end;
+end;
+
+procedure TMapObject.GetKeyWords(ATarget: TStrings);
+begin
+  //TODO: add keywords based on options
+
+  if Assigned(FMapObjectType) then
+  begin
+    FMapObjectType.GetKeyWords(ATarget);
   end;
 end;
 
@@ -2689,6 +2810,9 @@ begin
   begin
     FHeroPool.HeroAdded(AObject);
   end;
+
+  if FTrackObjectChanges then
+    AddToIndex(AObject);
 end;
 
 procedure TVCMIMap.MapObjectRemoved(AObject: TMapObject);
@@ -2704,6 +2828,7 @@ begin
   begin
     FHeroPool.HeroRemoved(AObject);
   end;
+  RemoveFromIndex(AObject)
 end;
 
 constructor TVCMIMap.Create(env: TMapEnvironment; Params: TMapCreateParams);
@@ -2751,6 +2876,8 @@ end;
 
 
 constructor TVCMIMap.CreateEmpty(env: TMapEnvironment);
+var
+  index: TObjectCategory;
 begin
   FTrackObjectChanges := false;
   FTerrainManager := env.tm;
@@ -2799,11 +2926,19 @@ begin
 
   FHeroPool := THeroClassPool.Create(env.lm.HeroClassInfos, env.lm.HeroInfos);
 
+  for index in TObjectCategory do
+    FSearchIndexes[index] := TSearchIndex.Create();
+
   FIsDirty := False;
 end;
 
 destructor TVCMIMap.Destroy;
+var
+  index: TSearchIndex;
 begin
+  for index in FSearchIndexes do
+    index.Free;
+
   FHeroPool.Free;
   FTrackObjectChanges := false;
   FVisibleObjectsQueue.Free;
@@ -2957,6 +3092,11 @@ begin
   end;
 end;
 
+procedure TVCMIMap.SelectByKeywords(ATarget: TMapObjectsSelection; AInput: string; ACategory: TObjectCategory);
+begin
+  FSearchIndexes[ACategory].Find(AInput, ATarget);
+end;
+
 procedure TVCMIMap.SaveToStream(ADest: TStream; AWriter: IMapWriter);
 begin
   AWriter.Write(ADest,Self);
@@ -3061,6 +3201,8 @@ begin
     o := FObjects[i];
     FLevels[o.L].ObjectAdded(o);
   end;
+
+  BuildSearchIndex;
 
   FTrackObjectChanges := True;
   FIsDirty := False;
@@ -3186,31 +3328,56 @@ end;
 
 procedure TVCMIMap.SetName(AValue: TLocalizedString);
 begin
-  if FName = AValue then Exit;
   FName := AValue;
 end;
 
 procedure TVCMIMap.SetIsDirty(AValue: Boolean);
 begin
-  if FIsDirty=AValue then Exit;
   FIsDirty:=AValue;
+end;
+
+procedure TVCMIMap.AddToIndex(AObject: TMapObject);
+var
+  keywords: TStringList;
+begin
+  keywords := TStringList.Create;
+  keywords.Sorted:=false;
+  keywords.Duplicates:=dupAccept;
+  try
+    AObject.GetKeyWords(keywords);
+    FSearchIndexes[AObject.Category].AddToIndex(keywords, AObject);
+  finally
+    keywords.Free;
+  end;
+end;
+
+procedure TVCMIMap.RemoveFromIndex(AObject: TMapObject);
+begin
+  FSearchIndexes[AObject.Category].RemoveFromIndex(AObject);
+end;
+
+procedure TVCMIMap.BuildSearchIndex;
+var
+  i: Integer;
+begin
+  for i := 0 to FObjects.Count - 1 do
+  begin
+    AddToIndex(FObjects[i]);
+  end;
 end;
 
 procedure TVCMIMap.SetVictoryString(AValue: TLocalizedString);
 begin
-  if FVictoryString=AValue then Exit;
   FVictoryString:=AValue;
 end;
 
 procedure TVCMIMap.SetDefeatString(AValue: TLocalizedString);
 begin
-  if FDefeatString=AValue then Exit;
   FDefeatString:=AValue;
 end;
 
 procedure TVCMIMap.SetDefeatIconIndex(AValue: Integer);
 begin
-  if FDefeatIconIndex=AValue then Exit;
   FDefeatIconIndex:=AValue;
 end;
 
@@ -3231,7 +3398,6 @@ end;
 
 procedure TVCMIMap.SetVictoryIconIndex(AValue: Integer);
 begin
-  if FVictoryIconIndex=AValue then Exit;
   FVictoryIconIndex:=AValue;
 end;
 

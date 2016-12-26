@@ -1348,6 +1348,7 @@ object fMain: TfMain
         OpenGLMajorVersion = 3
         OpenGLMinorVersion = 3
         AlphaBits = 8
+        OnClick = ObjectsViewClick
         OnDragDrop = ObjectsViewDragDrop
         OnDragOver = ObjectsViewDragOver
         OnMouseDown = ObjectsViewMouseDown
@@ -2317,7 +2318,8 @@ object fMain: TfMain
       Category = 'Filter'
       AutoCheck = True
       Caption = 'On map'
-      GroupIndex = 1000
+      GroupIndex = 2000
+      OnExecute = actFilterOnMapExecute
     end
   end
   object ApplicationProperties1: TApplicationProperties

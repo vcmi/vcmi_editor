@@ -43,6 +43,7 @@ type
   TItemStack = specialize TFPGObjectList<TAbstractUndoItem>;
 
   TOnRegionInvalidated = procedure (ALevel: Integer; ARegion: TMapRect) of object;
+  TOnActionPreformed = procedure (AItem: TAbstractUndoItem) of object;
 
   { TMapUndoManager }
 
@@ -53,10 +54,12 @@ type
 
     FCurrentPosition: Integer;
     FMap: TVCMIMap;
+    FOnActionPerformed: TOnActionPreformed;
     FOnRegionInvalidated: TOnRegionInvalidated;
     procedure SetMap(AValue: TVCMIMap);
     procedure DoRegionInvalidated(ALevel: Integer; ARegion: TMapRect);
     procedure CheckInvalidatedRegions(AItem: TAbstractUndoItem);
+    procedure DoActionPerformed(AItem: TAbstractUndoItem);
   public
     constructor Create;
     destructor Destroy; override;
@@ -79,6 +82,7 @@ type
     property Map: TVCMIMap read FMap write SetMap;
 
     property OnRegionInvalidated: TOnRegionInvalidated read FOnRegionInvalidated write FOnRegionInvalidated;
+    property OnActionPerformed: TOnActionPreformed read FOnActionPerformed write FOnActionPerformed;
   end;
 
 implementation
@@ -147,6 +151,14 @@ begin
   end;
 end;
 
+procedure TMapUndoManager.DoActionPerformed(AItem: TAbstractUndoItem);
+begin
+  if Assigned(FOnActionPerformed) then
+  begin
+    FOnActionPerformed(AItem);
+  end;
+end;
+
 constructor TMapUndoManager.Create;
 begin
   FItemStack := TItemStack.Create(True);
@@ -182,6 +194,7 @@ begin
 
   FCurrentPosition := FItemStack.Add(AItem);
   FMap.IsDirty:= not IsCheckPoint;
+  DoActionPerformed(AItem);
 end;
 
 function TMapUndoManager.PeekCurrent: TAbstractUndoItem;
@@ -226,6 +239,7 @@ begin
   SetItemState(item,TUndoItemState.ReDone);
   Inc(FCurrentPosition);
   FMap.IsDirty:= not IsCheckPoint;
+  DoActionPerformed(Item);
 end;
 
 procedure TMapUndoManager.Undo;
@@ -238,6 +252,7 @@ begin
   SetItemState(item,TUndoItemState.UnDone);
   Dec(FCurrentPosition);
   FMap.IsDirty:= not IsCheckPoint;
+  DoActionPerformed(Item);
 end;
 
 end.
