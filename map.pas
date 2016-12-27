@@ -1198,6 +1198,11 @@ begin
             Break;
           end;
         end;
+
+        if options.&type = '' then
+        begin
+          raise EAbort.Create('No heroes are avilable');
+        end;
       end;
     end;
   end

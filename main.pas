@@ -2061,9 +2061,20 @@ end;
 
 procedure TfMain.ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  delta, pos_old, pos_new: integer;
 begin
-  sbObjects.Position := sbObjects.Position - Sign(WheelDelta) * sbObjects.PageSize;
-  InvalidateObjPos;
+  delta:= - Sign(WheelDelta) * sbObjects.PageSize;
+  pos_old := sbObjects.Position;
+  pos_new := pos_old + delta;
+
+  //do not scroll if we cannot scroll full page
+  if (pos_new >=sbObjects.Min) and (pos_new <= sbObjects.Max) then
+  begin
+    sbObjects.Position := pos_new;
+    InvalidateObjPos;
+  end;
+
   Handled := true;
 end;
 
@@ -2182,10 +2193,10 @@ begin
   end;
 end;
 
-procedure TfMain.sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
-  var ScrollPos: Integer);
+procedure TfMain.sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
 begin
-  InvalidateObjPos;
+  FObjectsVPos := ScrollPos;
+  ObjectsView.Invalidate;
 end;
 
 procedure TfMain.SearchTimerTimer(Sender: TObject);
