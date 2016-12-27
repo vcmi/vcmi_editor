@@ -1137,48 +1137,56 @@ object fMain: TfMain
         Left = 6
         Top = 2
         Action = actFilterHeroes
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton12: TToolButton
         Left = 51
         Top = 2
         Action = actFilterTowns
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton13: TToolButton
         Left = 94
         Top = 2
         Action = actFilterArtifacts
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton14: TToolButton
         Left = 263
         Top = 2
         Action = actFilterResources
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton15: TToolButton
         Left = 324
         Top = 2
         Action = actFilterStatic
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton16: TToolButton
         Left = 361
         Top = 2
         Action = actFilterOther
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton17: TToolButton
         Left = 146
         Top = 2
         Action = actFilterCreatures
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton20: TToolButton
         Left = 204
         Top = 2
         Action = actFilterDwelling
+        Grouped = True
         Style = tbsCheck
       end
       object ToolButton21: TToolButton
@@ -2318,7 +2326,6 @@ object fMain: TfMain
       Category = 'Filter'
       AutoCheck = True
       Caption = 'On map'
-      GroupIndex = 2000
       OnExecute = actFilterOnMapExecute
     end
   end
