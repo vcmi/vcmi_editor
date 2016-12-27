@@ -1,7 +1,7 @@
 object NewMapForm: TNewMapForm
-  Left = 312
+  Left = 445
   Height = 200
-  Top = 194
+  Top = 193
   Width = 300
   BorderStyle = bsDialog
   Caption = 'New map'
@@ -11,7 +11,7 @@ object NewMapForm: TNewMapForm
   Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.6.3.0'
   object pnButtons: TPanel
     Left = 0
     Height = 43
@@ -44,23 +44,23 @@ object NewMapForm: TNewMapForm
     Height = 23
     Top = 24
     Width = 110
-    Increment = 36
+    Increment = 8
     MaxValue = 1024
-    MinValue = 36
+    MinValue = 8
     OnChange = edWidthChange
     TabOrder = 1
-    Value = 36
+    Value = 32
   end
   object edHeight: TSpinEdit
     Left = 152
     Height = 23
     Top = 24
     Width = 110
-    Increment = 36
+    Increment = 8
     MaxValue = 1024
-    MinValue = 36
+    MinValue = 8
     TabOrder = 2
-    Value = 36
+    Value = 32
   end
   object lbWidth: TLabel
     Left = 17
