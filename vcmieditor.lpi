@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="8"/>
-      <BuildNr Value="105"/>
+      <BuildNr Value="106"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>

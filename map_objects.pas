@@ -238,7 +238,7 @@ type
   public//ISearchResult
     procedure Add(AObject: TObject);
     procedure Clear;
-    function GetCount: Integer;
+    function GetCount: SizeInt;
     procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer);
   end;
 
@@ -348,7 +348,7 @@ end;
 
 { TObjectsSelection }
 
-function TObjectsSelection.GetCount: Integer;
+function TObjectsSelection.GetCount: SizeInt;
 begin
   Result := FData.Count;
 end;
