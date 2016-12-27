@@ -2837,6 +2837,9 @@ var
 begin
   CreateEmpty(env);
 
+  TriggeredEvents.AddStandardDefeat();
+  TriggeredEvents.AddStandardVictory();
+
   lvl := MapLevels.Add;
   lvl.Width:=Params.Width;
   lvl.Height:=Params.Height;
@@ -2867,9 +2870,6 @@ begin
   params.Levels := MAP_DEFAULT_LEVELS;
 
   Create(env,params);
-
-  TriggeredEvents.AddStandardDefeat();
-  TriggeredEvents.AddStandardVictory();
 
   Loaded;
 end;
