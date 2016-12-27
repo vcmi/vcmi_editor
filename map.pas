@@ -2079,7 +2079,7 @@ begin
 
   if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderIcon(AState, 0, dim, owner);//todo: refactor
+    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderOverlayIcon(AState, dim, Template.Def.Height);//todo: refactor
   end;
 end;
 
