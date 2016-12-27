@@ -56,6 +56,7 @@ type
 
     procedure RenderBorder(AState: TLocalState; TileX,TileY: Integer);
     procedure RenderIcon(AState: TLocalState; const SpriteIndex: UInt8; dim:integer; color: TPlayer = TPlayer.none);
+    //for hero flags
     procedure RenderOverlayIcon(AState: TLocalState; dim:integer; h: integer);
 
     procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags:UInt8);
@@ -65,6 +66,8 @@ type
 
     property Width: UInt32 read FWidth;
     property Height: UInt32 read FHeight;
+
+    function GetSpriteHeight(const SpriteIndex: UInt8): UInt32;
 
     property ResourceID: AnsiString read FResourceID write FResourceID;
 
@@ -796,7 +799,6 @@ begin
   begin
     Exit;
   end;
-  //AState.SetPlayerColor(color);
   AState.RenderSpriteOverlayIcon(entries.Mutable[0], dim, h);
 end;
 
@@ -822,6 +824,14 @@ begin
   AState.SetPlayerColor(color);
   AState.SetTranslation(X - width, Y - height);
   AState.RenderSpriteSimple(entries.Mutable[SpriteIndex]);
+end;
+
+function TDefAnimation.GetSpriteHeight(const SpriteIndex: UInt8): UInt32;
+begin
+  if SpriteIndex < entries.Size then
+    Result := entries.Mutable[SpriteIndex]^.SpriteHeight
+  else
+    Result := Height;//???
 end;
 
 procedure TDefAnimation.UnBindTextures;

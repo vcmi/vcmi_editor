@@ -591,18 +591,14 @@ begin
 end;
 
 procedure TMapObjectTemplate.RenderIcon(AState: TLocalState; AX, AY, dim: integer; color: TPlayer);
-var
-  h: integer;
 begin
   AState.SetTranslation(Ax, Ay);
 
   FDef.RenderIcon(AState, FIconSpriteIndex, dim, color);
 
-  h := FDef.Height;
-
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, h);
+    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, FDef.GetSpriteHeight(FIconSpriteIndex));
   end;
 end;
 
