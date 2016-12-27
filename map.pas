@@ -2077,7 +2077,7 @@ begin
   owner := GetPlayer;
   Template.Def.RenderIcon(AState, Frame, dim, owner);
 
-  if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
+  if Assigned(FMapObjectGroup) and (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
     RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderOverlayIcon(AState, dim, Template.Def.Height);//todo: refactor
   end;
