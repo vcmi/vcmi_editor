@@ -24,7 +24,7 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazFileUtils, GL, OpenGLContext, LCLType, Forms,
+  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, OpenGLContext, LCLType, Forms,
   Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls,
   ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
   map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
@@ -677,10 +677,12 @@ end;
 
 procedure TfMain.actOpenMapExecute(Sender: TObject);
 begin
-  if OpenMapDialog.Execute then
+  if CheckUnsavedMap() then
   begin
-    LoadMap(OpenMapDialog.FileName);
-
+    if OpenMapDialog.Execute then
+    begin
+      LoadMap(OpenMapDialog.FileName);
+    end;
   end;
 end;
 
@@ -937,9 +939,7 @@ begin
       end;
       mrCancel:Result := False ;
     end;
-
   end;
-
 end;
 
 procedure TfMain.FormActivate(Sender: TObject);
@@ -1042,7 +1042,7 @@ begin
     RootManager.ProgressForm.NextStage('Loading map ...');
     RootManager.ProgressForm.SetMax(1);
     try
-      map_filename := Trim(ParamStr(1));
+      map_filename := UTF8Trim(ParamStrUTF8(1));
 
       if FileExistsUTF8(map_filename) then
       begin
@@ -1257,7 +1257,7 @@ procedure TfMain.InvalidateObjects;
 var
   ActiveSelection: ISearchResult;
 begin
-  ActiveSelection :=  GetActiveSelection;
+  ActiveSelection := GetActiveSelection;
 
   FObjectCount := ActiveSelection.Count;
 
@@ -1284,19 +1284,13 @@ end;
 procedure TfMain.LoadMap(AFileName: string);
 var
   file_ext: String;
-
   new_map: TVCMIMap;
-
   reader: IMapReader;
-
   stm: TFileStreamUTF8;
   cstm: TStream;
-
   set_filename, is_compressed: Boolean;
-
   magic: dword;
 begin
-  //todo: ask to save map
   cstm := nil;
   set_filename := False;
   is_compressed := False;
