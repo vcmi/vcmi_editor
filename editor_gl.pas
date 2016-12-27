@@ -155,7 +155,6 @@ type
     procedure RenderSpriteMirrored(ASprite: PGLSprite; mir: UInt8);
     procedure RenderSpriteSimple(ASprite: PGLSprite);
     procedure RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
-
     procedure RenderSpriteOverlayIcon(ASprite: PGLSprite; dim: Integer; main_h: integer);
 
     procedure StopDrawing;
@@ -684,10 +683,7 @@ procedure TLocalState.RenderSpriteIcon(ASprite: PGLSprite; dim: Integer);
 var
   factor: Double;
   cur_dim: integer;
-  H,W,
-  x,
-  y,
-  TopMargin: Int32;
+  H, W, x, y, TopMargin: Int32;
 begin
   cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
   factor := Min((dim) / cur_dim, 1); //no zoom
@@ -703,10 +699,7 @@ procedure TLocalState.RenderSpriteOverlayIcon(ASprite: PGLSprite; dim: Integer; 
 var
   factor: Double;
   cur_dim: integer;
-  H,W,
-  x,
-  y,
-  TopMargin: Int32;
+  H, W, x, y, TopMargin: Int32;
 begin
   cur_dim := Max(ASprite^.Width,ASprite^.SpriteHeight);
   factor := Min((dim) / cur_dim, 1); //no zoom

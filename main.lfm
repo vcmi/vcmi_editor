@@ -1,10 +1,10 @@
 object fMain: TfMain
   Left = 329
-  Height = 844
+  Height = 600
   Top = 95
   Width = 1198
   Caption = 'VCMI editor'
-  ClientHeight = 824
+  ClientHeight = 580
   ClientWidth = 1198
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
@@ -1206,20 +1206,20 @@ object fMain: TfMain
   end
   object pnMap: TPanel
     Left = 202
-    Height = 767
+    Height = 523
     Top = 34
     Width = 792
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 767
+    ClientHeight = 523
     ClientWidth = 792
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 23
-      Height = 728
+      Height = 484
       Top = 23
       Width = 753
       Align = alClient
@@ -1242,7 +1242,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 751
+      Top = 507
       Width = 756
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1254,7 +1254,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 776
-      Height = 728
+      Height = 484
       Top = 23
       Width = 16
       Align = alRight
@@ -1266,17 +1266,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 728
+      Height = 484
       Top = 23
       Width = 23
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 728
+      ClientHeight = 484
       ClientWidth = 23
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 728
+        Height = 484
         Top = 0
         Width = 23
         Align = alClient
@@ -1308,27 +1308,27 @@ object fMain: TfMain
   end
   object pnRight: TPanel
     Left = 994
-    Height = 767
+    Height = 523
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 767
+    ClientHeight = 523
     ClientWidth = 204
     TabOrder = 1
     object pnObjects: TPanel
       Left = 0
-      Height = 744
+      Height = 500
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 744
+      ClientHeight = 500
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 744
+        Height = 500
         Top = 0
         Width = 16
         Align = alRight
@@ -1340,7 +1340,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 744
+        Height = 500
         Top = 0
         Width = 188
         Align = alClient
@@ -1424,7 +1424,7 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 801
+    Top = 557
     Width = 1198
     Panels = <    
       item
@@ -1434,11 +1434,11 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 767
+    Height = 523
     Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 767
+    ClientHeight = 523
     ClientWidth = 202
     TabOrder = 2
     object pnMinimap: TPanel
@@ -1464,21 +1464,21 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 561
+      Height = 317
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 561
+      ClientHeight = 317
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
-        Left = 5
+        Left = 1
         Height = 50
-        Top = 146
-        Width = 190
+        Top = 121
+        Width = 198
         Align = alTop
-        BorderSpacing.Around = 5
+        BorderSpacing.Around = 1
         Caption = 'Brush'
         ChildSizing.LeftRightSpacing = 3
         ChildSizing.TopBottomSpacing = 5
@@ -1491,12 +1491,12 @@ object fMain: TfMain
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 6
         ClientHeight = 30
-        ClientWidth = 186
+        ClientWidth = 194
         Constraints.MaxHeight = 50
         Constraints.MinHeight = 46
         TabOrder = 0
         object btnSelect: TSpeedButton
-          Left = 6
+          Left = 7
           Height = 28
           Top = 0
           Width = 28
@@ -1583,7 +1583,7 @@ object fMain: TfMain
           OnClick = btnSelectClick
         end
         object btnBrush1: TSpeedButton
-          Left = 40
+          Left = 42
           Height = 28
           Top = 0
           Width = 24
@@ -1595,7 +1595,7 @@ object fMain: TfMain
           OnClick = btnBrush1Click
         end
         object btnBrush2: TSpeedButton
-          Left = 70
+          Left = 73
           Height = 28
           Top = 0
           Width = 24
@@ -1607,7 +1607,7 @@ object fMain: TfMain
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
-          Left = 100
+          Left = 104
           Height = 28
           Top = 0
           Width = 24
@@ -1619,7 +1619,7 @@ object fMain: TfMain
           OnClick = btnBrush4Click
         end
         object btnBrushArea: TSpeedButton
-          Left = 130
+          Left = 135
           Height = 28
           Top = 0
           Width = 24
@@ -1634,7 +1634,7 @@ object fMain: TfMain
           ParentFont = False
         end
         object btnBrushFill: TSpeedButton
-          Left = 159
+          Left = 166
           Height = 28
           Top = 0
           Width = 24
@@ -1648,20 +1648,20 @@ object fMain: TfMain
         end
       end
       object gbTerrain: TGroupBox
-        Left = 5
-        Height = 136
-        Top = 5
-        Width = 190
+        Left = 1
+        Height = 119
+        Top = 1
+        Width = 198
         Align = alTop
-        BorderSpacing.Around = 5
+        BorderSpacing.Around = 1
         Caption = 'Landscape'
-        ClientHeight = 116
-        ClientWidth = 186
+        ClientHeight = 99
+        ClientWidth = 194
         TabOrder = 1
         object btnDirt: TSpeedButton
           Left = 6
           Height = 22
-          Top = 5
+          Top = 1
           Width = 55
           Caption = 'Dirt'
           Down = True
@@ -1672,7 +1672,7 @@ object fMain: TfMain
           Tag = 1
           Left = 62
           Height = 22
-          Top = 5
+          Top = 1
           Width = 55
           Caption = 'Sand'
           GroupIndex = 2
@@ -1682,7 +1682,7 @@ object fMain: TfMain
           Tag = 2
           Left = 118
           Height = 22
-          Top = 5
+          Top = 1
           Width = 55
           Caption = 'Grass'
           GroupIndex = 2
@@ -1691,7 +1691,7 @@ object fMain: TfMain
         object btnSnow: TSpeedButton
           Left = 6
           Height = 22
-          Top = 32
+          Top = 24
           Width = 55
           Caption = 'Snow'
           GroupIndex = 2
@@ -1701,7 +1701,7 @@ object fMain: TfMain
           Tag = 1
           Left = 62
           Height = 22
-          Top = 32
+          Top = 24
           Width = 55
           Caption = 'Swamp'
           GroupIndex = 2
@@ -1711,7 +1711,7 @@ object fMain: TfMain
           Tag = 2
           Left = 118
           Height = 22
-          Top = 32
+          Top = 24
           Width = 55
           Caption = 'Rough'
           GroupIndex = 2
@@ -1720,7 +1720,7 @@ object fMain: TfMain
         object btnSub: TSpeedButton
           Left = 6
           Height = 22
-          Top = 60
+          Top = 48
           Width = 55
           Caption = 'Subter.'
           GroupIndex = 2
@@ -1730,7 +1730,7 @@ object fMain: TfMain
           Tag = 1
           Left = 62
           Height = 22
-          Top = 60
+          Top = 48
           Width = 55
           Caption = 'Lava'
           GroupIndex = 2
@@ -1740,7 +1740,7 @@ object fMain: TfMain
           Tag = 2
           Left = 118
           Height = 22
-          Top = 60
+          Top = 48
           Width = 55
           Caption = 'Water'
           GroupIndex = 2
@@ -1749,7 +1749,7 @@ object fMain: TfMain
         object btnRock: TSpeedButton
           Left = 62
           Height = 22
-          Top = 88
+          Top = 72
           Width = 55
           Caption = 'Rock'
           GroupIndex = 2
@@ -1757,14 +1757,14 @@ object fMain: TfMain
         end
       end
       object RoadType: TRadioGroup
-        Left = 5
+        Left = 1
         Height = 19
-        Top = 225
-        Width = 190
+        Top = 192
+        Width = 198
         Align = alTop
         AutoFill = True
         AutoSize = True
-        BorderSpacing.Around = 5
+        BorderSpacing.Around = 1
         Caption = 'RoadType'
         ChildSizing.LeftRightSpacing = 6
         ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -1778,14 +1778,14 @@ object fMain: TfMain
         TabOrder = 2
       end
       object RiverType: TRadioGroup
-        Left = 5
+        Left = 1
         Height = 19
-        Top = 201
-        Width = 190
+        Top = 172
+        Width = 198
         Align = alTop
         AutoFill = True
         AutoSize = True
-        BorderSpacing.Around = 5
+        BorderSpacing.Around = 1
         Caption = 'RiverType'
         ChildSizing.LeftRightSpacing = 6
         ChildSizing.EnlargeHorizontal = crsHomogenousChildResize

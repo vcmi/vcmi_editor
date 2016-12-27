@@ -785,12 +785,11 @@ end;
 
 procedure TDefAnimation.RenderIcon(AState: TLocalState; const SpriteIndex: UInt8; dim: integer; color: TPlayer);
 begin
-  if entries.Size < SpriteIndex + 1 then
+  if SpriteIndex < entries.Size then
   begin
-    Exit;
+    AState.SetPlayerColor(color);
+    AState.RenderSpriteIcon(entries.Mutable[SpriteIndex], dim);
   end;
-  AState.SetPlayerColor(color);
-  AState.RenderSpriteIcon(entries.Mutable[SpriteIndex], dim);
 end;
 
 procedure TDefAnimation.RenderOverlayIcon(AState: TLocalState; dim: integer; h: integer);
