@@ -234,11 +234,11 @@ type
 
   TTerrainManager = class (TGraphicsConsumer)
   private
-    FTerrainDefs: array [TTerrainType] of TDefAnimation;
+    FTerrainDefs: array [TTerrainType] of TAnimation;
 
-    FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TDefAnimation;
+    FRiverDefs: array [TRiverType.clearRiver..TRiverType.lavaRiver] of TAnimation;
 
-    FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TDefAnimation;
+    FRoadDefs: array [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] of TAnimation;
 
     FPatternConfig: TTerrainPatternConfig;
 

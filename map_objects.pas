@@ -90,7 +90,7 @@ type
 
   TMapObjectTemplate = class (TNamedCollectionItem, ISerializeNotify)
   strict private
-    FDef: TDefAnimation;
+    FDef: TAnimation;
     FMapObjectGroup:TMapObjectGroup;
     FMapObjectType: TMapObjectType;
 
@@ -109,7 +109,7 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property Def: TDefAnimation read FDef;
+    property Def: TAnimation read FDef;
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     property MapObjectType: TMapObjectType read FMapObjectType;
     class function UseMeta: boolean; override;
@@ -971,7 +971,7 @@ var
 
   passable, active: Boolean;
   mask_conf, visit_conf, allowedTerrains, tags: TJSONArray;
-  //anim: TDefAnimation;
+  //anim: TAnimation;
   width_tiles: Integer;
   height_tiles: Integer;
 

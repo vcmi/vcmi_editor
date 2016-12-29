@@ -167,16 +167,12 @@ type
     property Scale: GLfloat read FScale write FScale;
   end;
 
-
-
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
-
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
-
 procedure BindUncompressedPalettedSub(ATextureId: GLuint; x, y, w, h: Int32; ARawImage: Pointer);
-
 procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
+
 procedure Unbind(var ATextureId: GLuint); inline;
 
 procedure CheckGLErrors(Stage: string);
@@ -189,7 +185,6 @@ var
 implementation
 
 uses LazLoggerBase;
-
 
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer; AInternalFormat: GLEnum); inline;
 begin

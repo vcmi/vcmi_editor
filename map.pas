@@ -387,7 +387,7 @@ type
   strict private
     mask_w, mask_h: Integer;
     FOwner: TMapObject;
-    FDef: TDefAnimation;
+    FDef: TAnimation;
     FIsVisitable: Boolean;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
@@ -397,7 +397,7 @@ type
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
     procedure SetzIndex(AValue: Integer);
-    procedure SetDef(AValue:TDefAnimation);
+    procedure SetDef(AValue:TAnimation);
 
     procedure AnimationChanged;
 
@@ -426,7 +426,7 @@ type
     property Width: Integer read mask_w;
     property Height: Integer read mask_h;
 
-    property Def: TDefAnimation read FDef;
+    property Def: TAnimation read FDef;
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -1506,7 +1506,7 @@ begin
   FzIndex:=AValue;
 end;
 
-procedure TMapObjectAppearance.SetDef(AValue: TDefAnimation);
+procedure TMapObjectAppearance.SetDef(AValue: TAnimation);
 begin
   FDef := AValue;
   RootManager.GraphicsManager.LoadGraphics(FDef);
