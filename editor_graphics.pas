@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
-  editor_utils, filesystem_base, editor_gl;
+  editor_utils, filesystem_base, editor_gl, LazLoggerBase;
 
 type
   TDefEntries = specialize gvector.TVector<TGLSprite>;
@@ -123,7 +123,6 @@ type
     FBuffer: TMemoryStream;
 
     procedure DoLoadGraphics(const AResourceName:string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
-
     function DoGetGraphics (const AResourceName:string; ALoadMode: TGraphicsLoadMode): TAnimation;
   public
     constructor Create(AOwner: TComponent); override;
@@ -689,10 +688,20 @@ begin
 end;
 
 procedure TGraphicsManager.DoLoadGraphics(const AResourceName: string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
+var
+  found: Boolean;
 begin
+  found := false;
   FDefLoader.CurrentDef := ADef;
   FDefLoader.Mode := ALoadMode;
-  ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/'+AResourceName);
+  found := found or ResourceLoader.TryLoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/'+AResourceName);
+
+  if not found then
+  begin
+    DebugLn('Animation not found: '+AResourceName);
+
+    ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
+  end;
 end;
 
 function TGraphicsManager.DoGetGraphics(const AResourceName: string; ALoadMode: TGraphicsLoadMode): TAnimation;
@@ -805,14 +814,12 @@ end;
 
 procedure TAnimation.RenderO(AState: TLocalState; const SpriteIndex: UInt8; X, Y: Integer; color: TPlayer);
 begin
-  if SpriteIndex > entries.Size then
+  if SpriteIndex < entries.Size then
   begin
-    Exit;
+    AState.SetPlayerColor(color);
+    AState.SetTranslation(X - width, Y - height);
+    AState.RenderSpriteSimple(entries.Mutable[SpriteIndex]);
   end;
-
-  AState.SetPlayerColor(color);
-  AState.SetTranslation(X - width, Y - height);
-  AState.RenderSpriteSimple(entries.Mutable[SpriteIndex]);
 end;
 
 function TAnimation.GetSpriteHeight(const SpriteIndex: UInt8): UInt32;

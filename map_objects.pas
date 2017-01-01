@@ -101,7 +101,7 @@ type
     FVisitableFrom: TStrings;
     FMask: TStrings;
     FzIndex: Integer;
-    FIconSpriteIndex: integer;
+    FIconSpriteIndex: UInt8;
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
 
