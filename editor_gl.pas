@@ -54,6 +54,7 @@ type
     SpriteWidth: Int32;
     SpriteHeight: int32;
 
+    procedure Init; inline;
     procedure Unbind; inline;
   end;
 
@@ -68,21 +69,39 @@ type
     function Make: GLuint;
   end;
 
+  { TShaderProgram }
+
+  TShaderProgram = class
+  strict private
+    FHandle:GLuint;
+
+    FProjMatrixUniform: GLint;
+    FTranslateMatrixUniform: GLint;
+  public
+    constructor Create(const AVertexSource: AnsiString; const AFragmentSource: AnsiString);
+    destructor Destroy; override;
+
+    procedure SetProjection(constref AMatrix: Tmatrix4_single);
+    procedure SetTranslation(constref AMatrix: Tmatrix4_single);
+
+    property Handle: GLuint read FHandle;
+  end;
+
   { TGlobalState }
 
   TGlobalState = class
-  private
+  strict private
     const
        VERTEX_BUFFER_SIZE = 4 * 2 * 3 * 2; //4 rotation * 2 triangles * 3 poitns * 2 coordinates
        UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
+  strict private
+    DefaultProgram: TShaderProgram;
   private
     FCoordAttribLocation: GLint;
     FUVAttribLocation: GLint;
 
-    DefaultProgram: GLuint;
     DefaultFragmentColorUniform: GLint;
-    DefaultProjMatrixUniform: GLint;
-    DefaultTranslateMatrixUniform: GLint;
+
     UseTextureUniform: GLint;
     UseFlagUniform: GLint;
     PaletteUniform: GLint;
@@ -99,6 +118,8 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Init;
+
+    function UseDefaultProgram: TShaderProgram;
   end;
 
 
@@ -112,7 +133,7 @@ type
     SpriteVAO: GLuint;
     RectVAO: GLuint;
 
-    FCurrentProgram: GLuint;
+    FCurrentProgram: TShaderProgram;
 
     FScale: GLfloat;
 
@@ -120,8 +141,6 @@ type
 
     procedure SetupSpriteVAO;
     procedure SetupRectVAO;
-
-    procedure SetProjection(constref AMatrix: Tmatrix4_single);
 
     procedure DoRenderSprite(constref ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
  public
@@ -139,7 +158,6 @@ type
     procedure SetUseTexture(const Value: Boolean);
     procedure UseNoTextures;
     procedure UsePalettedTextures;
-
 
     function StartFrame: Boolean;
     procedure FinishFrame;
@@ -279,8 +297,7 @@ begin
   end;
 end;
 
-function MakeShaderProgram(const AVertexSource: AnsiString;
-  const AFragmentSource: AnsiString): GLuint;
+function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSource: AnsiString): GLuint;
 var
   vertex_shader, fragment_shader: GLuint;
   status: GLint;
@@ -321,6 +338,35 @@ begin
 
   if doVertex then glDeleteShader(vertex_shader); //always mark shader for deletion
   if doFragment then glDeleteShader(fragment_shader);
+end;
+
+{ TShaderProgram }
+
+constructor TShaderProgram.Create(const AVertexSource: AnsiString; const AFragmentSource: AnsiString);
+begin
+  FHandle := MakeShaderProgram(AVertexSource,AFragmentSource);
+
+  if FHandle = 0 then
+    raise Exception.Create('Error compiling shader');
+
+  FProjMatrixUniform := glGetUniformLocation(Handle, PChar('projMatrix'));
+  FTranslateMatrixUniform := glGetUniformLocation(Handle, PChar('translateMatrix'));
+end;
+
+destructor TShaderProgram.Destroy;
+begin
+  glDeleteProgram(FHandle);
+  inherited Destroy;
+end;
+
+procedure TShaderProgram.SetProjection(constref AMatrix: Tmatrix4_single);
+begin
+  glUniformMatrix4fv(FProjMatrixUniform,1,GL_TRUE,@AMatrix.data);
+end;
+
+procedure TShaderProgram.SetTranslation(constref AMatrix: Tmatrix4_single);
+begin
+  glUniformMatrix4fv(FTranslateMatrixUniform,1,GL_TRUE,@AMatrix.data);
 end;
 
 { TShaderResourceStream }
@@ -372,9 +418,16 @@ end;
 
 { TGLSprite }
 
+procedure TGLSprite.Init;
+begin
+  TextureID:=0;
+  PaletteID:=0;
+end;
+
 procedure TGLSprite.Unbind;
 begin
-  glDeleteTextures(1,@TextureId);
+  if TextureId <> 0 then
+    glDeleteTextures(1,@TextureId);
   TextureId := 0;
 end;
 
@@ -457,37 +510,38 @@ end;
 
 destructor TGlobalState.Destroy;
 begin
-  glDeleteProgram(DefaultProgram);
+  FreeAndNil(DefaultProgram);
 
   inherited Destroy;
 end;
 
 procedure TGlobalState.Init;
 begin
-  DefaultProgram := MakeShaderProgram(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
-  if DefaultProgram = 0 then
-    raise Exception.Create('Error compiling default shader');
+  DefaultProgram := TShaderProgram.Create(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
 
-  DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram, PChar('fragmentColor'));
+  DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram.Handle, PChar('fragmentColor'));
 
-  DefaultProjMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('projMatrix'));
-  DefaultTranslateMatrixUniform := glGetUniformLocation(DefaultProgram, PChar('translateMatrix'));
+  UseFlagUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useFlag'));
+  UseTextureUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useTexture'));
 
-  UseFlagUniform:=glGetUniformLocation(DefaultProgram, PChar('useFlag'));
-  UseTextureUniform:=glGetUniformLocation(DefaultProgram, PChar('useTexture'));
+  PaletteUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('palette'));
+  FlagColorUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('flagColor'));
+  BitmapUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmap'));
 
-  PaletteUniform:=glGetUniformLocation(DefaultProgram, PChar('palette'));
-  FlagColorUniform:=glGetUniformLocation(DefaultProgram, PChar('flagColor'));
-  BitmapUniform:=glGetUniformLocation(DefaultProgram, PChar('bitmap'));
-
-  FCoordAttribLocation:=glGetAttribLocation(DefaultProgram, PChar('coords'));
-  FUVAttribLocation:=glGetAttribLocation(DefaultProgram, PChar('uv'));
+  FCoordAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('coords'));
+  FUVAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('uv'));
 
   CheckGLErrors('default shader get uniforms');
 
   SetupCoordsBuffer;
   SetupUVBuffer;
   CheckGLErrors('VBO');
+end;
+
+function TGlobalState.UseDefaultProgram: TShaderProgram;
+begin
+  Result := DefaultProgram;
+  glUseProgram(Result.Handle);
 end;
 
 
@@ -719,7 +773,7 @@ begin
   m.data[1,3] := - (top + bottom)/(top - bottom);
   m.data[2,3] := - 1;
 
-  SetProjection(m);
+  FCurrentProgram.SetProjection(m);
 end;
 
 procedure TLocalState.SetPlayerColor(APlayer: TPlayer);
@@ -745,7 +799,7 @@ begin
   FTranslateMaxrix.data[0,3] := x * FScale;
   FTranslateMaxrix.data[1,3] := y * FScale;
 
-  glUniformMatrix4fv(GlobalContextState.DefaultTranslateMatrixUniform,1,GL_TRUE,@FTranslateMaxrix.data);
+  FCurrentProgram.SetTranslation(FTranslateMaxrix);
 end;
 
 procedure TLocalState.SetupSpriteVAO;
@@ -777,36 +831,23 @@ end;
 
 procedure TLocalState.SetFlagColor(FlagColor: TRBGAColor);
 begin
-  if FCurrentProgram = GlobalContextState.DefaultProgram then
-  begin
-    glUniform4f(GlobalContextState.FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
-  end;
+  glUniform4f(GlobalContextState.FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
 end;
 
 procedure TLocalState.SetFragmentColor(AColor: TRBGAColor);
 begin
-  if FCurrentProgram = GlobalContextState.DefaultProgram then
-  begin
-    glUniform4f(GlobalContextState.DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
-  end
-  else
-    Assert(false);
-end;
-
-procedure TLocalState.SetProjection(constref AMatrix: Tmatrix4_single);
-begin
-  if FCurrentProgram = GlobalContextState.DefaultProgram then
-  begin
-    glUniformMatrix4fv(GlobalContextState.DefaultProjMatrixUniform,1,GL_TRUE,@AMatrix.data);
-  end
-  else
-    Assert(false);
+  glUniform4f(GlobalContextState.DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
 end;
 
 procedure TLocalState.DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
 var
   vertex_data: packed array[1..12] of GLfloat;
 begin
+  if ASprite.TextureID = 0 then
+  begin
+    Exit;
+  end;
+
   vertex_data[1] := x;   vertex_data[2] := y;
   vertex_data[3] := x+w; vertex_data[4] := y;
   vertex_data[5] := x+w; vertex_data[6] := y+h;
@@ -818,8 +859,11 @@ begin
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+  if ASprite.PaletteID <> 0 then
+  begin
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+  end;
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
@@ -840,16 +884,14 @@ end;
 
 procedure TLocalState.UseNoTextures;
 begin
-  FCurrentProgram := GlobalContextState.DefaultProgram;
-  glUseProgram(GlobalContextState.DefaultProgram);
+  FCurrentProgram := GlobalContextState.UseDefaultProgram();
   SetUseFlag(false);
   SetUseTexture(False);
 end;
 
 procedure TLocalState.UsePalettedTextures;
 begin
-  FCurrentProgram := GlobalContextState.DefaultProgram;
-  glUseProgram(GlobalContextState.DefaultProgram);
+  FCurrentProgram := GlobalContextState.UseDefaultProgram();
 
   SetUseTexture(true);
 

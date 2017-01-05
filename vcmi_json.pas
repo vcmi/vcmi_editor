@@ -181,8 +181,6 @@ type
     procedure Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALoader:IResourceLoader; ADest: TJSONObject);
   end;
 
-
-
   { TJSONObjectHelper }
 
   TJSONObjectHelper = class helper for TJSONObject

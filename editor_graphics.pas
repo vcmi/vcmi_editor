@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
-  editor_utils, filesystem_base, editor_gl, LazLoggerBase;
+  editor_utils, filesystem_base, editor_gl, vcmi_json, editor_classes, LazLoggerBase, LazUTF8, fpjson;
 
 type
   TDefEntries = specialize gvector.TVector<TGLSprite>;
@@ -48,6 +48,7 @@ type
     entries: TDefEntries;
 
     function GetFrameCount: Integer; inline;
+    procedure SetFrameCount(AValue: Integer);
 
     procedure UnBindTextures;
   public
@@ -62,7 +63,7 @@ type
     procedure RenderF(AState: TLocalState; const SpriteIndex: UInt8; flags:UInt8);
     procedure RenderO(AState: TLocalState; const SpriteIndex: UInt8; X,Y: Integer; color: TPlayer = TPlayer.none);
 
-    property FrameCount: Integer read GetFrameCount;
+    property FrameCount: Integer read GetFrameCount write SetFrameCount;
 
     property Width: UInt32 read FWidth;
     property Height: UInt32 read FHeight;
@@ -83,32 +84,105 @@ type
     constructor Create;
   end;
 
+  { TAnimationLoader }
+
+  TAnimationLoader = class abstract(TFSConsumer)
+  strict private
+    FCurrentPath: AnsiString;
+    FMode: TGraphicsLoadMode;
+    FCurrent: TAnimation;
+    procedure FixLoadMode();
+    procedure UpdateLoadFlag();
+  strict protected
+    FFrameCount: Integer;
+    FTextureIDs: array of GLuint;
+
+    function DoTryLoad: Boolean; virtual; abstract;
+
+    function ConvertCurrentPath(): AnsiString;
+    procedure GenerateTextureIds();
+  public
+    function TryLoad: Boolean;
+
+    property Mode: TGraphicsLoadMode read FMode write FMode;
+    property Current: TAnimation read FCurrent write FCurrent;
+    property CurrentPath: AnsiString read FCurrentPath write FCurrentPath;
+  end;
+
   { TDefFormatLoader }
 
-  TDefFormatLoader = class (IResource)
+  TDefFormatLoader = class (TAnimationLoader, IResource)
   strict private
     const
       INITIAL_BUFFER_SIZE = 32768;
-
     var
-      FMode: TGraphicsLoadMode;
       FBuffer: packed array of byte; //indexed bitmap
       FDefBuffer: packed array of byte;
-      FCurrentDef: TAnimation;
-
       palette: TRGBAPalette;
-      procedure IncreaseBuffer(ANewSize: SizeInt);
-      procedure IncreaseDefBuffer(ANewSize: SizeInt);
-  private
+    procedure IncreaseBuffer(ANewSize: SizeInt);
+    procedure IncreaseDefBuffer(ANewSize: SizeInt);
     procedure LoadSprite(AStream: TStream; const SpriteIndex: UInt8; ATextureID: GLuint; offset: Uint32);
+  strict protected
+    function DoTryLoad: Boolean; override;
   public
-    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream);  //IResource
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); //IResource
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
+  { TAnimationSequence }
+
+  TAnimationSequence = class(TCollectionItem)
+  private
+    FFrames: TStrings;
+    FGroup: Integer;
+    procedure SetGroup(AValue: Integer);
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
+    property Group: Integer read FGroup write SetGroup default 0;
+    property Frames: TStrings read FFrames;
+  end;
+
+  TAnimationSequences = specialize TGArrayCollection<TAnimationSequence>;
+
+  { TJsonAnimationHeader }
+
+  TJsonAnimationHeader = class(TPersistent)
+  private
+    FBasepath: AnsiString;
+    FSequences: TAnimationSequences;
+    procedure SetBasepath(AValue: AnsiString);
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Clear;
 
-    property CurrentDef: TAnimation read FCurrentDef write FCurrentDef;
-    property Mode: TGraphicsLoadMode read FMode write FMode;
+    function FindSequence(AGroup: Integer):TAnimationSequence;
+  published
+    property Basepath: AnsiString read FBasepath write SetBasepath;
+    property Sequences: TAnimationSequences read FSequences;
+
+    //TODO: individual frames
+    //property Images: TJSONData;
+  end;
+
+  { TJsonFormatLoader }
+
+  TJsonFormatLoader = class(TAnimationLoader)
+  strict private
+    FHeader:TJsonAnimationHeader;
+
+    //procedure LoadFrame();
+    function LoadSequence(): Boolean;
+  strict protected
+    function DoTryLoad: Boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
   end;
 
   { TGraphicsManager }
@@ -117,6 +191,7 @@ type
   private
     FNameToAnimMap: TAnimationMap;
     FDefLoader: TDefFormatLoader;
+    FJsonLoader: TJsonFormatLoader;
 
     FHeroFlagDefs: array[TPlayerColor] of TAnimation;
 
@@ -217,16 +292,216 @@ begin
   Result := PtrInt(d1) - PtrInt(d2);
 end;
 
+{ TAnimationSequence }
+
+procedure TAnimationSequence.SetGroup(AValue: Integer);
+begin
+  FGroup:=AValue;
+end;
+
+constructor TAnimationSequence.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FFrames := TStringList.Create;
+end;
+
+destructor TAnimationSequence.Destroy;
+begin
+  FFrames.Free;
+  inherited Destroy;
+end;
+
+{ TJsonAnimationHeader }
+
+procedure TJsonAnimationHeader.SetBasepath(AValue: AnsiString);
+begin
+  FBasepath:=AValue;
+end;
+
+constructor TJsonAnimationHeader.Create;
+begin
+  FSequences := TAnimationSequences.Create;
+end;
+
+destructor TJsonAnimationHeader.Destroy;
+begin
+  FSequences.Free;
+  inherited Destroy;
+end;
+
+procedure TJsonAnimationHeader.Clear;
+begin
+  FBasepath:='';
+  FSequences.Clear;
+end;
+
+function TJsonAnimationHeader.FindSequence(AGroup: Integer): TAnimationSequence;
+var
+  i: Integer;
+begin
+  Result := nil;
+
+  for i := 0 to Sequences.Count - 1 do
+  begin
+    if Sequences.Items[i].Group = AGroup then
+    begin
+      Result := Sequences.Items[i];
+      Exit;
+    end;
+  end;
+end;
+
+{ TAnimationLoader }
+
+function TAnimationLoader.ConvertCurrentPath: AnsiString;
+begin
+  Result := 'SPRITES/'+ CurrentPath;
+end;
+
+procedure TAnimationLoader.FixLoadMode;
+begin
+  if (Mode = TGraphicsLoadMode.LoadComplete) and (Current.Loaded = TGraphicsLoadFlag.First) then
+  begin
+    Mode := TGraphicsLoadMode.LoadRest;
+  end;
+
+  if (Mode = TGraphicsLoadMode.LoadRest) and (Current.Loaded = TGraphicsLoadFlag.None) then
+  begin
+    Mode := TGraphicsLoadMode.LoadComplete;
+  end;
+end;
+
+procedure TAnimationLoader.GenerateTextureIds;
+begin
+  SetLength(FTextureIDs, FFrameCount);
+  case Mode of
+    TGraphicsLoadMode.LoadFisrt:
+    begin
+      glGenTextures(1, @FTextureIDs[0]);
+    end;
+    TGraphicsLoadMode.LoadRest:
+    begin
+      if FFrameCount > 1 then
+      begin
+        glGenTextures(FFrameCount-1, @FTextureIDs[1]);
+      end;
+    end;
+    TGraphicsLoadMode.LoadComplete:
+    begin
+      glGenTextures(FFrameCount, @FTextureIDs[0]);
+    end;
+  end;;
+end;
+
+procedure TAnimationLoader.UpdateLoadFlag;
+begin
+  case Mode of
+    TGraphicsLoadMode.LoadFisrt:
+    begin
+      Current.Loaded:= TGraphicsLoadFlag.First;
+    end;
+    TGraphicsLoadMode.LoadRest:
+    begin
+      Current.Loaded:= TGraphicsLoadFlag.Complete;
+    end;
+    TGraphicsLoadMode.LoadComplete:
+    begin
+      Current.Loaded:= TGraphicsLoadFlag.Complete;
+    end;
+  end;
+end;
+
+function TAnimationLoader.TryLoad: Boolean;
+begin
+  Assert(Assigned(Current),'TDefFormatLoader.TryLoad: nil Current');
+  FixLoadMode;
+  Result := DoTryLoad();
+  if Result then
+  begin
+    UpdateLoadFlag;
+  end;
+end;
+
+{ TJsonFormatLoader }
+
+function TJsonFormatLoader.LoadSequence: Boolean;
+var
+  sequence: TAnimationSequence;
+  framePath, realPath: String;
+  idx: Integer;
+begin
+  sequence := FHeader.FindSequence(0);
+  Result := Assigned(sequence);
+
+  if Result then
+  begin
+    idx := 0;
+    for framePath in sequence.Frames do
+    begin
+      realPath := UTF8Trim(FHeader.Basepath)+UTF8Trim(framePath);
+
+      if ResourceLoader.ExistsResource(TResourceType.Image, realPath) then
+      begin
+
+        inc(idx);
+      end;
+    end;
+    Result := idx > 0;//at least one frame has been loaded
+  end;
+end;
+
+constructor TJsonFormatLoader.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FHeader := TJsonAnimationHeader.Create;
+end;
+
+destructor TJsonFormatLoader.Destroy;
+begin
+  FHeader.Free;
+  inherited;
+end;
+
+function TJsonFormatLoader.DoTryLoad: Boolean;
+var
+  FHeaderJson: TJsonResource;
+begin
+  FHeader.Clear;
+  Result := false;
+
+  FHeaderJson := TJsonResource.Create(ConvertCurrentPath());
+  try
+    Result := FHeaderJson.TryLoad(ResourceLoader);
+
+    if Result then
+    begin
+      FHeaderJson.DestreamTo(FHeader);
+
+      //TODO: patch single frames
+
+      Result := LoadSequence();
+    end;
+  finally
+    FHeaderJson.Free;
+  end;
+end;
+
 { TDefFormatLoader }
 
-constructor TDefFormatLoader.Create;
+constructor TDefFormatLoader.Create(AOwner: TComponent);
 begin
+  inherited Create(AOwner);
   SetLength(FBuffer, INITIAL_BUFFER_SIZE);
 end;
 
 destructor TDefFormatLoader.Destroy;
 begin
   inherited;
+end;
+
+function TDefFormatLoader.DoTryLoad: Boolean;
+begin
+  Result := ResourceLoader.TryLoadResource(Self, TResourceType.Animation, ConvertCurrentPath());
 end;
 
 procedure TDefFormatLoader.IncreaseBuffer(ANewSize: SizeInt);
@@ -400,7 +675,7 @@ var
     end;
   end;
 begin
-  PEntry := FCurrentDef.entries.Mutable[SpriteIndex];
+  PEntry := Current.entries.Mutable[SpriteIndex];
 
   BaseOffset := offset;
 
@@ -437,7 +712,9 @@ begin
   if RightMargin<0 then
      h.SpriteWidth+=RightMargin;
 
-  PEntry^.PaletteID := FCurrentDef.FPaletteID;
+  Assert(ATextureID <> 0);
+
+  PEntry^.PaletteID := Current.FPaletteID;
   PEntry^.TextureId := ATextureID;
 
   PEntry^.LeftMargin := h.LeftMargin;
@@ -446,8 +723,8 @@ begin
   PEntry^.SpriteHeight := h.SpriteHeight;
   PEntry^.SpriteWidth := h.SpriteWidth;
 
-  PEntry^.Width:=FCurrentDef.Width;
-  PEntry^.Height:=FCurrentDef.Height;
+  PEntry^.Width:=Current.Width;
+  PEntry^.Height:=Current.Height;
 
   IncreaseBuffer(h.FullWidth*h.FullHeight);
 
@@ -478,15 +755,6 @@ end;
 
 procedure TDefFormatLoader.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 var
-  id_s: array of GLuint;
-  total_entries: Integer;
-
-  procedure GenerateTextureIds(count, offcet: Integer);
-    begin
-      SetLength(id_s,total_entries);
-      glGenTextures(count, @id_s[offcet]);
-    end;
-var
   offsets : packed array of UInt32;
 
   block_nomber: Integer;
@@ -503,31 +771,14 @@ var
   header: TH3DefHeader;
   orig_position: Int32;
 begin
-  Assert(Assigned(FCurrentDef),'TDefFormatLoader.LoadFromStream: nil CurrentDef');
-
-  if FCurrentDef.Loaded = TGraphicsLoadFlag.Complete then
-  begin
-    exit;
-  end;
-
-  if (Mode = TGraphicsLoadMode.LoadComplete) and (FCurrentDef.Loaded = TGraphicsLoadFlag.First) then
-  begin
-    Mode := TGraphicsLoadMode.LoadRest;
-  end;
-
-  if (Mode = TGraphicsLoadMode.LoadRest) and (FCurrentDef.Loaded = TGraphicsLoadFlag.None) then
-  begin
-    Mode := TGraphicsLoadMode.LoadComplete;
-  end;
-
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
 
   //typ := LEtoN(header.typ);
-  FCurrentDef.FHeight := LEtoN(header.height);
+  Current.FHeight := LEtoN(header.height);
   blockCount := LEtoN(header.blockCount);
-  FCurrentDef.FWidth := LEtoN(header.width);
+  Current.FWidth := LEtoN(header.width);
 
   //TODO: use color comparison instead of index
 
@@ -546,11 +797,11 @@ begin
       palette[i].r := header.palette[i].r;
     end;
 
-    glGenTextures(1,@FCurrentDef.FPaletteID);
-    BindPalette(FCurrentDef.FPaletteID,@palette);
+    glGenTextures(1,@Current.FPaletteID);
+    BindPalette(Current.FPaletteID,@palette);
   end;
 
-  total_entries := 0;
+  FFrameCount := 0;
 
   for block_nomber := 0 to blockCount - 1 do
   begin
@@ -558,9 +809,7 @@ begin
 
      total_in_block := current_block_head.totalInBlock;
 
-     SetLength(offsets, total_entries + total_in_block);
-
-     //entries.Resize(total_entries + total_in_block);
+     SetLength(offsets, FFrameCount + total_in_block);
 
      //names
      AStream.Seek(13*total_in_block,soCurrent);
@@ -569,52 +818,49 @@ begin
      for i := 0 to total_in_block - 1 do
      begin
        AStream.Read(current_offcet{%H-},SizeOf(current_offcet));
-       offsets[total_entries+i] := current_offcet+UInt32(orig_position);
+       offsets[FFrameCount+i] := current_offcet+UInt32(orig_position);
 
        //todo: use block_nomber to load heroes defs from mods
 
        //entries.Mutable[total_entries+i]^.group := block_nomber;
      end;
 
-     total_entries += total_in_block;
+     FFrameCount += total_in_block;
   end;
 
   if mode <> TGraphicsLoadMode.LoadRest then
   begin
-    FCurrentDef.entries.Resize(total_entries);
+    Current.FrameCount := FFrameCount;
   end;
 
+  GenerateTextureIds();
+
   case Mode of
-    TGraphicsLoadMode.LoadFisrt: begin
-      GenerateTextureIds(1,0);
-      LoadSprite(AStream, 0, id_s[0], offsets[0]);
-      FCurrentDef.Loaded:= TGraphicsLoadFlag.First;
+    TGraphicsLoadMode.LoadFisrt:
+    begin
+      LoadSprite(AStream, 0, FTextureIDs[0], offsets[0]);
     end;
     TGraphicsLoadMode.LoadRest:
     begin
-      if total_entries > 1 then
+      if FFrameCount > 1 then
       begin
-        GenerateTextureIds(total_entries-1,1);
-        for i := 1 to total_entries - 1 do
+        for i := 1 to FFrameCount - 1 do
         begin
-          LoadSprite(AStream, i, id_s[i], offsets[i]);
+          LoadSprite(AStream, i, FTextureIDs[i], offsets[i]);
         end;
       end;
-
-      FCurrentDef.Loaded:= TGraphicsLoadFlag.Complete;
     end;
     TGraphicsLoadMode.LoadComplete:
     begin
-      GenerateTextureIds(total_entries, 0);
-      for i := 0 to total_entries - 1 do
+      for i := 0 to FFrameCount - 1 do
       begin
-        LoadSprite(AStream, i, id_s[i], offsets[i]);
+        LoadSprite(AStream, i, FTextureIDs[i], offsets[i]);
       end;
-      FCurrentDef.Loaded:= TGraphicsLoadFlag.Complete;
     end;
   end;
 
   glBindTexture(GL_TEXTURE_2D, 0);
+  glBindTexture(GL_TEXTURE_1D, 0);
 end;
 
 { TGraphicsConsumer }
@@ -647,7 +893,8 @@ begin
   FNameToAnimMap := TAnimationMap.Create;
   FBuffer := TMemoryStream.Create;
 
-  FDefLoader := TDefFormatLoader.Create;
+  FDefLoader := TDefFormatLoader.Create(Self);
+  FJsonLoader := TJsonFormatLoader.Create(Self);
 
   for i in TPlayerColor do
   begin
@@ -657,7 +904,6 @@ end;
 
 destructor TGraphicsManager.Destroy;
 begin
-  FDefLoader.Free;
   FBuffer.Free;
   FNameToAnimMap.Free;
   inherited Destroy;
@@ -675,11 +921,8 @@ end;
 
 procedure TGraphicsManager.LoadGraphics(Adef: TAnimation);
 begin
-  if Adef.Loaded = TGraphicsLoadFlag.Complete then
-  begin
-    Exit;
-  end;
-  DoLoadGraphics(ADef.ResourceID, Adef, TGraphicsLoadMode.LoadRest);
+  if Adef.Loaded <> TGraphicsLoadFlag.Complete then
+    DoLoadGraphics(ADef.ResourceID, Adef, TGraphicsLoadMode.LoadRest);
 end;
 
 function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TAnimation;
@@ -691,10 +934,21 @@ procedure TGraphicsManager.DoLoadGraphics(const AResourceName: string; ADef: TAn
 var
   found: Boolean;
 begin
-  found := false;
-  FDefLoader.CurrentDef := ADef;
+  if ADef.Loaded = TGraphicsLoadFlag.Complete then
+  begin
+    exit;
+  end;
+
+  FDefLoader.Current := ADef;
   FDefLoader.Mode := ALoadMode;
-  found := found or ResourceLoader.TryLoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/'+AResourceName);
+  FDefLoader.CurrentPath := AResourceName;
+  found := FDefLoader.TryLoad();
+
+  FJsonLoader.Current := ADef;
+  FJsonLoader.Mode:=ALoadMode;
+  FJsonLoader.CurrentPath:=AResourceName;
+
+  found:=found or FJsonLoader.TryLoad();
 
   if not found then
   begin
@@ -764,6 +1018,24 @@ end;
 function TAnimation.GetFrameCount: Integer;
 begin
   Result := entries.Size;
+end;
+
+procedure TAnimation.SetFrameCount(AValue: Integer);
+var
+  old_size, i: Integer;
+  PEntry: PGLSprite;
+begin
+  old_size := entries.Size;
+  if old_size <> AValue then
+  begin
+    entries.Resize(AValue);
+
+    for i := 0 to AValue - old_size - 1 do
+    begin
+      PEntry := entries.Mutable[i];
+      PEntry^.Init;
+    end;
+  end;
 end;
 
 procedure TAnimation.RenderBorder(AState: TLocalState; TileX, TileY: Integer);
@@ -838,7 +1110,11 @@ begin
   begin
     entries.Mutable[SpriteIndex]^.UnBind();
   end;
-  glDeleteTextures(1,@FPaletteID);
+  if FPaletteID <> 0 then
+  begin
+    glDeleteTextures(1,@FPaletteID);
+    FPaletteID := 0;
+  end;
 end;
 
 end.

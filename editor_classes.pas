@@ -141,17 +141,17 @@ type
   { TGArrayCollection }
 
   generic TGArrayCollection <TItem> = class (TCollection, IArrayCollection)
-  private
-    function GetItems(const Idx: Integer): TItem;
-    procedure SetItems(const Idx: Integer; AValue: TItem);
   public
     type
-      TItemType = Titem;
+      TItemType = TItem;
+  private
+    function GetItems(const Idx: Integer): TItemType;
+    procedure SetItems(const Idx: Integer; AValue: TItemType);
+  public
     constructor Create;
+    function Add: TItemType;
 
-    function Add: TItem;
-
-    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
+    property Items[const Idx: Integer]: TItemType read GetItems write SetItems; default;
   end;
 
   { TGNamedCollection }
@@ -581,9 +581,9 @@ end;
 
 { TGCollection }
 
-function TGArrayCollection.Add: TItem;
+function TGArrayCollection.Add: TItemType;
 begin
-  Result := TItem(inherited Add);
+  Result := TItemType(inherited Add);
 end;
 
 constructor TGArrayCollection.Create;
@@ -591,12 +591,12 @@ begin
   inherited Create(TItem);
 end;
 
-function TGArrayCollection.GetItems(const Idx: Integer): TItem;
+function TGArrayCollection.GetItems(const Idx: Integer): TItemType;
 begin
   Result := TItem( inherited Items[Idx]);
 end;
 
-procedure TGArrayCollection.SetItems(const Idx: Integer; AValue: TItem);
+procedure TGArrayCollection.SetItems(const Idx: Integer; AValue: TItemType);
 begin
   inherited Items[Idx] := AValue;
 end;

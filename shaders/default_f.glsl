@@ -21,7 +21,7 @@ vec4 applyFlag(int inColor)
    return texelFetch(palette, inColor, 0);
 }
 
-vec4 applyTexture()
+vec4 applyTextureWithPalette()
 {
     return applyFlag(int(texture(bitmap,UV).r));
 }
@@ -30,7 +30,7 @@ void main()
 {
   if(useTexture == 1)
   {
-      outColor = applyTexture();
+      outColor = applyTextureWithPalette();
   }
   else
   {
