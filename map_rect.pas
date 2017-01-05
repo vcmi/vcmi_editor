@@ -144,7 +144,8 @@ var
 begin
   if IsEmpty then
   begin
-    SetFromCorners(Other.TopLeft, Other.BottomRight());
+    if not Other.IsEmpty then
+      SetFromCorners(Other.TopLeft, Other.BottomRight());
   end
   else
   begin
