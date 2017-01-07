@@ -22,7 +22,10 @@ unit vcmi.image_loaders;
 interface
 
 uses
-  Classes, SysUtils, Graphics, filesystem_base, vcmi.image_formats.h3pcx;
+  Classes, SysUtils,
+  FPimage,
+  FPReadBMP,FPReadJPEG,FPReadPNG,FPReadTGA,FPReadTiff,
+  Graphics, IntfGraphics, GraphType, filesystem_base, vcmi.image_formats.h3pcx;
 
 type
 
@@ -40,7 +43,71 @@ type
     property Data: TPicture read FData;
   end;
 
+  { TIntfImageResource }
+
+  //RGBA intf bitmap
+
+  TIntfImageResource = class(TBaseResource, IResource)
+  private
+    FData: TLazIntfImage;
+    FRawImage: TRawImage;
+  public
+    constructor Create(APath: AnsiString);
+    destructor Destroy; override;
+
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
+
+    property Data: TLazIntfImage read FData;
+  end;
+
 implementation
+
+{ TIntfImageResource }
+
+constructor TIntfImageResource.Create(APath: AnsiString);
+begin
+  inherited Create(TResourceType.Image, APath);
+  FData := TLazIntfImage.Create(0,0);
+
+  FRawImage.Init;
+  FRawImage.Description.Init_BPP32_R8G8B8A8_BIO_TTB(0,0);
+  FRawImage.CreateData(false);
+
+  FData.SetRawImage(FRawImage);
+end;
+
+destructor TIntfImageResource.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
+
+procedure TIntfImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
+var
+  ext: AnsiString;
+  r: TFPCustomImageReader;
+begin
+  ext:=UpperCase(ExtractFileExt(AFileName));
+
+  if ext = '.PNG' then
+  begin
+    r := TFPReaderPNG.create;
+
+    //TODO: load from stream with proper handler
+    FData.LoadFromStream(AStream, r);
+
+    r.Free;
+  end
+  else if UpperCase(ext) <> '.PCX' then
+  begin
+    //todo:
+
+  end
+  else
+  begin
+    //TODO:
+  end;
+end;
 
 { TImageResource }
 

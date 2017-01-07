@@ -106,6 +106,8 @@ type
     UseFlagUniform: GLint;
     PaletteUniform: GLint;
     BitmapUniform: GLint;
+    BitmapRGBUniform: GLint;
+
     FlagColorUniform: GLint;
 
     CoordsBuffer: GLuint;
@@ -155,9 +157,9 @@ type
     procedure SetTranslation(X,Y: Integer);
 
     procedure SetUseFlag(const Value: Boolean);
-    procedure SetUseTexture(const Value: Boolean);
-    procedure UseNoTextures;
-    procedure UsePalettedTextures;
+
+    procedure UseTextures(Use, withpalette: Boolean);
+    procedure UsePalette(Use: Boolean);
 
     function StartFrame: Boolean;
     procedure FinishFrame;
@@ -527,6 +529,7 @@ begin
   PaletteUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('palette'));
   FlagColorUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('flagColor'));
   BitmapUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmap'));
+  BitmapRGBUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmapRGB'));
 
   FCoordAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('coords'));
   FUVAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('uv'));
@@ -856,13 +859,20 @@ begin
   vertex_data[9] := x+w; vertex_data[10] := y+h;
   vertex_data[11] := x;  vertex_data[12] := y+h;
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
-
   if ASprite.PaletteID <> 0 then
   begin
+    UsePalette(true);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D,ASprite.PaletteID);
+  end
+  else
+  begin
+    UsePalette(false);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
   end;
 
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
@@ -877,28 +887,35 @@ begin
   glUniform1i(GlobalContextState.UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
-procedure TLocalState.SetUseTexture(const Value: Boolean);
-begin
-  glUniform1i(GlobalContextState.UseTextureUniform, ifthen(Value, 1, 0));
-end;
-
-procedure TLocalState.UseNoTextures;
-begin
-  FCurrentProgram := GlobalContextState.UseDefaultProgram();
-  SetUseFlag(false);
-  SetUseTexture(False);
-end;
-
-procedure TLocalState.UsePalettedTextures;
+procedure TLocalState.UseTextures(Use, withpalette: Boolean);
 begin
   FCurrentProgram := GlobalContextState.UseDefaultProgram();
 
-  SetUseTexture(true);
-
-  glUniform1i(GlobalContextState.BitmapUniform, 0); //texture unit0
-  glUniform1i(GlobalContextState.PaletteUniform, 1);//texture unit1
+  if Use then
+  begin
+    glUniform1i(GlobalContextState.BitmapUniform, 0); //texture unit0
+    glUniform1i(GlobalContextState.PaletteUniform, 1);//texture unit1
+    glUniform1i(GlobalContextState.BitmapRGBUniform, 2);//texture unit2
+    glUniform1i(GlobalContextState.UseTextureUniform, ifthen(withpalette, 1, 2));
+  end
+  else
+  begin
+    SetUseFlag(false);
+    glUniform1i(GlobalContextState.UseTextureUniform, 0);
+  end;
 end;
 
+procedure TLocalState.UsePalette(Use: Boolean);
+begin
+  if Use then
+  begin
+    glUniform1i(GlobalContextState.UseTextureUniform, 1);
+  end
+  else
+  begin
+    glUniform1i(GlobalContextState.UseTextureUniform, 2);
+  end;
+end;
 
 
 end.

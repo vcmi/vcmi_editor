@@ -25,8 +25,9 @@ unit editor_graphics;
 interface
 
 uses
-  Classes, SysUtils, Math, gvector, fgl, Gl, editor_types, editor_consts,
-  editor_utils, filesystem_base, editor_gl, vcmi_json, editor_classes, LazLoggerBase, LazUTF8, fpjson;
+  Classes, SysUtils, Math, gvector, fgl, Gl, Graphics, IntfGraphics, GraphType, editor_types, editor_consts,
+  editor_utils, filesystem_base, editor_gl, vcmi_json, editor_classes, vcmi.image_loaders, LazLoggerBase, LazUTF8,
+  fpjson;
 
 type
   TDefEntries = specialize gvector.TVector<TGLSprite>;
@@ -175,14 +176,14 @@ type
   strict private
     FHeader:TJsonAnimationHeader;
 
-    //procedure LoadFrame();
+    procedure LoadFrame(idx: Integer; path: AnsiString);
     function LoadSequence(): Boolean;
+    procedure UpdateAnimationSize(ASpriteWidth, ASpriteHeight: integer);
   strict protected
     function DoTryLoad: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
   end;
 
   { TGraphicsManager }
@@ -262,15 +263,15 @@ type
   end;
 const
 
-  H3_SPECAIL_COLORS: array[0..7] of TH3DefColor = (
-   {0} (r: 0; g: 255; b:255),
+  H3_SPECIAL_COLORS: array[0..7] of TH3DefColor = (
+   {0} (r: 0;   g: 255; b:255),
    {1} (r: 255; g: 150; b:255),
    {2} (r: 255; g: 100; b:255),
-   {3} (r: 255; g: 50; b:255),
-   {4} (r: 255; g: 0; b:255),
+   {3} (r: 255; g: 50;  b:255),
+   {4} (r: 255; g: 0;   b:255),
    {5} (r: 255; g: 255; b:0),
-   {6} (r: 180; g: 0; b:255),
-   {7} (r: 0; g: 255; b:0));
+   {6} (r: 180; g: 0;   b:255),
+   {7} (r: 0;   g: 255; b:0));
 
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
@@ -424,6 +425,33 @@ end;
 
 { TJsonFormatLoader }
 
+procedure TJsonFormatLoader.LoadFrame(idx: Integer; path: AnsiString);
+var
+  PEntry: PGLSprite;
+  AImage:TIntfImageResource;
+begin
+  PEntry:=Current.entries.Mutable[idx];
+
+  AImage := TIntfImageResource.Create(path);
+  try
+    AImage.Load(ResourceLoader);
+
+    PEntry^.Height:=AImage.Data.Height;
+    PEntry^.LeftMargin:=0;
+    PEntry^.SpriteHeight:=AImage.Data.Height;
+    PEntry^.SpriteWidth:=AImage.Data.Width;
+    PEntry^.TopMargin:=0;
+    PEntry^.Width:=AImage.Data.Width;
+
+    PEntry^.TextureID:=FTextureIDs[idx];
+    UpdateAnimationSize(PEntry^.SpriteWidth, PEntry^.SpriteHeight);
+
+    BindUncompressedRGBA(PEntry^.TextureID, PEntry^.SpriteWidth, PEntry^.SpriteHeight, AImage.Data.PixelData^);
+  finally
+    AImage.Free;
+  end;
+end;
+
 function TJsonFormatLoader.LoadSequence: Boolean;
 var
   sequence: TAnimationSequence;
@@ -436,18 +464,33 @@ begin
   if Result then
   begin
     idx := 0;
+    FFrameCount := sequence.Frames.Count;
+    Current.FrameCount := FFrameCount;
+    GenerateTextureIds();
+
     for framePath in sequence.Frames do
     begin
-      realPath := UTF8Trim(FHeader.Basepath)+UTF8Trim(framePath);
+      realPath := 'SPRITES/'+UTF8Trim(FHeader.Basepath)+UTF8Trim(framePath);
 
-      if ResourceLoader.ExistsResource(TResourceType.Image, realPath) then
+      Result := ResourceLoader.ExistsResource(TResourceType.Image, realPath);
+
+      if not Result then
       begin
-
-        inc(idx);
+        DebugLn('Frame not found: '+realPath);
+        Exit;
       end;
+
+      LoadFrame(idx, realPath);
+      inc(idx);
     end;
-    Result := idx > 0;//at least one frame has been loaded
   end;
+end;
+
+procedure TJsonFormatLoader.UpdateAnimationSize(ASpriteWidth, ASpriteHeight: integer);
+begin
+  //TODO: align to tile size (with margins)
+  Current.FWidth := ASpriteWidth;
+  Current.FHeight := ASpriteHeight;
 end;
 
 constructor TJsonFormatLoader.Create(AOwner: TComponent);
@@ -1005,6 +1048,8 @@ constructor TAnimation.Create;
 begin
   entries := TDefEntries.Create;
   FLoaded := TGraphicsLoadFlag.None;
+  FWidth := TILE_SIZE;
+  FHeight:= TILE_SIZE;
 end;
 
 destructor TAnimation.Destroy;

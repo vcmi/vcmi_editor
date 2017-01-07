@@ -1644,7 +1644,7 @@ begin
     FVisibleObjectsValid := True;
   end;
 
-  FMapViewState.UsePalettedTextures();
+  FMapViewState.UseTextures(true, true);
 
   FMapViewState.SetOrtho(FRealTileSize * FMapHPos, MapView.Width + FRealTileSize * FMapHPos,
     MapView.Height + FRealTileSize * FMapVPos, FRealTileSize * FMapVPos);
@@ -1692,7 +1692,7 @@ begin
   if actViewPassability.Checked then
   begin
     FMapViewState.StartDrawingRects;
-    FMapViewState.UseNoTextures();
+    FMapViewState.UseTextures(false, false);
 
     for o in FVisibleObjects do
     begin
@@ -1713,7 +1713,7 @@ begin
     FMapViewState.SetUseFlag(true);
 
     FMapViewState.StartDrawingSprites;
-    FMapViewState.UsePalettedTextures();
+    FMapViewState.UseTextures(True, True);
 
     FDragging.Render(FMapViewState, FMouseTileX, FMouseTileY);
   end;
@@ -1913,7 +1913,7 @@ begin
 
   glClearColor(255, 255, 255, 0);
 
-  FObjectsViewState.UseNoTextures();
+  FObjectsViewState.UseTextures(False, false);
 
   FObjectsViewState.SetOrtho(0, ObjectsView.Width + 0, ObjectsView.Height + 0, 0);
 
@@ -1951,7 +1951,7 @@ begin
 
   FObjectsViewState.StopDrawing;
 
-  FObjectsViewState.UsePalettedTextures();
+  FObjectsViewState.UseTextures(true, true);
   FObjectsViewState.SetUseFlag(true);
   FObjectsViewState.StartDrawingSprites();
 
@@ -2127,9 +2127,8 @@ const
 var
   i, j: Integer;
 begin
-  FMapViewState.SetUseFlag(false);
+  FMapViewState.UseTextures(false, false);
   FMapViewState.StartDrawingRects;
-  FMapViewState.UseNoTextures();
   FMapViewState.SetFragmentColor(GRID_COLOR);
 
   for i := FMapHPos to FMapHPos + FViewTilesH do
@@ -2143,9 +2142,8 @@ end;
 
 procedure TfMain.RenderSelection;
 begin
-  FMapViewState.SetUseFlag(false);
+  FMapViewState.UseTextures(False, False);
   FMapViewState.StartDrawingRects;
-  FMapViewState.UseNoTextures();
 
   if Assigned(FSelectedObject) then
   begin
