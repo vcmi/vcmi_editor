@@ -40,6 +40,7 @@ type
   private
     FLoaded: TGraphicsLoadFlag;
     FPaletteID: GLuint;
+
     FResourceID: AnsiString;
 
     //typ: UInt32;
@@ -179,6 +180,9 @@ type
     procedure LoadFrame(idx: Integer; path: AnsiString);
     function LoadSequence(): Boolean;
     procedure UpdateAnimationSize(ASpriteWidth, ASpriteHeight: integer);
+
+    //if json header is not present try to load single frame from raster image
+    function TryLoadSingle: Boolean;
   strict protected
     function DoTryLoad: Boolean; override;
   public
@@ -493,6 +497,22 @@ begin
   Current.FHeight := ASpriteHeight;
 end;
 
+function TJsonFormatLoader.TryLoadSingle: Boolean;
+var
+  path: AnsiString;
+begin
+  path := ConvertCurrentPath();
+  Result := false;
+  if ResourceLoader.ExistsResource(TResourceType.Image, path) then
+  begin
+    FFrameCount := 1;
+    Current.FrameCount := FFrameCount;
+    GenerateTextureIds();
+    LoadFrame(0, path);
+    Result := true;
+  end;
+end;
+
 constructor TJsonFormatLoader.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -519,11 +539,12 @@ begin
     if Result then
     begin
       FHeaderJson.DestreamTo(FHeader);
-
       //TODO: patch single frames
 
       Result := LoadSequence();
-    end;
+    end
+    else
+      Result := TryLoadSingle();
   finally
     FHeaderJson.Free;
   end;
@@ -804,11 +825,8 @@ var
 
   current_block_head: TH3DefEntryBlockHeader;
   total_in_block: Integer;
-
   current_offcet: UInt32;
-
   i: Integer;
-
   blockCount: UInt32;
 
   header: TH3DefHeader;
@@ -1153,7 +1171,7 @@ var
 begin
   for SpriteIndex := 0 to SizeInt(entries.Size) - 1 do
   begin
-    entries.Mutable[SpriteIndex]^.UnBind();
+    glDeleteTextures(1,@(entries.Mutable[SpriteIndex]^.TextureID));
   end;
   if FPaletteID <> 0 then
   begin

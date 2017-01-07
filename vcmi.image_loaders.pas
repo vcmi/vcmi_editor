@@ -25,7 +25,7 @@ uses
   Classes, SysUtils,
   FPimage,
   FPReadBMP,FPReadJPEG,FPReadPNG,FPReadTGA,FPReadTiff,
-  Graphics, IntfGraphics, GraphType, filesystem_base, vcmi.image_formats.h3pcx;
+  Graphics, IntfGraphics, GraphType, LazLoggerBase, filesystem_base, vcmi.image_formats.h3pcx;
 
 type
 
@@ -45,7 +45,7 @@ type
 
   { TIntfImageResource }
 
-  //RGBA intf bitmap
+  //RGBA intf bitmap, temprory storage for load into video memory
 
   TIntfImageResource = class(TBaseResource, IResource)
   private
@@ -92,20 +92,19 @@ begin
   if ext = '.PNG' then
   begin
     r := TFPReaderPNG.create;
-
-    //TODO: load from stream with proper handler
     FData.LoadFromStream(AStream, r);
 
     r.Free;
   end
-  else if UpperCase(ext) <> '.PCX' then
+  else if ext = '.PCX' then
   begin
-    //todo:
-
+    //todo:8|24 bit h3 pcx -> 32 bit texture
+    assert(false, 'not implemented')
   end
   else
   begin
     //TODO:
+    assert(false, 'not implemented')
   end;
 end;
 
@@ -128,9 +127,9 @@ procedure TImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream)
 var
   ext: AnsiString;
 begin
-  ext:=ExtractFileExt(AFileName);
+  ext:=UpperCase(ExtractFileExt(AFileName));
 
-  if UpperCase(ext) <> '.PCX' then
+  if ext <> '.PCX' then
   begin
     //assume anything else is supported out of the box
     FData.LoadFromStreamWithFileExt(AStream, ext);

@@ -55,7 +55,6 @@ type
     SpriteHeight: int32;
 
     procedure Init; inline;
-    procedure Unbind; inline;
   end;
 
   { TShaderResourceStream }
@@ -144,7 +143,7 @@ type
     procedure SetupSpriteVAO;
     procedure SetupRectVAO;
 
-    procedure DoRenderSprite(constref ASprite: TGLSprite; x,y,w,h: Int32; mir: UInt8);
+    procedure DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
  public
     constructor Create(AContext: TOpenGLControl);
     destructor Destroy; override;
@@ -191,7 +190,6 @@ procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
 procedure BindUncompressedPalettedSub(ATextureId: GLuint; x, y, w, h: Int32; ARawImage: Pointer);
 procedure BindUncompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
-procedure BindCompressedRGBA(ATextureId: GLuint; w,h: Int32; var ARawImage);
 
 procedure Unbind(var ATextureId: GLuint); inline;
 
@@ -231,9 +229,7 @@ begin
   CheckGLErrors('Bind palette');
 end;
 
-
-procedure BindUncompressedPaletted(ATextureId: GLuint; w, h: Int32;
-  ARawImage: Pointer);
+procedure BindUncompressedPaletted(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer);
 begin
   glBindTexture(GL_TEXTURE_2D, ATextureId);
 
@@ -258,11 +254,6 @@ end;
 procedure BindUncompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);
 begin
   BindRGBA(ATextureId,w, h,@ARawImage,GL_RGBA);
-end;
-
-procedure BindCompressedRGBA(ATextureId: GLuint; w, h: Int32; var ARawImage);
-begin
-  BindRGBA(ATextureId,w, h,@ARawImage,GL_COMPRESSED_RGBA);
 end;
 
 procedure Unbind(var ATextureId: GLuint);
@@ -426,12 +417,6 @@ begin
   PaletteID:=0;
 end;
 
-procedure TGLSprite.Unbind;
-begin
-  if TextureId <> 0 then
-    glDeleteTextures(1,@TextureId);
-  TextureId := 0;
-end;
 
 { TGlobalState }
 
