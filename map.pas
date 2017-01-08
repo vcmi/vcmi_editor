@@ -385,6 +385,8 @@ type
 
   TMapObjectAppearance = class(TObject, ISerializeNotify, IFPObserver)
   strict private
+    FAllowedTerrains: TTerrainTypes;
+    FTags: TStrings;
     mask_w, mask_h: Integer;
     FOwner: TMapObject;
     FDef: TAnimation;
@@ -394,6 +396,7 @@ type
     FMask: TStrings;
     FVisitableFrom: TStrings;
     FzIndex: Integer;
+    function IsTagsStored: Boolean;
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
     procedure SetzIndex(AValue: Integer);
@@ -427,12 +430,15 @@ type
     property Height: Integer read mask_h;
 
     property Def: TAnimation read FDef;
+    procedure GetKeyWords(ATarget: TStrings);
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
     property VisitableFrom: TStrings read FVisitableFrom;
+    property AllowedTerrains: TTerrainTypes read FAllowedTerrains write FAllowedTerrains default ALL_TERRAINS;
     property Mask: TStrings read FMask;
     property ZIndex: Integer read FzIndex write SetzIndex default 0;
+    property Tags: TStrings read FTags stored IsTagsStored;
   end;
 
   { TMapObject }
@@ -1524,6 +1530,11 @@ begin
   AnimationChanged;
 end;
 
+function TMapObjectAppearance.IsTagsStored: Boolean;
+begin
+  Result := FTags.Count>0;
+end;
+
 procedure TMapObjectAppearance.SetEditorAnimation(AValue: AnsiString);
 begin
   if FEditorAnimation=AValue then Exit;
@@ -1641,6 +1652,11 @@ begin
   Result := line[Length(line) - dx] = MASK_ACTIVABLE;
 end;
 
+procedure TMapObjectAppearance.GetKeyWords(ATarget: TStrings);
+begin
+  ATarget.AddStrings(FTags);
+end;
+
 constructor TMapObjectAppearance.Create(AOwner: TMapObject);
 begin
   FOwner := AOwner;
@@ -1648,10 +1664,13 @@ begin
   FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
   SetDef(RootManager.GraphicsManager.GetGraphics('default'));
+  FAllowedTerrains := ALL_TERRAINS;
+  FTags := TStringList.Create;
 end;
 
 destructor TMapObjectAppearance.Destroy;
 begin
+  FTags.Free;
   FMask.FPODetachObserver(Self);
   FMask.Free;
   FVisitableFrom.Free;
@@ -1666,6 +1685,8 @@ begin
   FMask.Assign(ASource.Mask);
   SetDef(ASource.Def);
   FZIndex := ASource.ZIndex;
+  FAllowedTerrains:=ASource.AllowedTerrains;
+  FTags.Assign(ASource.Tags);
 end;
 
 procedure TMapObjectAppearance.BeforeSerialize(Sender: TObject);
@@ -1673,8 +1694,7 @@ begin
   CompactMask;
 end;
 
-procedure TMapObjectAppearance.BeforeDeSerialize(Sender: TObject; AData: TJSONData
-  );
+procedure TMapObjectAppearance.BeforeDeSerialize(Sender: TObject; AData: TJSONData);
 begin
   FMask.BeginUpdate;
 end;
@@ -2347,6 +2367,11 @@ begin
   if Assigned(FMapObjectType) then
   begin
     FMapObjectType.GetKeyWords(ATarget);
+  end;
+
+  if Assigned(FTemplate) then
+  begin
+    FTemplate.GetKeyWords(ATarget);
   end;
 end;
 

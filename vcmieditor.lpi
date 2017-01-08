@@ -247,7 +247,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="VCMI_Tests_2013.h3m"/>
+        <CommandLineParams Value="ObjectPropertyTest_v1.h3m"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
