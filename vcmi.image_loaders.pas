@@ -22,10 +22,13 @@ unit vcmi.image_loaders;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, fgl,
   FPimage,
   FPReadBMP,FPReadJPEG,FPReadPNG,FPReadTGA,FPReadTiff,
-  Graphics, IntfGraphics, GraphType, LazLoggerBase, filesystem_base, vcmi.image_formats.h3pcx;
+
+  Graphics, IntfGraphics, GraphType, LazLoggerBase,
+
+  editor_classes, filesystem_base, vcmi.image_formats.h3pcx;
 
 type
 
@@ -60,7 +63,74 @@ type
     property Data: TLazIntfImage read FData;
   end;
 
+  TReadersMap = specialize TObjectMap<AnsiString, TFPCustomImageReader>;
+
+  { TImageReaders }
+
+  TImageReaders = class sealed
+  private
+    FUpdated: Boolean;
+    FMap:TReadersMap;
+    procedure CheckUpdated;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function GetLoader(AExt: string): TFPCustomImageReader;
+  end;
+
 implementation
+
+var
+  GImageLoaders: TImageReaders;
+
+{ TImageReaders }
+
+procedure TImageReaders.CheckUpdated;
+var
+  i: Integer;
+  typename, ext: String;
+  c: TFPCustomImageReaderClass;
+begin
+  if not FUpdated then
+  begin
+    FMap.Clear;
+
+    for i := 0 to ImageHandlers.Count - 1 do
+    begin
+      typename := ImageHandlers.TypeNames[i];
+      c := ImageHandlers.ImageReader[typename];
+      ext := '.'+Trim(UpperCase(ImageHandlers.Extensions[typename]));
+      if Assigned(c) then
+      begin
+        FMap.Add(ext,c.Create());
+      end;
+    end;
+  end;
+end;
+
+constructor TImageReaders.Create;
+begin
+  FMap := TReadersMap.Create;
+end;
+
+destructor TImageReaders.Destroy;
+begin
+  FMap.Free;
+  inherited Destroy;
+end;
+
+function TImageReaders.GetLoader(AExt: string): TFPCustomImageReader;
+var
+  idx: LongInt;
+begin
+  Result := nil;
+  idx := FMap.IndexOf(AExt);
+  if idx >= 0 then
+  begin
+    Result := FMap.Data[idx];
+  end;
+end;
 
 { TIntfImageResource }
 
@@ -89,22 +159,21 @@ var
 begin
   ext:=UpperCase(ExtractFileExt(AFileName));
 
-  if ext = '.PNG' then
-  begin
-    r := TFPReaderPNG.create;
-    FData.LoadFromStream(AStream, r);
 
-    r.Free;
-  end
-  else if ext = '.PCX' then
+
+  if ext = '.PCX' then
   begin
     //(!)untested
     LoadH3Pcx(AStream, FData);
   end
   else
   begin
-    //TODO:
-    assert(false, 'not implemented')
+    r := GImageLoaders.GetLoader(ext);
+
+    if Assigned(r) then
+      FData.LoadFromStream(AStream, r)
+    else
+      raise Exception.CreateFmt('Unknown image file extension for ',[AFileName]);
   end;
 end;
 
@@ -140,5 +209,10 @@ begin
   end;
 end;
 
+initialization
+  GImageLoaders := TImageReaders.Create;
+  GImageLoaders.CheckUpdated();
+finalization;
+  FreeAndNil(GImageLoaders);
 end.
 
