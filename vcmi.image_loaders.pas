@@ -159,8 +159,6 @@ var
 begin
   ext:=UpperCase(ExtractFileExt(AFileName));
 
-
-
   if ext = '.PCX' then
   begin
     //(!)untested

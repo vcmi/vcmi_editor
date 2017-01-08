@@ -476,9 +476,7 @@ type
 
     //for palette
     procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer);
-
     procedure RenderOverlay(AState: TLocalState); inline;
-
     procedure RenderSelectionRect(AState: TLocalState); inline;
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
@@ -566,6 +564,11 @@ type
     constructor Create();
     destructor Destroy; override;
     property Objcts[AIndex: SizeInt]: TMapObject read GetObjcts;
+
+    property Data:TMapObjectList read FData;
+
+    procedure RenderMap(AState: TLocalState; Animate, NewAnimFrame, Overlay: Boolean);
+
   public//ISearchResult
     procedure Add(AObject: TObject);
     procedure Clear;
@@ -808,7 +811,8 @@ type
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
 
-    procedure SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
+    procedure SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer); deprecated;
+    procedure SelectVisibleObjects(ATarget: TMapObjectsSelection; Left, Right, Top, Bottom: Integer);
 
     // AInput = space separated words or empty string to get all
     procedure SelectByKeywords(ATarget: TMapObjectsSelection; AInput: string; ACategory: TObjectCategory);
@@ -921,6 +925,33 @@ var
 begin
   o_def := FData.Items[AIndex];
   o_def.RenderIcon(AState, AX, AY, dim);
+end;
+
+procedure TMapObjectsSelection.RenderMap(AState: TLocalState; Animate, NewAnimFrame, Overlay: Boolean);
+var
+  o: TMapObject;
+begin
+  if Animate then
+  begin
+    for o in FData do
+      o.RenderAnim(AState, NewAnimFrame);
+  end
+  else
+  begin
+    for o in FData do
+      o.RenderStatic(AState);
+  end;
+
+  if Overlay then
+  begin
+    AState.StartDrawingRects;
+    AState.UseTextures(false, false);
+
+    for o in FData do
+    begin
+      o.RenderOverlay(AState);
+    end;
+  end;
 end;
 
 procedure TMapObjectsSelection.Add(AObject: TObject);
@@ -3068,6 +3099,36 @@ begin
 end;
 
 procedure TVCMIMap.SelectVisibleObjects(ATarget: TMapObjectList; Left, Right, Top, Bottom: Integer);
+var
+  i: Integer;
+  o: TMapObject;
+begin
+  ATarget.Clear;
+
+  for i := 0 to FObjects.Count - 1 do
+  begin
+    o := FObjects.Items[i];
+    if o.L <> CurrentLevelIndex then
+      Continue;
+
+    if (o.X < Left)
+      or (o.Y < Top)
+      or (o.X - 8 > Right)
+      or (o.y - 6 > Bottom)
+      then Continue; //todo: use visisblity mask
+
+    FVisibleObjectsQueue.Push(o);
+  end;
+
+  while not FVisibleObjectsQueue.IsEmpty do
+  begin
+    ATarget.Add(FVisibleObjectsQueue.Top);
+
+    FVisibleObjectsQueue.Pop;
+  end;
+end;
+
+procedure TVCMIMap.SelectVisibleObjects(ATarget: TMapObjectsSelection; Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   o: TMapObject;

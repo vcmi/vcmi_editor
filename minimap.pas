@@ -212,7 +212,7 @@ begin
   FTerrainBlockColors[TTerrainType.rough] := TColorToFPColor(RGBToColor(99, 81, 33));
   FTerrainBlockColors[TTerrainType.subterra] := TColorToFPColor(RGBToColor(90, 8, 0));
   FTerrainBlockColors[TTerrainType.lava] := TColorToFPColor(RGBToColor(41, 40, 41));
-  FTerrainBlockColors[TTerrainType.water] := TColorToFPColor(RGBToColor (8, 81, 148));
+  FTerrainBlockColors[TTerrainType.water] := TColorToFPColor(RGBToColor (6, 58, 106));
   FTerrainBlockColors[TTerrainType.rock] := TColorToFPColor(RGBToColor(0, 0, 0));
 
   FNeutralPlayerColor :=  RGBAColorToFpColor (NEUTRAL_PLAYER_COLOR);

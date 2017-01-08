@@ -1,10 +1,10 @@
 object fMain: TfMain
   Left = 329
-  Height = 623
-  Top = 95
+  Height = 660
+  Top = 58
   Width = 1210
   Caption = 'VCMI editor'
-  ClientHeight = 603
+  ClientHeight = 640
   ClientWidth = 1210
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
@@ -1214,20 +1214,20 @@ object fMain: TfMain
   end
   object pnMap: TPanel
     Left = 202
-    Height = 546
+    Height = 583
     Top = 34
     Width = 804
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnMap'
-    ClientHeight = 546
+    ClientHeight = 583
     ClientWidth = 804
     Color = clWhite
     ParentColor = False
     TabOrder = 0
     object MapView: TOpenGLControl
       Left = 23
-      Height = 507
+      Height = 544
       Top = 23
       Width = 765
       Align = alClient
@@ -1250,7 +1250,7 @@ object fMain: TfMain
     object hScrollBar: TScrollBar
       Left = 18
       Height = 16
-      Top = 530
+      Top = 567
       Width = 768
       Align = alBottom
       BorderSpacing.Left = 18
@@ -1262,7 +1262,7 @@ object fMain: TfMain
     end
     object vScrollBar: TScrollBar
       Left = 788
-      Height = 507
+      Height = 544
       Top = 23
       Width = 16
       Align = alRight
@@ -1274,17 +1274,17 @@ object fMain: TfMain
     end
     object pnVAxis: TPanel
       Left = 0
-      Height = 507
+      Height = 544
       Top = 23
       Width = 23
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 507
+      ClientHeight = 544
       ClientWidth = 23
       TabOrder = 3
       object VerticalAxis: TPaintBox
         Left = 0
-        Height = 507
+        Height = 544
         Top = 0
         Width = 23
         Align = alClient
@@ -1316,27 +1316,27 @@ object fMain: TfMain
   end
   object pnRight: TPanel
     Left = 1006
-    Height = 546
+    Height = 583
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 546
+    ClientHeight = 583
     ClientWidth = 204
     TabOrder = 1
     object pnObjects: TPanel
       Left = 0
-      Height = 523
+      Height = 560
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 523
+      ClientHeight = 560
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 523
+        Height = 560
         Top = 0
         Width = 16
         Align = alRight
@@ -1348,7 +1348,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 523
+        Height = 560
         Top = 0
         Width = 188
         Align = alClient
@@ -1432,7 +1432,7 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 580
+    Top = 617
     Width = 1210
     Panels = <    
       item
@@ -1442,11 +1442,11 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 546
+    Height = 583
     Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 546
+    ClientHeight = 583
     ClientWidth = 202
     TabOrder = 2
     object pnMinimap: TPanel
@@ -1472,12 +1472,12 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 340
+      Height = 377
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 340
+      ClientHeight = 377
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
@@ -1511,6 +1511,7 @@ object fMain: TfMain
           AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
+          Down = True
           Glyph.Data = {
             36090000424D3609000000000000360000002800000018000000180000000100
             2000000000000009000064000000640000000000000000000000000000000000
@@ -1587,7 +1588,7 @@ object fMain: TfMain
             0000000000000000000000000000000000000000000000000000000000000000
             0000000000000000000000000000000000000000000000000000
           }
-          GroupIndex = 6
+          GroupIndex = 5
           OnClick = btnSelectClick
         end
         object btnBrush1: TSpeedButton
@@ -1599,7 +1600,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '1'
-          GroupIndex = 6
+          GroupIndex = 5
           OnClick = btnBrush1Click
         end
         object btnBrush2: TSpeedButton
@@ -1611,7 +1612,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '2'
-          GroupIndex = 6
+          GroupIndex = 5
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
@@ -1623,7 +1624,7 @@ object fMain: TfMain
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Caption = '4'
-          GroupIndex = 6
+          GroupIndex = 5
           OnClick = btnBrush4Click
         end
         object btnBrushArea: TSpeedButton
@@ -1637,7 +1638,7 @@ object fMain: TfMain
           Caption = '□'
           Font.Height = -16
           Font.Style = [fsBold]
-          GroupIndex = 6
+          GroupIndex = 5
           OnClick = btnBrushAreaClick
           ParentFont = False
         end

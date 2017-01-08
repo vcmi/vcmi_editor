@@ -39,7 +39,7 @@ type
     FEndCooord: TMapCoord;
 
     FSelectedObjects: TMapObjectSet;
-    FVisibleObjects: TMapObjectList;
+    FVisibleObjects: TMapObjectsSelection;
   protected
     procedure AddTile(AMap: TVCMIMap;AX,AY: integer); override;
   public
@@ -55,7 +55,7 @@ type
 
     procedure TileMouseDown(AMap: TVCMIMap; X, Y: integer); override;
 
-    property VisibleObjects: TMapObjectList read FVisibleObjects write FVisibleObjects;
+    property VisibleObjects: TMapObjectsSelection read FVisibleObjects write FVisibleObjects;
   end;
 
 
@@ -249,7 +249,7 @@ procedure TMapObjectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 begin
   if Assigned(FVisibleObjects) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects, AMap.CurrentLevelIndex, Ax, AY, FSelectedObjects);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Ax, AY, FSelectedObjects);
   end;
   FEndCooord.Reset(AX,AY);
 end;

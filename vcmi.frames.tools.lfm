@@ -1,0 +1,41 @@
+object ToolsFrame: TToolsFrame
+  Left = 0
+  Height = 350
+  Top = 0
+  Width = 200
+  ClientHeight = 350
+  ClientWidth = 200
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 200
+  TabOrder = 0
+  DesignLeft = 630
+  DesignTop = 204
+  object ToolsPages: TPageControl
+    Left = 0
+    Height = 350
+    Top = 0
+    Width = 200
+    ActivePage = tsTerrain
+    Align = alClient
+    TabIndex = 1
+    TabOrder = 0
+    OnChange = ToolsPagesChange
+    OnChanging = ToolsPagesChanging
+    object tsObjects: TTabSheet
+      Caption = 'Obj'
+    end
+    object tsTerrain: TTabSheet
+      Caption = 'Terrain'
+    end
+    object tsRoads: TTabSheet
+      Caption = 'Roads'
+    end
+    object tsRivers: TTabSheet
+      Caption = 'Rivers'
+    end
+  end
+  object act: TActionList
+    left = 152
+    top = 296
+  end
+end

@@ -268,7 +268,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="94">
+    <Units Count="95">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -757,6 +757,13 @@
         <Filename Value="search_index.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit93>
+      <Unit94>
+        <Filename Value="vcmi.frames.tools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ToolsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit94>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

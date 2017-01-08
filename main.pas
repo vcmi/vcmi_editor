@@ -363,7 +363,7 @@ type
     FMapObjectsSelection: TMapObjectsSelection;
 
     FVisibleObjectsValid: boolean;
-    FVisibleObjects: TMapObjectList;
+    FVisibleObjects: TMapObjectsSelection;
 
     FObjectCount: integer;
     FObjectRows: integer;
@@ -842,20 +842,20 @@ end;
 
 procedure TfMain.btnBrush1Click(Sender: TObject);
 begin
-  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 1;
+  SetActiveBrush(FFixedTerrainBrush);
 end;
 
 procedure TfMain.btnBrush2Click(Sender: TObject);
 begin
-  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 2;
+  SetActiveBrush(FFixedTerrainBrush);
 end;
 
 procedure TfMain.btnBrush4Click(Sender: TObject);
 begin
-  SetActiveBrush(FFixedTerrainBrush);
   FFixedTerrainBrush.Size := 4;
+  SetActiveBrush(FFixedTerrainBrush);
 end;
 
 procedure TfMain.btnBrushAreaClick(Sender: TObject);
@@ -1022,7 +1022,7 @@ begin
 
   SetupPlayerSelection();
 
-  FVisibleObjects := TMapObjectList.Create();
+  FVisibleObjects := TMapObjectsSelection.Create();
   FVisibleObjectsValid:=false;
 
   FObjectBrush.VisibleObjects := FVisibleObjects;
@@ -1429,7 +1429,7 @@ begin
   end;
 
   q := TMapObjectQueue.Create;
-  FMap.SelectObjectsOnTile(FVisibleObjects, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+  FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
   try
     if not q.IsEmpty then
     begin
@@ -1443,7 +1443,7 @@ end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
-  FActiveBrush := FIdleBrush;
+  SetActiveBrush(FIdleBrush);
   SetMapViewMouse(x,y);
 
   FDragging.DropOnMap;
@@ -1454,9 +1454,11 @@ end;
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
+  SetActiveBrush(FIdleBrush);
 
-  FActiveBrush := FIdleBrush;
-  Accept := true; //TODO: handle accceptible terrain
+  //TODO: handle accceptible terrain
+  //TODO: handle activity-blocking intersection
+  Accept := true;
 
   FSelectedObject := nil;
 
@@ -1509,7 +1511,7 @@ begin
 
       q := TMapObjectQueue.Create;
       try
-        FMap.SelectObjectsOnTile(FVisibleObjects, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+        FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
 
         if Assigned(FSelectedObject)
           and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
@@ -1620,8 +1622,6 @@ var
   scissor_h: Integer;
   scissor_y: Integer;
 
-  o: TMapObject;
-
   new_tick: Int64;
   new_anim_frame: Boolean;
 begin
@@ -1676,29 +1676,7 @@ begin
     FAnimTick := new_tick;
   end;
 
-  if actAnimateObjects.Checked then
-  begin
-    for o in FVisibleObjects do
-      o.RenderAnim(FMapViewState, new_anim_frame);
-  end
-  else
-  begin
-    for o in FVisibleObjects do
-      o.RenderStatic(FMapViewState);
-  end;
-
-  FMapViewState.SetUseFlag(false);
-
-  if actViewPassability.Checked then
-  begin
-    FMapViewState.StartDrawingRects;
-    FMapViewState.UseTextures(false, false);
-
-    for o in FVisibleObjects do
-    begin
-      o.RenderOverlay(FMapViewState);
-    end;
-  end;
+  FVisibleObjects.RenderMap(FMapViewState, actAnimateObjects.Checked, new_anim_frame, actViewPassability.Checked);
 
   glLineWidth(1.5);
 
@@ -1891,7 +1869,7 @@ begin
       DragManager.DragStart(self, False,10); //after state change
     end;
 
-    FActiveBrush := FIdleBrush;
+    SetActiveBrush(FIdleBrush);
   end;
 end;
 
@@ -2085,7 +2063,7 @@ end;
 
 procedure TfMain.RiverTypeClick(Sender: TObject);
 begin
-  SetActiveBrush(FRoadRiverBrush);
+  //SetActiveBrush(FRoadRiverBrush);
 end;
 
 procedure TfMain.RiverTypeSelectionChanged(Sender: TObject);
@@ -2094,20 +2072,22 @@ begin
   begin
     FRoadRiverBrush.RiverType:=TRiverType(PtrInt(RiverType.Items.Objects[RiverType.ItemIndex]));
     RoadType.ItemIndex:=-1;
+    SetActiveBrush(FRoadRiverBrush);
   end;
 end;
 
 procedure TfMain.RoadTypeClick(Sender: TObject);
 begin
-  SetActiveBrush(FRoadRiverBrush);
+  //SetActiveBrush(FRoadRiverBrush);
 end;
 
 procedure TfMain.RoadTypeSelectionChanged(Sender: TObject);
 begin
   if RoadType.ItemIndex >=0 then
   begin
-   FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
-   RiverType.ItemIndex:=-1;
+    FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
+    RiverType.ItemIndex:=-1;
+    SetActiveBrush(FRoadRiverBrush);
   end;
 end;
 
@@ -2237,6 +2217,8 @@ begin
     RoadType.ItemIndex:=-1;
     RiverType.ItemIndex:=-1;
   end;
+
+  UpdateWidgets();
 end;
 
 procedure TfMain.UpdateWidgets;
@@ -2256,12 +2238,11 @@ begin
 
   if FActiveBrush = FIdleBrush then
   begin
+    btnSelect.Down := true;
     btnBrush1.Down:=false;
     btnBrush2.Down:=false;
     btnBrush4.Down:=false;
     btnBrushArea.Down:=false;
-
-    btnSelect.Down := true;
     gbTerrain.Enabled := false;
   end
   else if FActiveBrush = FFixedTerrainBrush then
@@ -2276,11 +2257,11 @@ begin
   end
   else if FActiveBrush = FAreaTerrainBrush then
   begin
+    btnBrushArea.Down := true;
+
     btnBrush1.Down:=false;
     btnBrush2.Down:=false;
     btnBrush4.Down:=false;
-    btnBrushArea.Down := true;
-
     btnSelect.Down:=false;
 
     gbTerrain.Enabled := true;
@@ -2290,7 +2271,6 @@ begin
     btnBrush2.Down:=false;
     btnBrush4.Down:=false;
     btnBrushArea.Down:=false;
-
     btnSelect.Down:=false;
 
     gbTerrain.Enabled := false;
