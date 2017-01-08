@@ -98,8 +98,8 @@ begin
   end
   else if ext = '.PCX' then
   begin
-    //todo:8|24 bit h3 pcx -> 32 bit texture
-    assert(false, 'not implemented')
+    //(!)untested
+    LoadH3Pcx(AStream, FData);
   end
   else
   begin

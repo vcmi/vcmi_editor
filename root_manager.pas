@@ -295,7 +295,7 @@ begin
       else
       begin
         AddEmpty();
-        DebugLn('Portrait loadind failed ', info.IconPath);
+        DebugLn('Portrait loading failed ', info.IconPath);
       end;
 
       res.Free;

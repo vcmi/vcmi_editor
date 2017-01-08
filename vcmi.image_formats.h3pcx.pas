@@ -26,62 +26,68 @@ uses
 
 
   procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
+  procedure LoadH3Pcx(ASourceStream: TStream; ADest: TLazIntfImage);
 
 implementation
 
 procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
 var
-  size, width, height: UInt32;
+  ATempImage: TLazIntfImage;
+begin
+  ATempImage := ADest.Bitmap.CreateIntfImage;
 
+  try
+    LoadH3Pcx(ASourceStream, ATempImage);
+    ADest.Bitmap.LoadFromIntfImage(ATempImage);
+  finally
+    ATempImage.Free;
+  end;
+end;
+
+procedure LoadH3Pcx(ASourceStream: TStream; ADest: TLazIntfImage);
+var
+  size, width, height: UInt32;
   source: TStreamReadAdapter;
-  bmp: TBitmap;
 
   procedure InitBitmap();
   begin
-    bmp := ADest.Bitmap;
-    bmp.PixelFormat:=pfDevice;
-    bmp.SetSize(width, height);
+    ADest.SetSize(width, height);
   end;
 
-  procedure LoadH3Pcx24();
+  procedure LoadH3Pcx24;
   var
     c: TH3DefColor;
     i, j: Integer;
   begin
-    InitBitmap();
-    bmp.BeginUpdate();
-    bmp.Canvas.Lock;
-    try
 
+    ADest.BeginUpdate();
+    try
       for i := 0 to height - 1 do
       begin
         for j := 0 to width - 1 do
         begin
           ASourceStream.Read(c, 3);
-          bmp.Canvas.Pixels[j,i] := RGBToColor(c.r, c.g, c.b);
+          ADest.Colors[j,i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
         end;
       end;
-
     finally
-      bmp.Canvas.Unlock;
-      bmp.EndUpdate()
+      ADest.EndUpdate()
     end;
+
   end;
 
-  procedure LoadH3Pcx8();
+  procedure LoadH3Pcx8;
   var
-    intf_image: TLazIntfImage;
     initial_pos: Int64;
     c: TH3DefColor;
     buffer: packed array of byte;
     i, j: Integer;
     p: PByte;
   begin
-    InitBitmap();
-    intf_image := bmp.CreateIntfImage;
+    ADest.BeginUpdate();
     try
-      intf_image.UsePalette:=true;
-      intf_image.Palette.Create(256);
+      ADest.UsePalette:=true;
+      ADest.Palette.Create(256);
       initial_pos := ASourceStream.Position;
 
       //load palette from end of file
@@ -91,7 +97,7 @@ var
       begin
         ASourceStream.Read(c, 3);
 
-        intf_image.Palette.Color[i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
+        ADest.Palette.Color[i] := FPColor(word(c.r) shl 8 + c.r, word(c.g) shl 8 + c.g, word(c.b) shl 8 + c.b);
       end;
 
       //load graphics itself
@@ -107,22 +113,22 @@ var
       begin
         for j := 0 to width - 1 do
         begin
-          intf_image.Pixels[j, i] := p^;
+          ADest.Pixels[j, i] := p^;
           inc(p);
         end;
       end;
-      bmp.LoadFromIntfImage(intf_image);
     finally
-      intf_image.Free;
+      ADest.EndUpdate();
     end;
   end;
-
 begin
   source.Create(ASourceStream);
 
   size := source.ReadDWord;
   width := source.ReadDWord;
   height := source.ReadDWord;
+
+  InitBitmap();
 
   if size = width * height * 3 then
   begin
