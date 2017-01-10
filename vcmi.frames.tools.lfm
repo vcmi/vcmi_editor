@@ -15,14 +15,14 @@ object ToolsFrame: TToolsFrame
     Height = 350
     Top = 0
     Width = 200
-    ActivePage = tsTerrain
+    ActivePage = tsObjects
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = ToolsPagesChange
     OnChanging = ToolsPagesChanging
     object tsObjects: TTabSheet
-      Caption = 'Obj'
+      Caption = 'Objects'
     end
     object tsTerrain: TTabSheet
       Caption = 'Terrain'

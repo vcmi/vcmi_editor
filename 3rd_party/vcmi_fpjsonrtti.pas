@@ -2,7 +2,7 @@
 
 { RTTI streaming
 
-  Copyright (C) 2013-2016 Alexander Shishkin alexvins@users.sourceforge.net
+  Copyright (C) 2013-2017 Alexander Shishkin alexvins@users.sourceforge.net
   Copyright (C) 2011-2012 Michael Van Canneyt <michael@freepascal.org>
 
   This library is free software; you can redistribute it and/or modify it
