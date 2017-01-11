@@ -234,7 +234,7 @@ begin
 
   if not (ASrc.JSONType = ADest.JSONType) then
   begin
-    raise EJSON.Create('Incompatible JSON values');
+    raise EJSON.CreateFmt('Incompatible JSON values %s -> %s',[JSONTypeName(ASrc.JSONType), JSONTypeName(ADest.JSONType)]);
   end;
 
   case ASrc.JSONType of
@@ -255,7 +255,6 @@ begin
       raise EJSON.Create('Unknown JSON type');
     end;
   end;
-
 end;
 
 procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject);
@@ -272,7 +271,12 @@ begin
 
     if dest_idx >=0 then
     begin
-      if Asrc.Types[name] = jtNull then
+      if ADest.Types[name] = jtNull then
+      begin
+        ADest.Delete(dest_idx);
+        ADest.Add(name, ASrc.Extract(src_idx));
+      end
+      else if Asrc.Types[name] = jtNull then
       begin
         ADest.Delete(dest_idx);
       end
