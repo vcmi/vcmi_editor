@@ -282,9 +282,13 @@ begin
 end;
 
 function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+var
+  scope_in: AnsiString;
 begin
+  scope_in := ExtractModID2(AIdentifier);
   if AScope = '' then
   begin
+    AScope := scope_in;
     if AIdentifier = '' then
     begin
       Result := AMetaclass;

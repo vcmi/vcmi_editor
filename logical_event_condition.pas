@@ -31,7 +31,6 @@ type
 
   TLogicalEventConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
   private
-    FSubtype: AnsiString;
     Ftype: AnsiString;
     FConditionType: TWinLossCondition;
     FObjectLink: string;
@@ -40,7 +39,6 @@ type
     function IsPositionStored: Boolean;
     procedure SetConditionType(AValue: TWinLossCondition);
     procedure SetObjectLink(AValue: string);
-    procedure SetSubtype(AValue: AnsiString);
     procedure Settype(AValue: AnsiString);
     procedure SetValue(AValue: Int32);
   protected
@@ -63,7 +61,6 @@ type
 
     property Position: TPosition read FPosition stored IsPositionStored;
     property &type: AnsiString read FType write SetType;
-    property Subtype: AnsiString read FSubtype write SetSubtype;
   end;
 
   { TLogicalEventCondition }
@@ -184,12 +181,6 @@ begin
   FObjectLink:=AValue;
 end;
 
-procedure TLogicalEventConditionItem.SetSubtype(AValue: AnsiString);
-begin
-  if FSubtype=AValue then Exit;
-  FSubtype:=AValue;
-end;
-
 procedure TLogicalEventConditionItem.Settype(AValue: AnsiString);
 begin
   if Ftype=AValue then Exit;
@@ -216,7 +207,6 @@ begin
     dest_typed.Position.Y:=Position.Y;
     dest_typed.Position.L:=Position.L;
     dest_typed.&type:=&type;
-    dest_typed.SubType:=SubType;
   end;
 
   inherited AssignTo(Dest);

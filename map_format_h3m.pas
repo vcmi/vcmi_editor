@@ -2005,10 +2005,12 @@ type
 var
   special_victory_condition:TLogicalEventConditionItem;
 
-  procedure SetHaveCondition(ObjType, ObjSubtype: AnsiString; Amount: Int32);
+  procedure SetHaveCondition(Metaclass: TMetaclass; ObjType: AnsiString; Amount: Int32);
+  var
+    meta_id: AnsiString;
   begin
-    special_victory_condition.&type:=ObjType;
-    special_victory_condition.subType:=ObjSubtype;
+    meta_id := GetEnumName(TypeInfo(TMetaclass), Integer(Metaclass));
+    special_victory_condition.&type:= EncodeFullIdentifier(meta_id,'', ObjType);
     special_victory_condition.Value := Amount;
     special_victory_condition.ConditionType:=TWinLossCondition.have_0;
   end;
@@ -2076,7 +2078,7 @@ begin
 
         obj_subtype := FMapEnv.lm.ArtifactIndexToString(obj_id);
 
-        SetHaveCondition(TYPE_ARTIFACT, obj_subtype, 0);
+        SetHaveCondition(TMetaclass.artifact, obj_subtype, 0);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,281];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,280];
@@ -2095,7 +2097,7 @@ begin
 
         value := FSrc.ReadDWord;
 
-        SetHaveCondition(TYPE_MONSTER, obj_subtype, value);
+        SetHaveCondition(TMetaclass.creature, obj_subtype, value);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,277];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,276];
@@ -2106,7 +2108,7 @@ begin
         obj_subtype := RESOURCE_NAMES[TResType(obj_id)];
         value := FSrc.ReadDWord;
 
-        SetHaveCondition(TYPE_RESOURCE, obj_subtype, value);
+        SetHaveCondition(TMetaclass.resource, obj_subtype, value);
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,279];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,278];
@@ -2162,7 +2164,7 @@ begin
       TVictoryCondition.BEATMONSTER:
       begin
         special_victory_condition.ConditionType:=TWinLossCondition.destroy_0;
-        special_victory_condition.&type:=TYPE_MONSTER;
+        special_victory_condition.&type:='';
 
         ReadPosition(special_victory_condition.Position);
 
@@ -2175,11 +2177,11 @@ begin
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.have_0;
-        child_condition.&type:='creatureGeneratorCommon';
+        child_condition.&type:='object.creatureGeneratorCommon';
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.have_0;
-        child_condition.&type:='creatureGeneratorSpecial';
+        child_condition.&type:='object.creatureGeneratorSpecial';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,289];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,288];
@@ -2190,11 +2192,11 @@ begin
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.have_0;
-        child_condition.&type:='mine';
+        child_condition.&type:='object.mine';
 
         child_condition := special_victory_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.have_0;
-        child_condition.&type:='abandonedMine';
+        child_condition.&type:='object.abandonedMine';
 
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,291];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,290];
@@ -2202,8 +2204,7 @@ begin
       TVictoryCondition.TRANSPORTITEM:
       begin
         special_victory_condition.ConditionType:=TWinLossCondition.have_0;
-        special_victory_condition.&type:=TYPE_ARTIFACT;
-        special_victory_condition.subType:=ReadID1(@FMapEnv.lm.ArtifactIndexToString);
+        special_victory_condition.&type:=EncodeFullIdentifier('artifact','', ReadID1(@FMapEnv.lm.ArtifactIndexToString));
         special_victory_condition.Value:=1;
         ReadPosition(special_victory_condition.Position);
 
