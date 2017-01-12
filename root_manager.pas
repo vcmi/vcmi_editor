@@ -32,6 +32,8 @@ type
 
   TRootManager = class(TDataModule)
     HeroIcons: TImageList;
+    DefeatIcons: TImageList;
+    VictoryIcons: TImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
@@ -60,6 +62,7 @@ type
 
     procedure LoadMapObjects;
     procedure LoadHeroPortraits;
+    procedure LoadVictLossIcons; unimplemented;
   public
     procedure InitComplete;
 
@@ -153,9 +156,9 @@ begin
   DoLoadObjects(SPELL_METACLASS, @FListsManager.LoadSpells);
 
   FListsManager.ProcessResolveRequests;
-  ProgressForm.NextStage('Loading hero portraits ...');
-  FListsManager.LoadHeroPortraits(ProgressForm);
+  ProgressForm.NextStage('Loading icons ...');
   LoadHeroPortraits;
+  LoadVictLossIcons;
 
   ProgressForm.NextStage('Loading terrain graphics ...');
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
@@ -249,10 +252,11 @@ var
   i, portrait_count: Integer;
   info: THeroPortraitInfo;
 
-
   res: TImageResource;
   path: AnsiString;
 begin
+  FListsManager.LoadHeroPortraits(ProgressForm);
+
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
   //TODO: TRootManager.LoadHeroPortraits
@@ -298,6 +302,11 @@ begin
       res.Free;
     end;
   end;
+end;
+
+procedure TRootManager.LoadVictLossIcons;
+begin
+
 end;
 
 procedure TRootManager.InitComplete;

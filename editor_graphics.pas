@@ -190,7 +190,7 @@ type
   { TGraphicsManager }
 
   TGraphicsManager = class (TFSConsumer)
-  private
+  strict private
     FNameToAnimMap: TAnimationMap;
     FDefLoader: TDefFormatLoader;
     FJsonLoader: TJsonFormatLoader;
@@ -210,7 +210,7 @@ type
     //load first frame
     function GetPreloadedGraphics(const AResourceName:string): TAnimation;
     //load all expect first
-    procedure LoadGraphics(Adef: TAnimation);
+    procedure LoadGraphics(AAnimation: TAnimation);
 
     function GetHeroFlagDef(APlayer: TPlayer): TAnimation;
   end;
@@ -977,10 +977,10 @@ begin
   Result := DoGetGraphics(AResourceName, TGraphicsLoadMode.LoadFisrt);
 end;
 
-procedure TGraphicsManager.LoadGraphics(Adef: TAnimation);
+procedure TGraphicsManager.LoadGraphics(AAnimation: TAnimation);
 begin
-  if Adef.Loaded <> TGraphicsLoadFlag.Complete then
-    DoLoadGraphics(ADef.ResourceID, Adef, TGraphicsLoadMode.LoadRest);
+  if AAnimation.Loaded <> TGraphicsLoadFlag.Complete then
+    DoLoadGraphics(AAnimation.ResourceID, AAnimation, TGraphicsLoadMode.LoadRest);
 end;
 
 function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TAnimation;

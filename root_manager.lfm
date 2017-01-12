@@ -13,4 +13,16 @@ object RootManager: TRootManager
     left = 24
     top = 16
   end
+  object VictoryIcons: TImageList
+    Height = 24
+    Width = 32
+    left = 96
+    top = 16
+  end
+  object DefeatIcons: TImageList
+    Height = 24
+    Width = 32
+    left = 168
+    top = 16
+  end
 end

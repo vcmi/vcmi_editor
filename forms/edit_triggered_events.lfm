@@ -1,22 +1,22 @@
 object TriggeredEventsForm: TTriggeredEventsForm
   Left = 612
-  Height = 563
+  Height = 556
   Top = 166
-  Width = 586
+  Width = 576
   Caption = 'Victory-loss conditions'
-  ClientHeight = 563
-  ClientWidth = 586
+  ClientHeight = 556
+  ClientWidth = 576
   Constraints.MinHeight = 400
   Constraints.MinWidth = 400
   Position = poScreenCenter
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.6.3.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 410
+    Left = 400
     Height = 26
-    Top = 527
+    Top = 520
     Width = 81
     Action = actSave
     Anchors = [akRight, akBottom]
@@ -29,9 +29,9 @@ object TriggeredEventsForm: TTriggeredEventsForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 501
+    Left = 491
     Height = 26
-    Top = 527
+    Top = 520
     Width = 75
     Action = actDontSave
     Anchors = [akRight, akBottom]
@@ -42,9 +42,9 @@ object TriggeredEventsForm: TTriggeredEventsForm
   end
   inline JsonEditor: TSynEdit
     Left = 8
-    Height = 375
+    Height = 368
     Top = 128
-    Width = 567
+    Width = 557
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -540,8 +540,8 @@ object TriggeredEventsForm: TTriggeredEventsForm
   object ErrorLabel: TLabel
     Left = 16
     Height = 40
-    Top = 511
-    Width = 389
+    Top = 504
+    Width = 379
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'ErrorLabel'
@@ -564,7 +564,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
     Left = 8
     Height = 23
     Top = 24
-    Width = 568
+    Width = 558
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 3
   end
@@ -580,7 +580,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
     Left = 8
     Height = 23
     Top = 72
-    Width = 568
+    Width = 558
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 4
   end

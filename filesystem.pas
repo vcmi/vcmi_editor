@@ -256,7 +256,7 @@ type
 
   { TFSManager }
 
-  TFSManager = class (TComponent,IResourceLoader)
+  TFSManager = class (TComponent, IResourceLoader)
   strict private
     FConfig: TFilesystemConfig;
     FGameConfig: TGameConfig;
@@ -857,7 +857,7 @@ begin
   Assert(AStream = FUnzipBuffer);
 end;
 
-procedure TFSManager.LoadArchiveResource(AResource: IResource;  AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
+procedure TFSManager.LoadArchiveResource(AResource: IResource; AArchive: TUnZipperEx; AEntry: TFullZipFileEntry);
 begin
   AArchive.UnZipOneFile(AEntry);
   FUnzipBuffer.Seek(0, soBeginning);
@@ -911,8 +911,7 @@ begin
   FConfigMap.Add(MODID_CORE,FGameConfig);
 end;
 
-function TFSManager.SelectResource(AResType: TResourceType; AName: string
-  ): TResIDToLocationMap.TIterator;
+function TFSManager.SelectResource(AResType: TResourceType; AName: string): TResIDToLocationMap.TIterator;
 var
   res_id: TResId;
 begin
