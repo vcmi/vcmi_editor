@@ -21,7 +21,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object lbCanPlay: TLabel
     Left = 20
     Height = 23
-    Top = 29
+    Top = 22
     Width = 90
     Caption = 'Can play:'
     Constraints.MaxWidth = 90
@@ -30,7 +30,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edCanPlay: TComboBox
     Left = 150
     Height = 23
-    Top = 29
+    Top = 22
     Width = 244
     Constraints.MinWidth = 200
     ItemHeight = 15
@@ -44,14 +44,14 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object CanPlayDescription: TLabel
     Left = 414
     Height = 23
-    Top = 29
+    Top = 22
     Width = 114
     ParentColor = False
   end
   object lbAllowedFactions: TLabel
     Left = 20
     Height = 100
-    Top = 81
+    Top = 67
     Width = 90
     Caption = 'Allowed factions:'
     Constraints.MaxWidth = 90
@@ -60,7 +60,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edAllowedFactions: TCheckListBox
     Left = 150
     Height = 100
-    Top = 81
+    Top = 67
     Width = 244
     ItemHeight = 0
     TabOrder = 1
@@ -68,15 +68,37 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object AllowedFactionsPermissive: TCheckBox
     Left = 414
     Height = 100
-    Top = 81
+    Top = 67
     Width = 114
     Caption = 'Allow others'
     TabOrder = 5
   end
+  object Label3: TLabel
+    Left = 20
+    Height = 19
+    Top = 189
+    Width = 110
+    ParentColor = False
+  end
+  object edRandomFaction: TCheckBox
+    Left = 150
+    Height = 19
+    Top = 189
+    Width = 244
+    Caption = 'Random faction'
+    TabOrder = 7
+  end
+  object Label4: TLabel
+    Left = 414
+    Height = 19
+    Top = 189
+    Width = 114
+    ParentColor = False
+  end
   object lbMainTown: TLabel
     Left = 20
     Height = 23
-    Top = 210
+    Top = 230
     Width = 90
     AutoSize = False
     Caption = 'Main town:'
@@ -86,7 +108,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edMainTown: TComboBox
     Left = 150
     Height = 23
-    Top = 210
+    Top = 230
     Width = 244
     ItemHeight = 15
     Style = csDropDownList
@@ -95,7 +117,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edGenerateHero: TCheckBox
     Left = 414
     Height = 23
-    Top = 210
+    Top = 230
     Width = 114
     Caption = 'Generate hero'
     TabOrder = 6
@@ -103,7 +125,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object lbMainHero: TLabel
     Left = 20
     Height = 23
-    Top = 262
+    Top = 275
     Width = 90
     AutoSize = False
     Caption = 'Main hero:'
@@ -113,7 +135,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edMainHero: TComboBox
     Left = 150
     Height = 23
-    Top = 262
+    Top = 275
     Width = 244
     ItemHeight = 15
     Style = csDropDownList
@@ -122,14 +144,14 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object Label1: TLabel
     Left = 414
     Height = 23
-    Top = 262
+    Top = 275
     Width = 114
     ParentColor = False
   end
   object lbTeam: TLabel
     Left = 20
     Height = 23
-    Top = 314
+    Top = 320
     Width = 90
     AutoSize = False
     Caption = 'Allies:'
@@ -139,7 +161,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object edTeam: TComboBox
     Left = 150
     Height = 23
-    Top = 314
+    Top = 320
     Width = 244
     ItemHeight = 15
     Style = csDropDownList
@@ -148,7 +170,7 @@ object PlayerOptionsFrame: TPlayerOptionsFrame
   object Label2: TLabel
     Left = 414
     Height = 23
-    Top = 314
+    Top = 320
     Width = 114
     ParentColor = False
   end

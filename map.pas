@@ -166,6 +166,7 @@ type
 
     FMainTown: TMainTownInfo;
     FMainHero: AnsiString;
+    FRandomFaction: Boolean;
     FTowns: TPlayerTowns;
 
     function HasMainTown: boolean;
@@ -194,9 +195,8 @@ type
 
   published
     property AllowedFactions: TLogicalIDCondition read FAllowedFactions stored IsAllowedFactionsStored;
-
+    property RandomFaction: Boolean read FRandomFaction write FRandomFaction default false;
     property CanPlay: TPlayableBy read FCanPlay write FCanPlay default TPlayableBy.None;
-
     property MainTown: TMainTownInfo read FMainTown write FMainTown stored HasMainTown;
 
     //object instance id (not type)

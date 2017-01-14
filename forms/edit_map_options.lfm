@@ -9,7 +9,7 @@ object MapOptionsForm: TMapOptionsForm
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.6.3.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner

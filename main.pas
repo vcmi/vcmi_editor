@@ -451,7 +451,7 @@ implementation
 
 uses
   map_format, map_format_h3m, editor_str_consts,
-  root_manager, map_format_zip, editor_consts, map_options,
+  root_manager, map_format_zip, editor_consts, edit_map_options,
   new_map, edit_object_options, Math, lazutf8classes, LazUTF8SysUtils;
 
 {$R *.lfm}

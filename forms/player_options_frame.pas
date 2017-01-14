@@ -36,6 +36,7 @@ type
 
   TPlayerOptionsFrame = class(TFrame)
     AllowedFactionsPermissive: TCheckBox;
+    edRandomFaction: TCheckBox;
     edGenerateHero: TCheckBox;
     edTeam: TComboBox;
     edMainHero: TComboBox;
@@ -45,6 +46,8 @@ type
     CanPlayDescription: TLabel;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
     lbTeam: TLabel;
     lbMainHero: TLabel;
     lbMainTown: TLabel;
@@ -146,6 +149,8 @@ begin
 
   edMainHero.ItemIndex := selected_idx;
   edMainHero.Enabled:=edMainHero.Items.Count > 1;
+  edRandomFaction.Checked:=FObject.RandomFaction;
+
   FillTeams;
 end;
 
@@ -218,6 +223,8 @@ begin
     FObject.MainHero:=(edMainHero.Items.Objects[edMainHero.ItemIndex] as TMapObject).Identifier
   else
     FObject.MainHero := '';
+
+  FObject.RandomFaction:=edRandomFaction.Checked;
 end;
 
 end.

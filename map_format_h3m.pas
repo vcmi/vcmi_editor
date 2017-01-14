@@ -180,23 +180,17 @@ type
    strict private
      type
        TIdToString = function(AId: TCustomID): AnsiString of object;
-
        TCustomIDArray = array of TCustomID;
 
      procedure ReadBitmask(var ADest: TCustomIDArray; AMaskSize: SizeInt; ACount: SizeInt; Negate: Boolean = True);
-
      procedure ReadBitmask(ADest: TStrings;AMaskSize: SizeInt; ACount: SizeInt;
        ACallback: TIdToString; Negate: Boolean = True);
-
      procedure ReadBitmask(ADest: TLogicalIDCondition; AMaskSize: SizeInt; ACount: SizeInt;
        ACallback: TIdToString; Negate: Boolean = True);
 
      function ReadID1(ACallback: TIdToString; AIDRandom:TCustomID = ID_RANDOM): AnsiString;
-
      function ReadID(ACallback: TIdToString; ASize: Integer): AnsiString; //none mask : $FF, $FFFF
-
      procedure ReadArtifactSet(ADest: TStrings);
-
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet; nomber: Integer);
      procedure ReadCreatureSet(ACreatureSet: TCreatureSet); //any size
      procedure ReadQuestIdentifier;
@@ -205,9 +199,7 @@ type
      procedure MaybeReadSecondarySkills(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills4(ASkills: THeroSecondarySkills);
      procedure ReadSecondarySkills1(ASkills: THeroSecondarySkills);
-
      procedure ReadPosition(APosition: TPosition);
-   strict private
      procedure ReadPlayerInfos(Attrs: TPlayerInfos);//+
      procedure ReadPlayerInfo(APlayer: TPlayer; Attr: TPlayerInfo);//+?
      procedure ReadSVLC();//+
@@ -219,36 +211,26 @@ type
      procedure ReadAllowedAbilities();//+
      procedure ReadRumors();//+
      procedure ReadPredefinedHeroes();//+
-
      procedure ReadTerrain();//+
-
      procedure ReadObjMask(obj: TLegacyMapObjectTemplate);//+
      procedure ReadDefInfo();//+
-
      procedure MaybeReadArtifactsOfHero(obj: THeroArtifacts);//+
      procedure ReadArtifactsOfHero(obj: THeroArtifacts);//+
      procedure ReadArtifactsToSlot(obj: THeroArtifacts; slot: Integer);//+
-
      //result = Mission type
      function ReadQuest(obj: TQuest): TQuestMission;   //+
-
      procedure ReadObjects();//+
      procedure ReadEvents();
-
      procedure MayBeReadGuards(AOptions: TGuardedObjectOptions);//+
      procedure MayBeReadGuardsWithMessage(AOptions: TGuardedObjectOptions);//+
-
      procedure ReadOwner(AOptions: TObjectOptions; size: TOwnerSize = TOwnerSize.size4); //+
-
      procedure ReadHero(AOptions: THeroOptions);//+
    public //IObjectOptionsVisitor
      procedure VisitSignBottle(AOptions: TSignBottleOptions);//+
      procedure VisitLocalEvent(AOptions: TLocalEventOptions);//+
-
      procedure VisitPrison(AOptions: TPrisonOptions); //+
      procedure VisitNormalHero(AOptions: TNormalHeroOptions); //+
      procedure VisitRandomHero(AOptions: TRandomHeroOptions); //+
-
      procedure VisitMonster(AOptions: TCreatureOptions);//+
      procedure VisitSeerHut(AOptions: TSeerHutOptions);//+
      procedure VisitWitchHut(AOptions:TWitchHutOptions);//+
@@ -1533,7 +1515,6 @@ begin
 
   Attr.AITactics := TAITactics(FSrc.ReadByte);
 
-
   if IsAtLeastSoD() then
   begin
     AllowedFactionsSet := FSrc.ReadBoolean;
@@ -1563,7 +1544,7 @@ begin
   //  Attr.AllowedFactions.Clear; //???
   //end;
 
-  FSrc.Skip(1);//RandomFaction
+  Attr.RandomFaction := FSrc.ReadBoolean;
 
   HasMainTown := FSrc.ReadBoolean;
   //main town
@@ -2146,7 +2127,7 @@ begin
       TVictoryCondition.BEATHERO:
       begin
         special_victory_condition.ConditionType:=TWinLossCondition.destroy_0;
-        special_victory_condition.&type:=TYPE_HERO;
+        special_victory_condition.&type:='object.hero';
 
         ReadPosition(special_victory_condition.Position);
 
@@ -2156,7 +2137,7 @@ begin
       TVictoryCondition.CAPTURECITY:
       begin
         special_victory_condition.ConditionType:=TWinLossCondition.have_0;
-        special_victory_condition.&type:=TYPE_TOWN;
+        special_victory_condition.&type:='object.town';
         ReadPosition(special_victory_condition.Position);
         special_victory.Effect.MessageToSend:=FMapEnv.i18n.GeneralTexts[0,250];
         special_victory.Message:=FMapEnv.i18n.GeneralTexts[0,249];
@@ -2164,7 +2145,7 @@ begin
       TVictoryCondition.BEATMONSTER:
       begin
         special_victory_condition.ConditionType:=TWinLossCondition.destroy_0;
-        special_victory_condition.&type:='';
+        special_victory_condition.&type:='object.monster';
 
         ReadPosition(special_victory_condition.Position);
 
