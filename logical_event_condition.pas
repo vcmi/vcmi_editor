@@ -80,6 +80,7 @@ type
     procedure SetMessageToSend(AValue: TLocalizedString);
   protected
     procedure AssignTo(Dest: TPersistent); override;
+    procedure Clear;
   published
     property MessageToSend: TLocalizedString read FMessageToSend write SetMessageToSend;
     property &type: AnsiString read Ftype write Settype;
@@ -100,6 +101,7 @@ type
     destructor Destroy; override;
 
     function AddCondition:TLogicalEventConditionItem;
+    procedure Clear;
   published
     property Message: TLocalizedString read FMessage write SetMessage;
     property Condition:TLogicalEventCondition read FCondition;
@@ -264,7 +266,12 @@ begin
 
   ASrcArray :=  TJSONArray(ASrc);
 
-  instruction_name :=  ASrcArray.Strings[0];
+  if ASrcArray.Count = 0 then
+  begin
+    raise Exception.Create('invalid format for event condition, array with size > 0 required');
+  end;
+
+  instruction_name := ASrcArray.Strings[0];
 
   raw_instruction := GetEnumValue(TypeInfo(TLogicalOperator), instruction_name);
 
@@ -339,6 +346,12 @@ begin
   end;
 end;
 
+procedure TTriggeredEventEffect.Clear;
+begin
+  MessageToSend:='';
+  &type := '';
+end;
+
 procedure TTriggeredEventEffect.settype(AValue: AnsiString);
 begin
   if Ftype=AValue then Exit;
@@ -384,6 +397,13 @@ end;
 function TTriggeredEvent.AddCondition: TLogicalEventConditionItem;
 begin
   Result := Condition.Add as TLogicalEventConditionItem;
+end;
+
+procedure TTriggeredEvent.Clear;
+begin
+  FMessage:='';
+  Condition.Clear;
+  Effect.Clear;
 end;
 
 end.
