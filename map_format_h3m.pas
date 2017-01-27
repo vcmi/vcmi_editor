@@ -2012,7 +2012,6 @@ var
   building_1: Byte;
   building_2: Byte;
   child_condition: TLogicalEventConditionItem;
-
 begin
   position := TPosition.Create;
   FMap.TriggeredEvents.Clear;
@@ -2034,7 +2033,7 @@ begin
     applies_to_ai := Fsrc.ReadBoolean;
 
     special_victory := FMap.TriggeredEvents.Add;
-    special_victory.Effect.&type:='victory';
+    special_victory.Effect.&type:=TTriggeredEventType.victory;
     special_victory.Identifier := 'specialVictory';
 
     special_victory_condition := special_victory.AddCondition;
@@ -2216,7 +2215,7 @@ begin
 
     special_defeat := FMap.TriggeredEvents.Add;
     special_defeat.Identifier:='specialDefeat';
-    special_defeat.Effect.&type:='defeat';
+    special_defeat.Effect.&type:= TTriggeredEventType.defeat;
     special_defeat.Effect.MessageToSend := FMapEnv.i18n.GeneralTexts[0,5];
 
     special_defeat_condition := special_defeat.AddCondition;

@@ -27,6 +27,8 @@ uses
 
 type
 
+  TTriggeredEventType = (victory, defeat);
+
   { TLogicalEventConditionItem }
 
   TLogicalEventConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
@@ -74,16 +76,15 @@ type
 
   TTriggeredEventEffect = class(TPersistent)
   private
-    Ftype: AnsiString;
+    Ftype: TTriggeredEventType;
     FMessageToSend: TLocalizedString;
-    procedure settype(AValue: AnsiString);
     procedure SetMessageToSend(AValue: TLocalizedString);
   protected
     procedure AssignTo(Dest: TPersistent); override;
     procedure Clear;
   published
     property MessageToSend: TLocalizedString read FMessageToSend write SetMessageToSend;
-    property &type: AnsiString read Ftype write Settype;
+    property &type: TTriggeredEventType read Ftype write Ftype nodefault;
   end;
 
   { TTriggeredEvent }
@@ -108,12 +109,8 @@ type
     property Effect: TTriggeredEventEffect read FEffect;
   end;
 
-
-
   { TTriggeredEvents }
-  TTriggeredEventsCollection = specialize TGNamedCollection<TTriggeredEvent>;
-
-  TTriggeredEvents = class(TTriggeredEventsCollection)
+  TTriggeredEvents = class(specialize TGNamedCollection<TTriggeredEvent>)
   public
     procedure AddStandardVictory();
     procedure AddStandardDefeat();
@@ -131,7 +128,7 @@ var
   condition:TLogicalEventConditionItem;
 begin
   standard_victory := Add;
-  standard_victory.Effect.&type := 'victory';
+  standard_victory.Effect.&type := TTriggeredEventType.victory;
   standard_victory.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,5];
   standard_victory.Identifier:='standardVictory';
   standard_victory.Message:=RootManager.LocaleManager.GeneralTexts[0,659];
@@ -146,7 +143,7 @@ var
   condition:TLogicalEventConditionItem;
 begin
   standard_defeat := Add;
-  standard_defeat.Effect.&type := 'defeat';
+  standard_defeat.Effect.&type := TTriggeredEventType.defeat;
   standard_defeat.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,8];
   standard_defeat.Identifier:='standardDefeat';
   standard_defeat.Message:=RootManager.LocaleManager.GeneralTexts[0,7];
@@ -349,13 +346,7 @@ end;
 procedure TTriggeredEventEffect.Clear;
 begin
   MessageToSend:='';
-  &type := '';
-end;
-
-procedure TTriggeredEventEffect.settype(AValue: AnsiString);
-begin
-  if Ftype=AValue then Exit;
-  Ftype:=AValue;
+  &type := TTriggeredEventType.victory;
 end;
 
 { TTriggeredEvent }

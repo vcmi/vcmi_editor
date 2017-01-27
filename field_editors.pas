@@ -142,8 +142,8 @@ type
   private
     FOldValue: Int64;
     FWidget: TCustomSpinEdit;
-    FDefaultValue: LongInt;
-    FCustomValue: LongInt;
+    FDefaultValue: Int64;
+    FCustomValue: Int64;
   protected
     procedure LoadCustom; override;
     procedure LoadDefault; override;
@@ -159,6 +159,21 @@ type
     procedure Load; override;
   end;
 
+  { TEnumEditor }
+
+  TEnumEditor = class(TBaseFieldEditor)
+  private
+    FOldValue: Int64;
+    FDefaultValue: Int64;
+    FCustomValue: Int64;
+
+    FWidget: TCustomComboBox;
+  public
+    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomComboBox);
+    procedure Commit; override;
+    function IsDirty: Boolean; override;
+    procedure Load; override;
+  end;
 
   { TFieldEditors }
 
@@ -463,6 +478,43 @@ begin
 
   FPropInfo := GetPropInfo(ATarget, APropName);
   FEditorControl := AEditorControl;
+end;
+
+{ TEnumEditor }
+
+constructor TEnumEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomComboBox);
+var
+  i, cnt: SizeInt;
+  value_name: AnsiString;
+begin
+  FWidget := AWidget;
+  inherited Create(ATarget, APropName, AWidget);
+
+  AWidget.Items.Clear;
+
+  cnt := GetEnumNameCount(FPropInfo^.PropType);
+
+  for i := 0 to cnt - 1 do
+  begin
+    value_name := GetEnumName(FPropInfo^.PropType, i);
+    AWidget.Items.Add(value_name);
+  end;
+end;
+
+procedure TEnumEditor.Commit;
+begin
+  SetOrdProp(FTarget, FPropInfo, FWidget.ItemIndex);
+end;
+
+function TEnumEditor.IsDirty: Boolean;
+begin
+  Result := FWidget.ItemIndex <> FOldValue;
+end;
+
+procedure TEnumEditor.Load;
+begin
+  FOldValue:=GetOrdProp(FTarget, FPropInfo);
+  FWidget.ItemIndex := FOldValue;
 end;
 
 { TFieldEditors }

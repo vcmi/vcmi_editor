@@ -268,7 +268,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="95">
+    <Units Count="96">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -764,6 +764,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit94>
+      <Unit95>
+        <Filename Value="forms\subframes\triggered_event_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TriggeredEventFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit95>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

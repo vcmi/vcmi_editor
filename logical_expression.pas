@@ -64,6 +64,8 @@ type
     constructor Create(AItemClass: TCollectionItemClass); virtual;
     constructor CreateRoot(AItemClass: TCollectionItemClass);
 
+    procedure Assign(Source: TPersistent); override;
+
     //ISerializeSpecial
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
@@ -90,6 +92,16 @@ constructor TLogicalExpression.CreateRoot(AItemClass: TCollectionItemClass);
 begin
   Create(AItemClass);
   FIsRoot:=true;
+end;
+
+procedure TLogicalExpression.Assign(Source: TPersistent);
+begin
+  if Source is TLogicalExpression then
+  begin
+    FIsRoot := TLogicalExpression(Source).FIsRoot;
+  end;
+
+  inherited Assign(Source);
 end;
 
 function TLogicalExpression.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;

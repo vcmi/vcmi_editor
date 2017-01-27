@@ -159,15 +159,15 @@ type
     procedure SetItems(const Idx: Integer; AValue: TItem);
   public
     type
-      TItemType = Titem;
+      TItemType = TItem;
     constructor Create;
 
     function Add: TItem;
 
     property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
 
-    function FindItem(const AName: String): TItemType;
-    function EnsureItem(const AName: String): TItemType;
+    function FindItem(const AName: String): TItem;
+    function EnsureItem(const AName: String): TItem;
   end;
 
   { TObjectMap }
@@ -405,7 +405,7 @@ begin
    Result := TItem(inherited Add);
 end;
 
-function TGNamedCollection.FindItem(const AName: String): TItemType;
+function TGNamedCollection.FindItem(const AName: String): TItem;
 begin
   if AName = '' then
     Result := nil
@@ -413,7 +413,7 @@ begin
     Result := TItemType(inherited FindItem(AName));
 end;
 
-function TGNamedCollection.EnsureItem(const AName: String): TItemType;
+function TGNamedCollection.EnsureItem(const AName: String): TItem;
 begin
   Result := FindItem(AName);
   if Result = nil then
