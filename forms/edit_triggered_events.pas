@@ -55,6 +55,8 @@ type
     procedure actDontSaveExecute(Sender: TObject);
     procedure actRemoveExecute(Sender: TObject);
     procedure actRemoveUpdate(Sender: TObject);
+    procedure actRenameExecute(Sender: TObject);
+    procedure actRenameUpdate(Sender: TObject);
     procedure actSaveExecute(Sender: TObject);
     procedure actSaveUpdate(Sender: TObject);
     procedure pcEventsChanging(Sender: TObject; var AllowChange: Boolean);
@@ -129,6 +131,30 @@ begin
 end;
 
 procedure TTriggeredEventsForm.actRemoveUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:= pcEvents.PageIndex <> -1;
+end;
+
+procedure TTriggeredEventsForm.actRenameExecute(Sender: TObject);
+var
+  event_name: AnsiString;
+  f: TTriggeredEventFrame;
+  p: TTabSheet;
+begin
+  p := pcEvents.ActivePage;
+
+  f := p.Controls[0] as TTriggeredEventFrame;
+
+  event_name:=f.Buffer.Identifier;
+
+  if InputQuery('Set new event identifier','Set new event identifier', false, event_name) then
+  begin
+    f.Buffer.Identifier := event_name;
+    p.Caption:=event_name;
+  end;
+end;
+
+procedure TTriggeredEventsForm.actRenameUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled:= pcEvents.PageIndex <> -1;
 end;

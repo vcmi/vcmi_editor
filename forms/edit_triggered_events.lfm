@@ -98,7 +98,7 @@ object TriggeredEventsForm: TTriggeredEventsForm
   object ToolBar1: TToolBar
     Left = 83
     Height = 26
-    Top = 72
+    Top = 80
     Width = 398
     Align = alNone
     Anchors = [akTop, akLeft, akRight]
@@ -136,11 +136,10 @@ object TriggeredEventsForm: TTriggeredEventsForm
     TabOrder = 5
     OnChanging = pcEventsChanging
     OnCloseTabClicked = pcEventsCloseTabClicked
-    Options = [nboShowCloseButtons, nboShowAddTabButton]
   end
   object act: TActionList
-    left = 440
-    top = 16
+    left = 424
+    top = 24
     object actSave: TAction
       Caption = 'Save'
       OnExecute = actSaveExecute
@@ -163,6 +162,8 @@ object TriggeredEventsForm: TTriggeredEventsForm
     end
     object actRename: TAction
       Caption = 'Rename'
+      OnExecute = actRenameExecute
+      OnUpdate = actRenameUpdate
     end
   end
   object JsonSyn: TSynAnySyn

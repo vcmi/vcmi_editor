@@ -4,6 +4,8 @@ inherited DwellingFrame: TDwellingFrame
   ClientHeight = 390
   ClientWidth = 525
   Constraints.MinWidth = 330
+  DesignLeft = 677
+  DesignTop = 202
   object gbLevel: TGroupBox[0]
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -105,13 +107,13 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideRight.Control = gbFaction
       AnchorSideRight.Side = asrBottom
       Left = 6
-      Height = 106
+      Height = 130
       Top = 6
       Width = 499
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       BevelOuter = bvNone
-      ClientHeight = 106
+      ClientHeight = 130
       ClientWidth = 499
       Constraints.MinHeight = 100
       TabOrder = 0
@@ -123,7 +125,7 @@ inherited DwellingFrame: TDwellingFrame
         AnchorSideBottom.Control = pnRandom
         AnchorSideBottom.Side = asrBottom
         Left = 5
-        Height = 76
+        Height = 100
         Top = 25
         Width = 489
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -152,13 +154,13 @@ inherited DwellingFrame: TDwellingFrame
       AnchorSideBottom.Control = gbFaction
       AnchorSideBottom.Side = asrBottom
       Left = 5
-      Height = 178
-      Top = 118
+      Height = 154
+      Top = 142
       Width = 501
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 178
+      ClientHeight = 154
       ClientWidth = 501
       Constraints.MinHeight = 100
       TabOrder = 1
@@ -173,7 +175,7 @@ inherited DwellingFrame: TDwellingFrame
       end
       object pnLink: TPanel
         Left = 6
-        Height = 132
+        Height = 108
         Top = 40
         Width = 489
         Anchors = [akTop, akLeft, akRight, akBottom]

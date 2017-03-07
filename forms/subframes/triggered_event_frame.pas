@@ -54,6 +54,8 @@ type
 
     procedure LoadFrom(AObject: TTriggeredEvent);
     function Stash(): AnsiString;
+
+    property Buffer:TTriggeredEvent read FBuffer;
   end;
 
   TTriggeredEventFrameVector = specialize TFPGList<TTriggeredEventFrame>;
