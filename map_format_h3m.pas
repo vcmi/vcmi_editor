@@ -2236,6 +2236,7 @@ begin
       TLossCondition.LOSSHERO:
       begin
         ReadPosition(position);
+        special_defeat_condition.LogicalOperator:=TLogicalOperator.noneOf;
 
         child_condition := special_defeat_condition.AddSubCondition;
         child_condition.ConditionType:=TWinLossCondition.have_0;
