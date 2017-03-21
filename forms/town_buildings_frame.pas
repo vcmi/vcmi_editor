@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, StdCtrls, GraphType, contnrs, base_options_frame, object_options,
+  ExtCtrls, StdCtrls, GraphType, ActnList, Buttons, contnrs, base_options_frame, object_options,
   lists_manager, logical_id_condition, editor_classes, editor_types;
 
 type
@@ -45,21 +45,43 @@ type
 
     property Allowed: Boolean read FAllowed write SetAllowed;
     property Built: Boolean read FBuilt write SetBuilt;
-
   end;
+
+  TBuildingProc =  procedure (ANode: TTreeNode; AData: TBuildingData) of object;
 
   { TTownBuildingsFrame }
 
   TTownBuildingsFrame = class(TBaseOptionsFrame)
+    act: TActionList;
+    actAllowAll: TAction;
+    actDenyAll: TAction;
+    actInvertAllowed: TAction;
+    actBuildAll: TAction;
+    actInvertBuilt: TAction;
+    actRazeAll: TAction;
     Buildings: TTreeView;
     Built: TCheckBox;
     Allowed: TCheckBox;
     cbCustomise: TCheckBox;
     edHasFort: TCheckBox;
+    SelectedBuilding: TGroupBox;
+    AllBuildings: TGroupBox;
     img: TImageList;
     pnHeader: TPanel;
     pnMain: TPanel;
     pnDetails: TPanel;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButton4: TSpeedButton;
+    SpeedButton5: TSpeedButton;
+    SpeedButton6: TSpeedButton;
+    procedure actAllowAllExecute(Sender: TObject);
+    procedure actBuildAllExecute(Sender: TObject);
+    procedure actDenyAllExecute(Sender: TObject);
+    procedure actInvertAllowedExecute(Sender: TObject);
+    procedure actInvertBuiltExecute(Sender: TObject);
+    procedure actRazeAllExecute(Sender: TObject);
     procedure AllowedChange(Sender: TObject);
     procedure BuildingsAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
       Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -79,6 +101,15 @@ type
 
     procedure FillBuildings;
     procedure LoadBuildings;
+
+    procedure Allow(ANode: TTreeNode; AData: TBuildingData);
+    procedure Deny(ANode: TTreeNode; AData: TBuildingData);
+    procedure InvertAllowed(ANode: TTreeNode; AData: TBuildingData);
+    procedure Build(ANode: TTreeNode; AData: TBuildingData);
+    procedure Raze(ANode: TTreeNode; AData: TBuildingData);
+    procedure InvertBuilt(ANode: TTreeNode; AData: TBuildingData);
+
+    procedure ModifyEachBuilding(AProc: TBuildingProc);
   protected
     procedure Load; override;
 
@@ -171,6 +202,36 @@ begin
   end;
   UpdateControls;
   Buildings.Invalidate;
+end;
+
+procedure TTownBuildingsFrame.actAllowAllExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@Allow);
+end;
+
+procedure TTownBuildingsFrame.actBuildAllExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@Build);
+end;
+
+procedure TTownBuildingsFrame.actDenyAllExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@Deny);
+end;
+
+procedure TTownBuildingsFrame.actInvertAllowedExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@InvertAllowed);
+end;
+
+procedure TTownBuildingsFrame.actInvertBuiltExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@InvertBuilt);
+end;
+
+procedure TTownBuildingsFrame.actRazeAllExecute(Sender: TObject);
+begin
+  ModifyEachBuilding(@Raze);
 end;
 
 procedure TTownBuildingsFrame.BuildingsAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
@@ -315,6 +376,59 @@ begin
     node_data.Allowed:=(default_allowed or (FObject.Buildings.AnyOf.IndexOf(node_data.Identifier) >= 0)) and (FObject.Buildings.NoneOf.IndexOf(node_data.Identifier) < 0);
     node_data.Built:=node_data.Allowed and (FObject.Buildings.AllOf.IndexOf(node_data.Identifier) >= 0);
   end;
+end;
+
+procedure TTownBuildingsFrame.Allow(ANode: TTreeNode; AData: TBuildingData);
+begin
+   AData.Allowed:=True;
+end;
+
+procedure TTownBuildingsFrame.Deny(ANode: TTreeNode; AData: TBuildingData);
+begin
+  AData.Allowed:=False;
+  AData.Built:=False;
+end;
+
+procedure TTownBuildingsFrame.InvertAllowed(ANode: TTreeNode; AData: TBuildingData);
+begin
+  AData.Allowed:=not AData.Allowed;
+  if not AData.Allowed then
+     AData.Built:=False;
+end;
+
+procedure TTownBuildingsFrame.Build(ANode: TTreeNode; AData: TBuildingData);
+begin
+  AData.Built:=true;
+  AData.Allowed:=true;
+end;
+
+procedure TTownBuildingsFrame.Raze(ANode: TTreeNode; AData: TBuildingData);
+begin
+  AData.Built:=false;
+end;
+
+procedure TTownBuildingsFrame.InvertBuilt(ANode: TTreeNode; AData: TBuildingData);
+begin
+  AData.Built:=not AData.Built;
+  if AData.Built then
+    AData.Allowed:=true;
+end;
+
+procedure TTownBuildingsFrame.ModifyEachBuilding(AProc: TBuildingProc);
+var
+  node: TTreeNode;
+  data: TBuildingData;
+begin
+  for node in Buildings.Items do
+  begin
+    data := TBuildingData(node.Data);
+    if Data.Building.Mode in [TBuildMode.normal,TBuildMode.grail] then
+    begin
+      AProc(node,data);
+    end;
+  end;
+  BuildingsSelectionChanged(Buildings);
+  Buildings.Invalidate;
 end;
 
 procedure TTownBuildingsFrame.UpdateControls;
