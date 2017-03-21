@@ -159,7 +159,6 @@ uses editor_str_consts;
 
 procedure TRoadRiverBrush.SetRoadType(AValue: TRoadType);
 begin
-  if FRoadType=AValue then Exit;
   FRoadType:=AValue;
   FRiverType:=TRiverType.noRiver;
   Kind := TRoadRiverBrushKind.road;
@@ -272,7 +271,6 @@ end;
 
 procedure TRoadRiverBrush.SetRiverType(AValue: TRiverType);
 begin
-  if FRiverType=AValue then Exit;
   FRiverType:=AValue;
   FRoadType := TRoadType.noRoad;
   Kind := TRoadRiverBrushKind.river;
