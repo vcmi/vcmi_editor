@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="8"/>
-      <BuildNr Value="107"/>
+      <BuildNr Value="109"/>
       <Attributes pvaPreRelease="True" pvaSpecialBuild="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion=""/>
     </VersionInfo>
@@ -247,7 +247,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="ObjectPropertyTest_v1.h3m"/>
+        <CommandLineParams Value="--convert &quot;C:\projects\vcmi\tests\Maps&quot; &quot;C:\projects\vcmi\tests\MapsConv&quot;"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>

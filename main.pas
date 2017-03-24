@@ -101,7 +101,6 @@ type
     btnBrush2: TSpeedButton;
     btnBrush4: TSpeedButton;
     btnBrushArea: TSpeedButton;
-    btnBrushFill: TSpeedButton;
     btnDirt: TSpeedButton;
     btnGrass: TSpeedButton;
     btnLava: TSpeedButton;
@@ -943,15 +942,10 @@ end;
 procedure TfMain.FormActivate(Sender: TObject);
 begin
   try
-    if not MapView.MakeCurrent() then
-    begin
-      Exit;
-    end;
-
+    MapView.MakeCurrent();
   finally
     RootManager.InitComplete;
   end;
-
 end;
 
 procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -2137,7 +2131,6 @@ var
   stm: TFileStreamUTF8;
   file_ext: String;
 begin
-
   if (FMapFilename <> AFileName) and FileExistsUTF8(AFileName) then
   begin
     if MessageDlg(rsConfirm,rsFileExists, TMsgDlgType.mtConfirmation, mbYesNo,0) <> mrYes then

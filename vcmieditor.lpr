@@ -40,7 +40,15 @@ begin
   RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TRootManager, RootManager);
-  Application.CreateForm(TfMain, fMain);
-  Application.Run;
+
+  if RootManager.BatchMode then
+  begin
+    RootManager.RunBatch;
+  end
+  else
+  begin
+    Application.CreateForm(TfMain, fMain);
+    Application.Run;
+  end;
 end.
 

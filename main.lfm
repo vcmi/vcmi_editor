@@ -1504,7 +1504,7 @@ object fMain: TfMain
         Constraints.MinHeight = 46
         TabOrder = 0
         object btnSelect: TSpeedButton
-          Left = 7
+          Left = 12
           Height = 28
           Top = 0
           Width = 28
@@ -1592,7 +1592,7 @@ object fMain: TfMain
           OnClick = btnSelectClick
         end
         object btnBrush1: TSpeedButton
-          Left = 42
+          Left = 52
           Height = 28
           Top = 0
           Width = 24
@@ -1604,7 +1604,7 @@ object fMain: TfMain
           OnClick = btnBrush1Click
         end
         object btnBrush2: TSpeedButton
-          Left = 73
+          Left = 88
           Height = 28
           Top = 0
           Width = 24
@@ -1616,7 +1616,7 @@ object fMain: TfMain
           OnClick = btnBrush2Click
         end
         object btnBrush4: TSpeedButton
-          Left = 104
+          Left = 124
           Height = 28
           Top = 0
           Width = 24
@@ -1628,7 +1628,7 @@ object fMain: TfMain
           OnClick = btnBrush4Click
         end
         object btnBrushArea: TSpeedButton
-          Left = 135
+          Left = 160
           Height = 28
           Top = 0
           Width = 24
@@ -1641,19 +1641,6 @@ object fMain: TfMain
           GroupIndex = 5
           OnClick = btnBrushAreaClick
           ParentFont = False
-        end
-        object btnBrushFill: TSpeedButton
-          Left = 166
-          Height = 28
-          Top = 0
-          Width = 24
-          AllowAllUp = True
-          BorderSpacing.Around = 3
-          Constraints.MinWidth = 24
-          Caption = '∞'
-          Enabled = False
-          GroupIndex = 5
-          OnClick = btnBrushFillClick
         end
       end
       object gbTerrain: TGroupBox

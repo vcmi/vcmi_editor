@@ -55,6 +55,7 @@ type
     procedure Advance(ADelta: integer);
     procedure NextStage(const AStageLabel:string);
     procedure AddError(const ADescription: string);
+    procedure AddMessage(const ADescription: string);
   end;
 
 implementation
@@ -85,7 +86,7 @@ end;
 
 procedure TProgressForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-  CloseAction := caHide; //???
+  CloseAction := caHide; //may be reused, owned by root_manager
 end;
 
 procedure TProgressForm.actCloseExecute(Sender: TObject);
@@ -116,6 +117,12 @@ begin
   DebugLn(ADescription);
 
   FHasErrors:=True;
+end;
+
+procedure TProgressForm.AddMessage(const ADescription: string);
+begin
+  //todo: use different format
+  AddError(ADescription);
 end;
 
 procedure TProgressForm.Reset;

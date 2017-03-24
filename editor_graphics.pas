@@ -191,6 +191,7 @@ type
 
   TGraphicsManager = class (TFSConsumer)
   strict private
+    FBlocked: Boolean;
     FNameToAnimMap: TAnimationMap;
     FDefLoader: TDefFormatLoader;
     FJsonLoader: TJsonFormatLoader;
@@ -201,9 +202,12 @@ type
 
     procedure DoLoadGraphics(const AResourceName:string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
     function DoGetGraphics (const AResourceName:string; ALoadMode: TGraphicsLoadMode): TAnimation;
+    procedure SetBlocked(AValue: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure PreLoad;
 
     //complete load
     function GetGraphics (const AResourceName:string): TAnimation;
@@ -213,6 +217,9 @@ type
     procedure LoadGraphics(AAnimation: TAnimation);
 
     function GetHeroFlagDef(APlayer: TPlayer): TAnimation;
+
+    //if true blocks all actual assets operations
+    property Blocked: Boolean read FBlocked write SetBlocked;
   end;
 
   { TGraphicsConsumer }
@@ -942,10 +949,6 @@ end;
 { TGraphicsManager }
 
 constructor TGraphicsManager.Create(AOwner: TComponent);
-const
-  FMT = 'AF0%dE';
-var
-  i: TPlayer;
 begin
   inherited Create(AOwner);
   FNameToAnimMap := TAnimationMap.Create;
@@ -953,11 +956,6 @@ begin
 
   FDefLoader := TDefFormatLoader.Create(Self);
   FJsonLoader := TJsonFormatLoader.Create(Self);
-
-  for i in TPlayerColor do
-  begin
-    FHeroFlagDefs[i] := GetGraphics(Format(FMT,[Integer(i)]));
-  end;
 end;
 
 destructor TGraphicsManager.Destroy;
@@ -965,6 +963,18 @@ begin
   FBuffer.Free;
   FNameToAnimMap.Free;
   inherited Destroy;
+end;
+
+procedure TGraphicsManager.PreLoad;
+const
+  FMT = 'AF0%dE';
+var
+  i: TPlayer;
+begin
+  for i in TPlayerColor do
+  begin
+    FHeroFlagDefs[i] := GetGraphics(Format(FMT,[Integer(i)]));
+  end;
 end;
 
 function TGraphicsManager.GetGraphics(const AResourceName: string): TAnimation;
@@ -992,7 +1002,7 @@ procedure TGraphicsManager.DoLoadGraphics(const AResourceName: string; ADef: TAn
 var
   found: Boolean;
 begin
-  if ADef.Loaded = TGraphicsLoadFlag.Complete then
+  if Blocked or (ADef.Loaded = TGraphicsLoadFlag.Complete) then
   begin
     exit;
   end;
@@ -1037,6 +1047,11 @@ begin
     FNameToAnimMap.Add(AResourceName,Result);
     Result.ResourceID := AResourceName;
   end;
+end;
+
+procedure TGraphicsManager.SetBlocked(AValue: Boolean);
+begin
+  FBlocked:=AValue;
 end;
 
 
