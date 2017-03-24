@@ -72,10 +72,41 @@ begin
 end;
 
 procedure TPlayerOptionsForm.SetMap(AValue: TVCMIMap);
+var
+  Player: TPlayer;
+  page: TTabSheet;
+  editor: TPlayerOptionsFrame;
 begin
   if FMap=AValue then Exit;
   FMap:=AValue;
-  if Assigned(FMap) then ReadData;
+
+  if Assigned(FMap) then
+  begin
+    FTeamCache := TTeamSettings.Create(FMap);
+
+    for Player in TPlayerColor do
+    begin
+      page := TTabSheet.Create(pcMain);
+      page.PageControl := pcMain;
+      page.TabVisible:=true;
+
+      editor := TPlayerOptionsFrame.Create(page);
+      editor.Visible:=true;
+      editor.Parent:=page;
+      editor.Align:=alClient;
+      editor.OnGetVirtualTeam := @GetVirtualTeam;
+      editor.OnAlliesChanged := @UpdateTeams;
+      editor.TeamCache := FTeamCache;
+
+      FEditors[Player] := editor;
+
+      FVirtualTeams[Player] := TTeam.Create(nil);
+      FVirtualTeams[Player].Include(Player);
+    end;
+
+    ReadData;
+  end;
+
 end;
 
 procedure TPlayerOptionsForm.ReadData;
@@ -154,31 +185,12 @@ end;
 constructor TPlayerOptionsForm.Create(TheOwner: TComponent);
 var
   Player: TPlayer;
-  editor: TPlayerOptionsFrame;
-  page: TTabSheet;
 begin
   inherited Create(TheOwner);
 
-  FTeamCache := TTeamSettings.Create;
-
   for Player in TPlayerColor do
   begin
-    page := TTabSheet.Create(pcMain);
-    page.PageControl := pcMain;
-    page.TabVisible:=true;
-
-    editor := TPlayerOptionsFrame.Create(page);
-    editor.Visible:=true;
-    editor.Parent:=page;
-    editor.Align:=alClient;
-    editor.OnGetVirtualTeam := @GetVirtualTeam;
-    editor.OnAlliesChanged := @UpdateTeams;
-    editor.TeamCache := FTeamCache;
-
-    FEditors[Player] := editor;
-
-    FVirtualTeams[Player] := TTeam.Create(nil);
-    FVirtualTeams[Player].Include(Player);
+    FVirtualTeams[Player] := nil;
   end;
 end;
 
@@ -193,7 +205,7 @@ begin
     FVirtualTeams[Player].Free;
   end;
 
-  FTeamCache.Free;
+  FreeAndNil(FTeamCache);
 end;
 
 end.

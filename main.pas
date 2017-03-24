@@ -988,6 +988,8 @@ begin
   FEnv.om := FObjManager;
 
   FGraphicsManager := RootManager.GraphicsManager;
+  FEnv.gm := FGraphicsManager;
+
   FEnv.lm := RootManager.ListsManager;
 
   FEnv.i18n := RootManager.LocaleManager;

@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, fpjson, editor_classes, logical_expression, editor_types,
-  vcmi_json, root_manager, position;
+  vcmi_json, locale_manager, position;
 
 type
 
@@ -111,7 +111,10 @@ type
 
   { TTriggeredEvents }
   TTriggeredEvents = class(specialize TGNamedCollection<TTriggeredEvent>)
+  private
+    FLM: TLocaleManager;
   public
+    constructor Create(lm:TLocaleManager);
     procedure AddStandardVictory();
     procedure AddStandardDefeat();
   end;
@@ -122,6 +125,12 @@ uses typinfo;
 
 { TTriggeredEvents }
 
+constructor TTriggeredEvents.Create(lm: TLocaleManager);
+begin
+  inherited Create;
+  FLM:=lm
+end;
+
 procedure TTriggeredEvents.AddStandardVictory;
 var
   standard_victory: TTriggeredEvent;
@@ -129,9 +138,9 @@ var
 begin
   standard_victory := Add;
   standard_victory.Effect.&type := TTriggeredEventType.victory;
-  standard_victory.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,5];
+  standard_victory.Effect.MessageToSend := FLM.GeneralTexts[0,5];
   standard_victory.Identifier:='standardVictory';
-  standard_victory.Message:=RootManager.LocaleManager.GeneralTexts[0,659];
+  standard_victory.Message:=FLM.GeneralTexts[0,659];
 
   condition := standard_victory.AddCondition;
   condition.ConditionType:=TWinLossCondition.standardWin;
@@ -144,9 +153,9 @@ var
 begin
   standard_defeat := Add;
   standard_defeat.Effect.&type := TTriggeredEventType.defeat;
-  standard_defeat.Effect.MessageToSend := RootManager.LocaleManager.GeneralTexts[0,8];
+  standard_defeat.Effect.MessageToSend := FLM.GeneralTexts[0,8];
   standard_defeat.Identifier:='standardDefeat';
-  standard_defeat.Message:=RootManager.LocaleManager.GeneralTexts[0,7];
+  standard_defeat.Message:=FLM.GeneralTexts[0,7];
 
   condition := standard_defeat.AddCondition;
   condition.ConditionType:=TWinLossCondition.daysWithoutTown;

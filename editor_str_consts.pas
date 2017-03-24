@@ -97,6 +97,7 @@ resourcestring
   rsTabRewards = 'Reward';
   rsTabBuildings = 'Buildings';
 
+
 implementation
 
 end.

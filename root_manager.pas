@@ -446,6 +446,7 @@ begin
   FEnv.lm := ListsManager;
   FEnv.om := ObjectsManager;
   FEnv.tm := TerrainManager;
+  FEnv.gm := GraphicsManager;
 
   FZbuffer := TZBuffer.Create;
 

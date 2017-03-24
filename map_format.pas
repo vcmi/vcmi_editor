@@ -22,7 +22,7 @@ unit map_format;
 interface
 
 uses
-  Classes, SysUtils, Map, terrain, lists_manager;
+  Classes, SysUtils, Map;
 
 type
   //make it managed object

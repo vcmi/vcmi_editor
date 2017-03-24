@@ -273,6 +273,19 @@ const
     (r: 255; g: 192; b:203; a: 255) //PINK
   );
 
+const
+  NEWTRAL_PLAYER_NAME = 'No player';
+  PLAYER_NAMES: array[TPlayerColor] of AnsiString = (
+    //'No player',
+    'Player 1 (red)',
+    'Player 2 (blue)',
+    'Player 3 (tan)',
+    'Player 4 (green)',
+    'Player 5 (orange)',
+    'Player 6 (purple)',
+    'Player 7 (teal)',
+    'Player 8 (pink)');
+
 implementation
 
 end.

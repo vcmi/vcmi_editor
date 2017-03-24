@@ -27,8 +27,8 @@ uses
 
   LazLoggerBase,
 
-  editor_types, editor_classes, root_manager,
-  editor_utils, logical_id_condition, vcmi_json, editor_consts, map_objects;
+  editor_types, editor_classes,
+  editor_utils, logical_id_condition, vcmi_json, editor_consts, map_objects, lists_manager;
 
 type
 
@@ -52,6 +52,8 @@ type
 
     //for filtered appearance
     procedure InvalidateAppearance();
+
+    function GetListsManager: TListsManager;
   end;
 
   { TObjectOptions }
@@ -1647,7 +1649,7 @@ constructor TBaseRandomDwellingOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FAllowedFactions := TLogicalIDCondition.Create(AObject);
-  RootManager.ListsManager.FactionInfos.FillWithAllIds(FAllowedFactions, False);
+  AObject.GetListsManager.FactionInfos.FillWithAllIds(FAllowedFactions, False);
 end;
 
 destructor TBaseRandomDwellingOptions.Destroy;
@@ -2372,7 +2374,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   SaveHeroSex(AData, Sex);
-  RootManager.ListsManager.SaveHeroPortrait(AData, FPortrait);
+  MapObject.GetListsManager.SaveHeroPortrait(AData, FPortrait);
 end;
 
 procedure THeroOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
@@ -2380,7 +2382,7 @@ begin
   inherited AfterSerialize(Sender, AData);
 
   Sex:=LoadHeroSex(AData);
-  FPortrait:=RootManager.ListsManager.LoadHeroPortrait(AData);
+  FPortrait:=MapObject.GetListsManager.LoadHeroPortrait(AData);
 end;
 
 procedure THeroOptions.Clear;

@@ -237,6 +237,7 @@ type
   TTeam = class(TCollectionItem, IEmbeddedValue)
   private
     FMembers: TPlayers;
+    function GetPlayerName(APlayer:TPlayer): TLocalizedString;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -253,8 +254,12 @@ type
   { TTeamSettings }
 
   TTeamSettings = class (specialize TGArrayCollection<TTeam>)
+  private
+    FOwner: TVCMIMap;
   public
-    constructor Create;
+    constructor Create(AOwner: TVCMIMap);
+
+    property Owner: TVCMIMap read FOwner;
   end;
 
   { TRumor }
@@ -510,6 +515,8 @@ type
     procedure InvalidateAppearance;
     procedure ValidateAppearance;
 
+    function GetListsManager: TListsManager;
+
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     property MapObjectType: TMapObjectType read FMapObjectType;
 
@@ -606,6 +613,7 @@ type
     lm: TListsManager;
     om: TObjectsManager;
     i18n: TLocaleManager;
+    gm: TGraphicsManager;
   end;
 
   { THeroDefinition }
@@ -677,6 +685,8 @@ type
     FOwner: TVCMIMap;
   public
     constructor Create(AOwner: TVCMIMap);
+
+    property Owner: TVCMIMap read FOwner;
   end;
 
   TInstanceMap = specialize TFPGMap<TInstanceID, TMapObject>;
@@ -742,8 +752,10 @@ type
     FObjects: TMapObjects;
     FPlayers: TPlayerInfos;
     FPredefinedHeroes: THeroDefinitions;
+
     FTerrainManager: TTerrainManager;
     FListsManager: TListsManager;
+    FGraphicsManager: TGraphicsManager;
 
     FLevels: TMapLevels;
 
@@ -785,6 +797,7 @@ type
 
     procedure BuildSearchIndex;
   private
+    FObjectsManager: TObjectsManager;
      var
        FModUsage:TModUsage;
 
@@ -829,6 +842,8 @@ type
 
     property TerrainManager: TTerrainManager read FTerrainManager;
     property ListsManager: TListsManager read FListsManager;
+    property GraphicsManager: TGraphicsManager read FGraphicsManager;
+    property ObjectsManager: TObjectsManager read FObjectsManager;
 
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet);
@@ -891,7 +906,7 @@ type
 
 implementation
 
-uses FileUtil, LazLoggerBase, editor_str_consts, root_manager, editor_utils,
+uses FileUtil, LazLoggerBase, editor_str_consts, editor_utils,
   strutils, typinfo;
 
 { TMapObjectsSelection }
@@ -1432,6 +1447,24 @@ end;
 
 { TTeam }
 
+function TTeam.GetPlayerName(APlayer: TPlayer): TLocalizedString;
+begin
+  if Assigned(Collection) then
+  begin
+    Result := (Collection as TTeamSettings).Owner.ListsManager.PlayerName[APlayer];
+  end
+  else
+  begin
+    if APlayer = TPlayer.NONE then
+    begin
+      Result := NEWTRAL_PLAYER_NAME;
+    end
+    else begin
+      Result := PLAYER_NAMES[APlayer];
+    end;
+  end;
+end;
+
 procedure TTeam.AssignTo(Dest: TPersistent);
 begin
   if Dest is TTeam then
@@ -1483,16 +1516,15 @@ begin
 
   for iter in tmp do
   begin
-
     if first then
     begin
       first:=false;
 
-      Result := RootManager.ListsManager.PlayerName[iter];
+      Result := GetPlayerName(iter);
     end
     else
     begin
-      Result := Result + ', ' + RootManager.ListsManager.PlayerName[iter];
+      Result := Result + ', ' + GetPlayerName(iter);
     end;
   end;
 end;
@@ -1504,8 +1536,9 @@ end;
 
 { TTeamSettings }
 
-constructor TTeamSettings.Create;
+constructor TTeamSettings.Create(AOwner: TVCMIMap);
 begin
+  FOwner := AOwner;
   inherited Create;
 end;
 
@@ -1548,18 +1581,18 @@ end;
 procedure TMapObjectAppearance.SetDef(AValue: TAnimation);
 begin
   FDef := AValue;
-  RootManager.GraphicsManager.LoadGraphics(FDef);
+  FOwner.GetMap.GraphicsManager.LoadGraphics(FDef);
 end;
 
 procedure TMapObjectAppearance.AnimationChanged;
 begin
   if FEditorAnimation='' then
   begin
-    SetDef(RootManager.GraphicsManager.GetGraphics(FAnimation));
+    SetDef(FOwner.GetMap.GraphicsManager.GetGraphics(FAnimation));
   end
   else
   begin
-    SetDef(RootManager.GraphicsManager.GetGraphics(FEditorAnimation));
+    SetDef(FOwner.GetMap.GraphicsManager.GetGraphics(FEditorAnimation));
   end;
 end;
 
@@ -1660,7 +1693,7 @@ begin
   FMask := TStringList.Create;
   FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
-  SetDef(RootManager.GraphicsManager.GetGraphics('default'));
+  SetDef(FOwner.GetMap.GraphicsManager.GetGraphics('default'));
   FAllowedTerrains := ALL_TERRAINS;
   FTags := TStringList.Create;
 end;
@@ -1886,7 +1919,7 @@ end;
 procedure THeroDefinition.AfterDeSerialize(Sender: TObject; AData: TJSONData);
 begin
   Sex:=LoadHeroSex(AData);
-  Portrait:=RootManager.ListsManager.LoadHeroPortrait(AData);
+  Portrait:=THeroDefinitions(Collection).Owner.ListsManager.LoadHeroPortrait(AData);
 end;
 
 procedure THeroDefinition.BeforeSerialize(Sender: TObject);
@@ -1897,7 +1930,7 @@ end;
 procedure THeroDefinition.AfterSerialize(Sender: TObject; AData: TJSONData);
 begin
   SaveHeroSex(AData, Sex);
-  RootManager.ListsManager.SaveHeroPortrait(AData, Portrait);
+  THeroDefinitions(Collection).Owner.ListsManager.SaveHeroPortrait(AData, Portrait);
 end;
 
 function THeroDefinition.GetHeroIdentifier: AnsiString;
@@ -2009,12 +2042,13 @@ end;
 constructor TMapObject.Create(ACollection: TCollection);
 begin
   FLastFrame := 0;
-  FTemplate := TMapObjectAppearance.Create(Self);
   FOptions := TObjectOptions.Create(Self);
   FPlayer:=TPlayer.none;
   FPosition := TPosition.Create;
   FModUsage := TModUsage.Create(nil);
   inherited Create(ACollection);
+
+  FTemplate := TMapObjectAppearance.Create(Self);
 end;
 
 destructor TMapObject.Destroy;
@@ -2098,7 +2132,7 @@ begin
 
   if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
+    GetMap.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
   end;
 end;
 
@@ -2132,7 +2166,7 @@ begin
 
   if Assigned(FMapObjectGroup) and (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(owner).RenderOverlayIcon(AState, dim, Template.Def.GetSpriteHeight(Frame));//todo: refactor
+    GetMap.GraphicsManager.GetHeroFlagDef(owner).RenderOverlayIcon(AState, dim, Template.Def.GetSpriteHeight(Frame));//todo: refactor
   end;
 end;
 
@@ -2188,7 +2222,7 @@ begin
 
   NotifyReferenced(old_type,AValue);
 
-  FMapObjectGroup := RootManager.ObjectsManager.MapObjectGroups.FindItem(AValue);
+  FMapObjectGroup := GetMap.ObjectsManager.MapObjectGroups.FindItem(AValue);
   FMapObjectType := nil; //???
 
   RecreateOptions;
@@ -2355,6 +2389,11 @@ begin
 
     FAppearanceValid := true;
   end;
+end;
+
+function TMapObject.GetListsManager: TListsManager;
+begin
+  Result := GetMap.ListsManager;
 end;
 
 procedure TMapObject.GetKeyWords(ATarget: TStrings);
@@ -2940,6 +2979,8 @@ begin
   FTrackObjectChanges := false;
   FTerrainManager := env.tm;
   FListsManager := env.lm;
+  FGraphicsManager := env.gm;
+  FObjectsManager := env.om;
 
   FLevels := TMapLevels.Create(Self);
 
@@ -2962,7 +3003,7 @@ begin
   AttachTo(FAllowedHeroes);
 
   FPlayers := TPlayerInfos.Create(Self);
-  FTeams := TTeamSettings.Create;
+  FTeams := TTeamSettings.Create(Self);
   FObjects := TMapObjects.Create(Self);
   AttachTo(FObjects);
 
@@ -2973,7 +3014,7 @@ begin
   FPredefinedHeroes := THeroDefinitions.Create(Self);
   AttachTo(FPredefinedHeroes);
 
-  FTriggeredEvents := TTriggeredEvents.Create;
+  FTriggeredEvents := TTriggeredEvents.Create(env.i18n);
   AttachTo(FTriggeredEvents);
 
   FMods := TLogicalIDCondition.Create(nil);//pass nil owner to avoid circular reference notification

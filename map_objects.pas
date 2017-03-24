@@ -28,6 +28,8 @@ uses
   lists_manager, vcmi_json, editor_gl, search_index;
 
 type
+  TObjectsManager = class;
+
   TLegacyTemplateId = UInt64;
 
   TDefBitmask = packed array[0..5] of uint8; //top to bottom, right to left as in H3M
@@ -137,9 +139,11 @@ type
   TMapObjectTemplates = class (specialize TGNamedCollection<TMapObjectTemplate>)
   private
     FOwner: TMapObjectType;
+    FManager: TObjectsManager;
   public
-    constructor Create(AOwner: TMapObjectType);
+    constructor Create(AManager:TObjectsManager; AOwner: TMapObjectType);
     property MapObjectType: TMapObjectType read FOwner;
+    property Manager: TObjectsManager read FManager;
   end;
 
   TMapObjectTemplateList = specialize TFPGObjectList<TMapObjectTemplate>;
@@ -176,9 +180,11 @@ type
   TMapObjectTypes = class (specialize TGNamedCollection<TMapObjectType>)
   private
     FOwner: TMapObjectGroup;
+    FManager: TObjectsManager;
   public
-    constructor Create(AOwner: TMapObjectGroup);
+    constructor Create(AManager:TObjectsManager; AOwner: TMapObjectGroup);
     property Owner: TMapObjectGroup read FOwner;
+    property Manager: TObjectsManager read FManager;
   end;
 
   { TMapObjectGroup }
@@ -213,13 +219,20 @@ type
 
   TObjectGroupFilter = function (AObject: TMapObjectGroup): boolean is nested;
 
-  TMapObjectGroups = specialize TGNamedCollection<TMapObjectGroup>;
+  { TMapObjectGroups }
+
+  TMapObjectGroups = class(specialize TGNamedCollection<TMapObjectGroup>)
+  private
+    FManager: TObjectsManager;
+  public
+    constructor Create(AManager:TObjectsManager);
+    property Manager: TObjectsManager read FManager;
+  end;
 
   {$pop}
 
   TLegacyIdMap = specialize TObjectMap<TLegacyTemplateId, TMapObjectType>;
 
-  TObjectsManager = class;
 
   { TObjectsSelection }
 
@@ -285,12 +298,19 @@ type
 implementation
 
 uses
-  LazLoggerBase, editor_consts, editor_utils,
-  root_manager;
+  LazLoggerBase, editor_consts, editor_utils;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
   OBJECT_NAMES = 'DATA/OBJNAMES';
+
+{ TMapObjectGroups }
+
+constructor TMapObjectGroups.Create(AManager: TObjectsManager);
+begin
+  inherited Create;
+  FManager := AManager;
+end;
 
 { TMaskResource }
 
@@ -329,18 +349,20 @@ end;
 
 { TMapObjectTypes }
 
-constructor TMapObjectTypes.Create(AOwner: TMapObjectGroup);
+constructor TMapObjectTypes.Create(AManager: TObjectsManager; AOwner: TMapObjectGroup);
 begin
   inherited Create;
   FOwner := AOwner;
+  FManager := AManager;
 end;
 
 { TMapObjectTemplates }
 
-constructor TMapObjectTemplates.Create(AOwner: TMapObjectType);
+constructor TMapObjectTemplates.Create(AManager: TObjectsManager; AOwner: TMapObjectType);
 begin
   inherited Create;
   FOwner := AOwner;
+  FManager := AManager;
 end;
 
 { TObjectsSelection }
@@ -443,7 +465,7 @@ end;
 constructor TMapObjectGroup.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FMapObjectTypes := TMapObjectTypes.Create(self);
+  FMapObjectTypes := TMapObjectTypes.Create(TMapObjectGroups(ACollection).Manager, self);
   Index:=ID_INVALID;
   FCategory:=TObjectCategory.Other;
 end;
@@ -487,7 +509,7 @@ constructor TMapObjectType.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   index := ID_INVALID;
-  FTemplates := TMapObjectTemplates.Create(Self);
+  FTemplates := TMapObjectTemplates.Create(TMapObjectTypes(ACollection).Manager, Self);
   FMapObjectGroup :=  (ACollection as TMapObjectTypes).Owner;
   FFilters := CreateJSONObject([]);
 end;
@@ -543,18 +565,18 @@ procedure TMapObjectTemplate.UpdateAnimation;
 begin
   if FEditorAnimation='' then
   begin
-    FDef := RootManager.GraphicsManager.GetGraphics(FAnimation);
+    FDef := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetGraphics(FAnimation);
   end
   else
   begin
-    FDef := RootManager.GraphicsManager.GetGraphics(FEditorAnimation);
+    FDef := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetGraphics(FEditorAnimation);
   end;
 
   FIconSpriteIndex:=0;
 
   if MapObjectGroup.IsHero and (FEditorAnimation='') then
   begin
-    RootManager.GraphicsManager.LoadGraphics(FDef);
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.LoadGraphics(FDef);
     FIconSpriteIndex := 2;
   end;
 end;
@@ -595,7 +617,7 @@ begin
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, FDef.GetSpriteHeight(FIconSpriteIndex));
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, FDef.GetSpriteHeight(FIconSpriteIndex));
   end;
 end;
 
@@ -605,7 +627,7 @@ begin
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    RootManager.GraphicsManager.GetHeroFlagDef(color).RenderO(AState, 0, AX, AY);
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.GetHeroFlagDef(color).RenderO(AState, 0, AX, AY);
   end;
 end;
 
@@ -644,7 +666,7 @@ var
 begin
   inherited Create(AOwner);
 
-  FMapObjectGroups := TMapObjectGroups.Create;
+  FMapObjectGroups := TMapObjectGroups.Create(Self);
   FLegacyObjTypes := TLegacyIdMap.Create;
 
   for index in TObjectCategory do
