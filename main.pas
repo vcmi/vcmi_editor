@@ -149,6 +149,7 @@ type
     MapView: TOpenGLControl;
     ObjectsView: TOpenGLControl;
     OpenMapDialog: TOpenDialog;
+    pcMain: TPageControl;
     pnTop: TPanel;
     pnObjectsSearch: TPanel;
     pnObjects: TPanel;
@@ -163,6 +164,7 @@ type
     AnimTimer: TTimer;
     SearchTimer: TTimer;
     FilterToolBar: TToolBar;
+    tsMap: TTabSheet;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
@@ -283,6 +285,7 @@ type
     procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
+    procedure pcMainChange(Sender: TObject);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure LevelMenuClick(Sender: TObject);
@@ -1141,6 +1144,7 @@ procedure TfMain.FormResize(Sender: TObject);
 begin
   InvalidateMapDimensions;
   InvalidateObjects;
+  StatusBar.Panels[0].Width:=StatusBar.Width - 210;
 end;
 
 function TfMain.getMapHeight: Integer;
@@ -1812,6 +1816,11 @@ begin
   end;
 end;
 
+procedure TfMain.pcMainChange(Sender: TObject);
+begin
+
+end;
+
 procedure TfMain.PlayerMenuClick(Sender: TObject);
 var
   m : TMenuItem;
@@ -2290,22 +2299,36 @@ begin
 
   status_text := '';
 
-  if Assigned(FMap) and FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
+  if Assigned(FMap) then
   begin
-    t := FMap.CurrentLevel.Tile[FMouseTileX, FMouseTileY];
+    if FMap.IsOnMap(FMap.CurrentLevelIndex, FMouseTileX, FMouseTileY) then
+    begin
+      t := FMap.CurrentLevel.Tile[FMouseTileX, FMouseTileY];
 
-    status_text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
+      status_text := Format('[%d %d %d] %s %d %s',[FMouseTileX, FMouseTileY, FMap.CurrentLevelIndex, TERRAIN_CODES[t^.TerType], t^.TerSubType, FLIP_CODES[t^.Flags mod 4]]);
+    end;
   end;
 
   if Assigned(FSelectedObject) then
   begin
     if status_text <> '' then
-      status_text := status_text + ' | ';
+      status_text += ' | ';
 
-    status_text := status_text + FSelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FSelectedObject.&Type, FSelectedObject.Subtype));
+    status_text += FSelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FSelectedObject.&Type, FSelectedObject.Subtype));
   end;
 
   StatusBar.Panels[0].Text:= status_text;
+
+  status_text := '';
+
+  if Assigned(FMap) and (FMap.CurrentLevelIndex >=0) then
+  begin
+    status_text := Format('Level %d %dx%d',[FMap.CurrentLevelIndex, FMap.CurrentLevel.Width,FMap.CurrentLevel.Height])
+  end;
+
+  StatusBar.Panels[1].Text:=status_text;
+
+  StatusBar.Panels[2].Text:=FEnv.lm.PlayerName[FCurrentPlayer];
 end;
 
 procedure TfMain.ResetFocus;

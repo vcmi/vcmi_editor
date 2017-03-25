@@ -1029,7 +1029,7 @@ object fMain: TfMain
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 1210
-    TabOrder = 4
+    TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
       Height = 34
@@ -1212,108 +1212,6 @@ object fMain: TfMain
       end
     end
   end
-  object pnMap: TPanel
-    Left = 202
-    Height = 583
-    Top = 34
-    Width = 804
-    Align = alClient
-    BevelOuter = bvNone
-    Caption = 'pnMap'
-    ClientHeight = 583
-    ClientWidth = 804
-    Color = clWhite
-    ParentColor = False
-    TabOrder = 0
-    object MapView: TOpenGLControl
-      Left = 23
-      Height = 544
-      Top = 23
-      Width = 765
-      Align = alClient
-      AutoResizeViewport = True
-      OpenGLMajorVersion = 3
-      OpenGLMinorVersion = 3
-      AlphaBits = 8
-      OnClick = MapViewClick
-      OnDblClick = MapViewDblClick
-      OnDragDrop = MapViewDragDrop
-      OnDragOver = MapViewDragOver
-      OnMouseDown = MapViewMouseDown
-      OnMouseEnter = MapViewMouseEnter
-      OnMouseLeave = MapViewMouseLeave
-      OnMouseMove = MapViewMouseMove
-      OnMouseUp = MapViewMouseUp
-      OnMouseWheel = MapViewMouseWheel
-      OnPaint = MapViewPaint
-    end
-    object hScrollBar: TScrollBar
-      Left = 18
-      Height = 16
-      Top = 567
-      Width = 768
-      Align = alBottom
-      BorderSpacing.Left = 18
-      BorderSpacing.Right = 18
-      PageSize = 0
-      TabOrder = 2
-      TabStop = False
-      OnScroll = hScrollBarScroll
-    end
-    object vScrollBar: TScrollBar
-      Left = 788
-      Height = 544
-      Top = 23
-      Width = 16
-      Align = alRight
-      Kind = sbVertical
-      PageSize = 0
-      TabOrder = 1
-      TabStop = False
-      OnScroll = vScrollBarScroll
-    end
-    object pnVAxis: TPanel
-      Left = 0
-      Height = 544
-      Top = 23
-      Width = 23
-      Align = alLeft
-      BevelOuter = bvNone
-      ClientHeight = 544
-      ClientWidth = 23
-      TabOrder = 3
-      object VerticalAxis: TPaintBox
-        Left = 0
-        Height = 544
-        Top = 0
-        Width = 23
-        Align = alClient
-        OnPaint = VerticalAxisPaint
-      end
-    end
-    object pnHAxis: TPanel
-      Left = 23
-      Height = 23
-      Top = 0
-      Width = 763
-      Align = alTop
-      BorderSpacing.Left = 23
-      BorderSpacing.Right = 18
-      BevelOuter = bvNone
-      ClientHeight = 23
-      ClientWidth = 763
-      TabOrder = 4
-      object HorisontalAxis: TPaintBox
-        Left = 0
-        Height = 23
-        Top = 0
-        Width = 763
-        Align = alClient
-        ParentColor = False
-        OnPaint = HorisontalAxisPaint
-      end
-    end
-  end
   object pnRight: TPanel
     Left = 1006
     Height = 583
@@ -1323,7 +1221,7 @@ object fMain: TfMain
     BevelOuter = bvNone
     ClientHeight = 583
     ClientWidth = 204
-    TabOrder = 1
+    TabOrder = 0
     object pnObjects: TPanel
       Left = 0
       Height = 560
@@ -1437,6 +1335,13 @@ object fMain: TfMain
     Panels = <    
       item
         Width = 300
+      end    
+      item
+        Bevel = pbRaised
+        Width = 100
+      end    
+      item
+        Width = 100
       end>
     SimplePanel = False
   end
@@ -1448,7 +1353,7 @@ object fMain: TfMain
     Align = alLeft
     ClientHeight = 583
     ClientWidth = 202
-    TabOrder = 2
+    TabOrder = 1
     object pnMinimap: TPanel
       Left = 1
       Height = 204
@@ -1793,6 +1698,125 @@ object fMain: TfMain
         OnClick = RiverTypeClick
         OnSelectionChanged = RiverTypeSelectionChanged
         TabOrder = 3
+      end
+    end
+  end
+  object pcMain: TPageControl
+    Left = 202
+    Height = 583
+    Top = 34
+    Width = 804
+    ActivePage = tsMap
+    Align = alClient
+    ShowTabs = False
+    TabIndex = 0
+    TabOrder = 4
+    OnChange = pcMainChange
+    object tsMap: TTabSheet
+      Caption = 'tsMap'
+      ClientHeight = 575
+      ClientWidth = 796
+      object pnMap: TPanel
+        Left = 0
+        Height = 575
+        Top = 0
+        Width = 796
+        Align = alClient
+        BevelOuter = bvNone
+        Caption = 'pnMap'
+        ClientHeight = 575
+        ClientWidth = 796
+        Color = clWhite
+        ParentColor = False
+        TabOrder = 0
+        object MapView: TOpenGLControl
+          Left = 23
+          Height = 536
+          Top = 23
+          Width = 757
+          Align = alClient
+          AutoResizeViewport = True
+          OpenGLMajorVersion = 3
+          OpenGLMinorVersion = 3
+          AlphaBits = 8
+          OnClick = MapViewClick
+          OnDblClick = MapViewDblClick
+          OnDragDrop = MapViewDragDrop
+          OnDragOver = MapViewDragOver
+          OnMouseDown = MapViewMouseDown
+          OnMouseEnter = MapViewMouseEnter
+          OnMouseLeave = MapViewMouseLeave
+          OnMouseMove = MapViewMouseMove
+          OnMouseUp = MapViewMouseUp
+          OnMouseWheel = MapViewMouseWheel
+          OnPaint = MapViewPaint
+        end
+        object hScrollBar: TScrollBar
+          Left = 18
+          Height = 16
+          Top = 559
+          Width = 760
+          Align = alBottom
+          BorderSpacing.Left = 18
+          BorderSpacing.Right = 18
+          PageSize = 0
+          TabOrder = 2
+          TabStop = False
+          OnScroll = hScrollBarScroll
+        end
+        object vScrollBar: TScrollBar
+          Left = 780
+          Height = 536
+          Top = 23
+          Width = 16
+          Align = alRight
+          Kind = sbVertical
+          PageSize = 0
+          TabOrder = 1
+          TabStop = False
+          OnScroll = vScrollBarScroll
+        end
+        object pnVAxis: TPanel
+          Left = 0
+          Height = 536
+          Top = 23
+          Width = 23
+          Align = alLeft
+          BevelOuter = bvNone
+          ClientHeight = 536
+          ClientWidth = 23
+          TabOrder = 3
+          object VerticalAxis: TPaintBox
+            Left = 0
+            Height = 536
+            Top = 0
+            Width = 23
+            Align = alClient
+            OnPaint = VerticalAxisPaint
+          end
+        end
+        object pnHAxis: TPanel
+          Left = 23
+          Height = 23
+          Top = 0
+          Width = 755
+          Align = alTop
+          BorderSpacing.Left = 23
+          BorderSpacing.Right = 18
+          BevelOuter = bvNone
+          ClientHeight = 23
+          ClientWidth = 755
+          TabOrder = 4
+          object HorisontalAxis: TPaintBox
+            Left = 0
+            Height = 23
+            Top = 0
+            Width = 755
+            Align = alClient
+            ParentColor = False
+            OnPaint = HorisontalAxisPaint
+          end
+        end
       end
     end
   end
