@@ -400,6 +400,7 @@ type
     procedure MapScrollByMinimap(x,y: integer);
     procedure MapScrollToObject(AObject:TMapObject);
     procedure SetMapPosition(APosition:TPoint);
+    procedure ChangeMapPosition(ADelta:TPoint);
     procedure SetMapViewMouse(x,y: integer);
 
     procedure SetBrushTerrain(tt: TTerrainType);
@@ -1103,11 +1104,6 @@ procedure TfMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState)
 var
   dx,dy: integer;
 begin
-  if not Assigned(FSelectedObject) then
-  begin
-    Exit;
-  end;
-
   dx := 0;
   dy := 0;
 
@@ -1120,7 +1116,22 @@ begin
 
   if (dx<>0) or (dy<>0) then
   begin
-    MoveObject(FSelectedObject, FMap.CurrentLevelIndex, FSelectedObject.X + dx, FSelectedObject.Y + dy);
+    if Assigned(FSelectedObject) then
+    begin
+      MoveObject(FSelectedObject, FMap.CurrentLevelIndex, FSelectedObject.X + dx, FSelectedObject.Y + dy);
+    end
+    else
+    begin
+
+      if ssShift in Shift then
+      begin
+        dx *= FViewTilesH div 2 - 1;
+        dy *= FViewTilesV div 2 - 1;
+      end;
+
+      ChangeMapPosition(Point(dx, dy));
+    end;
+
     Key := VK_UNKNOWN;
     Exit;
   end;
@@ -2353,15 +2364,22 @@ procedure TfMain.SetMapPosition(APosition: TPoint);
      sb.Position := APosition;
    end;
 begin
-
   UpdateScrollbar(hScrollBar,APosition.x);
   FMapHPos := APosition.x;
-
 
   UpdateScrollbar(vScrollBar,APosition.y);
   FMapVPos := APosition.y;
 
   InvalidateMapAxis;
+end;
+
+procedure TfMain.ChangeMapPosition(ADelta: TPoint);
+var
+  new_pos: TPoint;
+begin
+  new_pos.x:=FMapHPos + ADelta.x;
+  new_pos.y:=FMapVPos + ADelta.y;
+  SetMapPosition(new_pos);
 end;
 
 procedure TfMain.SetMapViewMouse(x, y: integer);
