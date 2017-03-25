@@ -48,6 +48,8 @@ type
     act: TActionList;
     actAdd: TAction;
     actDelete: TAction;
+    actClear: TAction;
+    SpeedButton1: TSpeedButton;
     TypeEdit: TComboBox;
     MetaTypeEdit: TComboBox;
     iml: TImageList;
@@ -57,6 +59,8 @@ type
     ButtonRemove: TSpeedButton;
     procedure actAddExecute(Sender: TObject);
     procedure actAddUpdate(Sender: TObject);
+    procedure actClearExecute(Sender: TObject);
+    procedure actClearUpdate(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
     procedure MetaTypeEditSelect(Sender: TObject);
@@ -269,6 +273,16 @@ end;
 procedure TRewardFrame.actAddUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := (MetaTypeEdit.ItemIndex >= 0) and ((not TypeEdit.Enabled) or (TypeEdit.ItemIndex >= 0)) and (AmountEdit.Value <> 0);
+end;
+
+procedure TRewardFrame.actClearExecute(Sender: TObject);
+begin
+  RewardsEdit.Items.Clear;
+end;
+
+procedure TRewardFrame.actClearUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled:=RewardsEdit.Items.Count > 0;
 end;
 
 procedure TRewardFrame.actDeleteExecute(Sender: TObject);

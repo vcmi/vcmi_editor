@@ -319,6 +319,7 @@ type
   TCreatureInfo = class(TBaseInfo)
   private
     FDisabled: Boolean;
+    FFaction: AnsiString;
     FGraphics: TCreatureGraphics;
     FName: TCreatureName;
     FSpecial: Boolean;
@@ -334,6 +335,7 @@ type
     property Graphics: TCreatureGraphics read FGraphics;
     property Disabled: Boolean read FDisabled write FDisabled;
     property Special: Boolean read FSpecial write FSpecial;
+    property Faction: AnsiString read FFaction write FFaction;
   end;
 
   { TCreatureInfos }
@@ -681,7 +683,6 @@ const
   HERO_BIOS         = 'data\herobios';
 
   TEXT_DATA_CONFIG  = 'config\defaultMods';
-
 
 { THeroPortraitInfo }
 
