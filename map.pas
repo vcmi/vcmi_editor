@@ -405,9 +405,7 @@ type
     procedure SetDef(AValue:TAnimation);
 
     procedure AnimationChanged;
-
     procedure CompactMask;
-
     procedure UpdateCache;
   public
     constructor Create(AOwner: TMapObject);
@@ -447,6 +445,8 @@ type
 
   TMapObject = class (TNamedCollectionItem, IMapObject, ISerializeSpecial)
   strict private
+    FMap: TVCMIMap;
+
     FMapObjectGroup: TMapObjectGroup;
     FMapObjectType: TMapObjectType;
 
@@ -477,6 +477,9 @@ type
     function GetDisplayName: string; override;
   public
     constructor Create(ACollection: TCollection); override;
+
+    constructor CreateIndep(AMap: TVCMIMap);
+
     destructor Destroy; override;
     procedure RenderStatic(AState: TLocalState); inline;
     procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
@@ -504,6 +507,7 @@ type
     function EqualPosition(APosition: TPosition): Boolean;
 
     function HasOptions: boolean;
+
   public //IMapObject
     function GetType: AnsiString;
     function GetSubtype: AnsiString;
@@ -2051,6 +2055,12 @@ begin
   FTemplate := TMapObjectAppearance.Create(Self);
 end;
 
+constructor TMapObject.CreateIndep(AMap: TVCMIMap);
+begin
+  FMap := AMap;
+  Create(nil);
+end;
+
 destructor TMapObject.Destroy;
 begin
   inherited Destroy;
@@ -2287,7 +2297,14 @@ end;
 
 function TMapObject.GetMap: TVCMIMap;
 begin
-  Result := (Collection as TMapObjects).Map;
+  if Assigned(Collection) then
+  begin
+    Result := (Collection as TMapObjects).Map;
+  end
+  else
+  begin
+    Result := FMap;
+  end;
 end;
 
 procedure TMapObject.AssignTemplate(ATemplate: TMapObjectTemplate);

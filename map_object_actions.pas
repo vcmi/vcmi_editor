@@ -432,7 +432,7 @@ end;
 
 function TAddObject.Execute: boolean;
 begin
-  TargetObject := TMapObject.Create(nil);
+  TargetObject := TMapObject.CreateIndep(FMap);
   try
     TargetObject.AssignTemplate(Template);
 
