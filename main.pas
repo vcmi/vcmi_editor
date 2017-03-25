@@ -743,9 +743,17 @@ end;
 
 procedure TfMain.actSaveMapExecute(Sender: TObject);
 begin
-  if FMapFilename = '' then
+  if (FMapFilename = '') and (FMap.Name = '') then
   begin
     actSaveMapAs.Execute;
+  end
+  else if FMap.Name <> '' then
+  begin
+    SaveMapAsDialog.FileName:=FMap.Name;
+    if SaveMapAsDialog.Execute then
+    begin
+      SaveMap(SaveMapAsDialog.FileName);
+    end;
   end
   else begin
     SaveMap(FMapFilename);
