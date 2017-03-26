@@ -100,19 +100,6 @@ begin
   Result := True;
 end;
 
-procedure FillItems(ATarget: TStrings; AFullList: TStrings);
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  ATarget.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Objects[i] as TBaseInfo;
-    if info.IsValid then
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-  end;
-end;
 
 procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
 var
@@ -141,6 +128,29 @@ begin
   begin
     info := AFullList.Items[i] as TBaseInfo;
     if info.IsValid and AFilter(info) then
+    begin
+      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+      if(ASelected <>'') and (info.Identifier = ASelected) then
+      begin
+        Result := ATarget.Count - 1;
+      end;
+    end;
+  end;
+end;
+
+
+function FillItems(ATarget: TStrings; AFullList: TStrings; ASelected: AnsiString): integer;
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  Result := -1;
+
+  ATarget.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Objects[i] as TBaseInfo;
+    if info.IsValid then
     begin
       ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
       if(ASelected <>'') and (info.Identifier = ASelected) then
@@ -271,16 +281,14 @@ end;
 
 { TComboBoxHelper }
 
-procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: AnsiString);
+procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
 begin
   text := '';
 
   ItemIndex := FillItems(Items,AFullList, ASelected);
 end;
 
-procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: TBaseInfo);
+procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
 var
   ID: AnsiString;
 begin
@@ -291,12 +299,11 @@ begin
   FillFromList(AFullList, ID)
 end;
 
-procedure TComboBoxHelper.FillFromListWithEmptyOption(
-  AFullList: THashedCollection; ASelected: AnsiString);
+procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
 var
   idx: Integer;
 begin
-  FillItems(Items, AFullList);
+  idx := FillItems(Items, AFullList, ASelected);
 
   Items.Insert(0, rsEmpty);
 
@@ -306,19 +313,15 @@ begin
   end
   else
   begin
-    idx := AFullList.IndexOfName(ASelected);
-
     ItemIndex := idx+1;
   end;
-
 end;
 
-procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings;
-  ASelected: AnsiString);
+procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 var
   idx: Integer;
 begin
-  FillItems(Items, AFullList);
+  idx := FillItems(Items, AFullList, ASelected);
 
   Items.Insert(0, rsEmpty);
 
@@ -328,14 +331,11 @@ begin
   end
   else
   begin
-    idx := AFullList.IndexOfName(ASelected);
-
     ItemIndex := idx+1;
   end;
 end;
 
-procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: THashedCollection;
-  ASelected: AnsiString);
+procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
 var
   idx: Integer;
 begin
@@ -344,8 +344,7 @@ begin
   itemindex := idx+1;
 end;
 
-procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: TStrings;
-  ASelected: AnsiString);
+procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 var
   idx: Integer;
 begin

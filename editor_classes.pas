@@ -527,7 +527,6 @@ var
 
   item : TCollectionItem;
 begin
-
   hash_idx := FHash.FindIndexOf(AName);
 
   if hash_idx = -1 then
