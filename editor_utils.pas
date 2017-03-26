@@ -286,9 +286,14 @@ var
   scope_in: AnsiString;
 begin
   scope_in := ExtractModID2(AIdentifier);
+
   if AScope = '' then
   begin
     AScope := scope_in;
+  end;
+
+  if AScope = '' then
+  begin
     if AIdentifier = '' then
     begin
       Result := AMetaclass;

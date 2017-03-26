@@ -180,12 +180,16 @@ type
   { TPrimarySkills }
 
   TPrimarySkills = class(TPersistent)
-  private
-    FAttack: Integer;
-    FDefence: Integer;
-    FKnowledge: Integer;
-    FSpellpower: Integer;
   protected
+    function GetAttack: Integer; virtual; abstract;
+    function GetDefence: Integer; virtual; abstract;
+    function GetKnowledge: Integer; virtual; abstract;
+    function GetSpellpower: Integer; virtual; abstract;
+    procedure SetAttack(AValue: Integer); virtual; abstract;
+    procedure SetDefence(AValue: Integer); virtual; abstract;
+    procedure SetKnowledge(AValue: Integer); virtual; abstract;
+    procedure SetSpellpower(AValue: Integer); virtual; abstract;
+
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create;
@@ -193,16 +197,31 @@ type
     procedure Clear; virtual; abstract;
     procedure SetZero;
 
-    property Attack: Integer read FAttack write FAttack ;
-    property Defence: Integer read FDefence write FDefence;
-    property Spellpower: Integer read FSpellpower write FSpellpower;
-    property Knowledge: Integer read FKnowledge write FKnowledge;
+    property Attack: Integer read GetAttack write SetAttack ;
+    property Defence: Integer read GetDefence write SetDefence;
+    property Spellpower: Integer read GetSpellpower write SetSpellpower;
+    property Knowledge: Integer read GetKnowledge write SetKnowledge;
   end;
 
   { THeroPrimarySkills }
 
   THeroPrimarySkills = class(TPrimarySkills)
+  private
+    FAttack: Integer;
+    FDefence: Integer;
+    FKnowledge: Integer;
+    FSpellpower: Integer;
+  protected
+    function GetAttack: Integer; override;
+    function GetDefence: Integer; override;
+    function GetKnowledge: Integer; override;
+    function GetSpellpower: Integer; override;
+    procedure SetAttack(AValue: Integer); override;
+    procedure SetDefence(AValue: Integer); override;
+    procedure SetKnowledge(AValue: Integer); override;
+    procedure SetSpellpower(AValue: Integer); override;
   public
+    constructor Create;
     function IsDefault: Boolean; override;
     procedure Clear; override;
   published
@@ -210,19 +229,6 @@ type
     property Defence default -1;
     property Spellpower default -1;
     property Knowledge default -1;
-  end;
-
-  { TRewardPrimarySkills }
-
-  TRewardPrimarySkills = class(TPrimarySkills)
-  public
-    function IsDefault: Boolean; override;
-    procedure Clear; override;
-  published
-    property Attack default 0;
-    property Defence default 0;
-    property Spellpower default 0;
-    property Knowledge default 0;
   end;
 
   { THeroSecondarySkill }
@@ -293,19 +299,53 @@ type
 
 implementation
 
-{ TRewardPrimarySkills }
-
-function TRewardPrimarySkills.IsDefault: Boolean;
-begin
-  Result := (Attack = 0) and (Defence = 0) and (Spellpower = 0) and (Knowledge = 0);
-end;
-
-procedure TRewardPrimarySkills.Clear;
-begin
-  SetZero;
-end;
-
 { THeroPrimarySkills }
+
+function THeroPrimarySkills.GetAttack: Integer;
+begin
+  Result := FAttack;
+end;
+
+function THeroPrimarySkills.GetDefence: Integer;
+begin
+  Result := FDefence;
+end;
+
+function THeroPrimarySkills.GetKnowledge: Integer;
+begin
+  Result := FKnowledge;
+end;
+
+function THeroPrimarySkills.GetSpellpower: Integer;
+begin
+  Result := FSpellpower;
+end;
+
+procedure THeroPrimarySkills.SetAttack(AValue: Integer);
+begin
+  FAttack := AValue;
+end;
+
+procedure THeroPrimarySkills.SetDefence(AValue: Integer);
+begin
+  FDefence := AValue;
+end;
+
+procedure THeroPrimarySkills.SetKnowledge(AValue: Integer);
+begin
+  FKnowledge := AValue;
+end;
+
+procedure THeroPrimarySkills.SetSpellpower(AValue: Integer);
+begin
+  FSpellpower := AValue;
+end;
+
+constructor THeroPrimarySkills.Create;
+begin
+  Inherited;
+  Clear;
+end;
 
 function THeroPrimarySkills.IsDefault: Boolean;
 begin
@@ -625,7 +665,7 @@ end;
 
 constructor TPrimarySkills.Create;
 begin
-  Clear;
+
 end;
 
 procedure TPrimarySkills.SetZero;

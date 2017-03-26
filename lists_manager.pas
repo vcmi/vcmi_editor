@@ -79,7 +79,6 @@ type
     property MinValue: Int64 read FMinValue write SetMinValue;
     property MaxValue: Int64 read FMaxValue write SetMaxValue;
 
-
     //only for entities
     property List: THashedCollection read FList write FList;
   end;

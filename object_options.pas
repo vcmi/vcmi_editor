@@ -110,9 +110,7 @@ type
     procedure SetType(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
-
     function IsEmpty: Boolean;
-
     property RawRandom: integer Read GetRawRandom write SetRawRandom;
   published
     property &type: AnsiString read FType write SetType;
@@ -143,19 +141,14 @@ type
 
   { TResourceSet }
 
-  TResourceSet = class
-  private
-    Fvalue: array[TResType] of Integer;
-
+  TResourceSet = class abstract
   protected
-    function GetAmount(AType: TResType): integer; virtual;
-    procedure SetAmount(AType: TResType; AValue: integer); virtual;
-
+    function GetAmount(AType: TResType): integer; virtual; abstract;
+    procedure SetAmount(AType: TResType; AValue: integer); virtual; abstract;
   public
     property Amount[AType: TResType]: integer read GetAmount write SetAmount;
     function IsEmpty: Boolean; virtual;
     procedure Clear; virtual;
-
   published
     property Wood: integer index TResType.wood read GetAmount write SetAmount default 0;
     property Mercury: integer index TResType.mercury read GetAmount write SetAmount default 0;
@@ -165,6 +158,16 @@ type
     property Gems: integer index TResType.gems read GetAmount write SetAmount default 0;
     property Gold: integer index TResType.gold read GetAmount write SetAmount default 0;
     property Mithril: integer index TResType.mithril read GetAmount write SetAmount default 0;
+  end;
+
+  { TIndepResourceSet }
+
+  TIndepResourceSet = class(TResourceSet)
+  strict private
+    Fvalue: array[TResType] of Integer;
+  protected
+    function GetAmount(AType: TResType): integer; override;
+    procedure SetAmount(AType: TResType; AValue: integer); override;
   end;
 
   { TQuest }
@@ -297,20 +300,50 @@ type
     constructor Create(AOwner: IMapObject);
     property AllowedReward:TAllowedRewards read FAllowedReward write SetAllowedReward;
 
-    procedure AddReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
+    procedure AddOrUpdateReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
+
+    function GetValue(AType: TMetaclass; AIdentifier: AnsiString = ''): Int64;
+
+    property Owner: IMapObject read FOwner;
   end;
 
 
-  { TProxyResourceSet }
+  { TRewardResourceSet }
 
-  TProxyResourceSet = class(TResourceSet)
+  TRewardResourceSet = class(TResourceSet)
   strict private
     FData: TRewards;
+  protected
+    function GetAmount(AType: TResType): integer; override;
+    procedure SetAmount(AType: TResType; AValue: integer); override;
   public
     constructor Create(AData: TRewards);
+  end;
 
-  end
-  unimplemented;
+  { TRewardPrimarySkills }
+
+  TRewardPrimarySkills = class(TPrimarySkills)
+  private
+    FData: TRewards;
+  protected
+    function GetAttack: Integer; override;
+    function GetDefence: Integer; override;
+    function GetKnowledge: Integer; override;
+    function GetSpellpower: Integer; override;
+    procedure SetAttack(AValue: Integer); override;
+    procedure SetDefence(AValue: Integer); override;
+    procedure SetKnowledge(AValue: Integer); override;
+    procedure SetSpellpower(AValue: Integer); override;
+  public
+    constructor Create(AReward: TRewards);
+    function IsDefault: Boolean; override;
+    procedure Clear; override;
+  published
+    property Attack default 0;
+    property Defence default 0;
+    property Spellpower default 0;
+    property Knowledge default 0;
+  end;
 
 {$pop}
 
@@ -924,6 +957,76 @@ type
 
 implementation
 
+{ TRewardPrimarySkills }
+
+function TRewardPrimarySkills.GetAttack: Integer;
+begin
+  Result := FData.GetValue(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.attack]);
+end;
+
+function TRewardPrimarySkills.GetDefence: Integer;
+begin
+  Result := FData.GetValue(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.defence]);
+end;
+
+function TRewardPrimarySkills.GetKnowledge: Integer;
+begin
+  Result := FData.GetValue(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.knowledge]);
+end;
+
+function TRewardPrimarySkills.GetSpellpower: Integer;
+begin
+  Result := FData.GetValue(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.spellpower]);
+end;
+
+procedure TRewardPrimarySkills.SetAttack(AValue: Integer);
+begin
+  FData.AddOrUpdateReward(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.attack], AValue);
+end;
+
+procedure TRewardPrimarySkills.SetDefence(AValue: Integer);
+begin
+  FData.AddOrUpdateReward(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.defence], AValue);
+end;
+
+procedure TRewardPrimarySkills.SetKnowledge(AValue: Integer);
+begin
+  FData.AddOrUpdateReward(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.knowledge], AValue);
+end;
+
+procedure TRewardPrimarySkills.SetSpellpower(AValue: Integer);
+begin
+  FData.AddOrUpdateReward(TMetaclass.primarySkill, PRIMARY_SKILL_NAMES[TPrimarySkill.spellpower], AValue);
+end;
+
+constructor TRewardPrimarySkills.Create(AReward: TRewards);
+begin
+  FData := AReward;
+  inherited Create;
+end;
+
+function TRewardPrimarySkills.IsDefault: Boolean;
+begin
+  Result := (Attack = 0) and (Defence = 0) and (Spellpower = 0) and (Knowledge = 0);
+end;
+
+procedure TRewardPrimarySkills.Clear;
+begin
+  SetZero;
+end;
+
+{ TIndepResourceSet }
+
+function TIndepResourceSet.GetAmount(AType: TResType): integer;
+begin
+  Result := Fvalue[AType];
+end;
+
+procedure TIndepResourceSet.SetAmount(AType: TResType; AValue: integer);
+begin
+  Fvalue[AType] := AValue;
+end;
+
 { TReward }
 
 procedure TReward.AssignTo(Dest: TPersistent);
@@ -954,10 +1057,11 @@ begin
   FOwner := AOwner;
 end;
 
-procedure TRewards.AddReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
+procedure TRewards.AddOrUpdateReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
 var
-  mod_id, metaclass_id, full_id: AnsiString;
+  metaclass_id, full_id: AnsiString;
   item: TReward;
+  idx: Integer;
 begin
   if AType = TMetaclass.invalid then
   begin
@@ -971,36 +1075,71 @@ begin
     Exit;
   end;
 
-  if AValue = 0 then
-  begin
-    DebugLn(['attempt to add reward with zero amount']);
-    Exit;
-  end;
-
-  mod_id := ExtractModID2(AIdentifier);
+  //if AValue = 0 then
+  //begin
+  //  DebugLn(['attempt to add reward with zero amount']);
+  //  Exit;
+  //end;
 
   metaclass_id := GetEnumName(TypeInfo(TMetaclass), Integer(AType));
 
-  if mod_id = '' then
+  full_id:=EncodeFullIdentifier(metaclass_id,'',AIdentifier);
+
+  idx :=  IndexOfName(full_id);
+
+  if (idx < 0) and (AValue <> 0) then
   begin
-    if AIdentifier = '' then
-      full_id := metaclass_id
-    else
-      full_id := metaclass_id + '.'+AIdentifier;
+    item := Add;
+    item.Identifier := full_id;
+    item.Value:=AValue;
+  end
+  else if (idx >= 0) and (AValue = 0) then
+  begin
+    self.Delete(idx);
+  end
+  else if (idx >= 0) then
+  begin
+    item := Items[idx];
+    item.Value:=AValue;
+  end;
+end;
+
+function TRewards.GetValue(AType: TMetaclass; AIdentifier: AnsiString): Int64;
+var
+  metaclass_id, full_id: String;
+  idx: Integer;
+  item: TReward;
+begin
+  metaclass_id := GetEnumName(TypeInfo(TMetaclass), Integer(AType));
+
+  full_id:=EncodeFullIdentifier(metaclass_id,'',AIdentifier);
+
+  idx :=  IndexOfName(full_id);
+
+  if idx < 0 then
+  begin
+    Result := 0;
   end
   else
   begin
-    full_id := mod_id + ':' +metaclass_id + '.'+AIdentifier;
+    item := Items[idx];
+    Result := item.Value;
   end;
-
-  item := Add;
-  item.Identifier := full_id;
-  item.Value:=AValue;
 end;
 
-{ TProxyResourceSet }
+{ TRewardResourceSet }
 
-constructor TProxyResourceSet.Create(AData: TRewards);
+function TRewardResourceSet.GetAmount(AType: TResType): integer;
+begin
+  Result := FData.GetValue(TMetaclass.resource, RESOURCE_NAMES[AType]);
+end;
+
+procedure TRewardResourceSet.SetAmount(AType: TResType; AValue: integer);
+begin
+  FData.AddOrUpdateReward(TMetaclass.resource, RESOURCE_NAMES[AType], AValue);
+end;
+
+constructor TRewardResourceSet.Create(AData: TRewards);
 begin
   inherited Create;
   FData := AData;
@@ -1357,24 +1496,14 @@ end;
 
 { TResourceSet }
 
-function TResourceSet.GetAmount(AType: TResType): integer;
-begin
-  Result :=  Fvalue[AType];
-end;
-
-procedure TResourceSet.SetAmount(AType: TResType; AValue: integer);
-begin
-  Fvalue[AType] := AValue;
-end;
-
 function TResourceSet.IsEmpty: Boolean;
 var
-  v: Integer;
+  typ: TResType;
 begin
-  for v in Fvalue do
-    if v>0 then
+  for typ in TResType do
+    if Amount[typ] <> 0 then
       Exit(False);
-  Exit(true)
+  Exit(true);
 end;
 
 procedure TResourceSet.Clear;
@@ -1511,7 +1640,7 @@ begin
   FArtifacts := TIdentifierList.Create(AOwner);//todo: should we allow muiltiple same arctifacts for quest
 
   FCreatures := TCreatureSet.Create(FOwner);
-  FResources := TResourceSet.Create;
+  FResources := TIndepResourceSet.Create;
   FPrimarySkills := THeroPrimarySkills.Create;
   FHeroLevel := -1;
   FPlayerID:=TPlayer.NONE;
@@ -1870,8 +1999,8 @@ begin
   inherited Create(AObject);
   FReward := TRewards.Create(AObject);
   FCreatures := TCreatureSet.Create(AObject);
-  FResources := TResourceSet.Create;
-  FPrimarySkills := TRewardPrimarySkills.Create;
+  FResources := TRewardResourceSet.Create(FReward);
+  FPrimarySkills := TRewardPrimarySkills.Create(FReward);
   FSecondarySkills := THeroSecondarySkills.Create;
   FArtifacts := TIdentifierList.Create(AObject);
   FSpells := TIdentifierList.Create(AObject);
@@ -2265,7 +2394,7 @@ const
     (TMetaclass.invalid, TMetaclass.experience, TMetaclass.mana, TMetaclass.morale, TMetaclass.luck,
     TMetaclass.resource, TMetaclass.primarySkill, TMetaclass.secondarySkill, TMetaclass.artifact, TMetaclass.spell, TMetaclass.creature);
 begin
-  FReward.AddReward(SEER_REWARD_TO_REWARD[AType], AIdentifier, AValue);
+  FReward.AddOrUpdateReward(SEER_REWARD_TO_REWARD[AType], AIdentifier, AValue);
 end;
 
 constructor TSeerHutOptions.Create(AObject: IMapObject);
@@ -2355,8 +2484,8 @@ constructor TCreatureOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FReward := TRewards.Create(AObject);
-  //FRewardResources := TProxyResourceSet.Create(FReward);
-  FRewardResources := TResourceSet.Create();
+  //FRewardResources := TRewardResourceSet.Create(FReward);
+  FRewardResources := TIndepResourceSet.Create();
   FCharacter := TCreatureCharacter.aggressive;
 end;
 
