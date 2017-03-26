@@ -416,21 +416,25 @@ type
   private
     FArtifacts: TStrings;
     FCreatures: TCreatureSet;
-    FExperience: UInt64;
-    FLuck: Int32;
-    FMana: Int32;
-    FMorale: Int32;
     FPrimarySkills: TRewardPrimarySkills;
     FResources: TResourceSet;
     FReward: TRewards;
     FSecondarySkills: THeroSecondarySkills;
     FSpells: TStrings;
+    function GetExperience: UInt64;
+    function GetLuck: Int32;
+    function GetMana: Int32;
+    function GetMorale: Int32;
     function IsArtifactsStored: Boolean;
     function IsCreaturesStored: Boolean;
     function IsPrimarySkillsStored: Boolean;
     function IsResourcesStored: Boolean;
     function IsSecondarySkillsStored: Boolean;
     function IsSpellsStored: Boolean;
+    procedure SetExperience(AValue: UInt64);
+    procedure SetLuck(AValue: Int32);
+    procedure SetMana(AValue: Int32);
+    procedure SetMorale(AValue: Int32);
   public
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
@@ -439,10 +443,10 @@ type
   published
     property Creatures: TCreatureSet read FCreatures stored IsCreaturesStored;
 
-    property Experience: UInt64 read FExperience write FExperience default 0;
-    property Mana: Int32 read FMana write FMana default 0;
-    property Morale: Int32 read FMorale write FMorale default 0;
-    property Luck: Int32 read FLuck write FLuck default 0;
+    property Experience: UInt64 read GetExperience write SetExperience default 0;
+    property Mana: Int32 read GetMana write SetMana default 0;
+    property Morale: Int32 read GetMorale write SetMorale default 0;
+    property Luck: Int32 read GetLuck write SetLuck default 0;
 
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: TRewardPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
@@ -1979,6 +1983,26 @@ begin
   Result := FSpells.Count > 0;
 end;
 
+procedure TPandorasOptions.SetExperience(AValue: UInt64);
+begin
+  Reward.AddOrUpdateReward(TMetaclass.experience,'', Int64(AValue));
+end;
+
+procedure TPandorasOptions.SetLuck(AValue: Int32);
+begin
+  Reward.AddOrUpdateReward(TMetaclass.luck,'', AValue);
+end;
+
+procedure TPandorasOptions.SetMana(AValue: Int32);
+begin
+  Reward.AddOrUpdateReward(TMetaclass.mana,'', AValue);
+end;
+
+procedure TPandorasOptions.SetMorale(AValue: Int32);
+begin
+  Reward.AddOrUpdateReward(TMetaclass.morale,'', AValue);
+end;
+
 function TPandorasOptions.IsPrimarySkillsStored: Boolean;
 begin
   Result := not FPrimarySkills.IsDefault;
@@ -1987,6 +2011,26 @@ end;
 function TPandorasOptions.IsArtifactsStored: Boolean;
 begin
   Result := FArtifacts.Count > 0;
+end;
+
+function TPandorasOptions.GetExperience: UInt64;
+begin
+  Result := UInt64(Reward.GetValue(TMetaclass.experience));
+end;
+
+function TPandorasOptions.GetLuck: Int32;
+begin
+  Result := Reward.GetValue(TMetaclass.luck);
+end;
+
+function TPandorasOptions.GetMana: Int32;
+begin
+  Result := Reward.GetValue(TMetaclass.mana);
+end;
+
+function TPandorasOptions.GetMorale: Int32;
+begin
+  Result := Reward.GetValue(TMetaclass.morale);
 end;
 
 function TPandorasOptions.IsCreaturesStored: Boolean;
@@ -1998,6 +2042,20 @@ constructor TPandorasOptions.Create(AObject: IMapObject);
 begin
   inherited Create(AObject);
   FReward := TRewards.Create(AObject);
+  FReward.AllowedReward := [
+    TMetaclass.artifact,
+    TMetaclass.creature,
+    TMetaclass.experience,
+    TMetaclass.luck,
+    TMetaclass.mana,
+    TMetaclass.morale,
+    //TMetaclass.movement,
+    TMetaclass.primarySkill,
+    TMetaclass.resource,
+    TMetaclass.secondarySkill,
+    TMetaclass.spell
+    ];
+
   FCreatures := TCreatureSet.Create(AObject);
   FResources := TRewardResourceSet.Create(FReward);
   FPrimarySkills := TRewardPrimarySkills.Create(FReward);
