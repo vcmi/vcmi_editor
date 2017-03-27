@@ -195,6 +195,7 @@ begin
   DoLoadObjects(SPELL_METACLASS, @FListsManager.LoadSpells);
 
   FListsManager.ProcessResolveRequests;
+  FListsManager.LoadHeroPortraits(ProgressForm);
 
   if not BatchMode then
   begin
@@ -310,8 +311,6 @@ var
   res: TImageResource;
   path: AnsiString;
 begin
-  FListsManager.LoadHeroPortraits(ProgressForm);
-
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
   //TODO: TRootManager.LoadHeroPortraits
