@@ -599,8 +599,6 @@ var
 begin
   with FSrc do
   begin
-    if not ReadBoolean then exit;
-
     for i := 0 to 15 do
     begin
       ReadArtifactsToSlot(obj,i);
@@ -1131,7 +1129,7 @@ begin
     end;
 
     AOptions.TightFormation  := ReadBoolean;
-    ReadArtifactsOfHero(AOptions.Artifacts);
+    MaybeReadArtifactsOfHero(AOptions.Artifacts);
 
     patrol := ReadByte;
     if patrol = $FF then
