@@ -62,6 +62,7 @@ type
 
   function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out AIdentifier: AnsiString): Boolean;
   function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+  function EncodeFullIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
 
   function CompareStringProxy(const s1,s2: string): integer;
 
@@ -306,6 +307,18 @@ begin
   else
   begin
     Result := AScope + ':' + AMetaclass + '.' + AIdentifier;
+  end;
+end;
+
+function EncodeFullIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+begin
+  if AScope = '' then
+  begin
+    Result := AIdentifier;
+  end
+  else
+  begin
+    Result := AScope + ':' + AIdentifier;
   end;
 end;
 

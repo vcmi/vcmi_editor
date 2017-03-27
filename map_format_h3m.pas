@@ -1466,6 +1466,7 @@ begin
 
     Skip(8);
   end;
+  AOptions.UpdateRewardFromCreatures;
 end;
 
 procedure TMapReaderH3m.ReadPlayerInfo(APlayer: TPlayer; Attr: TPlayerInfo);

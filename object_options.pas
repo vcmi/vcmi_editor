@@ -286,8 +286,11 @@ type
   TReward = class(TNamedCollectionItem, IEmbeddedValue)
   private
     FValue: Int64;
+    function GetMetaclass: TMetaclass;
   protected
     procedure AssignTo(Dest: TPersistent); override;
+
+    property Metaclass: TMetaclass read GetMetaclass;
   published
     property Value: Int64 read FValue write FValue;
   end;
@@ -440,12 +443,18 @@ type
     procedure SetLuck(AValue: Int32);
     procedure SetMana(AValue: Int32);
     procedure SetMorale(AValue: Int32);
-  public
+  public//ISerializeNotify
     constructor Create(AObject: IMapObject); override;
     destructor Destroy; override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
+  public
+    procedure BeforeSerialize(Sender:TObject); override;
+    procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);override;
+
+    procedure UpdateRewardFromCreatures;
   published
+    //not for interative editing, only for serialization
     property Creatures: TCreatureSet read FCreatures stored IsCreaturesStored;
 
     property Experience: UInt64 read GetExperience write SetExperience default 0;
@@ -455,6 +464,7 @@ type
 
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: TRewardPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
+
     property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
 
     property Artifacts: TStrings read FArtifacts stored IsArtifactsStored;
@@ -1064,6 +1074,14 @@ begin
 end;
 
 { TReward }
+
+function TReward.GetMetaclass: TMetaclass;
+var
+  scope, ident: AnsiString;
+begin
+  if not DecodeFullIdentifier(Identifier, result, scope, ident) then
+    Result := TMetaclass.invalid;
+end;
 
 procedure TReward.AssignTo(Dest: TPersistent);
 begin
@@ -2106,6 +2124,54 @@ begin
   SecondarySkills.Clear;
   Artifacts.Clear;
   Spells.Clear;
+end;
+
+procedure TPandorasOptions.BeforeSerialize(Sender: TObject);
+var
+  item: TCollectionItem;
+  r: TReward;
+  metaclass: TMetaclass;
+  scope, ident: AnsiString;
+  inst_info: TBaseCreatureInstInfo;
+  full_ident: String;
+begin
+  inherited;
+  Creatures.Clear;
+  //update creatures
+  for item in Reward do
+  begin
+    r := item as TReward;
+
+    if DecodeFullIdentifier(r.Identifier, metaclass, scope, ident) then
+    begin
+      if Metaclass = TMetaclass.creature then
+      begin
+        full_ident := EncodeFullIdentifier(scope,ident);
+
+        inst_info := Creatures.Add;
+        inst_info.Amount:=r.Value;
+        inst_info.&type := full_ident;
+      end;
+    end;
+  end;
+end;
+
+procedure TPandorasOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
+begin
+  UpdateRewardFromCreatures;
+  inherited;
+end;
+
+procedure TPandorasOptions.UpdateRewardFromCreatures;
+var
+  item: TCollectionItem;
+  cr: TBaseCreatureInstInfo;
+begin
+  for item in Creatures do
+  begin
+    cr := item as TBaseCreatureInstInfo;
+    Reward.AddOrUpdateReward(TMetaclass.creature, cr.&type, cr.Amount);
+  end;
 end;
 
 { TShrineOptions }
