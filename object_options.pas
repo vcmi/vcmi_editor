@@ -96,26 +96,34 @@ type
   end;
 {$pop}
 
-  { TCreatureInstInfo }
+  { TBaseCreatureInstInfo }
 
-  TCreatureInstInfo = class (TCollectionItem)
+  TBaseCreatureInstInfo = class (TCollectionItem)
   private
     FAmount: Integer;
-    FLevel: Integer;
     FType: AnsiString;
-    FUpgraded: Boolean;
-    function GetRawRandom: integer;
     procedure SetAmount(AValue: Integer);
-    procedure SetRawRandom(AValue: integer);
     procedure SetType(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
-    function IsEmpty: Boolean;
-    property RawRandom: integer Read GetRawRandom write SetRawRandom;
+    function IsEmpty: Boolean; virtual;
   published
     property &type: AnsiString read FType write SetType;
     property Amount: Integer read FAmount write SetAmount default 0;
+  end;
 
+  { TCreatureInstInfo }
+
+  TCreatureInstInfo = class(TBaseCreatureInstInfo)
+  private
+    FLevel: Integer;
+    FUpgraded: Boolean;
+    function GetRawRandom: integer;
+    procedure SetRawRandom(AValue: integer);
+  public
+    property RawRandom: integer Read GetRawRandom write SetRawRandom;
+    function IsEmpty: Boolean; override;
+  published
     property Level: Integer read FLevel write FLevel default 0;
     property Upgraded: Boolean Read FUpgraded write FUpgraded default false;
   end;
@@ -299,11 +307,8 @@ type
   public
     constructor Create(AOwner: IMapObject);
     property AllowedReward:TAllowedRewards read FAllowedReward write SetAllowedReward;
-
     procedure AddOrUpdateReward(AType: TMetaclass; AIdentifier: AnsiString; AValue: Int64);
-
     function GetValue(AType: TMetaclass; AIdentifier: AnsiString = ''): Int64;
-
     property Owner: IMapObject read FOwner;
   end;
 
@@ -960,6 +965,33 @@ type
   end;
 
 implementation
+
+{ TCreatureInstInfo }
+
+function TCreatureInstInfo.GetRawRandom: integer;
+begin
+  Result := (Level - 1) * 2 + ifthen(Upgraded, 1, 0);
+end;
+
+procedure TCreatureInstInfo.SetRawRandom(AValue: integer);
+var
+  random_type: Integer;
+begin
+  random_type := AValue;
+
+  if (random_type < 0) or (random_type > 13) then
+  begin
+    raise Exception.CreateFmt('Invalid raw random type %d ', [random_type]);
+  end;
+
+  Level:= (random_type div 2) + 1;
+  Upgraded:=(random_type mod 2) > 0;
+end;
+
+function TCreatureInstInfo.IsEmpty: Boolean;
+begin
+  Result:=inherited IsEmpty and (FLevel = 0) and (FUpgraded = false);
+end;
 
 { TRewardPrimarySkills }
 
@@ -1817,44 +1849,24 @@ begin
   Result:=True;
 end;
 
-{ TCreatureInstInfo }
+{ TBaseCreatureInstInfo }
 
-constructor TCreatureInstInfo.Create(ACollection: TCollection);
+constructor TBaseCreatureInstInfo.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
 end;
 
-function TCreatureInstInfo.IsEmpty: Boolean;
+function TBaseCreatureInstInfo.IsEmpty: Boolean;
 begin
-  Result := (FType = '') and (FAmount = 0) and (FLevel = 0) and (FUpgraded = false);
+  Result := (FType = '') and (FAmount = 0);
 end;
 
-procedure TCreatureInstInfo.SetAmount(AValue: Integer);
+procedure TBaseCreatureInstInfo.SetAmount(AValue: Integer);
 begin
   FAmount := AValue;
 end;
 
-function TCreatureInstInfo.GetRawRandom: integer;
-begin
-  Result := (Level - 1) * 2 + ifthen(Upgraded, 1, 0);
-end;
-
-procedure TCreatureInstInfo.SetRawRandom(AValue: integer);
-var
-  random_type: Integer;
-begin
-  random_type := AValue;
-
-  if (random_type < 0) or (random_type > 13) then
-  begin
-    raise Exception.CreateFmt('Invalid raw random type %d ', [random_type]);
-  end;
-
-  Level:= (random_type div 2) + 1;
-  Upgraded:=(random_type mod 2) > 0;
-end;
-
-procedure TCreatureInstInfo.SetType(AValue: AnsiString);
+procedure TBaseCreatureInstInfo.SetType(AValue: AnsiString);
 begin
   if FType=AValue then Exit;
 
