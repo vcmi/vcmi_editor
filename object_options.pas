@@ -452,11 +452,8 @@ type
     procedure BeforeSerialize(Sender:TObject); override;
     procedure AfterDeSerialize(Sender:TObject; AData: TJSONData);override;
 
-    procedure UpdateRewardFromCreatures;
+    procedure UpdateRewards;
   published
-    //not for interative editing, only for serialization
-    property Creatures: TCreatureSet read FCreatures stored IsCreaturesStored;
-
     property Experience: UInt64 read GetExperience write SetExperience default 0;
     property Mana: Int32 read GetMana write SetMana default 0;
     property Morale: Int32 read GetMorale write SetMorale default 0;
@@ -465,9 +462,10 @@ type
     property Resources: TResourceSet read FResources stored IsResourcesStored;
     property PrimarySkills: TRewardPrimarySkills read FPrimarySkills stored IsPrimarySkillsStored;
 
-    property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
-
+    //not for interative editing, only for serialization
     property Artifacts: TStrings read FArtifacts stored IsArtifactsStored;
+    property Creatures: TCreatureSet read FCreatures stored IsCreaturesStored;
+    property SecondarySkills: THeroSecondarySkills read FSecondarySkills stored IsSecondarySkillsStored;
     property Spells: TStrings read FSpells stored IsSpellsStored;
 
     property Reward: TRewards read FReward stored false;//todo: Pandoras box full reward support in format version 1.1
@@ -2134,20 +2132,47 @@ var
   scope, ident: AnsiString;
   inst_info: TBaseCreatureInstInfo;
   full_ident: String;
+  skill_info: THeroSecondarySkill;
 begin
   inherited;
+  Artifacts.Clear;
   Creatures.Clear;
-  //update creatures
+  SecondarySkills.Clear;
+  Spells.Clear;
+
   for item in Reward do
   begin
     r := item as TReward;
 
     if DecodeFullIdentifier(r.Identifier, metaclass, scope, ident) then
     begin
+      full_ident := EncodeFullIdentifier(scope,ident);
+
+      case metaclass of
+        TMetaclass.artifact:
+        begin
+          Artifacts.Add(full_ident);
+        end;
+        TMetaclass.creature:
+        begin
+          inst_info := Creatures.Add;
+          inst_info.Amount:=r.Value;
+          inst_info.&type := full_ident;
+        end;
+        TMetaclass.secondarySkill:
+        begin
+          skill_info := SecondarySkills.Add;
+          skill_info.Identifier:=full_ident;
+          skill_info.Level:=TSkillLevel(r.Value);
+        end;
+        TMetaclass.spell:
+        begin
+          Spells.Add(full_ident);
+        end;
+      end;
+
       if Metaclass = TMetaclass.creature then
       begin
-        full_ident := EncodeFullIdentifier(scope,ident);
-
         inst_info := Creatures.Add;
         inst_info.Amount:=r.Value;
         inst_info.&type := full_ident;
@@ -2158,19 +2183,37 @@ end;
 
 procedure TPandorasOptions.AfterDeSerialize(Sender: TObject; AData: TJSONData);
 begin
-  UpdateRewardFromCreatures;
+  UpdateRewards;
   inherited;
 end;
 
-procedure TPandorasOptions.UpdateRewardFromCreatures;
+procedure TPandorasOptions.UpdateRewards;
 var
   item: TCollectionItem;
   cr: TBaseCreatureInstInfo;
+  s: String;
+  skill: THeroSecondarySkill;
 begin
   for item in Creatures do
   begin
     cr := item as TBaseCreatureInstInfo;
     Reward.AddOrUpdateReward(TMetaclass.creature, cr.&type, cr.Amount);
+  end;
+
+  for s in Artifacts do
+  begin
+    Reward.AddOrUpdateReward(TMetaclass.artifact, s, 1);
+  end;
+
+  for s in Spells do
+  begin
+    Reward.AddOrUpdateReward(TMetaclass.spell, s, 1);
+  end;
+
+  for item in SecondarySkills do
+  begin
+    skill := item as THeroSecondarySkill;
+    Reward.AddOrUpdateReward(TMetaclass.secondarySkill, skill.Identifier, Integer(skill.Level));
   end;
 end;
 
