@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls, StdCtrls, ActnList, object_options, map,
   editor_str_consts, base_options_frame, creature_frame, abandoned_frame, scholar_frame, creature_set_frame,
-  resource_frame, pandoras_reward_frame, local_event_frame, hero_artifacts_frame, message_frame,
+  resource_frame, local_event_frame, hero_artifacts_frame, message_frame,
   hero_spells_frame, hero_skills_frame, town_frame, town_buildings_frame, town_spells_frame, quest_frame, reward_frame,
   gui_helpers, hero_frame;
 
@@ -232,7 +232,7 @@ end;
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
   FActiveEditors.AddFrame(TLocalEventFrame, AOptions, rsTabMainOptions, pcMain);
-  FActiveEditors.AddFrame(TPandorasRewardFrame, AOptions, rsTabSpecificOptions, pcMain);
+  FActiveEditors.AddFrame(TRewardFrame, AOptions, rsTabRewards, pcMain);
   VisitGuardedObject(AOptions);
 end;
 
@@ -249,7 +249,7 @@ end;
 procedure TEditObjectOptions.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
   FActiveEditors.AddFrame(TMessageFrame,AOptions, rsTabMainOptions, pcMain);
-  FActiveEditors.AddFrame(TPandorasRewardFrame,AOptions,rsTabSpecificOptions, pcMain);
+  FActiveEditors.AddFrame(TRewardFrame, AOptions, rsTabRewards, pcMain);
   VisitGuardedObject(AOptions);
 end;
 

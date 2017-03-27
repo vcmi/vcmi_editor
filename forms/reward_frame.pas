@@ -180,8 +180,6 @@ end;
 
 procedure TRewardFrame.LoadValue(AMetaClass: TMetaclassInfo; AValue: Int64);
 begin
-  AmountEdit.Value := AValue;
-
   if Assigned(AMetaClass) then
   begin
     AmountEdit.MinValue:=AMetaClass.MinValue;
@@ -192,6 +190,7 @@ begin
     AmountEdit.MinValue:=0;
     AmountEdit.MaxValue:=0;
   end;
+  AmountEdit.Value := AValue;
 end;
 
 procedure TRewardFrame.actAddExecute(Sender: TObject);
@@ -376,11 +375,15 @@ end;
 procedure TRewardFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
   inherited VisitLocalEvent(AOptions);
+  FObject := AOptions.Reward;
+  Load;
 end;
 
 procedure TRewardFrame.VisitPandorasBox(AOptions: TPandorasOptions);
 begin
   inherited VisitPandorasBox(AOptions);
+  FObject := AOptions.Reward;
+  Load;
 end;
 
 procedure TRewardFrame.VisitSeerHut(AOptions: TSeerHutOptions);
