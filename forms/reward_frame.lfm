@@ -1,17 +1,17 @@
 inherited RewardFrame: TRewardFrame
-  Height = 316
-  Width = 400
-  ClientHeight = 316
-  ClientWidth = 400
+  Height = 323
+  Width = 428
+  ClientHeight = 323
+  ClientWidth = 428
   Constraints.MinHeight = 270
   Constraints.MinWidth = 400
   DesignLeft = 614
   DesignTop = 204
   object RewardsEdit: TListBox[0]
     Left = 10
-    Height = 236
+    Height = 243
     Top = 70
-    Width = 380
+    Width = 408
     Align = alClient
     BorderSpacing.Top = 60
     BorderSpacing.Around = 10
@@ -34,14 +34,14 @@ inherited RewardFrame: TRewardFrame
     Left = 127
     Height = 23
     Top = 40
-    Width = 113
+    Width = 201
     Anchors = [akTop, akLeft, akRight]
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 2
   end
   object AmountEdit: TSpinEdit[3]
-    Left = 248
+    Left = 336
     Height = 23
     Top = 40
     Width = 82

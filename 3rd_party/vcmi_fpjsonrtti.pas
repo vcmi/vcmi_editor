@@ -40,7 +40,7 @@ unit vcmi_fpjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, typinfo, fpjson, rttiutils, jsonparser;
+  Classes, SysUtils, fpjson, rttiutils, jsonscanner, jsonparser, typinfo;
 
 Type
 
@@ -238,6 +238,11 @@ function TJSONDeStreamer.ObjectFromString(const JSON: TJSONStringType): TJSONDat
 begin
   With TJSONParser.Create(JSON) do
     try
+
+      {$IF FPC_FULLVERSION >= 30002}
+      Options := [{joUTF8,}joComments,joIgnoreTrailingComma];
+      {$ENDIF}
+
       Result:=Parse;
     finally
       Free;

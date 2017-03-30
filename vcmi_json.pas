@@ -978,8 +978,7 @@ begin
 end;
 
 
-function TVCMIJSONDestreamer.ObjectFromString(const JSON: TJSONStringType
-  ): TJSONData;
+function TVCMIJSONDestreamer.ObjectFromString(const JSON: TJSONStringType): TJSONData;
 var
   prepase_buffer: TStringList;
   stm: TStringStream;
@@ -992,7 +991,6 @@ var
   may_be_comment: Boolean;
   len: Integer;
 begin
-
   stm := TStringStream.Create(JSON);
   prepase_buffer:= TStringList.Create;
   try
@@ -1175,13 +1173,12 @@ var
   mod_id, other_mod_id: TModId;
   mod_data, other_mod_data : TModdedConfig;
   object_data: TJSONEnum;
-  id: TJSONStringType;
+  id: AnsiString;
   config: TVCMIJSONObject;
 
   all_fields: TStringDynArray;
   key: TJSONStringType;
 begin
-
   for i := 0 to FMap.Count - 1 do
   begin
     mod_id := FMap.Keys[i];
