@@ -200,50 +200,6 @@ begin
   end;
 end;
 
-procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TStrings; AFilter: TBaseInfoFilter);
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  FillItems(ATarget.Items, AFullList, AFilter);
-
-  if Assigned(ASrc) then
-  begin
-    for i := 0 to ATarget.Items.Count - 1 do
-    begin
-      info := ATarget.Items.Objects[i] as TBaseInfo;
-      ATarget.Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
-    end;
-  end
-  else
-  begin
-    for i := 0 to ATarget.Items.Count - 1 do
-    begin
-      ATarget.Checked[i] := false;
-    end;
-  end;
-end;
-
-procedure FillCheckListBoxItems(ATarget: TCustomCheckListBox; AFullList: THashedCollection);
-begin
-  FillItems(ATarget.Items, AFullList, @filter_stub);
-end;
-
-procedure FillCheckListBox(ATarget: TCustomCheckListBox; AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  FillItems(ATarget.Items, AFullList, AFilter);
-
-  for i := 0 to ATarget.Items.Count - 1 do
-  begin
-    info := ATarget.Items.Objects[i] as TBaseInfo;
-    ATarget.Checked[i] := ASrc.IsAllowed(info.Identifier);
-  end;
-end;
-
-
 function GetSelectedInfo(AItems: TStrings; AIndex: Integer): TBaseInfo;
 var
   tmp: TObject;
@@ -395,7 +351,7 @@ end;
 
 procedure TCheckListBoxHelper.FillItems(AFullList: THashedCollection);
 begin
-  FillCheckListBoxItems(Self,AFullList);
+  gui_helpers.FillItems(Items, AFullList, @filter_stub);
 end;
 
 procedure TCheckListBoxHelper.LoadItems(ASrc: TStrings);
@@ -420,9 +376,28 @@ begin
   end;
 end;
 
-procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;  ASrc: TStrings);
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection; ASrc: TStrings);
+var
+  i: Integer;
+  info: TBaseInfo;
 begin
-  FillCheckListBox(Self,AFullList,ASrc, @filter_stub)
+  FillItems(AFullList);
+
+  if Assigned(ASrc) then
+  begin
+    for i := 0 to Items.Count - 1 do
+    begin
+      info := Items.Objects[i] as TBaseInfo;
+      Checked[i] := ASrc.IndexOf(info.Identifier)>=0;
+    end;
+  end
+  else
+  begin
+    for i := 0 to Items.Count - 1 do
+    begin
+      Checked[i] := false;
+    end;
+  end;
 end;
 
 procedure TCheckListBoxHelper.SaveTo(ADest: TStrings);
@@ -469,39 +444,42 @@ begin
   end;
 end;
 
-procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
-  ASrc: TLogicalIDCondition);
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition);
 begin
-  FillCheckListBox(Self,AFullList,ASrc, @filter_stub);
+  FillFrom(AFullList, ASrc, @filter_stub);
 end;
 
-procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection;
-  ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
+procedure TCheckListBoxHelper.FillFrom(AFullList: THashedCollection; ASrc: TLogicalIDCondition; AFilter: TBaseInfoFilter);
+var
+  i: Integer;
+  info: TBaseInfo;
 begin
-  FillCheckListBox(Self,AFullList,ASrc, AFilter);
+  gui_helpers.FillItems(Items, AFullList, AFilter);
+
+  for i := 0 to Items.Count - 1 do
+  begin
+    info := Items.Objects[i] as TBaseInfo;
+    Checked[i] := ASrc.IsAllowed(info.Identifier);
+  end;
 end;
 
 { TListBoxHelper }
 
-procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: AnsiString);
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
 begin
   ItemIndex := FillItems(Self.Items,AFullList,ASelected);
 end;
 
-procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: TBaseInfo);
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
 begin
   FillItems(Self.Items, AFullList);
   if Assigned(ASelected) then
   begin
     ItemIndex := Items.IndexOfObject(ASelected);
   end;
-
 end;
 
-procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
 begin
   if Assigned(ASelected) then
     FillFromList(AFullList, ASelected.Identifier, AFilter)

@@ -111,7 +111,7 @@ end;
 
 function TRewardInfo.ToString: ansistring;
 begin
-  Result:=Format('%d %s %s %s',[value, metaclass.Name, scope, identifier]);
+  Result:=Format('%d %s %s:%s',[value, metaclass.Name, scope, identifier]);
 end;
 
 procedure TRewardInfo.SaveTo(AReward: TReward);
