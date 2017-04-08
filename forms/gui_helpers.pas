@@ -33,6 +33,17 @@ type
 
   TBaseInfoFilter = function (ATarget: TBaseInfo): boolean is nested;
 
+  { TStringsHelper }
+
+  TStringsHelper = class helper for TStrings
+  public
+    function GetBaseInfo(AIndex: Integer): TBaseInfo;
+
+    function FillFrom(AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter): integer;
+    function FillFrom(AFullList: THashedCollection; ASelected: AnsiString): integer;
+    procedure FillFrom(AFullList: THashedCollection);
+  end;
+
   { TCheckListBoxHelper }
 
   TCheckListBoxHelper = class helper for TCustomCheckListBox
@@ -65,6 +76,8 @@ type
   { TComboBoxHelper }
 
   TComboBoxHelper = class helper for TCustomComboBox
+  private
+    procedure AddEmptyOption(ASelected: AnsiString; AIndex: integer);
   public
     procedure FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
     procedure FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
@@ -73,7 +86,6 @@ type
     procedure FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
     //assumes items filed from AFullList
-    procedure SetValueWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
     procedure SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
 
     //assumes items filed from AFullList
@@ -91,51 +103,11 @@ type
     procedure HideAllTabs;
   end;
 
-  procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
-
 implementation
 
 function filter_stub(ATarget: TBaseInfo): Boolean;
 begin
   Result := True;
-end;
-
-
-procedure FillItems(ATarget: TStrings; AFullList: THashedCollection);
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  ATarget.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Items[i] as TBaseInfo;
-
-    if info.IsValid then
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-  end;
-end;
-
-function FillItems(ATarget: TStrings; AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter): integer;
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  Result := -1;
-
-  ATarget.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Items[i] as TBaseInfo;
-    if info.IsValid and AFilter(info) then
-    begin
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-      if(ASelected <>'') and (info.Identifier = ASelected) then
-      begin
-        Result := ATarget.Count - 1;
-      end;
-    end;
-  end;
 end;
 
 
@@ -161,46 +133,9 @@ begin
   end;
 end;
 
-function FillItems(ATarget: TStrings; AFullList: THashedCollection; ASelected: AnsiString): integer;
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  Result := -1;
+{ TStringsHelper }
 
-  ATarget.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Items[i] as TBaseInfo;
-
-    if info.IsValid then
-    begin
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-      if(ASelected <>'') and (info.Identifier = ASelected) then
-      begin
-        Result := ATarget.Count - 1;
-      end;
-    end;
-  end;
-end;
-
-procedure FillItems(ATarget: TStrings; AFullList: THashedCollection; AFilter: TBaseInfoFilter);
-var
-  i: Integer;
-  info: TBaseInfo;
-begin
-  ATarget.Clear;
-  for i := 0 to AFullList.Count - 1 do
-  begin
-    info := AFullList.Items[i] as TBaseInfo;
-    if info.IsValid and AFilter(info) then
-    begin
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
-    end;
-  end;
-end;
-
-function GetSelectedInfo(AItems: TStrings; AIndex: Integer): TBaseInfo;
+function TStringsHelper.GetBaseInfo(AIndex: Integer): TBaseInfo;
 var
   tmp: TObject;
 begin
@@ -210,7 +145,7 @@ begin
   end
   else
   begin
-    tmp := AItems.Objects[AIndex];
+    tmp := Self.Objects[AIndex];
     if Assigned(tmp) then
     begin
       Exit(tmp as TBaseInfo);
@@ -220,6 +155,39 @@ begin
       Exit(nil);
     end;
   end;
+end;
+
+function TStringsHelper.FillFrom(AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter
+  ): integer;
+var
+  i: Integer;
+  info: TBaseInfo;
+begin
+  Result := -1;
+
+  Self.Clear;
+  for i := 0 to AFullList.Count - 1 do
+  begin
+    info := AFullList.Items[i] as TBaseInfo;
+    if info.IsValid and AFilter(info) then
+    begin
+      Self.AddObject(info.Name+'('+info.Identifier+')',info);
+      if(ASelected <> '') and (info.Identifier = ASelected) then
+      begin
+        Result := Self.Count - 1;
+      end;
+    end;
+  end;
+end;
+
+function TStringsHelper.FillFrom(AFullList: THashedCollection; ASelected: AnsiString): integer;
+begin
+  Result := FillFrom(AFullList, ASelected, @filter_stub);
+end;
+
+procedure TStringsHelper.FillFrom(AFullList: THashedCollection);
+begin
+  FillFrom(AFullList, '', @filter_stub);
 end;
 
 
@@ -237,11 +205,25 @@ end;
 
 { TComboBoxHelper }
 
+procedure TComboBoxHelper.AddEmptyOption(ASelected: AnsiString; AIndex: integer);
+begin
+  Items.Insert(0, rsEmpty);
+
+  if ASelected = '' then
+  begin
+    ItemIndex:= 0;
+  end
+  else
+  begin
+    ItemIndex := AIndex+1;
+  end;
+end;
+
 procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
 begin
   text := '';
 
-  ItemIndex := FillItems(Items,AFullList, ASelected);
+  ItemIndex := Items.FillFrom(AFullList, ASelected);
 end;
 
 procedure TComboBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
@@ -259,18 +241,8 @@ procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: THashedCollecti
 var
   idx: Integer;
 begin
-  idx := FillItems(Items, AFullList, ASelected);
-
-  Items.Insert(0, rsEmpty);
-
-  if ASelected = '' then
-  begin
-    ItemIndex:= 0;
-  end
-  else
-  begin
-    ItemIndex := idx+1;
-  end;
+  idx := Items.FillFrom(AFullList, ASelected);
+  AddEmptyOption(ASelected, idx);
 end;
 
 procedure TComboBoxHelper.FillFromListWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
@@ -278,26 +250,7 @@ var
   idx: Integer;
 begin
   idx := FillItems(Items, AFullList, ASelected);
-
-  Items.Insert(0, rsEmpty);
-
-  if ASelected = '' then
-  begin
-    ItemIndex:= 0;
-  end
-  else
-  begin
-    ItemIndex := idx+1;
-  end;
-end;
-
-procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: THashedCollection; ASelected: AnsiString);
-var
-  idx: Integer;
-begin
-  idx := AFullList.IndexOfName(ASelected);
-
-  itemindex := idx+1;
+  AddEmptyOption(ASelected, idx);
 end;
 
 procedure TComboBoxHelper.SetValueWithEmptyOption(AFullList: TStrings; ASelected: AnsiString);
@@ -309,8 +262,7 @@ begin
   itemindex := idx+1;
 end;
 
-procedure TComboBoxHelper.SetValue(AFullList: THashedCollection;
-  ASelected: AnsiString);
+procedure TComboBoxHelper.SetValue(AFullList: THashedCollection; ASelected: AnsiString);
 var
   idx: Integer;
 begin
@@ -333,7 +285,7 @@ end;
 
 function TComboBoxHelper.SelectedInfo: TBaseInfo;
 begin
-  Result := GetSelectedInfo(Items,ItemIndex);
+  Result := Items.GetBaseInfo(ItemIndex);
 end;
 
 function TComboBoxHelper.SelectedIdentifier: AnsiString;
@@ -351,7 +303,7 @@ end;
 
 procedure TCheckListBoxHelper.FillItems(AFullList: THashedCollection);
 begin
-  gui_helpers.FillItems(Items, AFullList, @filter_stub);
+  Items.FillFrom(AFullList);
 end;
 
 procedure TCheckListBoxHelper.LoadItems(ASrc: TStrings);
@@ -454,7 +406,7 @@ var
   i: Integer;
   info: TBaseInfo;
 begin
-  gui_helpers.FillItems(Items, AFullList, AFilter);
+  Items.FillFrom(AFullList, '', AFilter);
 
   for i := 0 to Items.Count - 1 do
   begin
@@ -467,16 +419,18 @@ end;
 
 procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: AnsiString);
 begin
-  ItemIndex := FillItems(Self.Items,AFullList,ASelected);
+  ItemIndex := Self.Items.FillFrom(AFullList,ASelected);
 end;
 
 procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo);
+var
+  ident: AnsiString;
 begin
-  FillItems(Self.Items, AFullList);
   if Assigned(ASelected) then
-  begin
-    ItemIndex := Items.IndexOfObject(ASelected);
-  end;
+    ident:=ASelected.Identifier
+  else
+    ident:='';
+  FillFromList(AFullList, ident);
 end;
 
 procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: TBaseInfo; AFilter: TBaseInfoFilter);
@@ -487,15 +441,14 @@ begin
     FillFromList(AFullList, '', AFilter)
 end;
 
-procedure TListBoxHelper.FillFromList(AFullList: THashedCollection;
-  ASelected: AnsiString; AFilter: TBaseInfoFilter);
+procedure TListBoxHelper.FillFromList(AFullList: THashedCollection; ASelected: AnsiString; AFilter: TBaseInfoFilter);
 begin
-  ItemIndex := FillItems(Self.Items, AFullList, ASelected, AFilter);
+  ItemIndex := Self.Items.FillFrom(AFullList, ASelected, AFilter);
 end;
 
 function TListBoxHelper.SelectedInfo: TBaseInfo;
 begin
-  Result := GetSelectedInfo(Items,ItemIndex);
+  Result := Items.GetBaseInfo(ItemIndex);
 end;
 
 function TListBoxHelper.SelectedIdentifier: AnsiString;

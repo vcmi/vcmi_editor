@@ -289,7 +289,8 @@ end;
 
 procedure THeroArtifactsFrame.Load(AOptions: THeroArtifacts);
 begin
-  FillItems(BackpackSelector.Items, ListsManager.ArtifactInfos);
+  BackpackSelector.Items.FillFrom(ListsManager.ArtifactInfos);
+
   FOptions := AOptions;
   cbCustomise.OnChange:=nil;
   cbCustomise.Checked:=not FOptions.IsEmpty;
