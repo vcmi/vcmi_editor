@@ -1,23 +1,23 @@
 inherited TownSpellsFrame: TTownSpellsFrame
-  Height = 524
-  Width = 680
-  ClientHeight = 524
-  ClientWidth = 680
+  Height = 453
+  Width = 665
+  ClientHeight = 453
+  ClientWidth = 665
   DesignLeft = 455
   DesignTop = 201
   object pnRight: TPanel[0]
     Left = 0
-    Height = 524
+    Height = 453
     Top = 0
     Width = 267
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 524
+    ClientHeight = 453
     ClientWidth = 267
     TabOrder = 0
     object AllSpells: TListBox
       Left = 3
-      Height = 492
+      Height = 421
       Top = 29
       Width = 261
       Align = alClient
@@ -42,34 +42,34 @@ inherited TownSpellsFrame: TTownSpellsFrame
   end
   object Splitter1: TSplitter[1]
     Left = 267
-    Height = 524
+    Height = 453
     Top = 0
     Width = 5
   end
   object pnLeft: TPanel[2]
     Left = 272
-    Height = 524
+    Height = 453
     Top = 0
-    Width = 408
+    Width = 393
     Align = alClient
-    ClientHeight = 524
-    ClientWidth = 408
+    ClientHeight = 453
+    ClientWidth = 393
     TabOrder = 2
     object pnPossible: TPanel
       Left = 1
       Height = 242
       Top = 1
-      Width = 406
+      Width = 391
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 242
-      ClientWidth = 406
+      ClientWidth = 391
       TabOrder = 0
       object Possible: TListBox
         Left = 20
         Height = 212
         Top = 30
-        Width = 383
+        Width = 368
         Align = alClient
         BorderSpacing.Left = 20
         BorderSpacing.Top = 30
@@ -107,25 +107,25 @@ inherited TownSpellsFrame: TTownSpellsFrame
       Left = 1
       Height = 5
       Top = 243
-      Width = 406
+      Width = 391
       Align = alTop
       ResizeAnchor = akTop
     end
     object pnObligatory: TPanel
       Left = 1
-      Height = 275
+      Height = 204
       Top = 248
-      Width = 406
+      Width = 391
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 275
-      ClientWidth = 406
+      ClientHeight = 204
+      ClientWidth = 391
       TabOrder = 2
       object Obligatory: TListBox
         Left = 20
-        Height = 242
+        Height = 171
         Top = 30
-        Width = 383
+        Width = 368
         Align = alClient
         BorderSpacing.Left = 20
         BorderSpacing.Top = 30

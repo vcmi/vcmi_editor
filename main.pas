@@ -443,6 +443,8 @@ type
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
   public
+    procedure MoveOrCopyObject(AObject: TMapObject; l,x,y: integer);
+    procedure CopyObject(AObject: TMapObject; l,x,y: integer);
     procedure MoveObject(AObject: TMapObject; l,x,y: integer);
     procedure DeleteObject(AObject: TMapObject);
   end;
@@ -493,7 +495,7 @@ end;
 
 procedure TObjectDragProxy.DropOnMap;
 begin
-  FOwner.MoveObject(FDraggingObject,FOwner.FMap.CurrentLevelIndex,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
+  FOwner.MoveOrCopyObject(FDraggingObject,FOwner.FMap.CurrentLevelIndex,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
 end;
 
 procedure TObjectDragProxy.DropOnPalette;
@@ -2499,6 +2501,35 @@ procedure TfMain.DragCanceled;
 begin
   inherited DragCanceled;
   FMapDragging:=false;
+end;
+
+procedure TfMain.MoveOrCopyObject(AObject: TMapObject; l, x, y: integer);
+begin
+  if ssCtrl in GetKeyShiftState then
+  begin
+    CopyObject(AObject, l, x, y);
+  end
+  else
+  begin
+    MoveObject(AObject, l, x, y);
+  end;
+end;
+
+procedure TfMain.CopyObject(AObject: TMapObject; l, x, y: integer);
+var
+  action_item: TCopyObject;
+begin
+  action_item := TCopyObject.Create(FMap);
+  action_item.Source := AObject;
+
+  action_item.L := l;
+  action_item.X := x;
+  action_item.Y := y;
+
+  FUndoManager.ExecuteItem(action_item);
+
+  FSelectedObject := action_item.TargetObject;
+  InvalidateMapContent;
 end;
 
 procedure TfMain.MoveObject(AObject: TMapObject; l, x, y: integer);

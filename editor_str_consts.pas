@@ -81,6 +81,7 @@ resourcestring
   rsRandomCreatureNameUpgrade = 'Upgraded creature of level %d';
 
   rsAddObjectDescription = 'Add object';
+  rsCopyObjectDescription = 'Copy object';
   rsDeleteObjectDescription = 'Delete object';
   rsEditObjectDescription = 'Edit object';
   rsMoveObjectDescription = 'Move object';

@@ -73,12 +73,26 @@ type
   TObjectAction = class abstract (TBaseObjectAction)
   strict private
     FTargetObject: TMapObject;
-    procedure SetTargetObject(AValue: TMapObject);
   strict protected
     procedure FreeTargets; override; final;
   public
     function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
-    property TargetObject: TMapObject read FTargetObject write SetTargetObject;
+    property TargetObject: TMapObject read FTargetObject write FTargetObject;
+  end;
+
+  { TObjectPositionAction }
+
+  TObjectPositionAction = class abstract(TObjectAction)
+  private
+    FL: Integer;
+    FX: Integer;
+    FY: Integer;
+  protected
+    procedure SetObjectPosition;
+  public
+    property X:Integer read FX write FX;
+    property Y:Integer read FY write FY;
+    property L:Integer read FL write FL;
   end;
 
   { TMultiObjectAction }
@@ -97,19 +111,13 @@ type
 
   { TAddObject }
 
-  TAddObject = class(TObjectAction)
+  TAddObject = class(TObjectPositionAction)
   private
     FCurrentPlayer: TPlayer;
-    FL: Integer;
     FTemplate: TMapObjectTemplate;
-    FX: Integer;
-    FY: Integer;
 
     procedure SetCurrentPlayer(AValue: TPlayer);
-    procedure SetL(AValue: Integer);
     procedure SetTemplate(AValue: TMapObjectTemplate);
-    procedure SetX(AValue: Integer);
-    procedure SetY(AValue: Integer);
   public
     function Execute: boolean; override;
     function GetDescription: string; override;
@@ -118,12 +126,26 @@ type
 
     property Template: TMapObjectTemplate read FTemplate write SetTemplate;
 
-    property X:Integer read FX write SetX;
-    property Y:Integer read FY write SetY;
-    property L:Integer read FL write SetL;
     property CurrentPlayer: TPlayer read FCurrentPlayer write SetCurrentPlayer;
 
     class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
+  end;
+
+  { TCopyObject }
+
+  TCopyObject = class(TObjectPositionAction)
+  private
+    FSource: TMapObject;
+  public
+    function Execute: boolean; override;
+    function GetDescription: string; override;
+    procedure Redo; override;
+    procedure Undo; override;
+
+    class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
+
+    property Source: TMapObject read FSource write FSource;
+    property TargetObject; //stores destination, do not edit
   end;
 
 
@@ -159,15 +181,9 @@ type
 
   { TMoveObject }
 
-  TMoveObject = class(TObjectAction)
+  TMoveObject = class(TObjectPositionAction)
   private
-    FOldX, FOldY,FOldL: Integer;
-    FL: Integer;
-    FX: Integer;
-    FY: Integer;
-    procedure SetL(AValue: Integer);
-    procedure SetX(AValue: Integer);
-    procedure SetY(AValue: Integer);
+    FOldX, FOldY, FOldL: Integer;
   public
     function Execute: boolean; override;
     function GetDescription: string; override;
@@ -175,13 +191,64 @@ type
     procedure Undo; override;
 
     function GetChangedRegion(ALevelIndex: integer): TMapRect; override;
-
-    property X:Integer read FX write SetX;
-    property Y:Integer read FY write SetY;
-    property L:Integer read FL write SetL;
   end;
 
 implementation
+
+{ TObjectPositionAction }
+
+procedure TObjectPositionAction.SetObjectPosition;
+begin
+  TargetObject.L := l;
+  TargetObject.X := X;
+  TargetObject.Y := Y;
+end;
+
+{ TCopyObject }
+
+function TCopyObject.Execute: boolean;
+var
+  FStreamer: TVCMIJSONStreamer;
+  FDestreamer: TVCMIJSONDestreamer;
+  FBuffer: TJSONData;
+begin
+  FStreamer := TVCMIJSONStreamer.Create(nil);
+  FDestreamer := TVCMIJSONDestreamer.Create(nil);
+  FBuffer := nil;
+  TargetObject := TMapObject.CreateIndep(FMap);
+  try
+    FBuffer := FStreamer.ObjectToJsonEx(Source);
+    FDestreamer.JSONToObjectEx(FBuffer, TargetObject);
+    TargetObject.Identifier := '';
+    SetObjectPosition;
+    Result := true;
+    Redo;
+  finally
+    FStreamer.Free;
+    FDestreamer.Free;
+    FreeAndNil(FBuffer);
+  end;
+end;
+
+function TCopyObject.GetDescription: string;
+begin
+  Result := rsCopyObjectDescription;
+end;
+
+procedure TCopyObject.Redo;
+begin
+  TargetObject.Collection := FMap.Objects;
+end;
+
+procedure TCopyObject.Undo;
+begin
+  TargetObject.Collection := nil;
+end;
+
+class function TCopyObject.GetOwnershipTrait: TObjectOwnershipTrait;
+begin
+  Result:=TObjectOwnershipTrait.FreeIfUndone;
+end;
 
 { TEditObject }
 
@@ -375,12 +442,6 @@ end;
 
 { TObjectAction }
 
-procedure TObjectAction.SetTargetObject(AValue: TMapObject);
-begin
-  if FTargetObject=AValue then Exit;
-  FTargetObject:=AValue;
-end;
-
 procedure TObjectAction.FreeTargets;
 begin
   FreeAndNil(FTargetObject);
@@ -406,28 +467,10 @@ begin
   FTemplate:=AValue;
 end;
 
-procedure TAddObject.SetL(AValue: Integer);
-begin
-  if FL=AValue then Exit;
-  FL:=AValue;
-end;
-
 procedure TAddObject.SetCurrentPlayer(AValue: TPlayer);
 begin
   if FCurrentPlayer=AValue then Exit;
   FCurrentPlayer:=AValue;
-end;
-
-procedure TAddObject.SetX(AValue: Integer);
-begin
-  if FX=AValue then Exit;
-  FX:=AValue;
-end;
-
-procedure TAddObject.SetY(AValue: Integer);
-begin
-  if FY=AValue then Exit;
-  FY:=AValue;
 end;
 
 function TAddObject.Execute: boolean;
@@ -435,11 +478,7 @@ begin
   TargetObject := TMapObject.CreateIndep(FMap);
   try
     TargetObject.AssignTemplate(Template);
-
-    TargetObject.L := l;
-    TargetObject.X := X;
-    TargetObject.Y := Y;
-
+    SetObjectPosition();
     TargetObject.Collection := FMap.Objects; //add object with valid configuration
 
     if IsPublishedProp(TargetObject.Options, 'Owner') then
@@ -507,24 +546,6 @@ begin
 end;
 
 { TMoveObject }
-
-procedure TMoveObject.SetL(AValue: Integer);
-begin
-  if FL=AValue then Exit;
-  FL:=AValue;
-end;
-
-procedure TMoveObject.SetX(AValue: Integer);
-begin
-  if FX=AValue then Exit;
-  FX:=AValue;
-end;
-
-procedure TMoveObject.SetY(AValue: Integer);
-begin
-  if FY=AValue then Exit;
-  FY:=AValue;
-end;
 
 function TMoveObject.Execute: boolean;
 begin
