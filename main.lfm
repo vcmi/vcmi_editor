@@ -1,10 +1,10 @@
 object fMain: TfMain
-  Left = 256
-  Height = 660
-  Top = 91
+  Left = 277
+  Height = 809
+  Top = 57
   Width = 1210
   Caption = 'VCMI editor'
-  ClientHeight = 640
+  ClientHeight = 789
   ClientWidth = 1210
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
@@ -1214,27 +1214,27 @@ object fMain: TfMain
   end
   object pnRight: TPanel
     Left = 1006
-    Height = 583
+    Height = 732
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 583
+    ClientHeight = 732
     ClientWidth = 204
     TabOrder = 0
     object pnObjects: TPanel
       Left = 0
-      Height = 560
+      Height = 709
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 560
+      ClientHeight = 709
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 560
+        Height = 709
         Top = 0
         Width = 16
         Align = alRight
@@ -1246,7 +1246,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 560
+        Height = 709
         Top = 0
         Width = 188
         Align = alClient
@@ -1330,7 +1330,7 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 617
+    Top = 766
     Width = 1210
     Panels = <    
       item
@@ -1347,11 +1347,11 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 583
+    Height = 732
     Top = 34
     Width = 202
     Align = alLeft
-    ClientHeight = 583
+    ClientHeight = 732
     ClientWidth = 202
     TabOrder = 1
     object pnMinimap: TPanel
@@ -1377,12 +1377,12 @@ object fMain: TfMain
     end
     object pnTools: TPanel
       Left = 1
-      Height = 377
+      Height = 526
       Top = 205
       Width = 200
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 377
+      ClientHeight = 526
       ClientWidth = 200
       TabOrder = 1
       object gbBrush: TGroupBox
@@ -1703,7 +1703,7 @@ object fMain: TfMain
   end
   object pcMain: TPageControl
     Left = 202
-    Height = 583
+    Height = 732
     Top = 34
     Width = 804
     ActivePage = tsMap
@@ -1714,24 +1714,24 @@ object fMain: TfMain
     OnChange = pcMainChange
     object tsMap: TTabSheet
       Caption = 'tsMap'
-      ClientHeight = 575
+      ClientHeight = 724
       ClientWidth = 796
       object pnMap: TPanel
         Left = 0
-        Height = 575
+        Height = 724
         Top = 0
         Width = 796
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnMap'
-        ClientHeight = 575
+        ClientHeight = 724
         ClientWidth = 796
         Color = clWhite
         ParentColor = False
         TabOrder = 0
         object MapView: TOpenGLControl
           Left = 23
-          Height = 536
+          Height = 685
           Top = 23
           Width = 757
           Align = alClient
@@ -1754,7 +1754,7 @@ object fMain: TfMain
         object hScrollBar: TScrollBar
           Left = 18
           Height = 16
-          Top = 559
+          Top = 708
           Width = 760
           Align = alBottom
           BorderSpacing.Left = 18
@@ -1766,7 +1766,7 @@ object fMain: TfMain
         end
         object vScrollBar: TScrollBar
           Left = 780
-          Height = 536
+          Height = 685
           Top = 23
           Width = 16
           Align = alRight
@@ -1778,17 +1778,17 @@ object fMain: TfMain
         end
         object pnVAxis: TPanel
           Left = 0
-          Height = 536
+          Height = 685
           Top = 23
           Width = 23
           Align = alLeft
           BevelOuter = bvNone
-          ClientHeight = 536
+          ClientHeight = 685
           ClientWidth = 23
           TabOrder = 3
           object VerticalAxis: TPaintBox
             Left = 0
-            Height = 536
+            Height = 685
             Top = 0
             Width = 23
             Align = alClient
