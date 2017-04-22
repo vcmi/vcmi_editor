@@ -914,12 +914,15 @@ end;
 function TFSManager.SelectResource(AResType: TResourceType; AName: string): TResIDToLocationMap.TIterator;
 var
   res_id: TResId;
+  idx: LongInt;
 begin
   AName := NormalizeResourceName(AName);
 
-  if FVpathMap.IndexOf(AName) >=0 then
+  idx := FVpathMap.IndexOf(AName);
+
+  if idx >=0 then
   begin
-    AName := FVpathMap.KeyData[AName];
+    AName := FVpathMap.Data[idx];
   end;
 
   res_id.VFSPath := AName;
@@ -928,8 +931,7 @@ begin
   Result :=FResMap.Find(res_id);
 end;
 
-procedure TFSManager.LoadSelected(var it: TResIDToLocationMap.TIterator;
-  AResource: IResource);
+procedure TFSManager.LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource);
 var
   res_loc: TResLocation;
 begin
