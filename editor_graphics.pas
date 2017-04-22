@@ -49,7 +49,6 @@ type
     function GetFrameCount: Integer; inline;
     procedure SetFrameCount(AValue: Integer);
 
-    procedure UnBindTextures;
   public
     constructor Create;
     destructor Destroy; override;
@@ -71,6 +70,10 @@ type
 
     property ResourceID: AnsiString read FResourceID write FResourceID;
 
+    procedure FixLoadMode(var AMode: TGraphicsLoadMode);
+    procedure UpdateLoadFlag(AMode: TGraphicsLoadMode);
+
+    procedure UnBindTextures;
     property Loaded: TGraphicsLoadFlag read FLoaded write FLoaded;
   end;
 
@@ -90,8 +93,6 @@ type
     FCurrentPath: AnsiString;
     FMode: TGraphicsLoadMode;
     FCurrent: TAnimation;
-    procedure FixLoadMode();
-    procedure UpdateLoadFlag();
   strict protected
     FFrameCount: Integer;
     FTextureIDs: array of GLuint;
@@ -367,19 +368,6 @@ begin
   Result := 'SPRITES/'+ CurrentPath;
 end;
 
-procedure TAnimationLoader.FixLoadMode;
-begin
-  if (Mode = TGraphicsLoadMode.LoadComplete) and (Current.Loaded = TGraphicsLoadFlag.First) then
-  begin
-    Mode := TGraphicsLoadMode.LoadRest;
-  end;
-
-  if (Mode = TGraphicsLoadMode.LoadRest) and (Current.Loaded = TGraphicsLoadFlag.None) then
-  begin
-    Mode := TGraphicsLoadMode.LoadComplete;
-  end;
-end;
-
 procedure TAnimationLoader.GenerateTextureIds;
 begin
   SetLength(FTextureIDs, FFrameCount);
@@ -402,33 +390,11 @@ begin
   end;;
 end;
 
-procedure TAnimationLoader.UpdateLoadFlag;
-begin
-  case Mode of
-    TGraphicsLoadMode.LoadFisrt:
-    begin
-      Current.Loaded:= TGraphicsLoadFlag.First;
-    end;
-    TGraphicsLoadMode.LoadRest:
-    begin
-      Current.Loaded:= TGraphicsLoadFlag.Complete;
-    end;
-    TGraphicsLoadMode.LoadComplete:
-    begin
-      Current.Loaded:= TGraphicsLoadFlag.Complete;
-    end;
-  end;
-end;
 
 function TAnimationLoader.TryLoad: Boolean;
 begin
   Assert(Assigned(Current),'TDefFormatLoader.TryLoad: nil Current');
-  FixLoadMode;
   Result := DoTryLoad();
-  if Result then
-  begin
-    UpdateLoadFlag;
-  end;
 end;
 
 { TJsonFormatLoader }
@@ -450,7 +416,7 @@ begin
     PEntry^.SpriteWidth:=AImage.Data.Width;
     PEntry^.TopMargin:=0;
     PEntry^.Width:=AImage.Data.Width;
-
+    PEntry^.PaletteID:=0;
     PEntry^.TextureID:=FTextureIDs[idx];
     UpdateAnimationSize(PEntry^.SpriteWidth, PEntry^.SpriteHeight);
 
@@ -471,6 +437,7 @@ begin
 
   if Result then
   begin
+    Current.UnBindTextures;
     idx := 0;
     FFrameCount := sequence.Frames.Count;
     Current.FrameCount := FFrameCount;
@@ -509,6 +476,7 @@ begin
   Result := false;
   if ResourceLoader.ExistsResource(TResourceType.Image, path) then
   begin
+    Current.UnBindTextures;
     FFrameCount := 1;
     Current.FrameCount := FFrameCount;
     GenerateTextureIds();
@@ -1007,6 +975,8 @@ begin
     exit;
   end;
 
+  ADef.FixLoadMode(ALoadMode);
+
   FDefLoader.Current := ADef;
   FDefLoader.Mode := ALoadMode;
   FDefLoader.CurrentPath := AResourceName;
@@ -1016,7 +986,10 @@ begin
   FJsonLoader.Mode:=ALoadMode;
   FJsonLoader.CurrentPath:=AResourceName;
 
-  found:=found or FJsonLoader.TryLoad();
+  if FJsonLoader.TryLoad() then
+  begin
+    found := true;
+  end;
 
   if not found then
   begin
@@ -1024,6 +997,8 @@ begin
 
     ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
   end;
+
+  ADef.UpdateLoadFlag(ALoadMode);
 end;
 
 function TGraphicsManager.DoGetGraphics(const AResourceName: string; ALoadMode: TGraphicsLoadMode): TAnimation;
@@ -1101,11 +1076,12 @@ var
   PEntry: PGLSprite;
 begin
   old_size := entries.Size;
+
   if old_size <> AValue then
   begin
     entries.Resize(AValue);
 
-    for i := 0 to AValue - old_size - 1 do
+    for i := old_size to AValue - 1 do
     begin
       PEntry := entries.Mutable[i];
       PEntry^.Init;
@@ -1177,13 +1153,47 @@ begin
     Result := Height;//???
 end;
 
+procedure TAnimation.FixLoadMode(var AMode: TGraphicsLoadMode);
+begin
+  if (AMode = TGraphicsLoadMode.LoadComplete) and (Self.Loaded = TGraphicsLoadFlag.First) then
+  begin
+    AMode := TGraphicsLoadMode.LoadRest;
+  end;
+
+  if (AMode = TGraphicsLoadMode.LoadRest) and (Self.Loaded = TGraphicsLoadFlag.None) then
+  begin
+    AMode := TGraphicsLoadMode.LoadComplete;
+  end;
+end;
+
+procedure TAnimation.UpdateLoadFlag(AMode: TGraphicsLoadMode);
+begin
+  case AMode of
+    TGraphicsLoadMode.LoadFisrt:
+    begin
+      Loaded:= TGraphicsLoadFlag.First;
+    end;
+    TGraphicsLoadMode.LoadRest:
+    begin
+      Loaded:= TGraphicsLoadFlag.Complete;
+    end;
+    TGraphicsLoadMode.LoadComplete:
+    begin
+      Loaded:= TGraphicsLoadFlag.Complete;
+    end;
+  end;
+end;
+
 procedure TAnimation.UnBindTextures;
 var
   SpriteIndex: SizeInt;
+  PEntry: PGLSprite;
 begin
   for SpriteIndex := 0 to SizeInt(entries.Size) - 1 do
   begin
-    glDeleteTextures(1,@(entries.Mutable[SpriteIndex]^.TextureID));
+    PEntry := entries.Mutable[SpriteIndex];
+    glDeleteTextures(1,@(PEntry^.TextureID));
+    PEntry^.TextureID:=0;
   end;
   if FPaletteID <> 0 then
   begin
