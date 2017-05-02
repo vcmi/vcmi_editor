@@ -349,7 +349,6 @@ type
     FRoadRiverBrush: TRoadRiverBrush;
     FObjectBrush: TMapObjectBrush;
 
-
     //selected brush
     FActiveBrush: TMapBrush;
 

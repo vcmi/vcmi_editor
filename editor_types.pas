@@ -148,6 +148,8 @@ type
 
   TMapCoordForEach = procedure (const Coord: TMapCoord; var Stop: Boolean) is nested;
 
+  TPassabilityMask = array of array of Boolean;
+
   operator+ (a,b:TMapCoord):TMapCoord; inline;
   operator- (a,b:TMapCoord):TMapCoord; inline;
   operator= (a,b:TMapCoord):boolean; inline;

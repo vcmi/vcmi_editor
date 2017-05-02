@@ -313,7 +313,7 @@ procedure TMapObjectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 begin
   if Assigned(FVisibleObjects) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Ax, AY, FSelectedObjects);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, AX, AY, FSelectedObjects);
   end;
   FEndCooord.Reset(AX,AY);
 end;
@@ -354,7 +354,6 @@ var
   cx,cy: Integer;
   r:TMapRect;
 begin
-
   it := FSelectedObjects.Min;
 
   if Assigned(it) then

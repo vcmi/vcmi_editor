@@ -502,13 +502,12 @@ type
     function FormatDisplayName(ACustomName: TLocalizedString): TLocalizedString;
 
     function GetRegion: TMapRect;
-
     //ignores position
     function GetRegion(AX, AY: integer): TMapRect;
-
     function EqualPosition(APosition: TPosition): Boolean;
-
     function HasOptions: boolean;
+
+    procedure AddToMask(var Activity: TPassabilityMask; var Blockage: TPassabilityMask; const ARegion: TMapRect);
 
   public //IMapObject
     function GetType: AnsiString;
@@ -594,6 +593,7 @@ type
 
   TVisibleObjects = class(TMapObjectsSelection)
   strict private
+    FRegion:TMapRect;
     FActivity, FBlockage: array of array of boolean;
   public
     constructor Create();
@@ -604,6 +604,8 @@ type
 
     procedure Add(AObject: TObject); override;
     procedure Clear; override;
+
+    procedure SetRegion(const ARegion: TMapRect);
   end;
 
   { TMapObjects }
@@ -848,6 +850,7 @@ type
     procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
 
     procedure SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);
+    procedure SelectVisibleObjects(ATarget: TVisibleObjects; const ARect: TMapRect);
 
     // AInput = space separated words or empty string to get all
     procedure SelectByKeywords(ATarget: TMapObjectsSelection; AInput: string; ACategory: TObjectCategory);
@@ -933,6 +936,7 @@ uses FileUtil, LazLoggerBase, editor_str_consts, editor_utils,
 constructor TVisibleObjects.Create;
 begin
   inherited;
+  FRegion.Create();
 end;
 
 destructor TVisibleObjects.Destroy;
@@ -957,21 +961,36 @@ begin
 end;
 
 procedure TVisibleObjects.RenderOverlay(AState: TLocalState);
+const
+  ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
+  BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
 var
-  o: TMapObject;
+  i, j: Integer;
 begin
   AState.StartDrawingRects;
   AState.UseTextures(false, false);
 
-  for o in Data do
+  AState.SetTranslation(FRegion.Left() * TILE_SIZE, FRegion.Top() * TILE_SIZE);
+
+  for i := 0 to FRegion.FWidth - 1 do
   begin
-    o.RenderOverlay(AState);
+    for j := 0 to FRegion.FHeight - 1 do
+    begin
+      if FActivity[i,j] then
+        AState.RenderSolidRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE, ACTIVE_COLOR)
+      else if FBlockage[i,j] then
+        AState.RenderSolidRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE, BLOCKED_COLOR);
+    end;
   end;
 end;
 
 procedure TVisibleObjects.Add(AObject: TObject);
+var
+  o: TMapObject;
 begin
   inherited Add(AObject);
+  o := TMapObject(AObject);
+  o.AddToMask(FActivity, FBlockage, FRegion);
 end;
 
 procedure TVisibleObjects.Clear;
@@ -979,6 +998,14 @@ begin
   inherited Clear;
   SetLength(FActivity,0);
   SetLength(FBlockage,0);
+  FRegion.Clear();
+end;
+
+procedure TVisibleObjects.SetRegion(const ARegion: TMapRect);
+begin
+  FRegion := ARegion;
+  SetLength(FActivity, FRegion.FWidth, FRegion.FHeight);
+  SetLength(FBlockage, FRegion.FWidth, FRegion.FHeight);
 end;
 
 { TMapObjectsSelection }
@@ -2167,6 +2194,43 @@ begin
   Result := Assigned(FOptions) and (FOptions.ClassType <> TObjectOptions);
 end;
 
+procedure TMapObject.AddToMask(var Activity: TPassabilityMask; var Blockage: TPassabilityMask; const ARegion: TMapRect);
+var
+  rx, ry, mx, my, cx, cy, shift: Integer;
+  line: String;
+
+  own_region: TMapRect;
+begin
+  own_region := GetRegion().Intersect(ARegion);
+
+  for ry := own_region.Top() to own_region.Bottom() do
+  begin
+    my := ry - Y + FAppearance.Height - 1;
+    cy := ry - ARegion.Top();
+
+    line := FAppearance.Mask[my];
+
+    shift := FAppearance.Width - Length(line);
+
+    for rx := own_region.Left() to own_region.Right() do
+    begin
+      mx := rx - X + FAppearance.Width - shift;
+      cx := rx - ARegion.Left();
+      case line[mx] of
+        MASK_ACTIVABLE, MASK_TRIGGER:
+        begin
+          Activity[cx, cy] := true;
+          Blockage[cx, cy] := true;
+        end;
+        MASK_BLOCKED, MASK_HIDDEN:
+        begin
+          Blockage[cx, cy] := true;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer);
 var
   owner : TPlayer;
@@ -3219,6 +3283,14 @@ end;
 
 procedure TVCMIMap.SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);
 var
+  r:TMapRect;
+begin
+  r.SetFromCorners(Left, Top, Right, Bottom);
+  SelectVisibleObjects(ATarget, r);
+end;
+
+procedure TVCMIMap.SelectVisibleObjects(ATarget: TVisibleObjects; const ARect: TMapRect);
+var
   i: Integer;
   o: TMapObject;
 begin
@@ -3230,10 +3302,7 @@ begin
     if o.L <> CurrentLevelIndex then
       Continue;
 
-    if (o.X < Left)
-      or (o.Y < Top)
-      or (o.X - 8 > Right)
-      or (o.y - 6 > Bottom)
+    if o.GetRegion().Intersect(ARect).IsEmpty()
       then Continue; //todo: use visisblity mask
 
     FVisibleObjectsQueue.Push(o);
@@ -3241,6 +3310,7 @@ begin
 
   while not FVisibleObjectsQueue.IsEmpty do
   begin
+    ATarget.SetRegion(ARect);
     ATarget.Add(FVisibleObjectsQueue.Top);
 
     FVisibleObjectsQueue.Pop;
