@@ -306,11 +306,6 @@ type
     procedure VerticalAxisPaint(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
-
-  private
-    FEnv: TMapEnvironment;
-
-    function CheckUnsavedMap: boolean;
   private
     const
       OBJ_PER_ROW = 3;
@@ -319,6 +314,7 @@ type
 
       FTileSizes: array [0..3] of Integer = (8, 16, 24, 32);
   private
+    FEnv: TMapEnvironment;
     FZoomIndex: integer;
 
     FObjectsPerRow: Integer;
@@ -347,7 +343,7 @@ type
     FFixedTerrainBrush: TFixedTerrainBrush;
     FAreaTerrainBrush: TAreaTerrainBrush;
     FRoadRiverBrush: TRoadRiverBrush;
-    FObjectBrush: TMapObjectBrush;
+    FObjectBrush: TObjectSelectBrush;
 
     //selected brush
     FActiveBrush: TMapBrush;
@@ -357,9 +353,8 @@ type
     FMinimap: TMinimap;
 
     FObjectCategory: TObjectCategory;
-
-    FTemplatesSelection: TObjectsSelection;
-    FMapObjectsSelection: TMapObjectsSelection;
+    FTemplatesResult: TObjectsSelection;
+    FMapObjectsResult: TMapObjectsSelection;
 
     FVisibleObjectsValid: boolean;
     FVisibleObjects: TVisibleObjects;
@@ -422,6 +417,7 @@ type
     procedure RenderGrid;
     procedure RenderSelection;
 
+    function CheckUnsavedMap: boolean;
     procedure LoadMap(AFileName: string);
     procedure SaveMap(AFileName: string);
 
@@ -1020,7 +1016,7 @@ begin
   FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
-  FObjectBrush := TMapObjectBrush.Create(Self);
+  FObjectBrush := TObjectSelectBrush.Create(Self);
 
   RoadType.ItemIndex := -1; //this must be done after construction of brushes
   RiverType.ItemIndex:= -1;
@@ -1036,8 +1032,8 @@ begin
 
   FObjectCategory:=TObjectCategory.Hero;
 
-  FTemplatesSelection := TObjectsSelection.Create();
-  FMapObjectsSelection := TMapObjectsSelection.Create();
+  FTemplatesResult := TObjectsSelection.Create();
+  FMapObjectsResult := TMapObjectsSelection.Create();
 
   FMapViewState := TLocalState.Create(MapView);
   FObjectsViewState := TLocalState.Create(ObjectsView);
@@ -1099,8 +1095,8 @@ begin
 
   FUndoManager.Free;
 
-  FreeAndNil(FMapObjectsSelection);
-  FreeAndNil(FTemplatesSelection);
+  FreeAndNil(FMapObjectsResult);
+  FreeAndNil(FTemplatesResult);
   FreeAndNil(FVisibleObjects);
 end;
 
@@ -1171,11 +1167,11 @@ function TfMain.GetActiveSelection: ISearchResult;
 begin
   if actFilterOnMap.Checked then
   begin
-    Result := FMapObjectsSelection;
+    Result := FMapObjectsResult;
   end
   else
   begin
-    Result := FTemplatesSelection;
+    Result := FTemplatesResult;
   end;
 end;
 
@@ -1371,7 +1367,7 @@ begin
   InvalidateMapDimensions;
   InvalidateMapContent;
 
-  FMapObjectsSelection.Clear;
+  FMapObjectsResult.Clear;
 
   if actFilterOnMap.Checked then
   begin
@@ -1884,13 +1880,13 @@ begin
   begin
     if actFilterOnMap.Checked then
     begin
-      obj := FMapObjectsSelection.Objcts[o_idx];
+      obj := FMapObjectsResult.Objcts[o_idx];
       MapScrollToObject(obj);
     end
     else
     begin
       FNextDragSubject:=TDragSubject.MapTemplate;
-      FSelectedTemplate := FTemplatesSelection.Objcts[o_idx];
+      FSelectedTemplate := FTemplatesResult.Objcts[o_idx];
       DragManager.DragStart(self, False,10); //after state change
     end;
 
@@ -2352,16 +2348,16 @@ begin
   begin
     if Assigned(FMap) then
     begin
-      FMap.SelectByKeywords(FMapObjectsSelection, ObjectsSearch.Text, FObjectCategory);
+      FMap.SelectByKeywords(FMapObjectsResult, ObjectsSearch.Text, FObjectCategory);
     end
     else
     begin
-      FMapObjectsSelection.Clear;
+      FMapObjectsResult.Clear;
     end;
   end
   else
   begin
-    FObjManager.SelectByKeywords(FTemplatesSelection, ObjectsSearch.Text, FObjectCategory);
+    FObjManager.SelectByKeywords(FTemplatesResult, ObjectsSearch.Text, FObjectCategory);
   end;
 
   InvalidateObjects;

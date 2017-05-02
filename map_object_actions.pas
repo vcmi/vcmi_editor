@@ -28,9 +28,9 @@ uses
   editor_gl, editor_consts, map_rect, vcmi_json, edit_object_options, vcmi_fpjsonrtti, gset, fpjson;
 
 type
-  { TMapObjectBrush }
+  { TObjectSelectBrush }
 
-  TMapObjectBrush = class (TMapBrush)
+  TObjectSelectBrush = class (TMapBrush)
   strict private
     FStartCoord: TMapCoord;
     FEndCooord: TMapCoord;
@@ -307,9 +307,9 @@ begin
   Result:=TObjectOwnershipTrait.NoFree;
 end;
 
-{ TMapObjectBrush }
+{ TObjectSelectBrush }
 
-procedure TMapObjectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
+procedure TObjectSelectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 begin
   if Assigned(FVisibleObjects) then
   begin
@@ -318,36 +318,36 @@ begin
   FEndCooord.Reset(AX,AY);
 end;
 
-constructor TMapObjectBrush.Create(AOwner: TComponent);
+constructor TObjectSelectBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FSelectedObjects := TMapObjectSet.Create;
 end;
 
-destructor TMapObjectBrush.Destroy;
+destructor TObjectSelectBrush.Destroy;
 begin
   FSelectedObjects.Free;
   inherited Destroy;
 end;
 
-procedure TMapObjectBrush.Clear;
+procedure TObjectSelectBrush.Clear;
 begin
   inherited Clear;
   FreeAndNil(FSelectedObjects);
   FSelectedObjects := TMapObjectSet.Create;
 end;
 
-procedure TMapObjectBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+procedure TObjectSelectBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 begin
   //do nothing
 end;
 
-procedure TMapObjectBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
+procedure TObjectSelectBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
   //do nothing, default sysytem cursor is enough
 end;
 
-procedure TMapObjectBrush.RenderSelection(State: TLocalState);
+procedure TObjectSelectBrush.RenderSelection(State: TLocalState);
 var
   it: TMapObjectSet.TIterator;
 
@@ -380,7 +380,7 @@ begin
   end;
 end;
 
-procedure TMapObjectBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
+procedure TObjectSelectBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
 begin
   inherited TileMouseDown(AMap, X, Y);
   FStartCoord.Reset(X,Y);
