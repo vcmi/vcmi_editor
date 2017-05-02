@@ -288,7 +288,7 @@ var
 begin
   inherited Create(AMapEnv);
   FDestreamer := TVCMIJSONDestreamer.Create(nil);
-  FDestreamer.CaseInsensitive := True;
+  FDestreamer.Options := [jdoCaseInsensitive];
 
   FTerrainTypeMap := TTerrainTypeMap.Create;
   FRoadTypeMap := TRoadTypeMap.Create;

@@ -363,7 +363,7 @@ type
     FMapObjectsSelection: TMapObjectsSelection;
 
     FVisibleObjectsValid: boolean;
-    FVisibleObjects: TMapObjectsSelection;
+    FVisibleObjects: TVisibleObjects;
 
     FObjectCount: integer;
     FObjectRows: integer;
@@ -1030,7 +1030,7 @@ begin
 
   SetupPlayerSelection();
 
-  FVisibleObjects := TMapObjectsSelection.Create();
+  FVisibleObjects := TVisibleObjects.Create();
   FVisibleObjectsValid:=false;
 
   FObjectBrush.VisibleObjects := FVisibleObjects;

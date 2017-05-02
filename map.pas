@@ -387,7 +387,7 @@ type
   strict private
     FAllowedTerrains: TTerrainTypes;
     FTags: TStrings;
-    mask_w, mask_h: Integer;
+    FMaskWidth, FMaskHeight: Integer;
     FOwner: TMapObject;
     FDef: TAnimation;
     FIsVisitable: Boolean;
@@ -424,11 +424,12 @@ type
     property Visitable: Boolean read FIsVisitable;
     function IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
 
-    property Width: Integer read mask_w;
-    property Height: Integer read mask_h;
+    property Width: Integer read FMaskWidth;
+    property Height: Integer read FMaskHeight;
 
     property Def: TAnimation read FDef;
     procedure GetKeyWords(ATarget: TStrings);
+
   published
     property Animation: AnsiString read FAnimation write SetAnimation;
     property EditorAnimation: AnsiString read FEditorAnimation write SetEditorAnimation;
@@ -453,7 +454,7 @@ type
     FLastFrame: Integer;
     FOptions: TObjectOptions;
     FPlayer: TPlayer;
-    FTemplate: TMapObjectAppearance;
+    FAppearance: TMapObjectAppearance;
     FAppearanceValid: Boolean;
     function GetCategory: TObjectCategory;
     function GetIdx: integer;
@@ -474,18 +475,21 @@ type
     procedure SetCollection(Value: TCollection); override;
     function GetDisplayName: string; override;
   public
+    //create object already on map, f.e. for deserializtion
     constructor Create(ACollection: TCollection); override;
 
+    //create object for this map but not present on map, f.e. before object is added
     constructor CreateIndep(AMap: TVCMIMap);
 
     destructor Destroy; override;
     procedure RenderStatic(AState: TLocalState); inline;
     procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
     procedure RenderAnim(AState: TLocalState; ANextFrame: Boolean); inline;
+    procedure RenderOverlay(AState: TLocalState); inline; deprecated;
 
     //for palette
     procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer);
-    procedure RenderOverlay(AState: TLocalState); inline; deprecated;
+
     procedure RenderSelectionRect(AState: TLocalState); inline;
 
     function CoversTile(ALevel, AX, AY: Integer): boolean;
@@ -532,7 +536,7 @@ type
     property Y:integer read GetY write SetY;
     property L:integer read GetL write SetL;
 
-    property Template: TMapObjectAppearance read FTemplate;
+    property Template: TMapObjectAppearance read FAppearance;
   public //manual streamimg
     property &Type: AnsiString read GetType write SetType;
     property Subtype: AnsiString read GetSubtype write SetSubtype;
@@ -579,14 +583,27 @@ type
 
     property Data:TMapObjectList read FData;
 
+  public//ISearchResult
+    procedure Add(AObject: TObject); virtual;
+    procedure Clear; virtual;
+    function GetCount: SizeInt;
+    procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
+  end;
+
+  { TVisibleObjects }
+
+  TVisibleObjects = class(TMapObjectsSelection)
+  strict private
+    FActivity, FBlockage: array of array of boolean;
+  public
+    constructor Create();
+    destructor Destroy; override;
+
     procedure RenderAnimation(AState: TLocalState; Animate, NewAnimFrame: Boolean);
     procedure RenderOverlay(AState: TLocalState);
 
-  public//ISearchResult
-    procedure Add(AObject: TObject);
-    procedure Clear;
-    function GetCount: SizeInt;
-    procedure RenderIcon(AIndex:SizeInt; AState: TLocalState; AX, AY, dim:integer; color: TPlayer = TPlayer.none);
+    procedure Add(AObject: TObject); override;
+    procedure Clear; override;
   end;
 
   { TMapObjects }
@@ -830,7 +847,7 @@ type
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
 
-    procedure SelectVisibleObjects(ATarget: TMapObjectsSelection; Left, Right, Top, Bottom: Integer);
+    procedure SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);
 
     // AInput = space separated words or empty string to get all
     procedure SelectByKeywords(ATarget: TMapObjectsSelection; AInput: string; ACategory: TObjectCategory);
@@ -911,6 +928,59 @@ implementation
 uses FileUtil, LazLoggerBase, editor_str_consts, editor_utils,
   strutils, typinfo;
 
+{ TVisibleObjects }
+
+constructor TVisibleObjects.Create;
+begin
+  inherited;
+end;
+
+destructor TVisibleObjects.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TVisibleObjects.RenderAnimation(AState: TLocalState; Animate, NewAnimFrame: Boolean);
+var
+  o: TMapObject;
+begin
+  if Animate then
+  begin
+    for o in Data do
+      o.RenderAnim(AState, NewAnimFrame);
+  end
+  else
+  begin
+    for o in Data do
+      o.RenderStatic(AState);
+  end;
+end;
+
+procedure TVisibleObjects.RenderOverlay(AState: TLocalState);
+var
+  o: TMapObject;
+begin
+  AState.StartDrawingRects;
+  AState.UseTextures(false, false);
+
+  for o in Data do
+  begin
+    o.RenderOverlay(AState);
+  end;
+end;
+
+procedure TVisibleObjects.Add(AObject: TObject);
+begin
+  inherited Add(AObject);
+end;
+
+procedure TVisibleObjects.Clear;
+begin
+  inherited Clear;
+  SetLength(FActivity,0);
+  SetLength(FBlockage,0);
+end;
+
 { TMapObjectsSelection }
 
 function TMapObjectsSelection.GetObjcts(AIndex: SizeInt): TMapObject;
@@ -945,35 +1015,6 @@ var
 begin
   o_def := FData.Items[AIndex];
   o_def.RenderIcon(AState, AX, AY, dim);
-end;
-
-procedure TMapObjectsSelection.RenderAnimation(AState: TLocalState; Animate, NewAnimFrame: Boolean);
-var
-  o: TMapObject;
-begin
-  if Animate then
-  begin
-    for o in FData do
-      o.RenderAnim(AState, NewAnimFrame);
-  end
-  else
-  begin
-    for o in FData do
-      o.RenderStatic(AState);
-  end;
-end;
-
-procedure TMapObjectsSelection.RenderOverlay(AState: TLocalState);
-var
-  o: TMapObject;
-begin
-  AState.StartDrawingRects;
-  AState.UseTextures(false, false);
-
-  for o in FData do
-  begin
-    o.RenderOverlay(AState);
-  end;
 end;
 
 procedure TMapObjectsSelection.Add(AObject: TObject);
@@ -1596,28 +1637,32 @@ var
   s: AnsiString;
   i: Integer;
 begin
+  FMask.BeginUpdate;
+  try
+    stop := False;
 
-  stop := False;
-
-  while not stop and (FMask.Count > 0) do
-  begin
-    s := FMask[0];
-
-    s := StringReplace(s, ' ', '0',[rfReplaceAll]);
-
-    if s=StringOfChar('0', Length(s)) then
+    while not stop and (FMask.Count > 0) do
     begin
-      FMask.Delete(0);
-    end
-    else
-      stop:=true;
-  end;
+      s := FMask[0];
 
-  for i := 0 to FMask.Count - 1 do
-  begin
-    s := StringReplace(FMask[i], '0', ' ',[rfReplaceAll]);
+      s := StringReplace(s, ' ', '0',[rfReplaceAll]);
 
-    FMask[i] := TrimLeft(s);
+      if s=StringOfChar('0', Length(s)) then
+      begin
+        FMask.Delete(0);
+      end
+      else
+        stop:=true;
+    end;
+
+    for i := 0 to FMask.Count - 1 do
+    begin
+      s := StringReplace(FMask[i], '0', ' ',[rfReplaceAll]);
+
+      FMask[i] := TrimLeft(s);
+    end;
+  finally
+    FMask.EndUpdate;
   end;
 end;
 
@@ -1625,26 +1670,24 @@ procedure TMapObjectAppearance.UpdateCache;
 var
   s: String;
   c: Char;
+  w: Integer;
 begin
-  mask_h := Mask.Count;
-  mask_w := 1;
+  FMaskHeight := Mask.Count;
+  w := 1;
 
   FIsVisitable:=false;
   for s in FMask do
   begin
-    if Length(s) > mask_w then
-    begin
-      mask_w := Length(s)
-    end;
+    w := Max(w, Length(s));
     for c in s do
     begin
       if (c = MASK_ACTIVABLE) or (c = MASK_TRIGGER) then
       begin
         FIsVisitable := true;
-        Exit;
       end;
     end;
   end;
+  FMaskWidth:=w;
 end;
 
 procedure TMapObjectAppearance.FPOObservedChanged(ASender: TObject;
@@ -1667,10 +1710,10 @@ begin
   dx := FOwner.X - AX;
   dy := FOwner.Y - AY;
 
-  if (dx < 0) or (dy < 0) or (dx >= mask_w) or (dy >=  mask_h) then
+  if (dx < 0) or (dy < 0) or (dx >= FMaskWidth) or (dy >=  FMaskHeight) then
     Exit(false);
 
-  line := Mask[mask_h - dy - 1];
+  line := Mask[FMaskHeight - dy - 1];
   if Length(line) < (dx+1) then
      Exit(false);
   Result := line[Length(line) - dx] = MASK_ACTIVABLE;
@@ -1703,14 +1746,20 @@ end;
 
 procedure TMapObjectAppearance.Assign(ASource: TMapObjectTemplate);
 begin
-  FAnimation := ASource.Animation;
-  FEditorAnimation := ASource.EditorAnimation;
-  FVisitableFrom.Assign(ASource.VisitableFrom);
-  FMask.Assign(ASource.Mask);
-  SetDef(ASource.Def);
-  FZIndex := ASource.ZIndex;
-  FAllowedTerrains:=ASource.AllowedTerrains;
-  FTags.Assign(ASource.Tags);
+  FMask.BeginUpdate;
+  try
+    FAnimation := ASource.Animation;
+    FEditorAnimation := ASource.EditorAnimation;
+    FVisitableFrom.Assign(ASource.VisitableFrom);
+    FMask.Assign(ASource.Mask);
+    CompactMask;
+    SetDef(ASource.Def);
+    FZIndex := ASource.ZIndex;
+    FAllowedTerrains:=ASource.AllowedTerrains;
+    FTags.Assign(ASource.Tags);
+  finally
+    FMask.EndUpdate;
+  end;
 end;
 
 procedure TMapObjectAppearance.BeforeSerialize(Sender: TObject);
@@ -1742,10 +1791,10 @@ var
 
   t: PMapTile;
 begin
-  for i := 1 to mask_h do
+  for i := 1 to FMaskHeight do
   begin
     line := Mask[i-1];
-    y := FOwner.Y - mask_h + i;
+    y := FOwner.Y - FMaskHeight + i;
 
     shift := Length(line);
 
@@ -1784,12 +1833,12 @@ var
   i, j, p, shift: Integer;
   line: String;
 begin
-  AState.SetTranslation((FOwner.X - mask_w + 1 ) * TILE_SIZE, (FOwner.Y - mask_h + 1) * TILE_SIZE);
+  AState.SetTranslation((FOwner.X - FMaskWidth + 1 ) * TILE_SIZE, (FOwner.Y - FMaskHeight + 1) * TILE_SIZE);
 
-  for i := 0 to mask_h - 1 do
+  for i := 0 to FMaskHeight - 1 do
   begin
     line := Mask[i];
-    shift := mask_w - Length(line);
+    shift := FMaskWidth - Length(line);
     for j := 0 to Length(line) - 1 do
     begin
       p := j + shift;
@@ -2030,7 +2079,7 @@ end;
 
 function TMapObject.IsVisitableAt(ALevel, AX, AY: Integer): boolean;
 begin
-  Result := FTemplate.IsVisitableAt(ALevel, AX, AY);
+  Result := FAppearance.IsVisitableAt(ALevel, AX, AY);
 end;
 
 constructor TMapObject.Create(ACollection: TCollection);
@@ -2042,7 +2091,7 @@ begin
   FModUsage := TModUsage.Create(nil);
   inherited Create(ACollection);
 
-  FTemplate := TMapObjectAppearance.Create(Self);
+  FAppearance := TMapObjectAppearance.Create(Self);
 end;
 
 constructor TMapObject.CreateIndep(AMap: TVCMIMap);
@@ -2055,7 +2104,7 @@ destructor TMapObject.Destroy;
 begin
   inherited Destroy;
   FreeAndNil(FModUsage);
-  FreeAndNil(FTemplate);
+  FreeAndNil(FAppearance);
   FreeAndNil(FOptions);
   FreeAndNil(FPosition);
 end;
@@ -2122,7 +2171,7 @@ procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer
 var
   owner : TPlayer;
 begin
-  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
+  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FAppearance.EditorAnimation = '') then
   begin
     Frame := 2;
   end;
@@ -2156,7 +2205,7 @@ var
 begin
   AState.SetTranslation(Ax, Ay);
   Frame := 0;
-  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FTemplate.EditorAnimation = '') then
+  if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FAppearance.EditorAnimation = '') then
   begin
     Frame := 2;
   end;
@@ -2324,10 +2373,10 @@ end;
 function TMapObject.GetRegion(AX, AY: integer): TMapRect;
 begin
   Result.Create();
-  Result.FTopLeft.X:=AX+1-FTemplate.Width;
-  Result.FTopLeft.Y:=AY+1-FTemplate.Height;
-  Result.FWidth:=FTemplate.Width;
-  Result.FHeight:=FTemplate.Height;
+  Result.FTopLeft.X:=AX+1-FAppearance.Width;
+  Result.FTopLeft.Y:=AY+1-FAppearance.Height;
+  Result.FWidth:=FAppearance.Width;
+  Result.FHeight:=FAppearance.Height;
 end;
 
 function TMapObject.EqualPosition(APosition: TPosition): Boolean;
@@ -2390,7 +2439,7 @@ begin
 
       if Assigned(new_template) then
       begin
-        FTemplate.Assign(new_template);
+        FAppearance.Assign(new_template);
       end;
     end;
 
@@ -2412,9 +2461,9 @@ begin
     FMapObjectType.GetKeyWords(ATarget);
   end;
 
-  if Assigned(FTemplate) then
+  if Assigned(FAppearance) then
   begin
-    FTemplate.GetKeyWords(ATarget);
+    FAppearance.GetKeyWords(ATarget);
   end;
 end;
 
@@ -3168,7 +3217,7 @@ begin
   end;
 end;
 
-procedure TVCMIMap.SelectVisibleObjects(ATarget: TMapObjectsSelection; Left, Right, Top, Bottom: Integer);
+procedure TVCMIMap.SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);
 var
   i: Integer;
   o: TMapObject;
