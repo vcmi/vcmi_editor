@@ -91,10 +91,10 @@ const
 const
   MASK_NOT_VISIBLE = '0'; //not visible,  passable
   MASK_VISIBLE     = 'V'; //visible,  passable
-  MASK_BLOCKED     = 'B'; //blocked, visible
-  MASK_HIDDEN      = 'H'; //blocked, not visible
-  MASK_ACTIVABLE   = 'A'; //visible, activable
-  MASK_TRIGGER     = 'T'; //not visible, activable
+  MASK_BLOCKED     = 'B'; //visible,  blocked
+  MASK_HIDDEN      = 'H'; //not visible, blocked
+  MASK_ACTIVABLE   = 'A'; //visible, blocked, activable
+  MASK_TRIGGER     = 'T'; //not visible, blocked, activable
 
   Z_INDEX_OVERLAY = 100;
 const

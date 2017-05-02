@@ -1695,7 +1695,9 @@ begin
     FAnimTick := new_tick;
   end;
 
-  FVisibleObjects.RenderMap(FMapViewState, actAnimateObjects.Checked, new_anim_frame, actViewPassability.Checked);
+  FVisibleObjects.RenderAnimation(FMapViewState, actAnimateObjects.Checked, new_anim_frame);
+  if actViewPassability.Checked then
+    FVisibleObjects.RenderOverlay(FMapViewState);
 
   glLineWidth(1.5);
 
