@@ -137,7 +137,6 @@ type
     FGenerateHero: boolean;
     FMapObject: TMapObject;
     function GetL: integer;
-    function GetType: AnsiString;
     function GetX: integer;
     function GetY: integer;
     procedure SetGenerateHero(AValue: boolean);
@@ -145,7 +144,6 @@ type
     procedure SetMapObject(AValue: TMapObject);
     property MapObject: TMapObject read FMapObject write SetMapObject;
   published
-    property &type:AnsiString read GetType;
     property x: integer read GetX default -1;
     property y: integer read GetY default -1;
     property l: integer read GetL default -1;
@@ -1410,16 +1408,6 @@ begin
     Result := FMapObject.L
   else
     Result := -1;
-end;
-
-function TMainTownInfo.GetType: AnsiString;
-begin
-  if Assigned(FMapObject) and (FMapObject.&Type = TYPE_TOWN) then
-  begin
-    Result := FMapObject.Subtype;
-  end
-  else
-    Result := '';
 end;
 
 function TMainTownInfo.GetX: integer;
