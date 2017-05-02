@@ -148,11 +148,30 @@ type
 
   TAnimationSequences = specialize TGArrayCollection<TAnimationSequence>;
 
+  { TAnimationFrame }
+
+  TAnimationFrame = class(TCollectionItem)
+  private
+    FFile: AnsiString;
+    FFrame: Integer;
+    FGroup: Integer;
+  public
+    constructor Create(ACollection: TCollection); override;
+    destructor Destroy; override;
+  published
+    property Group: Integer read FGroup write FGroup default 0;
+    property Frame: Integer read FFrame write FFrame default 0;
+    property &File: AnsiString read FFile write FFile;
+  end;
+
+  TAnimationOverrides = specialize TGArrayCollection<TAnimationFrame>;
+
   { TJsonAnimationHeader }
 
   TJsonAnimationHeader = class(TPersistent)
   private
     FBasepath: AnsiString;
+    FImages: TAnimationOverrides;
     FSequences: TAnimationSequences;
     procedure SetBasepath(AValue: AnsiString);
   public
@@ -165,8 +184,7 @@ type
     property Basepath: AnsiString read FBasepath write SetBasepath;
     property Sequences: TAnimationSequences read FSequences;
 
-    //TODO: individual frames
-    //property Images: TJSONData;
+    property Images: TAnimationOverrides read FImages;
   end;
 
   { TJsonFormatLoader }
@@ -302,6 +320,18 @@ begin
   Result := PtrInt(d1) - PtrInt(d2);
 end;
 
+{ TAnimationFrame }
+
+constructor TAnimationFrame.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+end;
+
+destructor TAnimationFrame.Destroy;
+begin
+  inherited Destroy;
+end;
+
 { TAnimationSequence }
 
 procedure TAnimationSequence.SetGroup(AValue: Integer);
@@ -331,10 +361,12 @@ end;
 constructor TJsonAnimationHeader.Create;
 begin
   FSequences := TAnimationSequences.Create;
+  FImages := TAnimationOverrides.Create;
 end;
 
 destructor TJsonAnimationHeader.Destroy;
 begin
+  FImages.Free;
   FSequences.Free;
   inherited Destroy;
 end;
@@ -343,6 +375,7 @@ procedure TJsonAnimationHeader.Clear;
 begin
   FBasepath:='';
   FSequences.Clear;
+  FImages.Clear;
 end;
 
 function TJsonAnimationHeader.FindSequence(AGroup: Integer): TAnimationSequence;

@@ -38,7 +38,7 @@ type
   protected
     FMapEnv: TMapEnvironment;
   public
-     constructor Create(AMapEnv: TMapEnvironment); virtual;
+    constructor Create(AMapEnv: TMapEnvironment); virtual;
   end;
 
   TBaseMapFormatHandlerClass = class of TBaseMapFormatHandler;
