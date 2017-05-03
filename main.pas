@@ -47,6 +47,7 @@ type
     procedure DropOnMap; virtual; abstract;
     procedure DropOnPalette; virtual;
     procedure Render(AState: TLocalState; x,y: integer); virtual; abstract;
+    procedure RenderOverlay(AState: TLocalState; x,y: integer); virtual; abstract;
   end;
 
   { TTemplateDragProxy }
@@ -59,6 +60,7 @@ type
 
     procedure DropOnMap; override;
     procedure Render(AState: TLocalState; x, y: integer); override;
+    procedure RenderOverlay(AState: TLocalState; x,y: integer); override;
   end;
 
   { TObjectDragProxy }
@@ -72,6 +74,7 @@ type
     procedure DropOnMap; override;
     procedure DropOnPalette; override;
     procedure Render(AState: TLocalState; x, y: integer); override;
+    procedure RenderOverlay(AState: TLocalState; x,y: integer); override;
   end;
 
   { TfMain }
@@ -343,7 +346,7 @@ type
     FFixedTerrainBrush: TFixedTerrainBrush;
     FAreaTerrainBrush: TAreaTerrainBrush;
     FRoadRiverBrush: TRoadRiverBrush;
-    FObjectBrush: TObjectSelectBrush;
+    FObjectSelectBrush: TObjectSelectBrush;
 
     //selected brush
     FActiveBrush: TMapBrush;
@@ -434,6 +437,7 @@ type
     procedure DoObjectsSearch();
     procedure DoObjectsCatSearch(ACategory: TObjectCategory);
     procedure UndoManagerOnActionPerformed(AItem: TAbstractUndoItem);
+    procedure ClearSelection;
   protected
     procedure DoStartDrag(var DragObject: TDragObject); override;
     procedure DragCanceled; override;
@@ -495,10 +499,7 @@ end;
 
 procedure TObjectDragProxy.DropOnPalette;
 begin
-  if FOwner.FSelectedObject = FDraggingObject then
-  begin
-    FOwner.FSelectedObject := nil;
-  end;
+  FOwner.ClearSelection;
   FOwner.DeleteObject(FDraggingObject);
   FDraggingObject := nil;
 end;
@@ -506,6 +507,11 @@ end;
 procedure TObjectDragProxy.Render(AState: TLocalState; x, y: integer);
 begin
   FDraggingObject.RenderStatic(AState, (x+1+FShiftX)*TILE_SIZE,(y+1+FShiftY)*TILE_SIZE);
+end;
+
+procedure TObjectDragProxy.RenderOverlay(AState: TLocalState; x, y: integer);
+begin
+  FDraggingObject.RenderOverlay(AState, (x+1+FShiftX)*TILE_SIZE,(y+1+FShiftY)*TILE_SIZE);
 end;
 
 { TTemplateDragProxy }
@@ -575,6 +581,18 @@ begin
   FDraggingTemplate.RenderFloating(AState, cx, cy, FOwner.FCurrentPlayer);
 end;
 
+procedure TTemplateDragProxy.RenderOverlay(AState: TLocalState; x, y: integer);
+var
+  cx: Integer;
+  cy: Integer;
+begin
+  cx := (x+1) * TILE_SIZE;
+  cy := (y+1) * TILE_SIZE;
+
+  //TODO: passability
+  //FDraggingTemplate.RenderFloating(AState, cx, cy, FOwner.FCurrentPlayer);
+end;
+
 { TfMain }
 
 procedure TfMain.actCreateMapExecute(Sender: TObject);
@@ -609,7 +627,7 @@ end;
 procedure TfMain.actDeleteExecute(Sender: TObject);
 begin
   DeleteObject(FSelectedObject);
-  FSelectedObject := nil;
+  ClearSelection();
 end;
 
 procedure TfMain.actDeleteUpdate(Sender: TObject);
@@ -1016,7 +1034,7 @@ begin
   FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
-  FObjectBrush := TObjectSelectBrush.Create(Self);
+  FObjectSelectBrush := TObjectSelectBrush.Create(Self);
 
   RoadType.ItemIndex := -1; //this must be done after construction of brushes
   RiverType.ItemIndex:= -1;
@@ -1028,7 +1046,7 @@ begin
   FVisibleObjects := TVisibleObjects.Create();
   FVisibleObjectsValid:=false;
 
-  FObjectBrush.VisibleObjects := FVisibleObjects;
+  FObjectSelectBrush.VisibleObjects := FVisibleObjects;
 
   FObjectCategory:=TObjectCategory.Hero;
 
@@ -1361,7 +1379,7 @@ end;
 procedure TfMain.MapChanded;
 begin
   FUndoManager.Clear;
-  FSelectedObject := nil;
+  ClearSelection();
 
   FMinimap.Map := FMap;
   InvalidateMapDimensions;
@@ -1381,7 +1399,7 @@ end;
 procedure TfMain.DoSetMapLevelIndex(ANewIndex: Integer);
 begin
   FMap.CurrentLevelIndex := ANewIndex;
-  FSelectedObject := nil;
+  ClearSelection();
   InvalidateMapDimensions;
   InvalidateMapContent;
 end;
@@ -1433,6 +1451,9 @@ procedure TfMain.MapViewDblClick(Sender: TObject);
 var
   q: TMapObjectQueue;
 begin
+  if not Assigned(FMap) then
+    exit;
+
   if Assigned(FSelectedObject) then
   begin
     if FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY) then
@@ -1457,6 +1478,9 @@ end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
+  if not Assigned(FMap) then
+    exit;
+
   SetActiveBrush(FIdleBrush);
   SetMapViewMouse(x,y);
 
@@ -1468,13 +1492,19 @@ end;
 procedure TfMain.MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
+  if not Assigned(FMap) then
+  begin
+    Accept:=false;
+    exit;
+  end;
+
   SetActiveBrush(FIdleBrush);
 
   //TODO: handle accceptible terrain
   //TODO: handle activity-blocking intersection
   Accept := true;
 
-  FSelectedObject := nil;
+  FSelectedObject := nil;//???
 
   SetMapViewMouse(x,y);
 
@@ -1513,6 +1543,9 @@ var
      end;
    end;
 begin
+  if not Assigned(FMap) then
+    exit;
+
   SetMapViewMouse(x,y);
 
   if Button = TMouseButton.mbLeft then
@@ -1573,6 +1606,9 @@ end;
 
 procedure TfMain.MapViewMouseLeave(Sender: TObject);
 begin
+  if not Assigned(FMap) then
+    exit;
+
   InvalidateMapAxis;
   FActiveBrush.Clear;
 end;
@@ -1583,9 +1619,7 @@ var
   FOldTileY: Integer;
 begin
   if not Assigned(FMap) then
-  begin
     exit;
-  end;
 
   ResetFocus;
 
@@ -1603,6 +1637,9 @@ end;
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
+  if not Assigned(FMap) then
+    exit;
+
   if Button = TMouseButton.mbLeft then
   begin
     FActiveBrush.TileMouseUp(fmap, FMouseTileX, FMouseTileY);
@@ -1616,6 +1653,9 @@ procedure TfMain.MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
 var
   ss: TShiftState;
 begin
+  if not Assigned(FMap) then
+    exit;
+
   ss := [ssShift, ssCtrl, ssAlt, ssAltGr] * Shift;
   Handled := True;
 
@@ -1640,17 +1680,13 @@ var
   new_anim_frame: Boolean;
 begin
   if not FMapViewState.StartFrame then
-  begin
     Exit;
-  end;
 
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
 
   if not Assigned(FMap) then
-  begin
-    Exit;
-  end;
+    exit;
 
   if not FVisibleObjectsValid then
   begin
@@ -1691,15 +1727,7 @@ begin
   end;
 
   FVisibleObjects.RenderAnimation(FMapViewState, actAnimateObjects.Checked, new_anim_frame);
-  if actViewPassability.Checked then
-    FVisibleObjects.RenderOverlay(FMapViewState);
 
-  glLineWidth(1.5);
-
-  if actViewGrid.Checked then
-  begin
-    RenderGrid();
-  end;
 
   if FMapDragging then
   begin
@@ -1712,10 +1740,27 @@ begin
     FDragging.Render(FMapViewState, FMouseTileX, FMouseTileY);
   end;
 
+  if actViewPassability.Checked then
+  begin
+    FVisibleObjects.RenderOverlay(FMapViewState);
+
+    if FMapDragging then
+      FDragging.RenderOverlay(FMapViewState, FMouseTileX, FMouseTileY);
+  end;
+
+  glLineWidth(1);
+  //glEnable(GL_LINE_SMOOTH);
+
+  if actViewGrid.Checked then
+  begin
+    RenderGrid();
+  end;
+
   RenderSelection;
   RenderCursor;
 
   FMapViewState.DisableScissor;
+  //glDisable(GL_LINE_SMOOTH);
 
   FMapViewState.FinishFrame;
 end;
@@ -2114,7 +2159,7 @@ end;
 
 procedure TfMain.pcToolBoxChange(Sender: TObject);
 begin
-  FSelectedObject := nil;
+  ClearSelection();
 end;
 
 procedure TfMain.RenderCursor;
@@ -2375,6 +2420,11 @@ begin
   begin
     DoObjectsSearch;
   end;
+end;
+
+procedure TfMain.ClearSelection;
+begin
+  FSelectedObject := nil;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);

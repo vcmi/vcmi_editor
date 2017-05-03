@@ -417,7 +417,7 @@ type
 
     procedure OnOwnerChanged(ATiles:TTiles; op: TFPObservedOperation);
 
-    procedure RenderOverlay(AState: TLocalState); deprecated;
+    procedure RenderOverlay(AState: TLocalState; X,Y: integer);
 
     Procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
 
@@ -485,7 +485,8 @@ type
     procedure RenderStatic(AState: TLocalState); inline;
     procedure RenderStatic(AState: TLocalState; X,Y: integer); inline;
     procedure RenderAnim(AState: TLocalState; ANextFrame: Boolean); inline;
-    procedure RenderOverlay(AState: TLocalState); inline; deprecated;
+
+    procedure RenderOverlay(AState: TLocalState;X,Y: integer); inline;
 
     //for palette
     procedure RenderIcon(AState: TLocalState; AX, AY, dim:integer);
@@ -1852,7 +1853,7 @@ begin
   end;
 end;
 
-procedure TMapObjectAppearance.RenderOverlay(AState: TLocalState);
+procedure TMapObjectAppearance.RenderOverlay(AState: TLocalState; X, Y: integer);
 const
   ACTIVE_COLOR: TRBGAColor = (r:255; g:255; b:0; a:128);
   BLOCKED_COLOR: TRBGAColor = (r:255; g:0; b:0; a:128);
@@ -1860,7 +1861,7 @@ var
   i, j, p, shift: Integer;
   line: String;
 begin
-  AState.SetTranslation((FOwner.X - FMaskWidth + 1 ) * TILE_SIZE, (FOwner.Y - FMaskHeight + 1) * TILE_SIZE);
+  AState.SetTranslation(X-FMaskWidth*TILE_SIZE, Y-FMaskHeight*TILE_SIZE);
 
   for i := 0 to FMaskHeight - 1 do
   begin
@@ -2283,9 +2284,9 @@ begin
   end;
 end;
 
-procedure TMapObject.RenderOverlay(AState: TLocalState);
+procedure TMapObject.RenderOverlay(AState: TLocalState; X, Y: integer);
 begin
-  Template.RenderOverlay(AState);
+  Template.RenderOverlay(AState, X, Y);
 end;
 
 procedure TMapObject.RenderSelectionRect(AState: TLocalState);

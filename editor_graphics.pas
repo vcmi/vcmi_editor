@@ -1129,12 +1129,13 @@ var
   cx: Integer;
   cy: Integer;
 begin
-  cx := (TileX+1) * TILE_SIZE;
-  cy := (TileY+1) * TILE_SIZE;
+  glLineWidth(2);
+  cx := (TileX+1) * TILE_SIZE+2;
+  cy := (TileY+1) * TILE_SIZE+2;
 
   AState.SetFragmentColor(RECT_COLOR);
   AState.StartDrawingRects;
-  AState.RenderRect(cx,cy,-width,-height);
+  AState.RenderRect(cx,cy,-width-4,-height-4);
   AState.StopDrawing;
 end;
 
