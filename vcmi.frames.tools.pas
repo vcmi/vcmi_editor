@@ -30,18 +30,17 @@ type
 
   TToolsFrame = class(TFrame)
     act: TActionList;
+    actSize0: TAction;
     actSizeRect: TAction;
     actSize4: TAction;
     actSize2: TAction;
     actSize1: TAction;
-    btnBrush1: TSpeedButton;
-    btnBrush2: TSpeedButton;
     btnBrush3: TSpeedButton;
-    btnBrush4: TSpeedButton;
     btnBrush5: TSpeedButton;
     btnBrush6: TSpeedButton;
     btnBrushArea: TSpeedButton;
     btnBrushArea1: TSpeedButton;
+    btnSelect: TSpeedButton;
     gbBrushObjects: TGroupBox;
     gbBrushTerrain: TGroupBox;
     gbTerrain: TGroupBox;

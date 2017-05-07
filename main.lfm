@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 245
+  Left = 246
   Height = 809
-  Top = 78
+  Top = 79
   Width = 1210
   Caption = 'VCMI editor'
   ClientHeight = 789
@@ -1134,7 +1134,7 @@ object fMain: TfMain
       ShowCaptions = True
       TabOrder = 1
       object ToolButton11: TToolButton
-        Left = 1
+        Left = 6
         Top = 2
         Action = actFilterHeroes
         Grouped = True
@@ -1190,7 +1190,7 @@ object fMain: TfMain
         Style = tbsCheck
       end
       object ToolButton21: TToolButton
-        Left = 46
+        Left = 1
         Height = 32
         Top = 2
         Width = 5

@@ -300,7 +300,8 @@ type
     //end binary compatible with H3 part
     FOwner: TPlayer;
 
-    FBlockingCount: Int32; //anount of objects blocking this tile
+    FBlockingCount: Int16; //anount of objects blocking this tile
+    FActiveCount: Int16; //anount of objects blocking this tile
     FFlaggableID: Int32; //Internal id of flaggable object in this tile.
   public
     constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
@@ -318,10 +319,11 @@ type
     procedure SetRoad(ARoadType: TRoadType; ARoadDir: UInt8; AMir: Uint8); inline;
     procedure SetTerrain(TT: TTerrainType; TS: UInt8; AMir: UInt8);inline;
 
-    procedure BlockingObjectAdded(AObject: TMapObject);
-    procedure BlockingObjectRemoved(AObject: TMapObject);
+    procedure BlockingObjectAdded(AObject: TMapObject; Active,Blocked: Boolean);
+    procedure BlockingObjectRemoved(AObject: TMapObject; Active,Blocked: Boolean);
 
     function IsBlocked: boolean; inline;
+    function IsActive: boolean; inline;
 
     property FlaggableID:Int32 read FFlaggableID;
     property Owner:TPlayer read FOwner;
@@ -601,7 +603,7 @@ type
     destructor Destroy; override;
 
     procedure RenderAnimation(AState: TLocalState; Animate, NewAnimFrame: Boolean);
-    procedure RenderOverlay(AState: TLocalState);
+    procedure RenderOverlay(AState: TLocalState); deprecated;
 
     procedure Add(AObject: TObject); override;
     procedure Clear; override;
@@ -849,6 +851,7 @@ type
 
     //Left, Right, Top, Bottom - clip rect in Tiles
     procedure RenderTerrain(AState:TLocalState; Left, Right, Top, Bottom: Integer);
+    procedure RenderPassability(AState:TLocalState; Left, Right, Top, Bottom: Integer); unimplemented;
 
     procedure SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);
     procedure SelectVisibleObjects(ATarget: TVisibleObjects; const ARect: TMapRect);
@@ -1835,15 +1838,27 @@ begin
         t := @ATiles[x,y];
 
         case line[j] of
-          MASK_ACTIVABLE, MASK_BLOCKED, MASK_HIDDEN:
+          MASK_ACTIVABLE, MASK_TRIGGER:
           begin
             case op of
-              TFPObservedOperation.ooAddItem: t^.BlockingObjectAdded(FOwner);
-              TFPObservedOperation.ooDeleteItem: t^.BlockingObjectRemoved(FOwner);
+              TFPObservedOperation.ooAddItem: t^.BlockingObjectAdded(FOwner, true, true);
+              TFPObservedOperation.ooDeleteItem: t^.BlockingObjectRemoved(FOwner, true, true);
               TFPObservedOperation.ooChange:
               begin
-                t^.BlockingObjectRemoved(FOwner);
-                t^.BlockingObjectAdded(FOwner);
+                t^.BlockingObjectRemoved(FOwner, true, true);
+                t^.BlockingObjectAdded(FOwner, true, true);
+              end;
+            end;
+          end;
+          MASK_BLOCKED, MASK_HIDDEN:
+          begin
+            case op of
+              TFPObservedOperation.ooAddItem: t^.BlockingObjectAdded(FOwner, False, True);
+              TFPObservedOperation.ooDeleteItem: t^.BlockingObjectRemoved(FOwner, False, True);
+              TFPObservedOperation.ooChange:
+              begin
+                t^.BlockingObjectRemoved(FOwner, False, True);
+                t^.BlockingObjectAdded(FOwner, False, True);
               end;
             end;
           end;
@@ -2845,6 +2860,7 @@ begin
   FRoadType:=TRoadType.noRoad;
   FRoadDir:=0;
   FFlags:=0;
+  FActiveCount:=0;;
   FBlockingCount := 0;
   FFlaggableID := -1;
   FOwner:=TPlayer.none;
@@ -2871,9 +2887,12 @@ begin
   FFlags := (FFlags and $FC) or (AMir and 3);
 end;
 
-procedure TMapTile.BlockingObjectAdded(AObject: TMapObject);
+procedure TMapTile.BlockingObjectAdded(AObject: TMapObject; Active, Blocked: Boolean);
 begin
-  inc(FBlockingCount);
+  if Active then
+    inc(FActiveCount);
+  if Blocked then
+    inc(FBlockingCount);
 
   if (FFlaggableID = -1) and (AObject.Options.CanBeOwned) then
   begin
@@ -2882,19 +2901,27 @@ begin
   end;
 end;
 
-procedure TMapTile.BlockingObjectRemoved(AObject: TMapObject);
+procedure TMapTile.BlockingObjectRemoved(AObject: TMapObject; Active, Blocked: Boolean);
 begin
   if FFlaggableID = AObject.ID then
   begin
     FOwner:=TPlayer.none;
     FFlaggableID := -1;
   end;
-  dec(FBlockingCount);
+  if Active then
+    dec(FActiveCount);
+  if Blocked then
+    dec(FBlockingCount);
 end;
 
 function TMapTile.IsBlocked: boolean;
 begin
   Result := FBlockingCount > 0;
+end;
+
+function TMapTile.IsActive: boolean;
+begin
+  Result := FActiveCount > 0;
 end;
 
 { TMapLevel }
@@ -3280,6 +3307,11 @@ begin
       FTerrainManager.RenderRoad(AState, t^.RoadType, t^.RoadDir, t^.Flags);
     end;
   end;
+end;
+
+procedure TVCMIMap.RenderPassability(AState: TLocalState; Left, Right, Top, Bottom: Integer);
+begin
+
 end;
 
 procedure TVCMIMap.SelectVisibleObjects(ATarget: TVisibleObjects; Left, Right, Top, Bottom: Integer);

@@ -1504,8 +1504,6 @@ begin
   //TODO: handle activity-blocking intersection
   Accept := true;
 
-  FSelectedObject := nil;//???
-
   SetMapViewMouse(x,y);
 
   case State of
@@ -1932,6 +1930,7 @@ begin
     begin
       FNextDragSubject:=TDragSubject.MapTemplate;
       FSelectedTemplate := FTemplatesResult.Objcts[o_idx];
+      ClearSelection;
       DragManager.DragStart(self, False,10); //after state change
     end;
 
