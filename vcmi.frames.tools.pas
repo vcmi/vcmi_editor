@@ -22,7 +22,7 @@ unit vcmi.frames.tools;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls;
+  Classes, SysUtils, typinfo, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls, editor_types;
 
 type
 
@@ -36,13 +36,18 @@ type
     actSize2: TAction;
     actSize1: TAction;
     btnBrush3: TSpeedButton;
+    btnBrush4: TSpeedButton;
     btnBrush5: TSpeedButton;
     btnBrush6: TSpeedButton;
+    btnBrush7: TSpeedButton;
+    btnBrush8: TSpeedButton;
     btnBrushArea: TSpeedButton;
     btnBrushArea1: TSpeedButton;
+    btnBrushArea2: TSpeedButton;
     btnSelect: TSpeedButton;
     gbBrushObjects: TGroupBox;
     gbBrushTerrain: TGroupBox;
+    gbBrushTerrain1: TGroupBox;
     gbTerrain: TGroupBox;
     iml: TImageList;
     RiverType: TRadioGroup;
@@ -56,9 +61,9 @@ type
     procedure ToolsPagesChange(Sender: TObject);
     procedure ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
   private
-    { private declarations }
+    procedure FillLandscapeMenu; unimplemented;
   public
-    { public declarations }
+    constructor Create(TheOwner: TComponent); override;
   end;
 
 implementation
@@ -76,6 +81,30 @@ procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boole
 begin
   AllowChange := true;
   //TODO: clear active brush
+end;
+
+procedure TToolsFrame.FillLandscapeMenu;
+var
+  tt: TTerrainType;
+  idx: Integer;
+  button: TSpeedButton;
+begin
+  //todo: localization
+
+  for tt in TTerrainType do
+  begin
+    idx := Integer(tt);
+    button := TSpeedButton.Create(Self);
+    button.Parent := gbTerrain;
+    button.Caption:=GetEnumName(TypeInfo(tt),idx);
+    button.ShowCaption := true;
+  end;
+end;
+
+constructor TToolsFrame.Create(TheOwner: TComponent);
+begin
+  inherited Create(TheOwner);
+  FillLandscapeMenu;
 end;
 
 end.

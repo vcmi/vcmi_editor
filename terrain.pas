@@ -244,7 +244,6 @@ type
     destructor Destroy; override;
 
     procedure LoadConfig;
-
     procedure LoadTerrainGraphics;
 
     procedure Render(AState: TLocalState; const tt: TTerrainType; sbt: UInt8; Flags: UInt8);

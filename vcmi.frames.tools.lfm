@@ -15,9 +15,9 @@ object ToolsFrame: TToolsFrame
     Height = 350
     Top = 0
     Width = 218
-    ActivePage = tsObjects
+    ActivePage = tsTerrain
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     TabPosition = tpLeft
     OnChange = ToolsPagesChange
@@ -235,6 +235,14 @@ object ToolsFrame: TToolsFrame
         Width = 187
         Align = alTop
         Caption = 'Landscape'
+        ChildSizing.LeftRightSpacing = 5
+        ChildSizing.HorizontalSpacing = 5
+        ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+        ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+        ChildSizing.ShrinkHorizontal = crsHomogenousChildResize
+        ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 3
         TabOrder = 1
       end
     end
@@ -288,6 +296,80 @@ object ToolsFrame: TToolsFrame
     end
     object tsErase: TTabSheet
       Caption = 'Erase'
+      ClientHeight = 342
+      ClientWidth = 187
+      object gbBrushTerrain1: TGroupBox
+        Left = 1
+        Height = 50
+        Top = 1
+        Width = 185
+        Align = alTop
+        BorderSpacing.Around = 1
+        Caption = 'Brush'
+        ChildSizing.LeftRightSpacing = 3
+        ChildSizing.TopBottomSpacing = 5
+        ChildSizing.HorizontalSpacing = 1
+        ChildSizing.VerticalSpacing = 5
+        ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
+        ChildSizing.EnlargeVertical = crsHomogenousSpaceResize
+        ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+        ChildSizing.ShrinkVertical = crsHomogenousSpaceResize
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 6
+        ClientHeight = 30
+        ClientWidth = 181
+        Constraints.MaxHeight = 50
+        Constraints.MinHeight = 46
+        TabOrder = 0
+        object btnBrush4: TSpeedButton
+          Left = 17
+          Height = 25
+          Top = 0
+          Width = 24
+          Action = actSize1
+          AllowAllUp = True
+          BorderSpacing.Around = 3
+          Constraints.MinWidth = 24
+          Down = True
+          GroupIndex = 1
+        end
+        object btnBrush7: TSpeedButton
+          Left = 58
+          Height = 25
+          Top = 0
+          Width = 24
+          Action = actSize2
+          AllowAllUp = True
+          BorderSpacing.Around = 3
+          Constraints.MinWidth = 24
+          GroupIndex = 1
+        end
+        object btnBrush8: TSpeedButton
+          Left = 99
+          Height = 25
+          Top = 0
+          Width = 24
+          Action = actSize4
+          AllowAllUp = True
+          BorderSpacing.Around = 3
+          Constraints.MinWidth = 24
+          GroupIndex = 1
+        end
+        object btnBrushArea2: TSpeedButton
+          Left = 140
+          Height = 25
+          Top = 0
+          Width = 24
+          Action = actSizeRect
+          AllowAllUp = True
+          BorderSpacing.Around = 3
+          Constraints.MinWidth = 24
+          Font.Height = -16
+          Font.Style = [fsBold]
+          GroupIndex = 1
+          ParentFont = False
+        end
+      end
     end
   end
   object act: TActionList

@@ -258,11 +258,8 @@ const
 
 
 const
-
   NEUTRAL_PLAYER_COLOR:TRBGAColor = (r: 128; g: 128; b:128; a: 255);
-
   PLAYER_FLAG_COLORS: array[TPlayerColor] of TRBGAColor = (
-    //(r: 128; g: 128; b:128; a: 255),//NONE
     (r: 255; g: 0;   b:0;   a: 255),//RED
     (r: 0;   g: 0;   b:255; a: 255),//BLUE
     (r: 120; g: 180; b:140; a: 255),//TAN
@@ -276,7 +273,6 @@ const
 const
   NEWTRAL_PLAYER_NAME = 'No player';
   PLAYER_NAMES: array[TPlayerColor] of AnsiString = (
-    //'No player',
     'Player 1 (red)',
     'Player 2 (blue)',
     'Player 3 (tan)',
