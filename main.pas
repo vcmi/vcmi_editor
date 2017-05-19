@@ -45,7 +45,6 @@ type
     constructor Create(AOwner: TfMain); reintroduce;
     destructor Destroy; override;
     procedure DropOnMap; virtual; abstract;
-    procedure DropOnPalette; virtual;
     procedure Render(AState: TLocalState; x,y: integer); virtual; abstract;
     procedure RenderOverlay(AState: TLocalState; x,y: integer); virtual; abstract;
   end;
@@ -72,7 +71,6 @@ type
   public
     constructor Create(AOwner: TfMain;ADraggingObject: TMapObject; CurrentX, CurrentY: integer);
     procedure DropOnMap; override;
-    procedure DropOnPalette; override;
     procedure Render(AState: TLocalState; x, y: integer); override;
     procedure RenderOverlay(AState: TLocalState; x,y: integer); override;
   end;
@@ -475,11 +473,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TDragProxy.DropOnPalette;
-begin
-  //do nothing by default
-end;
-
 { TObjectDragProxy }
 
 constructor TObjectDragProxy.Create(AOwner: TfMain;
@@ -495,13 +488,6 @@ end;
 procedure TObjectDragProxy.DropOnMap;
 begin
   FOwner.MoveOrCopyObject(FDraggingObject,FOwner.FMap.CurrentLevelIndex,FOwner.FMouseTileX+FShiftX,FOwner.FMouseTileY+FShiftY);
-end;
-
-procedure TObjectDragProxy.DropOnPalette;
-begin
-  FOwner.ClearSelection;
-  FOwner.DeleteObject(FDraggingObject);
-  FDraggingObject := nil;
 end;
 
 procedure TObjectDragProxy.Render(AState: TLocalState; x, y: integer);
@@ -1845,17 +1831,13 @@ end;
 
 procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
-  FDragging.DropOnPalette;
+  //
 end;
 
 procedure TfMain.ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
   State: TDragState; var Accept: Boolean);
 begin
   Accept := false;
-  if Assigned(FDragging) and (FDragging is TObjectDragProxy) then
-  begin
-    Accept := true;
-  end;
 end;
 
 procedure TfMain.pcMainChange(Sender: TObject);
