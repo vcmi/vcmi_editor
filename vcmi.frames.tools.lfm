@@ -267,6 +267,7 @@ object ToolsFrame: TToolsFrame
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
+        OnSelectionChanged = RoadTypeSelectionChanged
         TabOrder = 0
       end
     end
@@ -291,6 +292,7 @@ object ToolsFrame: TToolsFrame
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
+        OnSelectionChanged = RiverTypeSelectionChanged
         TabOrder = 0
       end
     end

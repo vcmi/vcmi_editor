@@ -414,7 +414,6 @@ type
 
     procedure PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
 
-    procedure RenderCursor;
     procedure RenderGrid;
     procedure RenderSelection;
 
@@ -1741,7 +1740,8 @@ begin
   end;
 
   RenderSelection;
-  RenderCursor;
+
+  FActiveBrush.RenderCursor(FMapViewState, fmap, FMouseTileX, FMouseTileY);
 
   FMapViewState.DisableScissor;
   //glDisable(GL_LINE_SMOOTH);
@@ -2141,11 +2141,6 @@ end;
 procedure TfMain.pcToolBoxChange(Sender: TObject);
 begin
   ClearSelection();
-end;
-
-procedure TfMain.RenderCursor;
-begin
-  FActiveBrush.RenderCursor(FMapViewState, fmap, FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.RenderGrid;

@@ -1,11 +1,11 @@
 object fMain: TfMain
-  Left = 246
+  Left = 314
   Height = 809
   Top = 79
-  Width = 1210
+  Width = 1142
   Caption = 'VCMI editor'
   ClientHeight = 789
-  ClientWidth = 1210
+  ClientWidth = 1142
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1024,11 +1024,11 @@ object fMain: TfMain
     Left = 0
     Height = 34
     Top = 0
-    Width = 1210
+    Width = 1142
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 1210
+    ClientWidth = 1142
     TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
@@ -1125,7 +1125,7 @@ object fMain: TfMain
       Left = 340
       Height = 34
       Top = 0
-      Width = 870
+      Width = 802
       Align = alClient
       BorderSpacing.Left = 340
       ButtonHeight = 32
@@ -1213,7 +1213,7 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = 1006
+    Left = 938
     Height = 732
     Top = 34
     Width = 204
@@ -1331,7 +1331,7 @@ object fMain: TfMain
     Left = 0
     Height = 23
     Top = 766
-    Width = 1210
+    Width = 1142
     Panels = <    
       item
         Width = 300
@@ -1351,24 +1351,25 @@ object fMain: TfMain
     Top = 34
     Width = 202
     Align = alLeft
+    BevelOuter = bvNone
     ClientHeight = 732
     ClientWidth = 202
     TabOrder = 1
     object pnMinimap: TPanel
-      Left = 1
+      Left = 0
       Height = 204
-      Top = 1
-      Width = 200
+      Top = 0
+      Width = 202
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 204
-      ClientWidth = 200
+      ClientWidth = 202
       TabOrder = 0
       object Minimap: TPaintBox
         Left = 0
         Height = 204
         Top = 0
-        Width = 200
+        Width = 202
         Anchors = [akTop, akLeft, akRight, akBottom]
         OnMouseDown = MinimapMouseDown
         OnMouseMove = MinimapMouseMove
@@ -1376,20 +1377,20 @@ object fMain: TfMain
       end
     end
     object pnTools: TPanel
-      Left = 1
-      Height = 526
-      Top = 205
-      Width = 200
+      Left = 0
+      Height = 528
+      Top = 204
+      Width = 202
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 526
-      ClientWidth = 200
+      ClientHeight = 528
+      ClientWidth = 202
       TabOrder = 1
       object gbBrush: TGroupBox
         Left = 1
         Height = 50
         Top = 121
-        Width = 198
+        Width = 200
         Align = alTop
         BorderSpacing.Around = 1
         Caption = 'Brush'
@@ -1404,7 +1405,7 @@ object fMain: TfMain
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 6
         ClientHeight = 30
-        ClientWidth = 194
+        ClientWidth = 196
         Constraints.MaxHeight = 50
         Constraints.MinHeight = 46
         TabOrder = 0
@@ -1552,12 +1553,12 @@ object fMain: TfMain
         Left = 1
         Height = 119
         Top = 1
-        Width = 198
+        Width = 200
         Align = alTop
         BorderSpacing.Around = 1
         Caption = 'Landscape'
         ClientHeight = 99
-        ClientWidth = 194
+        ClientWidth = 196
         TabOrder = 1
         object btnDirt: TSpeedButton
           Left = 6
@@ -1661,7 +1662,7 @@ object fMain: TfMain
         Left = 1
         Height = 19
         Top = 192
-        Width = 198
+        Width = 200
         Align = alTop
         AutoFill = True
         AutoSize = True
@@ -1682,7 +1683,7 @@ object fMain: TfMain
         Left = 1
         Height = 19
         Top = 172
-        Width = 198
+        Width = 200
         Align = alTop
         AutoFill = True
         AutoSize = True
@@ -1705,7 +1706,7 @@ object fMain: TfMain
     Left = 202
     Height = 732
     Top = 34
-    Width = 804
+    Width = 736
     ActivePage = tsMap
     Align = alClient
     ShowTabs = False
@@ -1715,17 +1716,17 @@ object fMain: TfMain
     object tsMap: TTabSheet
       Caption = 'tsMap'
       ClientHeight = 724
-      ClientWidth = 796
+      ClientWidth = 728
       object pnMap: TPanel
         Left = 0
         Height = 724
         Top = 0
-        Width = 796
+        Width = 728
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnMap'
         ClientHeight = 724
-        ClientWidth = 796
+        ClientWidth = 728
         Color = clWhite
         ParentColor = False
         TabOrder = 0
@@ -1733,7 +1734,7 @@ object fMain: TfMain
           Left = 23
           Height = 685
           Top = 23
-          Width = 757
+          Width = 689
           Align = alClient
           AutoResizeViewport = True
           OpenGLMajorVersion = 3
@@ -1755,7 +1756,7 @@ object fMain: TfMain
           Left = 18
           Height = 16
           Top = 708
-          Width = 760
+          Width = 692
           Align = alBottom
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
@@ -1765,7 +1766,7 @@ object fMain: TfMain
           OnScroll = hScrollBarScroll
         end
         object vScrollBar: TScrollBar
-          Left = 780
+          Left = 712
           Height = 685
           Top = 23
           Width = 16
@@ -1799,21 +1800,20 @@ object fMain: TfMain
           Left = 23
           Height = 23
           Top = 0
-          Width = 755
+          Width = 687
           Align = alTop
           BorderSpacing.Left = 23
           BorderSpacing.Right = 18
           BevelOuter = bvNone
           ClientHeight = 23
-          ClientWidth = 755
+          ClientWidth = 687
           TabOrder = 4
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23
             Top = 0
-            Width = 755
+            Width = 687
             Align = alClient
-            ParentColor = False
             OnPaint = HorisontalAxisPaint
           end
         end

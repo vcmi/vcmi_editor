@@ -22,7 +22,8 @@ unit vcmi.frames.tools;
 interface
 
 uses
-  Classes, SysUtils, typinfo, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls, editor_types;
+  Classes, SysUtils, typinfo, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls, editor_types,
+  editor_str_consts;
 
 type
 
@@ -58,12 +59,16 @@ type
     tsRoads: TTabSheet;
     tsTerrain: TTabSheet;
     tsObjects: TTabSheet;
+    procedure RiverTypeSelectionChanged(Sender: TObject);
+    procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure ToolsPagesChange(Sender: TObject);
     procedure ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
   private
     procedure FillLandscapeMenu; unimplemented;
+    procedure FillRoadRiverMenu;
   public
     constructor Create(TheOwner: TComponent); override;
+
   end;
 
 implementation
@@ -75,6 +80,16 @@ implementation
 procedure TToolsFrame.ToolsPagesChange(Sender: TObject);
 begin
   //todo: select active brush
+end;
+
+procedure TToolsFrame.RoadTypeSelectionChanged(Sender: TObject);
+begin
+  //
+end;
+
+procedure TToolsFrame.RiverTypeSelectionChanged(Sender: TObject);
+begin
+  //
 end;
 
 procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
@@ -101,10 +116,27 @@ begin
   end;
 end;
 
+procedure TToolsFrame.FillRoadRiverMenu;
+begin
+  RoadType.Items.Clear;
+  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
+  RoadType.Items.AddObject(rsRoadTypeGravel, TObject(PtrInt(TRoadType.gravelRoad)));
+  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
+  RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
+
+  RiverType.Items.Clear;
+  RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
+  RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
+  RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
+  RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
+  RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
+end;
+
 constructor TToolsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   FillLandscapeMenu;
+  FillRoadRiverMenu;
 end;
 
 end.
