@@ -850,9 +850,22 @@ begin
 
   if mode <> TGraphicsLoadMode.LoadRest then
   begin
-    for i := 0 to 7 do
+    palette[0] := STANDARD_COLORS[0];
+    palette[1] := STANDARD_COLORS[1];
+
+    for i := 2 to 7 do
     begin
-      palette[i] := STANDARD_COLORS[i];
+      if header.palette[i] = H3_SPECIAL_COLORS[i] then
+      begin
+        palette[i] := STANDARD_COLORS[i];
+      end
+      else
+      begin
+        palette[i].a := 255; //no alpha in h3 def
+        palette[i].b := header.palette[i].b;
+        palette[i].g := header.palette[i].g;
+        palette[i].r := header.palette[i].r;
+      end;
     end;
 
     for i := 8 to 255 do

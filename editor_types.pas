@@ -154,7 +154,7 @@ type
   operator- (a,b:TMapCoord):TMapCoord; inline;
   operator= (a,b:TMapCoord):boolean; inline;
 
-
+  operator= (a,b:TH3DefColor):boolean; inline;
 
 implementation
 
@@ -188,6 +188,11 @@ end;
 operator=(a, b: TMapCoord): boolean;
 begin
   result := (a.X = b.X) and (a.Y = b.Y);
+end;
+
+operator=(a, b: TH3DefColor): boolean;
+begin
+  result := (a.b = b.b) and (a.g = b.g) and (a.r = b.r);
 end;
 
 end.
