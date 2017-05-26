@@ -303,10 +303,10 @@ const
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
     (r: 0; g: 0; b:0; a: 0), //Transparency
-    (r: 0; g: 0; b:0; a: 64),//Shadow border (75% transparent)
-    (r: 0; g: 0; b:0; a: 128), //shadow
-    (r: 0; g: 0; b:0; a: 128), //shadow
-    (r: 0; g: 0; b:0; a: 128), //shadow 50%
+    (r: 0; g: 0; b:0; a: 73),//Shadow border (75% transparent)
+    (r: 0; g: 0; b:0; a: 93), //shadow
+    (r: 0; g: 0; b:0; a: 112), //shadow
+    (r: 0; g: 0; b:0; a: 131), //shadow 50%
     (r: 255; g: 255; b:0; a: 0),  //player color | Selection highlight (creatures)
     (r: 0; g: 0; b:0; a: 128), //Selection + shadow body
     (r: 0; g: 0; b:0; a: 64)); // Selection + shadow border
