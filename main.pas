@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, OpenGLContext, LCLType, Forms,
   Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls,
-  ComCtrls, Buttons, EditBtn, Map, terrain, editor_types, undo_base,
+  ComCtrls, Buttons, EditBtn, PopupNotifier, Map, terrain, editor_types, undo_base,
   map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
   lists_manager, zlib_stream, editor_gl, map_terrain_actions,
   map_road_river_actions, map_object_actions, undo_map, object_options, map_rect, map_format_json, search_index,
@@ -157,6 +157,7 @@ type
     pnTools: TPanel;
     pnLeft: TPanel;
     HorisontalAxis: TPaintBox;
+    MapViewNotifier: TPopupNotifier;
     RiverType: TRadioGroup;
     RoadType: TRadioGroup;
     SaveMapAsDialog: TSaveDialog;
@@ -701,8 +702,22 @@ end;
 procedure TfMain.actPropertiesExecute(Sender: TObject);
 var
   action_item : TEditObject;
+  p: TPoint;
 begin
   Assert(Assigned(FSelectedObject), 'actPropertiesExecute: No object selected');
+
+  if not FSelectedObject.HasOptions then
+  begin
+    MapViewNotifier.Title := 'Not editable';
+    MapViewNotifier.Text := 'This object has no options to edit';
+
+    p := Point(FMouseX, FMouseY);
+
+    p := MapView.ClientToScreen(p);
+
+    MapViewNotifier.ShowAtPos(p.x+20, p.y+20);
+    exit;
+  end;
 
   action_item := TEditObject.Create(FMap);
   action_item.TargetObject := FSelectedObject;
@@ -1432,6 +1447,7 @@ end;
 
 procedure TfMain.MapViewClick(Sender: TObject);
 begin
+  MapViewNotifier.Hide;
 end;
 
 procedure TfMain.MapViewDblClick(Sender: TObject);

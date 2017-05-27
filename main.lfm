@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 314
+  Left = 411
   Height = 809
-  Top = 79
+  Top = 63
   Width = 1142
   Caption = 'VCMI editor'
   ClientHeight = 789
@@ -3927,5 +3927,16 @@ object fMain: TfMain
     OnTimer = SearchTimerTimer
     left = 592
     top = 352
+  end
+  object MapViewNotifier: TPopupNotifier
+    Color = 14483455
+    Icon.Data = {
+      07544269746D617000000000
+    }
+    Text = 'Text'
+    Title = 'Caption'
+    Visible = False
+    left = 288
+    top = 160
   end
 end
