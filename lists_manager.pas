@@ -611,7 +611,6 @@ type
     function SIDIdNID(AID: AnsiString): TCustomID;
 
     //mods
-
     function GetEnabledMods: TStringDynArray;
 
     //metaclasses

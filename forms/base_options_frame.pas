@@ -536,8 +536,7 @@ begin
   Result := FFieldEditors.IsDirty;
 end;
 
-procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions
-  );
+procedure TBaseOptionsFrame.VisitAbandonedMine(AOptions: TAbandonedOptions);
 begin
   //do nothing
 end;
@@ -597,7 +596,6 @@ end;
 function TBaseOptionsFrame.IsDirty: Boolean;
 begin
   Result := True;
-  //TODO: TBaseOptionsFrame.IsDirty
 end;
 
 function TBaseOptionsFrame.Validate: String;

@@ -3,5 +3,6 @@ object BaseOptionsFrame: TBaseOptionsFrame
   Height = 240
   Top = 0
   Width = 320
+  LCLVersion = '1.6.5.0'
   TabOrder = 0
 end

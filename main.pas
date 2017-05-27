@@ -41,6 +41,7 @@ type
   TDragProxy = class(TDragObject)
   protected
     FOwner: TFMain;
+    function GetDragCursor(Accepted: Boolean; X, Y: Integer): TCursor; override;
   public
     constructor Create(AOwner: TfMain); reintroduce;
     destructor Destroy; override;
@@ -461,6 +462,18 @@ uses
 {$R *.lfm}
 
 { TDragProxy }
+
+function TDragProxy.GetDragCursor(Accepted: Boolean; X, Y: Integer): TCursor;
+begin
+  if Accepted then
+  begin
+    Result := crHandPoint;
+  end
+  else
+  begin
+    Result:=inherited GetDragCursor(Accepted, X, Y);
+  end;
+end;
 
 constructor TDragProxy.Create(AOwner: TfMain);
 begin
@@ -1537,6 +1550,7 @@ var
        if Assigned(FSelectedObject)
          and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
        begin
+         //MapView.Cursor:=crHandPoint;
          FNextDragSubject:=TDragSubject.MapObject;
          DragManager.DragStart(self,False, TILE_SIZE div 2);
          DragStarted := true;
@@ -2559,6 +2573,7 @@ procedure TfMain.DragCanceled;
 begin
   inherited DragCanceled;
   FMapDragging:=false;
+  //MapView.Cursor:=crDefault;
 end;
 
 procedure TfMain.MoveOrCopyObject(AObject: TMapObject; l, x, y: integer);
