@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, typinfo, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls, editor_types,
-  editor_str_consts;
+  editor_str_consts, map_actions;
 
 type
 
@@ -50,7 +50,6 @@ type
     gbBrushTerrain: TGroupBox;
     gbBrushTerrain1: TGroupBox;
     gbTerrain: TGroupBox;
-    iml: TImageList;
     RiverType: TRadioGroup;
     RoadType: TRadioGroup;
     tsErase: TTabSheet;
@@ -64,11 +63,22 @@ type
     procedure ToolsPagesChange(Sender: TObject);
     procedure ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
   private
+    //all brushes
+    FIdleBrush: TIdleMapBrush;
+    FFixedTerrainBrush: TFixedTerrainBrush;
+    FAreaTerrainBrush: TAreaTerrainBrush;
+    FRoadRiverBrush: TRoadRiverBrush;
+    FObjectSelectBrush: TObjectSelectBrush;
+
+    FActiveBrush: TMapBrush;
     procedure FillLandscapeMenu; unimplemented;
     procedure FillRoadRiverMenu;
+
+    procedure OnTerrainButtonClick(Sender: TObject);
   public
     constructor Create(TheOwner: TComponent); override;
 
+    property ActiveBrush: TMapBrush read FActiveBrush;
   end;
 
 implementation
@@ -113,6 +123,8 @@ begin
     button.Parent := gbTerrain;
     button.Caption:=GetEnumName(TypeInfo(tt),idx);
     button.ShowCaption := true;
+    button.OnClick := @OnTerrainButtonClick;
+    button.Tag:=idx;
   end;
 end;
 
@@ -132,11 +144,26 @@ begin
   RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
 end;
 
+procedure TToolsFrame.OnTerrainButtonClick(Sender: TObject);
+var
+  tt: TTerrainType;
+begin
+  tt := TTerrainType((Sender as TSpeedButton).Tag);
+  FFixedTerrainBrush.TT := tt;
+  FAreaTerrainBrush.TT:=tt;
+end;
+
 constructor TToolsFrame.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   FillLandscapeMenu;
   FillRoadRiverMenu;
+
+  FIdleBrush := TIdleMapBrush.Create(Self);
+  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
+  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
+  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
+  FObjectSelectBrush := TObjectSelectBrush.Create(Self);
 end;
 
 end.

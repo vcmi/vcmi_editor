@@ -54,6 +54,7 @@ object ToolsFrame: TToolsFrame
           Height = 28
           Top = 0
           Width = 28
+          Action = actSize0
           AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
@@ -188,7 +189,6 @@ object ToolsFrame: TToolsFrame
           AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          Down = True
           GroupIndex = 1
         end
         object btnBrush5: TSpeedButton
@@ -332,7 +332,6 @@ object ToolsFrame: TToolsFrame
           AllowAllUp = True
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          Down = True
           GroupIndex = 1
         end
         object btnBrush7: TSpeedButton
@@ -375,14 +374,12 @@ object ToolsFrame: TToolsFrame
     end
   end
   object act: TActionList
-    Images = iml
     left = 152
     top = 296
     object actSize1: TAction
       Category = 'BrushSize'
       AutoCheck = True
       Caption = '1x1'
-      Checked = True
       GroupIndex = 1
     end
     object actSize2: TAction
@@ -405,12 +402,9 @@ object ToolsFrame: TToolsFrame
     end
     object actSize0: TAction
       Category = 'BrushSize'
+      AutoCheck = True
+      Checked = True
+      GroupIndex = 1
     end
-  end
-  object iml: TImageList
-    Height = 24
-    Width = 24
-    left = 122
-    top = 296
   end
 end
