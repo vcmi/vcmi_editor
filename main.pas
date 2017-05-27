@@ -339,6 +339,8 @@ type
     FMouseTileX, FMouseTileY: Integer;  //current position of mouse in map coords
     FMouseX, FMouseY: Integer;  //current position of mouse in screen coords
 
+    FMouseDTileX, FMouseDTileY: Integer;
+
     //all brushes
     FIdleBrush: TIdleMapBrush;
     FFixedTerrainBrush: TFixedTerrainBrush;
@@ -1433,32 +1435,32 @@ begin
 end;
 
 procedure TfMain.MapViewDblClick(Sender: TObject);
-var
-  q: TMapObjectQueue;
+//var
+//  q: TMapObjectQueue;
 begin
-  if not Assigned(FMap) then
-    exit;
-
-  if Assigned(FSelectedObject) then
-  begin
-    if FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY) then
-    begin
-      actProperties.Execute;
-      Exit;
-    end;
-  end;
-
-  q := TMapObjectQueue.Create;
-  FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
-  try
-    if not q.IsEmpty then
-    begin
-      FSelectedObject := q.Top;
-      actProperties.Execute;
-    end;
-  finally
-    q.Free;
-  end;
+  //if not Assigned(FMap) then
+  //  exit;
+  //
+  //if Assigned(FSelectedObject) then
+  //begin
+  //  if FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY) then
+  //  begin
+  //    actProperties.Execute;
+  //    Exit;
+  //  end;
+  //end;
+  //
+  //q := TMapObjectQueue.Create;
+  //FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
+  //try
+  //  if not q.IsEmpty then
+  //  begin
+  //    FSelectedObject := q.Top;
+  //    actProperties.Execute;
+  //  end;
+  //finally
+  //  q.Free;
+  //end;
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1580,6 +1582,12 @@ begin
     end;
 
   end;
+
+  if Button = TMouseButton.mbRight then
+  begin
+    FMouseDTileX := FMouseTileX;
+    FMouseDTileY := FMouseTileY;
+  end;
 end;
 
 procedure TfMain.MapViewMouseEnter(Sender: TObject);
@@ -1628,6 +1636,17 @@ begin
     FActiveBrush.TileMouseUp(fmap, FMouseTileX, FMouseTileY);
     FActiveBrush.Execute(FUndoManager, FMap);
     InvalidateMapContent;
+  end;
+
+  if Button = TMouseButton.mbRight then
+  begin
+    if (FMouseDTileX = FMouseTileX) and (FMouseDTileY = FMouseTileY) then
+    begin
+      if Assigned(FSelectedObject) and FSelectedObject.CoversTile(FMap.CurrentLevelIndex, FMouseDTileX, FMouseDTileY) then
+      begin
+        actProperties.Execute;
+      end;
+    end;
   end;
 end;
 
