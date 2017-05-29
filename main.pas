@@ -22,14 +22,12 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, OpenGLContext, LCLType, Forms,
-  Controls, Graphics, GraphType, Dialogs, ExtCtrls, Menus, ActnList, StdCtrls,
-  ComCtrls, Buttons, EditBtn, PopupNotifier, Map, terrain, editor_types, undo_base,
-  map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base,
-  lists_manager, zlib_stream, editor_gl, map_terrain_actions,
-  map_road_river_actions, map_object_actions, undo_map, object_options, map_rect, map_format_json, search_index,
-  player_options_form, edit_triggered_events, player_selection_form,
-  types;
+  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, OpenGLContext, LCLType, Forms, Controls, Graphics, GraphType,
+  Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls, Buttons, EditBtn, PopupNotifier, Map, terrain, editor_types,
+  undo_base, map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
+  zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions, map_object_actions, undo_map, object_options,
+  map_rect, map_format_json, search_index, vcmi.frames.tools, player_options_form, edit_triggered_events,
+  player_selection_form, types;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -99,28 +97,11 @@ type
     actProperties: TAction;
     actMapOptions: TAction;
     actSaveMapAs: TAction;
-    btnBrush1: TSpeedButton;
-    btnBrush2: TSpeedButton;
-    btnBrush4: TSpeedButton;
-    btnBrushArea: TSpeedButton;
-    btnDirt: TSpeedButton;
-    btnGrass: TSpeedButton;
-    btnLava: TSpeedButton;
-    btnRock: TSpeedButton;
-    btnRough: TSpeedButton;
-    btnSand: TSpeedButton;
-    btnSelect: TSpeedButton;
-    btnSnow: TSpeedButton;
-    btnSub: TSpeedButton;
-    btnSwamp: TSpeedButton;
-    btnWater: TSpeedButton;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
     ObjectsSearch: TEditButton;
-    gbBrush: TGroupBox;
-    gbTerrain: TGroupBox;
     imlMainActionsSmall: TImageList;
     MainActions: TActionList;
     actCreateMap: TAction;
@@ -155,12 +136,9 @@ type
     pnTop: TPanel;
     pnObjectsSearch: TPanel;
     pnObjects: TPanel;
-    pnTools: TPanel;
     pnLeft: TPanel;
     HorisontalAxis: TPaintBox;
     MapViewNotifier: TPopupNotifier;
-    RiverType: TRadioGroup;
-    RoadType: TRadioGroup;
     SaveMapAsDialog: TSaveDialog;
     sbObjects: TScrollBar;
     StatusBar: TStatusBar;
@@ -236,22 +214,6 @@ type
     procedure actZoomOutUpdate(Sender: TObject);
     procedure AnimTimerTimer(Sender: TObject);
     procedure ApplicationProperties1IdleEnd(Sender: TObject);
-    procedure btnBrush1Click(Sender: TObject);
-    procedure btnBrush2Click(Sender: TObject);
-    procedure btnBrush4Click(Sender: TObject);
-    procedure btnBrushAreaClick(Sender: TObject);
-    procedure btnBrushFillClick(Sender: TObject);
-    procedure btnDirtClick(Sender: TObject);
-    procedure btnGrassClick(Sender: TObject);
-    procedure btnLavaClick(Sender: TObject);
-    procedure btnRockClick(Sender: TObject);
-    procedure btnRoughClick(Sender: TObject);
-    procedure btnSandClick(Sender: TObject);
-    procedure btnSelectClick(Sender: TObject);
-    procedure btnSnowClick(Sender: TObject);
-    procedure btnSubClick(Sender: TObject);
-    procedure btnSwampClick(Sender: TObject);
-    procedure btnWaterClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -299,10 +261,6 @@ type
     procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure pbObjectsResize(Sender: TObject);
-    procedure RiverTypeClick(Sender: TObject);
-    procedure RiverTypeSelectionChanged(Sender: TObject);
-    procedure RoadTypeClick(Sender: TObject);
-    procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure SearchTimerTimer(Sender: TObject);
@@ -343,15 +301,7 @@ type
 
     FMouseDTileX, FMouseDTileY: Integer;
 
-    //all brushes
-    FIdleBrush: TIdleMapBrush;
-    FFixedTerrainBrush: TFixedTerrainBrush;
-    FAreaTerrainBrush: TAreaTerrainBrush;
-    FRoadRiverBrush: TRoadRiverBrush;
-    FObjectSelectBrush: TObjectSelectBrush;
-
-    //selected brush
-    FActiveBrush: TMapBrush;
+    FToolsFrame: TToolsFrame;
 
     FUndoManager: TMapUndoManager;
 
@@ -371,7 +321,6 @@ type
     FViewObjectRowsH: Integer;
 
     FDragging: TDragProxy;
-    FSelectedObject: TMapObject;
 
     FMapDragging: boolean;
     FNextDragSubject: TDragSubject;
@@ -405,8 +354,6 @@ type
     procedure ChangeMapPosition(ADelta:TPoint);
     procedure SetMapViewMouse(x,y: integer);
 
-    procedure SetBrushTerrain(tt: TTerrainType);
-
     procedure InvalidateObjects;
     procedure InvalidateObjPos;
 
@@ -426,7 +373,6 @@ type
     procedure SaveMap(AFileName: string);
 
     procedure SetCurrentPlayer(APlayer: TPlayer);
-    procedure SetActiveBrush(ABrush: TMapBrush);
 
     procedure SetupPlayerSelection;
     procedure SetupLevelSelection;
@@ -567,7 +513,7 @@ begin
 
   if FOwner.FUndoManager.ExecuteItem(action_item) then
   begin
-    FOwner.FSelectedObject := action_item.TargetObject;
+    FOwner.FToolsFrame.SelectedObject := action_item.TargetObject;
   end;
 end;
 
@@ -627,13 +573,13 @@ end;
 
 procedure TfMain.actDeleteExecute(Sender: TObject);
 begin
-  DeleteObject(FSelectedObject);
+  DeleteObject(FToolsFrame.SelectedObject);
   ClearSelection();
 end;
 
 procedure TfMain.actDeleteUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FSelectedObject);
+  (Sender as TAction).Enabled := Assigned(FToolsFrame.SelectedObject);
 end;
 
 procedure TfMain.actFilterArtifactsExecute(Sender: TObject);
@@ -717,9 +663,9 @@ var
   action_item : TEditObject;
   p: TPoint;
 begin
-  Assert(Assigned(FSelectedObject), 'actPropertiesExecute: No object selected');
+  Assert(Assigned(FToolsFrame.SelectedObject), 'actPropertiesExecute: No object selected');
 
-  if not FSelectedObject.HasOptions then
+  if not FToolsFrame.SelectedObject.HasOptions then
   begin
     MapViewNotifier.Title := 'Not editable';
     MapViewNotifier.Text := 'This object has no options to edit';
@@ -733,14 +679,14 @@ begin
   end;
 
   action_item := TEditObject.Create(FMap);
-  action_item.TargetObject := FSelectedObject;
+  action_item.TargetObject := FToolsFrame.SelectedObject;
 
   FUndoManager.ExecuteItem(action_item);
 end;
 
 procedure TfMain.actPropertiesUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FSelectedObject);
+  (Sender as TAction).Enabled := Assigned(FToolsFrame.SelectedObject);
 end;
 
 procedure TfMain.actRedoExecute(Sender: TObject);
@@ -879,89 +825,6 @@ begin
   UpdateWidgets;
 end;
 
-procedure TfMain.btnBrush1Click(Sender: TObject);
-begin
-  FFixedTerrainBrush.Size := 1;
-  SetActiveBrush(FFixedTerrainBrush);
-end;
-
-procedure TfMain.btnBrush2Click(Sender: TObject);
-begin
-  FFixedTerrainBrush.Size := 2;
-  SetActiveBrush(FFixedTerrainBrush);
-end;
-
-procedure TfMain.btnBrush4Click(Sender: TObject);
-begin
-  FFixedTerrainBrush.Size := 4;
-  SetActiveBrush(FFixedTerrainBrush);
-end;
-
-procedure TfMain.btnBrushAreaClick(Sender: TObject);
-begin
-  SetActiveBrush(FAreaTerrainBrush);
-end;
-
-procedure TfMain.btnBrushFillClick(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush); //TODO: infinity fill mode
-end;
-
-procedure TfMain.btnDirtClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.dirt);
-end;
-
-procedure TfMain.btnGrassClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.grass);
-end;
-
-procedure TfMain.btnLavaClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.lava);
-end;
-
-procedure TfMain.btnRockClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.rock);
-end;
-
-procedure TfMain.btnRoughClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.rough);
-end;
-
-procedure TfMain.btnSandClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.sand);
-end;
-
-procedure TfMain.btnSelectClick(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush);
-end;
-
-procedure TfMain.btnSnowClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.snow);
-end;
-
-procedure TfMain.btnSubClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.subterra);
-end;
-
-procedure TfMain.btnSwampClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.swamp);
-end;
-
-procedure TfMain.btnWaterClick(Sender: TObject);
-begin
-  SetBrushTerrain(TTerrainType.water);
-end;
-
 function TfMain.CheckUnsavedMap: boolean;
 var
   res: Integer;
@@ -1013,16 +876,10 @@ begin
   MapView.SharedControl := RootManager.SharedContext;
   ObjectsView.SharedControl := RootManager.SharedContext;
 
-  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
-  RoadType.Items.AddObject(rsRoadTypeGravel, TObject(PtrInt(TRoadType.gravelRoad)));
-  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
-  RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
-
-  RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
-  RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
-  RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
-  RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
-  RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
+  FToolsFrame := TToolsFrame.Create(self);
+  FToolsFrame.BorderStyle :=  bsNone;
+  FToolsFrame.Align:=alClient;
+  FToolsFrame.Parent := pnLeft;
 
   FResourceManager := RootManager.ResourceManager;
   FEnv.tm := RootManager.TerrainManager;
@@ -1045,15 +902,6 @@ begin
 
   FMap := TVCMIMap.CreateDefault(FEnv);
 
-  FIdleBrush := TIdleMapBrush.Create(Self);
-  FFixedTerrainBrush := TFixedTerrainBrush.Create(Self);
-  FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
-  FRoadRiverBrush := TRoadRiverBrush.Create(Self);
-  FObjectSelectBrush := TObjectSelectBrush.Create(Self);
-
-  RoadType.ItemIndex := -1; //this must be done after construction of brushes
-  RiverType.ItemIndex:= -1;
-
   FCurrentPlayer := TPlayer.none;
 
   SetupPlayerSelection();
@@ -1061,7 +909,7 @@ begin
   FVisibleObjects := TVisibleObjects.Create();
   FVisibleObjectsValid:=false;
 
-  FObjectSelectBrush.VisibleObjects := FVisibleObjects;
+  FToolsFrame.ObjectSelectBrush.VisibleObjects := FVisibleObjects;
 
   FObjectCategory:=TObjectCategory.Hero;
 
@@ -1100,15 +948,10 @@ begin
         Application.ShowException(e);
       end;
     end;
-    SetActiveBrush(FIdleBrush);
     RootManager.ProgressForm.Advance(1);
   end
   else
   begin
-    SetActiveBrush(FFixedTerrainBrush); //must be done after {xxx}Type.ItemIndex as SetItemIndex changes active brush
-
-    FFixedTerrainBrush.Size := 1;
-    FFixedTerrainBrush.TT :=  TTerrainType.dirt;
   end;
 
   MapChanded;
@@ -1116,6 +959,8 @@ begin
   UpdateWidgets;
 
   SetZoomIndex(3);
+
+  FToolsFrame.SwitchToObjects;
 end;
 
 procedure TfMain.FormDestroy(Sender: TObject);
@@ -1149,9 +994,9 @@ begin
 
   if (dx<>0) or (dy<>0) then
   begin
-    if Assigned(FSelectedObject) then
+    if Assigned(FToolsFrame.SelectedObject) then
     begin
-      MoveObject(FSelectedObject, FMap.CurrentLevelIndex, FSelectedObject.X + dx, FSelectedObject.Y + dy);
+      MoveObject(FToolsFrame.SelectedObject, FMap.CurrentLevelIndex, FToolsFrame.SelectedObject.X + dx, FToolsFrame.SelectedObject.Y + dy);
     end
     else
     begin
@@ -1496,8 +1341,8 @@ procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
 begin
   if not Assigned(FMap) then
     exit;
+  FToolsFrame.SwitchToObjects;
 
-  SetActiveBrush(FIdleBrush);
   SetMapViewMouse(x,y);
 
   FDragging.DropOnMap;
@@ -1514,7 +1359,7 @@ begin
     exit;
   end;
 
-  SetActiveBrush(FIdleBrush);
+  FToolsFrame.SwitchToObjects;
 
   //TODO: handle accceptible terrain
   //TODO: handle activity-blocking intersection
@@ -1547,8 +1392,8 @@ var
    begin
      if not DragStarted then
      begin
-       if Assigned(FSelectedObject)
-         and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
+       if Assigned(FToolsFrame.SelectedObject)
+         and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
        begin
          //MapView.Cursor:=crHandPoint;
          FNextDragSubject:=TDragSubject.MapObject;
@@ -1565,7 +1410,7 @@ begin
 
   if Button = TMouseButton.mbLeft then
   begin
-    if FActiveBrush=FIdleBrush then
+    if FToolsFrame.ActiveBrush = FToolsFrame.IdleBrush then
     begin
       DragStarted:=False;
 
@@ -1575,8 +1420,8 @@ begin
       try
         FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
 
-        if Assigned(FSelectedObject)
-          and (FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
+        if Assigned(FToolsFrame.SelectedObject)
+          and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
           then
         begin
           //select next object
@@ -1586,20 +1431,20 @@ begin
             o := q.Top;
             q.Pop;
 
-            if (q.IsEmpty) or (q.Top = FSelectedObject) then
+            if (q.IsEmpty) or (q.Top = FToolsFrame.SelectedObject) then
             begin
               break;
             end;
 
           end;
-          FSelectedObject := o;
+          FToolsFrame.SelectedObject := o;
         end
         else
         begin
           if q.IsEmpty then
-            FSelectedObject := nil
+            FToolsFrame.SelectedObject := nil
           else
-            FSelectedObject := q.Top;
+            FToolsFrame.SelectedObject := q.Top;
         end;
         PerformStartDrag();
       finally
@@ -1608,7 +1453,7 @@ begin
     end
     else
     begin
-      FActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
+      FToolsFrame.ActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
     end;
 
   end;
@@ -1631,7 +1476,7 @@ begin
     exit;
 
   InvalidateMapAxis;
-  FActiveBrush.Clear;
+  FToolsFrame.ActiveBrush.Clear;
 end;
 
 procedure TfMain.MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -1652,7 +1497,7 @@ begin
   begin
     InvalidateMapAxis;
   end;
-  FActiveBrush.TileMouseMove(fmap, FMouseTileX, FMouseTileY);
+  FToolsFrame.ActiveBrush.TileMouseMove(fmap, FMouseTileX, FMouseTileY);
 end;
 
 procedure TfMain.MapViewMouseUp(Sender: TObject; Button: TMouseButton;
@@ -1663,8 +1508,8 @@ begin
 
   if Button = TMouseButton.mbLeft then
   begin
-    FActiveBrush.TileMouseUp(fmap, FMouseTileX, FMouseTileY);
-    FActiveBrush.Execute(FUndoManager, FMap);
+    FToolsFrame.ActiveBrush.TileMouseUp(fmap, FMouseTileX, FMouseTileY);
+    FToolsFrame.ActiveBrush.Execute(FUndoManager, FMap);
     InvalidateMapContent;
   end;
 
@@ -1672,7 +1517,7 @@ begin
   begin
     if (FMouseDTileX = FMouseTileX) and (FMouseDTileY = FMouseTileY) then
     begin
-      if Assigned(FSelectedObject) and FSelectedObject.CoversTile(FMap.CurrentLevelIndex, FMouseDTileX, FMouseDTileY) then
+      if Assigned(FToolsFrame.SelectedObject) and FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex, FMouseDTileX, FMouseDTileY) then
       begin
         actProperties.Execute;
       end;
@@ -1790,7 +1635,7 @@ begin
 
   RenderSelection;
 
-  FActiveBrush.RenderCursor(FMapViewState, fmap, FMouseTileX, FMouseTileY);
+  FToolsFrame.ActiveBrush.RenderCursor(FMapViewState, fmap, FMouseTileX, FMouseTileY);
 
   FMapViewState.DisableScissor;
   //glDisable(GL_LINE_SMOOTH);
@@ -1831,7 +1676,7 @@ begin
   pos.x := pos.x - FViewTilesH div 2;
   pos.y := pos.y - FViewTilesV div 2;
 
-  FSelectedObject := AObject;
+  FToolsFrame.SelectedObject := AObject;
   SetMapPosition(pos);
 end;
 
@@ -1965,7 +1810,7 @@ begin
       DragManager.DragStart(self, False,10); //after state change
     end;
 
-    SetActiveBrush(FIdleBrush);
+    FToolsFrame.SwitchToObjects;
   end;
 end;
 
@@ -2157,36 +2002,6 @@ begin
   InvalidateObjects;
 end;
 
-procedure TfMain.RiverTypeClick(Sender: TObject);
-begin
-  //SetActiveBrush(FRoadRiverBrush);
-end;
-
-procedure TfMain.RiverTypeSelectionChanged(Sender: TObject);
-begin
-  if RiverType.ItemIndex >=0 then
-  begin
-    FRoadRiverBrush.RiverType:=TRiverType(PtrInt(RiverType.Items.Objects[RiverType.ItemIndex]));
-    RoadType.ItemIndex:=-1;
-    SetActiveBrush(FRoadRiverBrush);
-  end;
-end;
-
-procedure TfMain.RoadTypeClick(Sender: TObject);
-begin
-  //SetActiveBrush(FRoadRiverBrush);
-end;
-
-procedure TfMain.RoadTypeSelectionChanged(Sender: TObject);
-begin
-  if RoadType.ItemIndex >=0 then
-  begin
-    FRoadRiverBrush.RoadType:=TRoadType(PtrInt(RoadType.Items.Objects[RoadType.ItemIndex]));
-    RiverType.ItemIndex:=-1;
-    SetActiveBrush(FRoadRiverBrush);
-  end;
-end;
-
 procedure TfMain.pcToolBoxChange(Sender: TObject);
 begin
   ClearSelection();
@@ -2216,12 +2031,12 @@ begin
   FMapViewState.UseTextures(False, False);
   FMapViewState.StartDrawingRects;
 
-  if Assigned(FSelectedObject) then
+  if Assigned(FToolsFrame.SelectedObject) then
   begin
-    FSelectedObject.RenderSelectionRect(FMapViewState);
+    FToolsFrame.SelectedObject.RenderSelectionRect(FMapViewState);
   end;
 
-  FActiveBrush.RenderSelection(FMapViewState);
+  FToolsFrame.ActiveBrush.RenderSelection(FMapViewState);
 end;
 
 procedure TfMain.SaveMap(AFileName: string);
@@ -2291,26 +2106,6 @@ begin
   InvalidateObjects;
 end;
 
-procedure TfMain.SetActiveBrush(ABrush: TMapBrush);
-begin
-  FActiveBrush := ABrush;
-
-  if FActiveBrush<>FIdleBrush then
-  begin
-    FSelectedObject := nil;
-  end;
-
-  FActiveBrush.Clear;
-
-  if FActiveBrush <> FRoadRiverBrush then
-  begin
-    RoadType.ItemIndex:=-1;
-    RiverType.ItemIndex:=-1;
-  end;
-
-  UpdateWidgets();
-end;
-
 procedure TfMain.UpdateWidgets;
 var
   s, status_text: String;
@@ -2326,46 +2121,6 @@ begin
   else
     Caption := 'VCMI editor';
 
-  if FActiveBrush = FIdleBrush then
-  begin
-    btnSelect.Down := true;
-    btnBrush1.Down:=false;
-    btnBrush2.Down:=false;
-    btnBrush4.Down:=false;
-    btnBrushArea.Down:=false;
-    gbTerrain.Enabled := false;
-  end
-  else if FActiveBrush = FFixedTerrainBrush then
-  begin
-    btnBrush1.Down := FFixedTerrainBrush.Size = 1;
-    btnBrush2.Down := FFixedTerrainBrush.Size = 2;
-    btnBrush4.Down := FFixedTerrainBrush.Size = 4;
-    btnBrushArea.Down:=false;
-    btnSelect.Down:=false;
-
-    gbTerrain.Enabled := true;
-  end
-  else if FActiveBrush = FAreaTerrainBrush then
-  begin
-    btnBrushArea.Down := true;
-
-    btnBrush1.Down:=false;
-    btnBrush2.Down:=false;
-    btnBrush4.Down:=false;
-    btnSelect.Down:=false;
-
-    gbTerrain.Enabled := true;
-  end
-  else begin
-    btnBrush1.Down:=false;
-    btnBrush2.Down:=false;
-    btnBrush4.Down:=false;
-    btnBrushArea.Down:=false;
-    btnSelect.Down:=false;
-
-    gbTerrain.Enabled := false;
-  end;
-
   status_text := '';
 
   if Assigned(FMap) then
@@ -2378,12 +2133,12 @@ begin
     end;
   end;
 
-  if Assigned(FSelectedObject) then
+  if Assigned(FToolsFrame.SelectedObject) then
   begin
     if status_text <> '' then
       status_text += ' | ';
 
-    status_text += FSelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FSelectedObject.&Type, FSelectedObject.Subtype));
+    status_text += FToolsFrame.SelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FToolsFrame.SelectedObject.&Type, FToolsFrame.SelectedObject.Subtype));
   end;
 
   StatusBar.Panels[0].Text:= status_text;
@@ -2449,7 +2204,7 @@ end;
 
 procedure TfMain.ClearSelection;
 begin
-  FSelectedObject := nil;
+  FToolsFrame.SelectedObject := nil;
 end;
 
 procedure TfMain.SetMapPosition(APosition: TPoint);
@@ -2495,12 +2250,6 @@ begin
   FMouseTileX := FMapHPos + ofs_x;
   FMouseTileY := FMapVPos + ofs_y;
 
-end;
-
-procedure TfMain.SetBrushTerrain(tt: TTerrainType);
-begin
-  FFixedTerrainBrush.TT := tt;
-  FAreaTerrainBrush.TT:=tt;
 end;
 
 procedure TfMain.SetupPlayerSelection;
@@ -2562,7 +2311,7 @@ end;
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);
 begin
   case FNextDragSubject of
-    TDragSubject.MapObject: DragObject := TObjectDragProxy.Create(self, FSelectedObject, FMouseTileX, FMouseTileY);
+    TDragSubject.MapObject: DragObject := TObjectDragProxy.Create(self, FToolsFrame.SelectedObject, FMouseTileX, FMouseTileY);
     TDragSubject.MapTemplate: DragObject := TTemplateDragProxy.Create(self, FSelectedTemplate);
   else
   inherited DoStartDrag(DragObject);
@@ -2601,7 +2350,7 @@ begin
 
   FUndoManager.ExecuteItem(action_item);
 
-  FSelectedObject := action_item.TargetObject;
+  FToolsFrame.SelectedObject := action_item.TargetObject;
   InvalidateMapContent;
 end;
 
@@ -2619,7 +2368,7 @@ begin
 
   FUndoManager.ExecuteItem(action_item);
 
-  FSelectedObject := AObject;
+  FToolsFrame.SelectedObject := AObject;
   InvalidateMapContent;
 end;
 
