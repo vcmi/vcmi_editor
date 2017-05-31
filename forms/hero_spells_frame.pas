@@ -18,8 +18,6 @@ unit hero_spells_frame;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

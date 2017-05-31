@@ -18,8 +18,6 @@
 unit road_transitions;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
 
 interface
 

@@ -18,8 +18,6 @@ unit player_options_frame;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

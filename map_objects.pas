@@ -18,8 +18,6 @@ unit map_objects;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

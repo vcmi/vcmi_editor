@@ -4,6 +4,7 @@
 
 {$mode objfpc}
 {$modeswitch advancedrecords}
+{$MODESWITCH NESTEDPROCVARS}
 {$H+}
 {$SCOPEDENUMS ON}
 {$INLINE ON}

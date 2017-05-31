@@ -18,8 +18,6 @@
 unit map_rect;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
 
 interface
 

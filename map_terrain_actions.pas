@@ -18,8 +18,6 @@
 unit map_terrain_actions;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
 
 interface
 

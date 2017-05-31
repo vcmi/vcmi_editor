@@ -19,8 +19,6 @@ unit gui_helpers;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

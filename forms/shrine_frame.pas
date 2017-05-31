@@ -18,8 +18,6 @@ unit shrine_frame;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

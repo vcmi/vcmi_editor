@@ -17,7 +17,6 @@
 unit Map;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 

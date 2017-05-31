@@ -18,8 +18,7 @@ unit editor_types;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
+
 
 interface
 

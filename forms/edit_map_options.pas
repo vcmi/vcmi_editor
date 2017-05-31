@@ -19,8 +19,6 @@ unit edit_map_options;
 
 {$I compilersetup.inc}
 
-{$MODESWITCH NESTEDPROCVARS}
-
 interface
 
 uses

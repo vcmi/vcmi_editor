@@ -18,7 +18,6 @@
 unit editor_gl;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
 
 interface
 
