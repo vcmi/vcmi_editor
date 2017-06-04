@@ -2381,9 +2381,9 @@ begin
   FreeAndNil(FOptions);
 
   if (GetType <> '') and (GetSubtype <> '') then
-  begin
-    FOptions := TObjectOptions.CreateByID(GetType, GetSubtype,Self);
-  end;
+    FOptions := TObjectOptions.CreateByID(GetType, GetSubtype,Self)
+  else
+    FOptions := TObjectOptions.Create(Self);
 end;
 
 procedure TMapObject.SetCollection(Value: TCollection);
@@ -2583,12 +2583,20 @@ begin
   //type must be loaded first
   //subtype must be loaded right after type
   &Type:=ASrcObj.Strings['type'];
-  Subtype:=ASrcObj.Strings['subtype'];
+
+  if ASrcObj.IndexOfName('subtype') >= 0 then
+  begin
+    Subtype:=ASrcObj.Strings['subtype'];
+  end
+  else
+  begin
+    Subtype := '';
+  end;
 
   AHandler.JSONToObject(ASrc as TJSONObject, Self);
 
   //destream Options after all other properties
-  if (TJSONObject(ASrc).IndexOfName('options') >= 0) and (TJSONObject(ASrc).Types['options']=jtObject) then
+  if (ASrcObj.IndexOfName('options') >= 0) and (ASrcObj.Types['options']=jtObject) then
   begin
     AHandler.JSONToObjectEx(TJSONObject(ASrc).Objects['options'], Options);
   end;
