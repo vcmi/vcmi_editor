@@ -47,6 +47,8 @@ resourcestring
   rsEditRoadDescription = 'Edit roads';
   rsEditRiverDescription = 'Edit rivers';
 
+  rsEraseDescription = 'Filtered erase';
+
   rsEmpty = '(Empty)';
   rsNone  = '(None)';
 

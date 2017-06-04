@@ -23,7 +23,8 @@ interface
 
 uses
   Classes, SysUtils, typinfo, FileUtil, Forms, Controls, ComCtrls, ActnList, StdCtrls, Buttons, ExtCtrls, editor_types,
-  editor_str_consts, map, map_actions, map_road_river_actions, map_terrain_actions, map_object_actions;
+  editor_str_consts, map, map_actions, map_road_river_actions, map_terrain_actions, map_object_actions,
+  map_erase_actions;
 
 type
 
@@ -79,11 +80,13 @@ type
     FAreaTerrainBrush: TAreaTerrainBrush;
     FRoadRiverBrush: TRoadRiverBrush;
     FObjectSelectBrush: TObjectSelectBrush;
+    FEraseBrush: TEraseBrush;
 
     FActiveBrush: TMapBrush;
     FSelectedObject: TMapObject;
-    procedure FillLandscapeMenu; unimplemented;
+    procedure FillLandscapeMenu;
     procedure FillRoadRiverMenu;
+    procedure FillEraseMenu;
 
     procedure OnTerrainButtonClick(Sender: TObject);
 
@@ -242,6 +245,11 @@ begin
   RiverType.ItemIndex:=0;
 end;
 
+procedure TToolsFrame.FillEraseMenu;
+begin
+
+end;
+
 procedure TToolsFrame.OnTerrainButtonClick(Sender: TObject);
 var
   tt: TTerrainType;
@@ -317,7 +325,7 @@ end;
 procedure TToolsFrame.ErasePageSelected;
 begin
   //TODO
-  SetActiveBrush(FIdleBrush);
+  SetActiveBrush(FEraseBrush);
 end;
 
 procedure TToolsFrame.SetActiveBrush(ABrush: TMapBrush);
@@ -335,6 +343,7 @@ begin
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
   FObjectSelectBrush := TObjectSelectBrush.Create(Self);
+  FEraseBrush := TEraseBrush.Create(Self);
 
   FActiveBrush := FIdleBrush;
 

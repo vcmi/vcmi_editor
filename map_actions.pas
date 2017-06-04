@@ -17,8 +17,6 @@
 unit map_actions;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
 
 interface
 
@@ -85,6 +83,8 @@ type
 
     procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); virtual;
     procedure RenderSelection(State: TLocalState); virtual;
+
+    procedure MouseLeave(AMap: TVCMIMap); virtual;
   end;
 
   { TIdleMapBrush }
@@ -224,6 +224,11 @@ end;
 procedure TMapBrush.RenderSelection(State: TLocalState);
 begin
 
+end;
+
+procedure TMapBrush.MouseLeave(AMap: TVCMIMap);
+begin
+  Clear;
 end;
 
 end.

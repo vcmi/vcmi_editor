@@ -1476,7 +1476,8 @@ begin
     exit;
 
   InvalidateMapAxis;
-  FToolsFrame.ActiveBrush.Clear;
+
+  FToolsFrame.ActiveBrush.MouseLeave(FMap);
 end;
 
 procedure TfMain.MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);

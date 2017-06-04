@@ -107,7 +107,6 @@ type
     procedure Undo; override;
 
     function Execute: boolean; override;
-
   end;
 
   { TEditRoad }

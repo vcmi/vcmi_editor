@@ -18,8 +18,6 @@
 unit map_object_actions;
 
 {$I compilersetup.inc}
-{$MODESWITCH ADVANCEDRECORDS}
-{$MODESWITCH NESTEDPROCVARS}
 
 interface
 
@@ -53,6 +51,8 @@ type
     procedure TileMouseDown(AMap: TVCMIMap; X, Y: integer); override;
 
     property VisibleObjects: TMapObjectsSelection read FVisibleObjects write FVisibleObjects;
+
+    procedure MouseLeave(AMap: TVCMIMap); override;
   end;
 
 
@@ -384,6 +384,11 @@ procedure TObjectSelectBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
 begin
   inherited TileMouseDown(AMap, X, Y);
   FStartCoord.Reset(X,Y);
+end;
+
+procedure TObjectSelectBrush.MouseLeave(AMap: TVCMIMap);
+begin
+  //ignore
 end;
 
 { TBaseObjectAction }
