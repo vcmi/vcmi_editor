@@ -2304,14 +2304,7 @@ begin
     end
     else
     begin
-      if Buildings.IsRequired('capitol') and Buildings.IsRequired('castle') then
-      begin
-        canditates.Add('capitol');
-        canditates.Add('castle');
-        canditates.Add('citadel');
-        canditates.Add('fort');
-      end
-      else if Buildings.IsRequired('castle') then
+      if Buildings.IsRequired('castle') then
       begin
         canditates.Add('castle');
         canditates.Add('citadel');
@@ -2329,6 +2322,9 @@ begin
       begin
         canditates.Add('village');
       end;
+
+      if Buildings.IsRequired('capitol') then
+        canditates.Insert(0, 'capitol')
     end;
 
     for template_id in canditates do
