@@ -27,7 +27,7 @@ uses
 
 type
 
-  TEraseTarget = (Roads, Rivers, StaicObjects, InteractiveObjects);
+  TEraseTarget = (Roads, Rivers, StaticObjects, InteractiveObjects);
   TEraseFilter = set of TEraseTarget;
 
   { TEraseBrush }
@@ -55,6 +55,9 @@ type
     FEraseRoad: TEditRoad;
     FEraseRiver: TEditRiver;
     FFilter: TEraseFilter;
+    FActiveFilter: TEraseFilter;
+
+    FActions: array[TEraseTarget] of TMapUndoItem;
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
@@ -91,18 +94,44 @@ begin
 end;
 
 function TEraseAction.Execute: boolean;
+var
+  iter: TEraseTarget;
 begin
+  FActiveFilter := Filter;
+  Result := FActiveFilter <> [];
 
+  for iter in TEraseTarget do
+    FActions[iter] := nil;
+
+  FActions[TEraseTarget.Rivers] := FEraseRiver;
+
+  FActions[TEraseTarget.Roads] := FEraseRoad;
+
+  FActions[TEraseTarget.InteractiveObjects] := nil;//todo
+
+  FActions[TEraseTarget.StaticObjects] := nil;//todo
+
+  for iter in FActiveFilter do
+    if Assigned(FActions[iter]) then
+      FActions[iter].Execute;
 end;
 
 procedure TEraseAction.Redo;
+var
+  iter: TEraseTarget;
 begin
-
+  for iter in FActiveFilter do
+    if Assigned(FActions[iter]) then
+      FActions[iter].Redo;
 end;
 
 procedure TEraseAction.Undo;
+var
+  iter: TEraseTarget;
 begin
-
+  for iter in FActiveFilter do
+    if Assigned(FActions[iter]) then
+      FActions[iter].Undo;
 end;
 
 { TEraseBrush }
@@ -113,8 +142,14 @@ begin
 end;
 
 procedure TEraseBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+var
+  item: TEraseAction;
 begin
-  //TODO:
+  item :=  TEraseAction.Create(AMap);
+  item.Filter:=Filter;
+  FillActionObjectTiles(item);
+  AManager.ExecuteItem(item);
+  Clear;
 end;
 
 procedure TEraseBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);

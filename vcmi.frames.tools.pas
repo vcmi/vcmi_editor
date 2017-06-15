@@ -32,9 +32,10 @@ type
 
   TToolsFrame = class(TFrame)
     act: TActionList;
+    actEraseSize1: TAction;
+    actEraseSize2: TAction;
     actObjSizeRect: TAction;
     actObjSize0: TAction;
-    actSize0: TAction;
     actSizeRect: TAction;
     actSize4: TAction;
     actSize2: TAction;
@@ -62,6 +63,8 @@ type
     tsRoads: TTabSheet;
     tsTerrain: TTabSheet;
     tsObjects: TTabSheet;
+    procedure actEraseSize1Execute(Sender: TObject);
+    procedure actEraseSize2Execute(Sender: TObject);
     procedure actObjSize0Execute(Sender: TObject);
     procedure actObjSizeRectExecute(Sender: TObject);
     procedure actSize0Execute(Sender: TObject);
@@ -69,6 +72,7 @@ type
     procedure actSize2Execute(Sender: TObject);
     procedure actSize4Execute(Sender: TObject);
     procedure actSizeRectExecute(Sender: TObject);
+    procedure EraseFilterItemClick(Sender: TObject; Index: integer);
     procedure RiverTypeSelectionChanged(Sender: TObject);
     procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure ToolsPagesChange(Sender: TObject);
@@ -162,6 +166,18 @@ begin
   SetActiveBrush(FIdleBrush);
 end;
 
+procedure TToolsFrame.actEraseSize1Execute(Sender: TObject);
+begin
+  SetActiveBrush(FEraseBrush);
+  FEraseBrush.Size := 1;
+end;
+
+procedure TToolsFrame.actEraseSize2Execute(Sender: TObject);
+begin
+  SetActiveBrush(FEraseBrush);
+  FEraseBrush.Size := 2;
+end;
+
 procedure TToolsFrame.actObjSizeRectExecute(Sender: TObject);
 begin
   SetActiveBrush(FObjectSelectBrush);
@@ -188,6 +204,11 @@ end;
 procedure TToolsFrame.actSizeRectExecute(Sender: TObject);
 begin
   SetActiveBrush(FAreaTerrainBrush);
+end;
+
+procedure TToolsFrame.EraseFilterItemClick(Sender: TObject; Index: integer);
+begin
+
 end;
 
 procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
@@ -246,8 +267,25 @@ begin
 end;
 
 procedure TToolsFrame.FillEraseMenu;
+var
+  filter_captions: array[TEraseTarget] of AnsiString;
+  f: TEraseTarget;
 begin
+  filter_captions[TEraseTarget.InteractiveObjects] := rsEraseFilterInteractive;
+  filter_captions[TEraseTarget.Rivers] := rsEraseFilterRivers;
+  filter_captions[TEraseTarget.Roads] := rsEraseFilterRoads;
+  filter_captions[TEraseTarget.StaticObjects] := rsEraseFilterStatic;
 
+  EraseFilter.Items.BeginUpdate;
+  try
+    EraseFilter.Items.Clear;
+    for f in TEraseFilter do
+    begin
+      EraseFilter.Items.Add(filter_captions[f]);
+    end;
+  finally
+    EraseFilter.Items.EndUpdate;
+  end;
 end;
 
 procedure TToolsFrame.OnTerrainButtonClick(Sender: TObject);
@@ -261,17 +299,17 @@ end;
 
 procedure TToolsFrame.ObjectPageSelected;
 begin
-  if actSize0.Checked then
+  if actObjSize0.Checked then
   begin
     SetActiveBrush(FIdleBrush);
   end
-  else if actSizeRect.Checked then
+  else if actObjSizeRect.Checked then
   begin
     SetActiveBrush(FObjectSelectBrush);
   end
   else
   begin
-    actSize0.Checked := true;
+    actObjSize0.Checked := true;
     SetActiveBrush(FIdleBrush);
   end
 end;
@@ -347,6 +385,7 @@ begin
 
   FActiveBrush := FIdleBrush;
 
+  FillEraseMenu;
   FillLandscapeMenu;
   FillRoadRiverMenu;
 end;
@@ -354,9 +393,9 @@ end;
 procedure TToolsFrame.SwitchToObjects;
 begin
   ToolsPages.ActivePage := tsObjects;
-  if not actSize0.Checked then
+  if not actObjSize0.Checked then
   begin
-    actSize0.Execute;
+    actObjSize0.Execute;
   end;
 end;
 

@@ -15,9 +15,9 @@ object ToolsFrame: TToolsFrame
     Height = 350
     Top = 0
     Width = 218
-    ActivePage = tsObjects
+    ActivePage = tsErase
     Align = alClient
-    TabIndex = 0
+    TabIndex = 4
     TabOrder = 0
     TabPosition = tpLeft
     OnChange = ToolsPagesChange
@@ -297,7 +297,6 @@ object ToolsFrame: TToolsFrame
       Caption = 'Erase'
       ClientHeight = 342
       ClientWidth = 187
-      Enabled = False
       object gbBrushTerrain1: TGroupBox
         Left = 1
         Height = 50
@@ -329,6 +328,7 @@ object ToolsFrame: TToolsFrame
           Action = actSize1
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
+          Down = True
           GroupIndex = 1
         end
         object btnBrush7: TSpeedButton
@@ -346,9 +346,9 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
+          Action = actSize4
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          Caption = '4x4'
           GroupIndex = 1
         end
         object btnBrushArea2: TSpeedButton
@@ -356,9 +356,9 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
+          Action = actSizeRect
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          Caption = '□'
           Font.Height = -16
           Font.Style = [fsBold]
           GroupIndex = 1
@@ -382,6 +382,7 @@ object ToolsFrame: TToolsFrame
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
+        OnItemClick = EraseFilterItemClick
         TabOrder = 1
       end
     end
@@ -417,12 +418,6 @@ object ToolsFrame: TToolsFrame
       GroupIndex = 1
       OnExecute = actSizeRectExecute
     end
-    object actSize0: TAction
-      Category = 'BrushSize'
-      AutoCheck = True
-      GroupIndex = 1
-      OnExecute = actSize0Execute
-    end
     object actObjSize0: TAction
       Category = 'BrushSize'
       AutoCheck = True
@@ -436,6 +431,21 @@ object ToolsFrame: TToolsFrame
       Caption = '□'
       GroupIndex = 10
       OnExecute = actObjSizeRectExecute
+    end
+    object actEraseSize1: TAction
+      Category = 'BrushSize'
+      AutoCheck = True
+      Caption = '1x1'
+      Checked = True
+      GroupIndex = 50
+      OnExecute = actEraseSize1Execute
+    end
+    object actEraseSize2: TAction
+      Category = 'BrushSize'
+      AutoCheck = True
+      Caption = '2x2'
+      GroupIndex = 50
+      OnExecute = actEraseSize2Execute
     end
   end
 end

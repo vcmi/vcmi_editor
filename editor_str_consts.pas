@@ -100,6 +100,11 @@ resourcestring
   rsTabRewards = 'Reward';
   rsTabBuildings = 'Buildings';
 
+  rsEraseFilterRivers = 'Rivers';
+  rsEraseFilterRoads = 'Roads';
+  rsEraseFilterStatic = 'Static objects';
+  rsEraseFilterInteractive = 'Interactive objects';
+
 
 implementation
 

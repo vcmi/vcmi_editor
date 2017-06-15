@@ -66,6 +66,8 @@ type
     property Dragging: Boolean read FDragging;
     procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
 
+    procedure AddSquare(AMap: TVCMIMap;AX,AY, Size: integer);
+
     procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
     procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
   public
@@ -140,6 +142,22 @@ end;
 
 
 { TMapBrush }
+
+procedure TMapBrush.AddSquare(AMap: TVCMIMap; AX, AY, Size: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    Selection.Insert(Coord);
+  end;
+
+var
+  r: TMapRect;
+begin
+  r.Create();
+  r.FTopLeft.Reset(AX,AY);
+  r.FHeight := Size;
+  r.FWidth := Size;
+  r.Iterate(@ProcessTile);
+end;
 
 procedure TMapBrush.FillActionObjectTiles(AObject: TMultiTileMapAction);
 var

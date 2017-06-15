@@ -262,19 +262,8 @@ end;
 { TFixedTerrainBrush }
 
 procedure TFixedTerrainBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
-  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
-  begin
-    Selection.Insert(Coord);
-  end;
-
-var
-  r: TMapRect;
 begin
-  r.Create();
-  r.FTopLeft.Reset(X,Y);
-  r.FHeight := Size;
-  r.FWidth := Size;
-  r.Iterate(@ProcessTile);
+  AddSquare(AMap, X, Y, Size);
 end;
 
 function TFixedTerrainBrush.GetMode: TTerrainBrushMode;
