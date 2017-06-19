@@ -48,6 +48,8 @@ type
     property Filter: TEraseFilter read FFilter write FFilter;
   end;
 
+
+
   { TEraseAction }
 
   TEraseAction = class (TMultiTileMapAction)
@@ -57,10 +59,14 @@ type
     FFilter: TEraseFilter;
     FActiveFilter: TEraseFilter;
 
-    FActions: array[TEraseTarget] of TMapUndoItem;
+    FTiles: TCoordSet;
+
+    FActions: array[TEraseTarget] of TMultiTileMapAction;
   public
     constructor Create(AMap: TVCMIMap); override;
     destructor Destroy; override;
+
+    procedure AddTile(X, Y: integer); override;
 
     function GetDescription: string; override;
     function Execute: boolean; override;
@@ -79,13 +85,23 @@ begin
   inherited Create(AMap);
   FEraseRiver := TEditRiver.Create(AMap, TRiverType.noRiver);
   FEraseRoad := TEditRoad.Create(AMap, TRoadType.noRoad);
+  FTiles :=  TCoordSet.Create;
 end;
 
 destructor TEraseAction.Destroy;
 begin
+  FTiles.Free;
   FEraseRiver.Free;
   FEraseRoad.Free;
   inherited Destroy;
+end;
+
+procedure TEraseAction.AddTile(X, Y: integer);
+var
+  coord: TMapCoord;
+begin
+  coord.Reset(x,y);
+  FTiles.Insert(coord);
 end;
 
 function TEraseAction.GetDescription: string;
@@ -113,7 +129,10 @@ begin
 
   for iter in FActiveFilter do
     if Assigned(FActions[iter]) then
+    begin
+      FActions[iter].LoadTiles(FTiles);
       FActions[iter].Execute;
+    end;
 end;
 
 procedure TEraseAction.Redo;
@@ -138,7 +157,7 @@ end;
 
 procedure TEraseBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 begin
-  //TODO:
+  AddSquare(AMap, AX, AY, Size);
 end;
 
 procedure TEraseBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -147,19 +166,19 @@ var
 begin
   item :=  TEraseAction.Create(AMap);
   item.Filter:=Filter;
-  FillActionObjectTiles(item);
+  item.LoadTiles(Selection);
   AManager.ExecuteItem(item);
   Clear;
 end;
 
 procedure TEraseBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-  //TODO:
+  inherited RenderCursor(State, X, Y, Size);
 end;
 
 procedure TEraseBrush.RenderSelection(State: TLocalState);
 begin
-  //TODO:
+  RenderSelectionAllTiles(State);
 end;
 
 end.

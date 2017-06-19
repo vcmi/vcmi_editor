@@ -49,6 +49,8 @@ type
     procedure AddTile(X,Y: integer); virtual; abstract;
     property Level: Integer read FLevel write FLevel;
 
+    procedure LoadTiles(ASource: TCoordSet);
+
     function GetChangedRegion(ALevelIndex: integer): TMapRect; override; final;
   end;
 
@@ -68,8 +70,9 @@ type
 
     procedure AddSquare(AMap: TVCMIMap;AX,AY, Size: integer);
 
-    procedure FillActionObjectTiles(AObject:TMultiTileMapAction);
     procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
+
+    procedure RenderSelectionAllTiles(State: TLocalState);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -107,6 +110,21 @@ uses editor_consts;
 function TMultiTileMapAction.GetChangedRegion: TMapRect;
 begin
   Result := inherited GetChangedRegion(Level);
+end;
+
+procedure TMultiTileMapAction.LoadTiles(ASource: TCoordSet);
+var
+  it: TCoordSet.TIterator;
+begin
+  it := ASource.Min;
+
+  if Assigned(it) then
+  begin
+    repeat
+      AddTile(it.Data.X, it.Data.Y);
+    until not it.next;
+    FreeAndNil(it);
+  end;
 end;
 
 function TMultiTileMapAction.GetChangedRegion(ALevelIndex: integer): TMapRect;
@@ -159,21 +177,6 @@ begin
   r.Iterate(@ProcessTile);
 end;
 
-procedure TMapBrush.FillActionObjectTiles(AObject: TMultiTileMapAction);
-var
-  it: TCoordSet.TIterator;
-begin
-  it := Selection.Min;
-
-  if Assigned(it) then
-  begin
-    repeat
-      AObject.AddTile(it.Data.X, it.Data.Y);
-    until not it.next ;
-    FreeAndNil(it);
-  end;
-end;
-
 procedure TMapBrush.RenderCursor(State: TLocalState; X, Y, Size: integer);
 var
   dim: Integer;
@@ -189,6 +192,30 @@ begin
   dim := TILE_SIZE * Size;
   State.RenderRect(cx,cy,dim,dim);
   State.StopDrawing;
+end;
+
+procedure TMapBrush.RenderSelectionAllTiles(State: TLocalState);
+var
+  it: TCoordSet.TIterator;
+  dim,cx,cy: Integer;
+begin
+  if Dragging then
+  begin
+    it := Selection.Min;
+    if Assigned(it) then
+    begin
+      State.StartDrawingRects;
+      State.SetFragmentColor(RECT_COLOR);
+      dim := TILE_SIZE;
+      repeat
+        cx := it.Data.X * TILE_SIZE;
+        cy := it.Data.Y * TILE_SIZE;
+        State.RenderRect(cx,cy,dim,dim);
+      until not it.next ;
+      FreeAndNil(it);
+      State.StopDrawing;
+    end;
+  end;
 end;
 
 constructor TMapBrush.Create(AOwner: TComponent);

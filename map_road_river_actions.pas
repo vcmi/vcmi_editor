@@ -294,7 +294,7 @@ begin
       action_item := TEditRiver.Create(AMap,RiverType);
     end;
   end;
-  FillActionObjectTiles(action_item);
+  action_item.LoadTiles(Selection);
 
   AManager.ExecuteItem(action_item);
   Clear;
@@ -309,27 +309,8 @@ begin
 end;
 
 procedure TRoadRiverBrush.RenderSelection(State: TLocalState);
-var
-  it: TCoordSet.TIterator;
-  dim,cx,cy: Integer;
 begin
-  if Dragging then
-  begin
-    it := Selection.Min;
-    if Assigned(it) then
-    begin
-      State.StartDrawingRects;
-      State.SetFragmentColor(RECT_COLOR);
-      dim := TILE_SIZE;
-      repeat
-        cx := it.Data.X * TILE_SIZE;
-        cy := it.Data.Y * TILE_SIZE;
-        State.RenderRect(cx,cy,dim,dim);
-      until not it.next ;
-      FreeAndNil(it);
-      State.StopDrawing;
-    end;
-  end;
+  RenderSelectionAllTiles(State);
 end;
 
 { TEditRoadRiver }

@@ -325,7 +325,7 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
-          Action = actSize1
+          Action = actEraseSize1
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Down = True
@@ -336,7 +336,7 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
-          Action = actSize2
+          Action = actEraseSize2
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           GroupIndex = 1
@@ -346,7 +346,7 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
-          Action = actSize4
+          Action = actEraseSize4
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           GroupIndex = 1
@@ -356,7 +356,7 @@ object ToolsFrame: TToolsFrame
           Height = 25
           Top = 0
           Width = 24
-          Action = actSizeRect
+          Action = actEraseSizeRect
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Font.Height = -16
@@ -446,6 +446,20 @@ object ToolsFrame: TToolsFrame
       Caption = '2x2'
       GroupIndex = 50
       OnExecute = actEraseSize2Execute
+    end
+    object actEraseSize4: TAction
+      Category = 'BrushSize'
+      AutoCheck = True
+      Caption = '4x4'
+      GroupIndex = 50
+      OnExecute = actEraseSize4Execute
+    end
+    object actEraseSizeRect: TAction
+      Category = 'BrushSize'
+      AutoCheck = True
+      Caption = '□'
+      GroupIndex = 50
+      OnExecute = actEraseSizeRectExecute
     end
   end
 end

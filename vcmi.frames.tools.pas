@@ -34,6 +34,8 @@ type
     act: TActionList;
     actEraseSize1: TAction;
     actEraseSize2: TAction;
+    actEraseSize4: TAction;
+    actEraseSizeRect: TAction;
     actObjSizeRect: TAction;
     actObjSize0: TAction;
     actSizeRect: TAction;
@@ -65,6 +67,8 @@ type
     tsObjects: TTabSheet;
     procedure actEraseSize1Execute(Sender: TObject);
     procedure actEraseSize2Execute(Sender: TObject);
+    procedure actEraseSize4Execute(Sender: TObject);
+    procedure actEraseSizeRectExecute(Sender: TObject);
     procedure actObjSize0Execute(Sender: TObject);
     procedure actObjSizeRectExecute(Sender: TObject);
     procedure actSize0Execute(Sender: TObject);
@@ -178,6 +182,18 @@ begin
   FEraseBrush.Size := 2;
 end;
 
+procedure TToolsFrame.actEraseSize4Execute(Sender: TObject);
+begin
+  SetActiveBrush(FEraseBrush);
+  FEraseBrush.Size := 4;
+end;
+
+procedure TToolsFrame.actEraseSizeRectExecute(Sender: TObject);
+begin
+  //TODO:
+  SetActiveBrush(FEraseBrush);
+end;
+
 procedure TToolsFrame.actObjSizeRectExecute(Sender: TObject);
 begin
   SetActiveBrush(FObjectSelectBrush);
@@ -207,8 +223,19 @@ begin
 end;
 
 procedure TToolsFrame.EraseFilterItemClick(Sender: TObject; Index: integer);
+var
+  filter: TEraseFilter;
+  f: TEraseTarget;
 begin
+  filter := [];
 
+  for f in TEraseFilter do
+  begin
+    if EraseFilter.Checked[Integer(f)] then
+      Include(filter, f);
+  end;
+
+  FEraseBrush.Filter:=filter;
 end;
 
 procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
@@ -382,6 +409,7 @@ begin
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
   FObjectSelectBrush := TObjectSelectBrush.Create(Self);
   FEraseBrush := TEraseBrush.Create(Self);
+  FEraseBrush.Size:=1;
 
   FActiveBrush := FIdleBrush;
 

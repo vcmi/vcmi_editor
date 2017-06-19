@@ -194,8 +194,7 @@ begin
   action := TEditTerrain.Create(AMap);
   action.Level := AMap.CurrentLevelIndex;
   action.TerrainType := tt;
-
-  FillActionObjectTiles(action);
+  action.LoadTiles(Selection);
 
   if not Selection.IsEmpty then
     AManager.ExecuteItem(action) //execute only if there are changes
