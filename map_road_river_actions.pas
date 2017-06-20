@@ -495,7 +495,6 @@ begin
   FOutQueue := TTileRoadInfoSet.Create;
   FOldTileInfos := TTileRoadInfos.Create;
   FNewTileInfos := TTileRoadInfos.Create;
-  Level:=AMap.CurrentLevelIndex;
 end;
 
 destructor TEditRoadRiver.Destroy;

@@ -35,19 +35,38 @@ type
   TEraseBrush = class(TMapBrush)
   private
     FFilter: TEraseFilter;
+  public
+    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
+    property Filter: TEraseFilter read FFilter write FFilter;
+  end;
+
+  { TFixedEraseBrush }
+
+  TFixedEraseBrush = class(TEraseBrush)
+  private
     FSize: Integer;
   protected
     procedure AddTile(AMap: TVCMIMap; AX, AY: integer); override;
   public
-    procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
-
     procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer); override;
     procedure RenderSelection(State: TLocalState); override;
 
     property Size: Integer read FSize write FSize;
-    property Filter: TEraseFilter read FFilter write FFilter;
   end;
 
+  { TAreaEraseBrush }
+
+  TAreaEraseBrush = class(TEraseBrush)
+  strict private
+    FStartCoord: TMapCoord;
+    FEndCooord: TMapCoord;
+  protected
+    procedure AddTile(AMap: TVCMIMap;X,Y: integer);override;
+  public
+    procedure RenderSelection(State: TLocalState); override;
+    procedure TileMouseDown(AMap: TVCMIMap;X,Y: integer);override;
+    procedure TileMouseUp(AMap: TVCMIMap;X,Y: integer);override;
+  end;
 
 
   { TEraseAction }
@@ -77,6 +96,55 @@ type
   end;
 
 implementation
+
+{ TEraseBrush }
+
+procedure TEraseBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
+var
+  item: TEraseAction;
+begin
+  if not Selection.IsEmpty then
+  begin
+    item :=  TEraseAction.Create(AMap);
+    item.Filter:=Filter;
+    item.LoadTiles(Selection);
+    AManager.ExecuteItem(item);
+  end;
+
+  Clear;
+end;
+
+{ TAreaEraseBrush }
+
+procedure TAreaEraseBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
+begin
+  FEndCooord.Reset(x,y);
+end;
+
+procedure TAreaEraseBrush.RenderSelection(State: TLocalState);
+begin
+  RenderSelectionRect(State, FStartCoord, FEndCooord);
+end;
+
+procedure TAreaEraseBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
+begin
+  inherited TileMouseDown(AMap, X, Y);
+  FStartCoord.Reset(X,Y);
+end;
+
+procedure TAreaEraseBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    Selection.Insert(Coord);
+  end;
+var
+  r:TMapRect;
+begin
+  ClearSelection;
+  inherited TileMouseUp(amap, X, Y);
+  r.SetFromCorners(FStartCoord,FEndCooord);
+  r.Iterate(@ProcessTile);
+end;
 
 { TEraseAction }
 
@@ -153,30 +221,19 @@ begin
       FActions[iter].Undo;
 end;
 
-{ TEraseBrush }
+{ TFixedEraseBrush }
 
-procedure TEraseBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
+procedure TFixedEraseBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
 begin
   AddSquare(AMap, AX, AY, Size);
 end;
 
-procedure TEraseBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
-var
-  item: TEraseAction;
-begin
-  item :=  TEraseAction.Create(AMap);
-  item.Filter:=Filter;
-  item.LoadTiles(Selection);
-  AManager.ExecuteItem(item);
-  Clear;
-end;
-
-procedure TEraseBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
+procedure TFixedEraseBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
   inherited RenderCursor(State, X, Y, Size);
 end;
 
-procedure TEraseBrush.RenderSelection(State: TLocalState);
+procedure TFixedEraseBrush.RenderSelection(State: TLocalState);
 begin
   RenderSelectionAllTiles(State);
 end;

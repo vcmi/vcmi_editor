@@ -191,15 +191,13 @@ procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
   action: TEditTerrain;
 begin
-  action := TEditTerrain.Create(AMap);
-  action.Level := AMap.CurrentLevelIndex;
-  action.TerrainType := tt;
-  action.LoadTiles(Selection);
-
-  if not Selection.IsEmpty then
-    AManager.ExecuteItem(action) //execute only if there are changes
-  else
-    action.Free;
+  if not Selection.IsEmpty  then
+  begin
+    action := TEditTerrain.Create(AMap);
+    action.TerrainType := tt;
+    action.LoadTiles(Selection);
+    AManager.ExecuteItem(action)
+  end;
   Clear;
 end;
 
@@ -222,21 +220,8 @@ begin
 end;
 
 procedure TAreaTerrainBrush.RenderSelection(State: TLocalState);
-var
-  cx,cy: Integer;
-  r:TMapRect;
 begin
-  if Dragging then
-  begin
-    State.StartDrawingRects;
-    r.SetFromCorners(FStartCoord,FEndCooord);
-
-    cx := r.FTopLeft.X * TILE_SIZE;
-    cy := r.FTopLeft.Y * TILE_SIZE;
-    State.SetFragmentColor(RECT_COLOR);
-    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
-    State.StopDrawing;
-  end;
+  RenderSelectionRect(State, FStartCoord, FEndCooord);
 end;
 
 procedure TAreaTerrainBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
@@ -253,6 +238,7 @@ procedure TAreaTerrainBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
 var
   r:TMapRect;
 begin
+  ClearSelection;
   inherited TileMouseUp(amap, X, Y);
   r.SetFromCorners(FStartCoord,FEndCooord);
   r.Iterate(@ProcessTile);
@@ -271,27 +257,8 @@ begin
 end;
 
 procedure TFixedTerrainBrush.RenderSelection(State: TLocalState);
-var
-  it: TCoordSet.TIterator;
-  dim,cx,cy: Integer;
 begin
-  if Dragging then
-  begin
-    it := Selection.Min;
-    if Assigned(it) then
-    begin
-      State.StartDrawingRects;
-      State.SetFragmentColor(RECT_COLOR);
-      dim := TILE_SIZE;
-      repeat
-        cx := it.Data.X * TILE_SIZE;
-        cy := it.Data.Y * TILE_SIZE;
-        State.RenderRect(cx,cy,dim,dim);
-      until not it.next ;
-      FreeAndNil(it);
-      State.StopDrawing;
-    end;
-  end;
+  RenderSelectionAllTiles(State);
 end;
 
 { TInvalidTiles }

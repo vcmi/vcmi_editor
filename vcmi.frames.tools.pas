@@ -88,7 +88,8 @@ type
     FAreaTerrainBrush: TAreaTerrainBrush;
     FRoadRiverBrush: TRoadRiverBrush;
     FObjectSelectBrush: TObjectSelectBrush;
-    FEraseBrush: TEraseBrush;
+    FFixedEraseBrush: TFixedEraseBrush;
+    FAreaEraseBrush: TAreaEraseBrush;
 
     FActiveBrush: TMapBrush;
     FSelectedObject: TMapObject;
@@ -172,26 +173,25 @@ end;
 
 procedure TToolsFrame.actEraseSize1Execute(Sender: TObject);
 begin
-  SetActiveBrush(FEraseBrush);
-  FEraseBrush.Size := 1;
+  SetActiveBrush(FFixedEraseBrush);
+  FFixedEraseBrush.Size := 1;
 end;
 
 procedure TToolsFrame.actEraseSize2Execute(Sender: TObject);
 begin
-  SetActiveBrush(FEraseBrush);
-  FEraseBrush.Size := 2;
+  SetActiveBrush(FFixedEraseBrush);
+  FFixedEraseBrush.Size := 2;
 end;
 
 procedure TToolsFrame.actEraseSize4Execute(Sender: TObject);
 begin
-  SetActiveBrush(FEraseBrush);
-  FEraseBrush.Size := 4;
+  SetActiveBrush(FFixedEraseBrush);
+  FFixedEraseBrush.Size := 4;
 end;
 
 procedure TToolsFrame.actEraseSizeRectExecute(Sender: TObject);
 begin
-  //TODO:
-  SetActiveBrush(FEraseBrush);
+  SetActiveBrush(FAreaEraseBrush);
 end;
 
 procedure TToolsFrame.actObjSizeRectExecute(Sender: TObject);
@@ -235,7 +235,8 @@ begin
       Include(filter, f);
   end;
 
-  FEraseBrush.Filter:=filter;
+  FFixedEraseBrush.Filter:=filter;
+  FAreaEraseBrush.Filter:=filter;
 end;
 
 procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
@@ -389,8 +390,31 @@ end;
 
 procedure TToolsFrame.ErasePageSelected;
 begin
-  //TODO
-  SetActiveBrush(FEraseBrush);
+  if actEraseSize1.Checked then
+  begin
+    SetActiveBrush(FFixedEraseBrush);
+    FFixedEraseBrush.Size:=1;
+  end
+  else if actEraseSize2.Checked then
+  begin
+    SetActiveBrush(FFixedEraseBrush);
+    FFixedEraseBrush.Size:=2;
+  end
+  else if actEraseSize4.Checked then
+  begin
+    SetActiveBrush(FFixedEraseBrush);
+    FFixedEraseBrush.Size:=4;
+  end
+  else if actEraseSizeRect.Checked then
+  begin
+    SetActiveBrush(FAreaEraseBrush);
+  end
+  else
+  begin
+    actEraseSize1.Checked := true;
+    SetActiveBrush(FFixedEraseBrush);
+    FFixedTerrainBrush.Size:=1;
+  end
 end;
 
 procedure TToolsFrame.SetActiveBrush(ABrush: TMapBrush);
@@ -408,8 +432,9 @@ begin
   FAreaTerrainBrush := TAreaTerrainBrush.Create(Self);
   FRoadRiverBrush := TRoadRiverBrush.Create(Self);
   FObjectSelectBrush := TObjectSelectBrush.Create(Self);
-  FEraseBrush := TEraseBrush.Create(Self);
-  FEraseBrush.Size:=1;
+  FFixedEraseBrush := TFixedEraseBrush.Create(Self);
+  FFixedEraseBrush.Size:=1;
+  FAreaEraseBrush := TAreaEraseBrush.Create(Self);
 
   FActiveBrush := FIdleBrush;
 

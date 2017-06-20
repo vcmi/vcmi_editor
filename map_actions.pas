@@ -46,13 +46,16 @@ type
     //by default invalidates all tiles
     function GetChangedRegion(): TMapRect; virtual;
   public
+    constructor Create(AMap: TVCMIMap); override;
     procedure AddTile(X,Y: integer); virtual; abstract;
-    property Level: Integer read FLevel write FLevel;
+    property Level: Integer read FLevel;
 
     procedure LoadTiles(ASource: TCoordSet);
 
     function GetChangedRegion(ALevelIndex: integer): TMapRect; override; final;
   end;
+
+  TMultiTileMapActionClass = class of TMultiTileMapAction;
 
   { TMapBrush }
 
@@ -67,12 +70,13 @@ type
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
     procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
-
     procedure AddSquare(AMap: TVCMIMap;AX,AY, Size: integer);
 
-    procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
+    procedure ClearSelection;
 
+    procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
     procedure RenderSelectionAllTiles(State: TLocalState);
+    procedure RenderSelectionRect(State: TLocalState; const StartCoord: TMapCoord; const EndCooord: TMapCoord);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -110,6 +114,12 @@ uses editor_consts;
 function TMultiTileMapAction.GetChangedRegion: TMapRect;
 begin
   Result := inherited GetChangedRegion(Level);
+end;
+
+constructor TMultiTileMapAction.Create(AMap: TVCMIMap);
+begin
+  inherited Create(AMap);
+  FLevel := AMap.CurrentLevelIndex;
 end;
 
 procedure TMultiTileMapAction.LoadTiles(ASource: TCoordSet);
@@ -177,6 +187,12 @@ begin
   r.Iterate(@ProcessTile);
 end;
 
+procedure TMapBrush.ClearSelection;
+begin
+  FSelection.Free;
+  FSelection := TCoordSet.Create;
+end;
+
 procedure TMapBrush.RenderCursor(State: TLocalState; X, Y, Size: integer);
 var
   dim: Integer;
@@ -218,6 +234,24 @@ begin
   end;
 end;
 
+procedure TMapBrush.RenderSelectionRect(State: TLocalState; const StartCoord: TMapCoord; const EndCooord: TMapCoord);
+var
+  cx,cy: Integer;
+  r:TMapRect;
+begin
+  if Dragging then
+  begin
+    State.StartDrawingRects;
+    r.SetFromCorners(StartCoord,EndCooord);
+
+    cx := r.FTopLeft.X * TILE_SIZE;
+    cy := r.FTopLeft.Y * TILE_SIZE;
+    State.SetFragmentColor(RECT_COLOR);
+    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
+    State.StopDrawing;
+  end;
+end;
+
 constructor TMapBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -233,8 +267,7 @@ end;
 procedure TMapBrush.Clear;
 begin
   FDragging := false;
-  FSelection.Free;
-  FSelection := TCoordSet.Create;
+  ClearSelection;
 end;
 
 procedure TMapBrush.TileClicked(AMap: TVCMIMap; X, Y: integer);
