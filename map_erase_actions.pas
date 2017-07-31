@@ -30,14 +30,18 @@ type
   TEraseTarget = (Roads, Rivers, StaticObjects, InteractiveObjects);
   TEraseFilter = set of TEraseTarget;
 
+  TEraseObjectBy = (BBox, VisibleMask, BlockMask, VisitableMask);
+
   { TEraseBrush }
 
   TEraseBrush = class(TMapBrush)
   private
     FFilter: TEraseFilter;
+    FObjectFilter: TEraseObjectBy;
   public
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
     property Filter: TEraseFilter read FFilter write FFilter;
+    property ObjectFilter: TEraseObjectBy read FObjectFilter write FObjectFilter;
   end;
 
   { TFixedEraseBrush }
@@ -75,6 +79,7 @@ type
   private
     FEraseRoad: TEditRoad;
     FEraseRiver: TEditRiver;
+    FEraseObjects: TDeleteObjects;
     FFilter: TEraseFilter;
     FActiveFilter: TEraseFilter;
 
@@ -153,12 +158,14 @@ begin
   inherited Create(AMap);
   FEraseRiver := TEditRiver.Create(AMap, TRiverType.noRiver);
   FEraseRoad := TEditRoad.Create(AMap, TRoadType.noRoad);
+  FEraseObjects := TDeleteObjects.Create(AMap);
   FTiles :=  TCoordSet.Create;
 end;
 
 destructor TEraseAction.Destroy;
 begin
   FTiles.Free;
+  FEraseObjects.Free;
   FEraseRiver.Free;
   FEraseRoad.Free;
   inherited Destroy;

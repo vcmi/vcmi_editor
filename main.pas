@@ -1309,32 +1309,8 @@ begin
 end;
 
 procedure TfMain.MapViewDblClick(Sender: TObject);
-//var
-//  q: TMapObjectQueue;
 begin
-  //if not Assigned(FMap) then
-  //  exit;
   //
-  //if Assigned(FSelectedObject) then
-  //begin
-  //  if FSelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY) then
-  //  begin
-  //    actProperties.Execute;
-  //    Exit;
-  //  end;
-  //end;
-  //
-  //q := TMapObjectQueue.Create;
-  //FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
-  //try
-  //  if not q.IsEmpty then
-  //  begin
-  //    FSelectedObject := q.Top;
-  //    actProperties.Execute;
-  //  end;
-  //finally
-  //  q.Free;
-  //end;
 end;
 
 procedure TfMain.MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -1410,6 +1386,7 @@ begin
 
   if Button = TMouseButton.mbLeft then
   begin
+    //todo: move to TIdleMapBrush
     if FToolsFrame.ActiveBrush = FToolsFrame.IdleBrush then
     begin
       DragStarted:=False;
@@ -1455,10 +1432,8 @@ begin
     begin
       FToolsFrame.ActiveBrush.TileMouseDown(fmap, FMouseTileX,FMouseTileY);
     end;
-
-  end;
-
-  if Button = TMouseButton.mbRight then
+  end
+  else if Button = TMouseButton.mbRight then
   begin
     FMouseDTileX := FMouseTileX;
     FMouseDTileY := FMouseTileY;
@@ -1721,7 +1696,7 @@ end;
 
 procedure TfMain.ObjectsViewClick(Sender: TObject);
 begin
-
+  //
 end;
 
 procedure TfMain.ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -2375,10 +2350,10 @@ end;
 
 procedure TfMain.DeleteObject(AObject: TMapObject);
 var
-  action_item: TDeleteObject;
+  action_item: TDeleteObjects;
 begin
-  action_item := TDeleteObject.Create(FMap);
-  action_item.TargetObject :=AObject;
+  action_item := TDeleteObjects.Create(FMap);
+  action_item.Targets.Add(AObject);
   FUndoManager.ExecuteItem(action_item);
   InvalidateMapContent;
 end;

@@ -148,10 +148,9 @@ type
     property TargetObject; //stores destination, do not edit
   end;
 
+  { TDeleteObjects }
 
-  { TDeleteObject }
-
-  TDeleteObject = class(TObjectAction)
+  TDeleteObjects = class(TMultiObjectAction)
   public
     function Execute: boolean; override;
     function GetDescription: string; override;
@@ -159,6 +158,7 @@ type
     procedure Undo; override;
     class function GetOwnershipTrait: TObjectOwnershipTrait; override; final;
   end;
+
 
   { TEditObject }
 
@@ -194,6 +194,40 @@ type
   end;
 
 implementation
+
+{ TDeleteObjects }
+
+function TDeleteObjects.Execute: boolean;
+begin
+  Result := true;
+  Redo;
+end;
+
+function TDeleteObjects.GetDescription: string;
+begin
+  Result := rsDeleteObjectsDescription;
+end;
+
+procedure TDeleteObjects.Redo;
+var
+  o:TMapObject;
+begin
+  for o in Targets do
+    o.Collection := nil;
+end;
+
+procedure TDeleteObjects.Undo;
+var
+  o:TMapObject;
+begin
+  for o in Targets do
+    o.Collection := FMap.Objects;
+end;
+
+class function TDeleteObjects.GetOwnershipTrait: TObjectOwnershipTrait;
+begin
+  Result:=TObjectOwnershipTrait.FreeIfDone;
+end;
 
 { TObjectPositionAction }
 
@@ -519,34 +553,6 @@ end;
 class function TAddObject.GetOwnershipTrait: TObjectOwnershipTrait;
 begin
   Result:=TObjectOwnershipTrait.FreeIfUndone;
-end;
-
-{ TDeleteObject }
-
-function TDeleteObject.Execute: boolean;
-begin
-  Result := true;
-  Redo;
-end;
-
-function TDeleteObject.GetDescription: string;
-begin
-  Result := rsDeleteObjectDescription;
-end;
-
-procedure TDeleteObject.Redo;
-begin
-  TargetObject.Collection := nil;
-end;
-
-procedure TDeleteObject.Undo;
-begin
-  TargetObject.Collection := FMap.Objects;
-end;
-
-class function TDeleteObject.GetOwnershipTrait: TObjectOwnershipTrait;
-begin
-  Result:=TObjectOwnershipTrait.FreeIfDone;
 end;
 
 { TMoveObject }

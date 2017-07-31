@@ -57,6 +57,7 @@ type
     gbBrushTerrain: TGroupBox;
     gbBrushTerrain1: TGroupBox;
     gbTerrain: TGroupBox;
+    EraseObjects: TRadioGroup;
     RiverType: TRadioGroup;
     RoadType: TRadioGroup;
     tsErase: TTabSheet;
@@ -96,6 +97,7 @@ type
     procedure FillLandscapeMenu;
     procedure FillRoadRiverMenu;
     procedure FillEraseMenu;
+    procedure FillObjectEraseMenu;
 
     procedure OnTerrainButtonClick(Sender: TObject);
 
@@ -277,21 +279,28 @@ end;
 
 procedure TToolsFrame.FillRoadRiverMenu;
 begin
-  RoadType.Items.Clear;
-  RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
-  RoadType.Items.AddObject(rsRoadTypeGravel, TObject(PtrInt(TRoadType.gravelRoad)));
-  RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
-  RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
-  RoadType.ItemIndex := 0;
+  RoadType.Items.BeginUpdate;
+  RiverType.Items.BeginUpdate;
+  try
+    RoadType.Items.Clear;
+    RoadType.Items.AddObject(rsRoadTypeDirt, TObject(PtrInt(TRoadType.dirtRoad)));
+    RoadType.Items.AddObject(rsRoadTypeGravel, TObject(PtrInt(TRoadType.gravelRoad)));
+    RoadType.Items.AddObject(rsRoadTypeCobblestone, TObject(PtrInt(TRoadType.cobblestoneRoad)));
+    RoadType.Items.AddObject(rsRoadTypeNone, TObject(PtrInt(TRoadType.noRoad)));
+    RoadType.ItemIndex := 0;
 
-  RiverType.Items.Clear;
-  RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
-  RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
-  RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
-  RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
-  RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
+    RiverType.Items.Clear;
+    RiverType.Items.AddObject(rsRiverTypeClear, TObject(PtrInt(TRiverType.clearRiver)));
+    RiverType.Items.AddObject(rsRiverTypeIcy, TObject(PtrInt(TRiverType.icyRiver)));
+    RiverType.Items.AddObject(rsRiverTypeMuddy, TObject(PtrInt(TRiverType.muddyRiver)));
+    RiverType.Items.AddObject(rsRiverTypeLava, TObject(PtrInt(TRiverType.lavaRiver)));
+    RiverType.Items.AddObject(rsRiverTypeNone, TObject(PtrInt(TRiverType.noRiver)));
 
-  RiverType.ItemIndex:=0;
+    RiverType.ItemIndex:=0;
+  finally
+    RoadType.Items.EndUpdate;
+    RiverType.Items.EndUpdate;
+  end;
 end;
 
 procedure TToolsFrame.FillEraseMenu;
@@ -313,6 +322,23 @@ begin
     end;
   finally
     EraseFilter.Items.EndUpdate;
+  end;
+end;
+
+procedure TToolsFrame.FillObjectEraseMenu;
+var
+  filter_captions: array[TEraseObjectBy] of AnsiString;
+  f: TEraseObjectBy;
+begin
+  EraseObjects.Items.BeginUpdate;
+  try
+    EraseObjects.Items.Clear;
+    for f in TEraseObjectBy do
+    begin
+      EraseObjects.Items.Add(filter_captions[f]);
+    end;
+  finally
+    EraseObjects.Items.EndUpdate;
   end;
 end;
 
@@ -438,9 +464,10 @@ begin
 
   FActiveBrush := FIdleBrush;
 
-  FillEraseMenu;
   FillLandscapeMenu;
   FillRoadRiverMenu;
+  FillEraseMenu;
+  FillObjectEraseMenu;
 end;
 
 procedure TToolsFrame.SwitchToObjects;

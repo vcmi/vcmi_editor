@@ -85,6 +85,7 @@ resourcestring
   rsAddObjectDescription = 'Add object';
   rsCopyObjectDescription = 'Copy object';
   rsDeleteObjectDescription = 'Delete object';
+  rsDeleteObjectsDescription = 'Delete objects';
   rsEditObjectDescription = 'Edit object';
   rsMoveObjectDescription = 'Move object';
 
@@ -105,6 +106,10 @@ resourcestring
   rsEraseFilterStatic = 'Static objects';
   rsEraseFilterInteractive = 'Interactive objects';
 
+  rsEraseObjectBBox = 'Bounding box';
+  rsEraseObjectVisibleMask = 'Visible mask';
+  rsEraseObjectBlockMask = 'Block mask';
+  rsEraseObjectVisitableMask = 'Visitable mask';
 
 implementation
 
