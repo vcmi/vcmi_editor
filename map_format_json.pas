@@ -93,7 +93,7 @@ begin
 
   if tile^.RiverType <> TRiverType.noRiver then
   begin
-    Result := Result + RIVER_CODES[tile^.RiverType]+IntToStr((tile^.RiverDir shr 2) mod 4);
+    Result := Result + RIVER_CODES[tile^.RiverType]+IntToStr(tile^.RiverDir)+FLIP_CODES[(tile^.Flags shr 2) mod 4];
   end;
 end;
 
