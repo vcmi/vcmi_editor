@@ -43,7 +43,7 @@ type
 
     FJsonBuffer: TStringList;
 
-    FHeaderJson, FTemplatesJson, FObjectsJson: TJSONData;
+    FHeaderJson, FObjectsJson: TJSONData;
 
     procedure UnZipperOnOpenInputStream(Sender: TObject; var AStream: TStream);
     procedure UnZipperOnCloseInputStream(Sender: TObject; var AStream: TStream);
@@ -82,7 +82,6 @@ uses LazLoggerBase;
 
 const
   HEADER_FILENAME = 'header.json';
-  TEMPLATES_FILENAME = 'templates.json';
   OBJECTS_FILENAME = 'objects.json';
 
 { TMapReaderZIP }
@@ -118,11 +117,6 @@ begin
     begin
       FHeaderJson := FDestreamer.JSONStreamToJson(AStream);
       FFreeList.Add(FHeaderJson);
-    end;
-    TEMPLATES_FILENAME:
-    begin
-      FTemplatesJson := FDestreamer.JSONStreamToJson(AStream);
-      FFreeList.Add(FTemplatesJson);
     end;
     OBJECTS_FILENAME:
     begin
