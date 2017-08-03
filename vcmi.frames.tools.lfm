@@ -329,7 +329,7 @@ object ToolsFrame: TToolsFrame
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
           Down = True
-          GroupIndex = 1
+          GroupIndex = 50
         end
         object btnBrush7: TSpeedButton
           Left = 58
@@ -339,7 +339,7 @@ object ToolsFrame: TToolsFrame
           Action = actEraseSize2
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          GroupIndex = 1
+          GroupIndex = 50
         end
         object btnBrush8: TSpeedButton
           Left = 99
@@ -349,7 +349,7 @@ object ToolsFrame: TToolsFrame
           Action = actEraseSize4
           BorderSpacing.Around = 3
           Constraints.MinWidth = 24
-          GroupIndex = 1
+          GroupIndex = 50
         end
         object btnBrushArea2: TSpeedButton
           Left = 140
@@ -361,7 +361,7 @@ object ToolsFrame: TToolsFrame
           Constraints.MinWidth = 24
           Font.Height = -16
           Font.Style = [fsBold]
-          GroupIndex = 1
+          GroupIndex = 50
           ParentFont = False
         end
       end
@@ -401,6 +401,7 @@ object ToolsFrame: TToolsFrame
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
         Enabled = False
+        OnClick = EraseObjectsClick
         TabOrder = 2
       end
     end

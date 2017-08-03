@@ -78,6 +78,7 @@ type
     procedure actSize4Execute(Sender: TObject);
     procedure actSizeRectExecute(Sender: TObject);
     procedure EraseFilterItemClick(Sender: TObject; Index: integer);
+    procedure EraseObjectsClick(Sender: TObject);
     procedure RiverTypeSelectionChanged(Sender: TObject);
     procedure RoadTypeSelectionChanged(Sender: TObject);
     procedure ToolsPagesChange(Sender: TObject);
@@ -109,6 +110,8 @@ type
     procedure ErasePageSelected;
 
     procedure SetActiveBrush(ABrush: TMapBrush);
+
+    function ObjectEraseMode: TEraseObjectBy;
   public
     constructor Create(TheOwner: TComponent); override;
 
@@ -241,6 +244,15 @@ begin
   FAreaEraseBrush.Filter:=filter;
 end;
 
+procedure TToolsFrame.EraseObjectsClick(Sender: TObject);
+var
+  m: TEraseObjectBy;
+begin
+  m := ObjectEraseMode();
+  FAreaEraseBrush.ObjectFilter := m;
+  FFixedEraseBrush.ObjectFilter := m;
+end;
+
 procedure TToolsFrame.ToolsPagesChanging(Sender: TObject; var AllowChange: Boolean);
 begin
   AllowChange := true;
@@ -330,6 +342,11 @@ var
   filter_captions: array[TEraseObjectBy] of AnsiString;
   f: TEraseObjectBy;
 begin
+  filter_captions[TEraseObjectBy.BBox] := rsEraseObjectBBox;
+  filter_captions[TEraseObjectBy.VisibleMask] := rsEraseObjectVisibleMask;
+  filter_captions[TEraseObjectBy.BlockMask] := rsEraseObjectBlockMask;
+  filter_captions[TEraseObjectBy.VisitableMask] := rsEraseObjectVisitableMask;
+
   EraseObjects.Items.BeginUpdate;
   try
     EraseObjects.Items.Clear;
@@ -337,9 +354,11 @@ begin
     begin
       EraseObjects.Items.Add(filter_captions[f]);
     end;
+    EraseObjects.ItemIndex:=0;
   finally
     EraseObjects.Items.EndUpdate;
   end;
+  EraseObjectsClick(EraseObjects);
 end;
 
 procedure TToolsFrame.OnTerrainButtonClick(Sender: TObject);
@@ -448,6 +467,18 @@ begin
   FActiveBrush :=  ABrush;
   FActiveBrush.Clear;
   FSelectedObject := nil;
+end;
+
+function TToolsFrame.ObjectEraseMode: TEraseObjectBy;
+begin
+  if EraseObjects.ItemIndex < 0 then
+  begin
+    Result := TEraseObjectBy(0);
+  end
+  else
+  begin
+    Result := TEraseObjectBy(EraseObjects.ItemIndex);
+  end;
 end;
 
 constructor TToolsFrame.Create(TheOwner: TComponent);
