@@ -29,8 +29,8 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="9"/>
-      <BuildNr Value="118"/>
-      <Attributes pvaPreRelease="True"/>
+      <BuildNr Value="119"/>
+      <Attributes pvaPreRelease="True" pvaPatched="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
     <BuildModes Count="6">
