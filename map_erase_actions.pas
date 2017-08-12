@@ -47,29 +47,16 @@ type
   { TFixedEraseBrush }
 
   TFixedEraseBrush = class(TEraseBrush)
-  private
-    FSize: Integer;
-  protected
-    procedure AddTile(AMap: TVCMIMap; AX, AY: integer); override;
   public
-    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer); override;
+    constructor Create(AOwner: TComponent); override;
     procedure RenderSelection(State: TLocalState); override;
-
-    property Size: Integer read FSize write FSize;
   end;
 
   { TAreaEraseBrush }
 
   TAreaEraseBrush = class(TEraseBrush)
-  strict private
-    FStartCoord: TMapCoord;
-    FEndCooord: TMapCoord;
-  protected
-    procedure AddTile(AMap: TVCMIMap;X,Y: integer);override;
   public
-    procedure RenderSelection(State: TLocalState); override;
-    procedure TileMouseDown(AMap: TVCMIMap;X,Y: integer);override;
-    procedure TileMouseUp(AMap: TVCMIMap;X,Y: integer);override;
+    constructor Create(AOwner: TComponent); override;
   end;
 
 
@@ -121,34 +108,11 @@ end;
 
 { TAreaEraseBrush }
 
-procedure TAreaEraseBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
+constructor TAreaEraseBrush.Create(AOwner: TComponent);
 begin
-  FEndCooord.Reset(x,y);
-end;
-
-procedure TAreaEraseBrush.RenderSelection(State: TLocalState);
-begin
-  RenderSelectionRect(State, FStartCoord, FEndCooord);
-end;
-
-procedure TAreaEraseBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
-begin
-  inherited TileMouseDown(AMap, X, Y);
-  FStartCoord.Reset(X,Y);
-end;
-
-procedure TAreaEraseBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
-  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
-  begin
-    Selection.Insert(Coord);
-  end;
-var
-  r:TMapRect;
-begin
-  ClearSelection;
-  inherited TileMouseUp(amap, X, Y);
-  r.SetFromCorners(FStartCoord,FEndCooord);
-  r.Iterate(@ProcessTile);
+  inherited Create(AOwner);
+  Size:=1;
+  SetMode(TBrushMode.area);
 end;
 
 { TEraseAction }
@@ -230,14 +194,11 @@ end;
 
 { TFixedEraseBrush }
 
-procedure TFixedEraseBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
+constructor TFixedEraseBrush.Create(AOwner: TComponent);
 begin
-  AddSquare(AMap, AX, AY, Size);
-end;
-
-procedure TFixedEraseBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
-begin
-  inherited RenderCursor(State, X, Y, Size);
+  inherited Create(AOwner);
+  Size:=1;
+  SetMode(TBrushMode.fixed);
 end;
 
 procedure TFixedEraseBrush.RenderSelection(State: TLocalState);

@@ -55,6 +55,7 @@ type
     function IsEmpty: Boolean; inline;
 
     procedure Iterate(Callback: TMapCoordForEach);
+    procedure Iterate(Callback: TMapCoordForEachO);
   end;
 
 implementation
@@ -164,6 +165,27 @@ begin
 end;
 
 procedure TMapRect.Iterate(Callback: TMapCoordForEach);
+var
+  Current: TMapCoord;
+  Stop: Boolean;
+  i,j: SizeInt;
+begin
+  Stop := false;
+
+  for i := 0 to FWidth - 1 do
+  begin
+    for j := 0 to FHeight - 1 do
+    begin
+      Current.X := FTopLeft.X+i;
+      Current.Y := FTopLeft.Y+j;
+
+      Callback(Current, Stop);
+      if Stop then Exit;
+    end;
+  end;
+end;
+
+procedure TMapRect.Iterate(Callback: TMapCoordForEachO);
 var
   Current: TMapCoord;
   Stop: Boolean;

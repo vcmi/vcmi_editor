@@ -146,6 +146,7 @@ type
   end;
 
   TMapCoordForEach = procedure (const Coord: TMapCoord; var Stop: Boolean) is nested;
+  TMapCoordForEachO = procedure (const Coord: TMapCoord; var Stop: Boolean) of object;
 
   TPassabilityMask = array of array of Boolean;
 

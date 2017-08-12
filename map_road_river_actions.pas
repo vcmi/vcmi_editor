@@ -25,8 +25,6 @@ uses
   Classes, SysUtils, gset, gvector, undo_base, undo_map, Map, editor_types, editor_gl, map_actions,
   transitions, road_transitions, map_rect, editor_consts;
 
-const
-  INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);
 type
 
   { TRoadRiverBrush }
@@ -43,13 +41,11 @@ type
     procedure SetRiverType(AValue: TRiverType);
     procedure SetRoadType(AValue: TRoadType);
   protected
-    procedure AddTile(AMap: TVCMIMap; AX, AY: integer); override;
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Clear; override;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);override;
-
-    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); override;
 
     procedure RenderSelection(State: TLocalState); override;
 
@@ -161,103 +157,19 @@ begin
   Kind := TRoadRiverBrushKind.road;
 end;
 
-procedure TRoadRiverBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
-
-  procedure CheckAddTile(point: TMapCoord);
-  begin
-    //do not draw on water and rock
-    if not (AMap.CurrentLevel.Tile[point.x,point.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
-       Selection.Insert(point);
-  end;
-
-var
-  NewPoint: TMapCoord = (x:0; y:0);
-  d, c: TMapCoord;
-  SX, SY, E: integer;
+procedure TRoadRiverBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
 begin
-  if not (AMap.IsOnMap(AMap.CurrentLevelIndex,AX,AY)) then
-    exit;
-
-  NewPoint.Reset(AX,AY);
-
-  if (FLastPoint <> INVALID_COORDINATE) and (FLastPoint <> NewPoint) then
-  begin
-    //draw line
-    //(modified)Bresenham's algorimth
-    //implementation based on BGRADrawLineAliased from http://sourceforge.net/projects/lazpaint (LGPL)
-
-    D := NewPoint-FLastPoint;
-
-    if D.X < 0 then
-    begin
-      SX := -1;
-      D.X := -D.X;
-    end
-    else
-    begin
-      SX := 1;
-    end;
-
-    if D.Y < 0 then
-    begin
-      SY := -1;
-      D.Y := -D.Y;
-    end
-    else
-    begin
-      SY := 1;
-    end;
-
-    D.X := D.X shl 1;
-    D.Y := D.Y shl 1;
-
-    c := FLastPoint;
-
-    if D.X > D.Y then
-    begin
-      E := D.Y - D.X shr 1;
-
-      while c.X <> NewPoint.X do
-      begin
-        CheckAddTile(c);
-        if E >= 0 then
-        begin
-          Inc(c.Y, SY);
-          CheckAddTile(c);
-          Dec(E, D.X);
-        end;
-        Inc(c.X, SX);
-        Inc(E, D.Y);
-      end;
-    end
-    else
-    begin
-      E := D.X - D.Y shr 1;
-
-      while c.Y <> NewPoint.Y do
-      begin
-        CheckAddTile(c);
-        if E >= 0 then
-        begin
-          Inc(c.X, SX);
-          CheckAddTile(c);
-          Dec(E, D.Y);
-        end;
-        Inc(c.Y, SY);
-        Inc(E, D.X);
-      end;
-    end;
-  end;
-
-  CheckAddTile(NewPoint);
-
-  FLastPoint := NewPoint;
+  //do not draw on water and rock
+  if not (AMap.CurrentLevel.Tile[Coord.x,Coord.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+     Selection.Insert(Coord);
 end;
 
 constructor TRoadRiverBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Clear;
+  Size:=1;
+  SetMode(TBrushMode.fixed);
 end;
 
 procedure TRoadRiverBrush.Clear;
@@ -298,14 +210,6 @@ begin
 
   AManager.ExecuteItem(action_item);
   Clear;
-end;
-
-procedure TRoadRiverBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
-begin
-  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
-    and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water])
-  then
-    inherited RenderCursor(State, X, Y, 1);
 end;
 
 procedure TRoadRiverBrush.RenderSelection(State: TLocalState);

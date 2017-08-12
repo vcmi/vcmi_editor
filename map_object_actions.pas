@@ -30,13 +30,11 @@ type
 
   TObjectSelectBrush = class (TMapBrush)
   strict private
-    FStartCoord: TMapCoord;
-    FEndCooord: TMapCoord;
 
     FSelectedObjects: TMapObjectSet;
     FVisibleObjects: TMapObjectsSelection;
   protected
-    procedure AddTile(AMap: TVCMIMap;AX,AY: integer); override;
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -47,8 +45,6 @@ type
 
     procedure RenderCursor(State: TLocalState; AMap: TVCMIMap;X,Y: integer); override;
     procedure RenderSelection(State: TLocalState); override;
-
-    procedure TileMouseDown(AMap: TVCMIMap; X, Y: integer); override;
 
     property VisibleObjects: TMapObjectsSelection read FVisibleObjects write FVisibleObjects;
 
@@ -343,13 +339,14 @@ end;
 
 { TObjectSelectBrush }
 
-procedure TObjectSelectBrush.AddTile(AMap: TVCMIMap; AX, AY: integer);
+procedure TObjectSelectBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
 begin
+  inherited CheckAddOneTile(AMap, Coord, Stop);
+
   if Assigned(FVisibleObjects) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, AX, AY, FSelectedObjects);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects);
   end;
-  FEndCooord.Reset(AX,AY);
 end;
 
 constructor TObjectSelectBrush.Create(AOwner: TComponent);
@@ -378,16 +375,15 @@ end;
 
 procedure TObjectSelectBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-  //do nothing, default sysytem cursor is enough
+  //do nothing, default system cursor is enough
 end;
 
 procedure TObjectSelectBrush.RenderSelection(State: TLocalState);
 var
   it: TMapObjectSet.TIterator;
-
-  cx,cy: Integer;
-  r:TMapRect;
 begin
+  inherited RenderSelection(State);
+
   it := FSelectedObjects.Min;
 
   if Assigned(it) then
@@ -399,25 +395,6 @@ begin
 
     FreeAndNil(it);
   end;
-
-
-  if Dragging then
-  begin
-    State.StartDrawingRects;
-    r.SetFromCorners(FStartCoord,FEndCooord);
-
-    cx := r.FTopLeft.X * TILE_SIZE;
-    cy := r.FTopLeft.Y * TILE_SIZE;
-    State.SetFragmentColor(RECT_COLOR);
-    State.RenderRect(cx,cy,r.FWidth * TILE_SIZE ,r.FHeight * TILE_SIZE);
-    State.StopDrawing;
-  end;
-end;
-
-procedure TObjectSelectBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
-begin
-  inherited TileMouseDown(AMap, X, Y);
-  FStartCoord.Reset(X,Y);
 end;
 
 procedure TObjectSelectBrush.MouseLeave(AMap: TVCMIMap);

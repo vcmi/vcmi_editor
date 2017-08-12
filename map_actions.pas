@@ -24,7 +24,12 @@ uses
   Classes, SysUtils, Math, Map, gset, undo_base, editor_types, map_rect, undo_map,
   editor_gl;
 
+const
+  INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);
+
 type
+  TBrushMode = (none, fixed, area);
+
   { TGLessCoord }
 
   generic TGLessCoord <T> = class
@@ -62,21 +67,36 @@ type
   TMapBrush = class abstract (TComponent)
   strict private
     FDragging: Boolean;
+    FMode: TBrushMode;
     FSelection: TCoordSet;
+    FSize: Integer;
+
+    FStartCoord: TMapCoord;
+    FEndCooord: TMapCoord;
+
+    procedure SetSize(AValue: Integer);
+
+    procedure AddSquare(AMap: TVCMIMap; AX, AY: integer);
+
+    procedure RenderSelectionRect(State: TLocalState; const StartCoord: TMapCoord; const EndCooord: TMapCoord);
   protected
   const
     RECT_COLOR: TRBGAColor = (r:50; g:50; b:50; a:255);
   protected
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
-    procedure AddTile(AMap: TVCMIMap;AX,AY: integer); virtual; abstract;
-    procedure AddSquare(AMap: TVCMIMap;AX,AY, Size: integer);
 
     procedure ClearSelection;
 
-    procedure RenderCursor(State: TLocalState; X,Y, Size: integer);
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); virtual;
+
+    procedure CheckAddTiles(AMap: TVCMIMap; point: TMapCoord);
+
+    procedure RenderCursor(State: TLocalState; X, Y: integer);
     procedure RenderSelectionAllTiles(State: TLocalState);
-    procedure RenderSelectionRect(State: TLocalState; const StartCoord: TMapCoord; const EndCooord: TMapCoord);
+
+
+    procedure SetMode(AMode: TBrushMode);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -85,23 +105,25 @@ type
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); virtual; abstract;
 
-    procedure TileClicked(AMap: TVCMIMap; X,Y: integer);virtual;
-    procedure TileMouseDown(AMap: TVCMIMap; X,Y: integer);virtual;
-    procedure TileMouseUp(AMap: TVCMIMap; X,Y: integer);virtual;
-    procedure TileMouseMove(AMap: TVCMIMap; X,Y: integer);virtual;
+    procedure TileClicked(AMap: TVCMIMap; X, Y: integer);virtual;
+    procedure TileMouseDown(AMap: TVCMIMap; X, Y: integer);virtual;
+    procedure TileMouseUp(AMap: TVCMIMap; X, Y: integer);virtual;
+    procedure TileMouseMove(AMap: TVCMIMap; X, Y: integer);virtual;
 
-    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); virtual;
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer); virtual;
     procedure RenderSelection(State: TLocalState); virtual;
 
     procedure MouseLeave(AMap: TVCMIMap); virtual;
+
+    property Mode: TBrushMode read FMode;
+    property Size: Integer read FSize write SetSize;
   end;
 
   { TIdleMapBrush }
 
   TIdleMapBrush = class(TMapBrush)
-  protected
-    procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
   end;
 
@@ -158,9 +180,11 @@ end;
 
 { TIdleMapBrush }
 
-procedure TIdleMapBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
+constructor TIdleMapBrush.Create(AOwner: TComponent);
 begin
-  //to nothing here
+  inherited Create(AOwner);
+  Size := 0;
+  SetMode(TBrushMode.none);
 end;
 
 procedure TIdleMapBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
@@ -171,20 +195,42 @@ end;
 
 { TMapBrush }
 
-procedure TMapBrush.AddSquare(AMap: TVCMIMap; AX, AY, Size: integer);
-  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+procedure TMapBrush.SetSize(AValue: Integer);
+begin
+  FSize:=AValue;
+  Clear;
+end;
+
+procedure TMapBrush.AddSquare(AMap: TVCMIMap; AX, AY: integer);
+
+  procedure CheckAddOneTileNested(const Coord: TMapCoord; var Stop: Boolean);
   begin
-    Selection.Insert(Coord);
+    CheckAddOneTile(Amap, Coord, stop);
   end;
 
 var
   r: TMapRect;
+
 begin
   r.Create();
   r.FTopLeft.Reset(AX,AY);
   r.FHeight := Size;
   r.FWidth := Size;
-  r.Iterate(@ProcessTile);
+  r.Iterate(@CheckAddOneTileNested);
+end;
+
+procedure TMapBrush.CheckAddTiles(AMap: TVCMIMap; point: TMapCoord);
+begin
+  case Mode of
+    TBrushMode.area:
+    begin
+
+    end;
+    TBrushMode.fixed:
+    begin
+      AddSquare(AMap, point.X, point.Y);
+    end;
+  end;
 end;
 
 procedure TMapBrush.ClearSelection;
@@ -193,7 +239,12 @@ begin
   FSelection := TCoordSet.Create;
 end;
 
-procedure TMapBrush.RenderCursor(State: TLocalState; X, Y, Size: integer);
+procedure TMapBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
+begin
+  Selection.Insert(Coord);
+end;
+
+procedure TMapBrush.RenderCursor(State: TLocalState; X, Y: integer);
 var
   dim: Integer;
   cx,cy: Integer;
@@ -252,6 +303,12 @@ begin
   end;
 end;
 
+procedure TMapBrush.SetMode(AMode: TBrushMode);
+begin
+  FMode := AMode;
+  Clear;
+end;
+
 constructor TMapBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -278,30 +335,157 @@ end;
 procedure TMapBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
 begin
   FDragging:=True;
-  AddTile(AMap,X,Y);
+
+  FStartCoord.Reset(X,Y);
+  FEndCooord.Reset(X,Y);
 end;
 
 procedure TMapBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
+  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    Selection.Insert(Coord);
+  end;
+var
+  r:TMapRect;
 begin
-  FDragging := False;
+  if FDragging then
+  begin
+    FDragging := False;
+
+    case Mode of
+      TBrushMode.area:
+      begin
+        ClearSelection;
+        r.SetFromCorners(FStartCoord,FEndCooord);
+        r.Iterate(@ProcessTile);
+      end;
+      TBrushMode.fixed:
+      begin
+
+      end;
+    end;
+  end;
 end;
 
 procedure TMapBrush.TileMouseMove(AMap: TVCMIMap; X, Y: integer);
+var
+  NewPoint: TMapCoord = (x:0; y:0);
+  d, c: TMapCoord;
+  SX, SY, E: integer;
+
 begin
+  if not (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y)) then
+    exit;
+
   if Dragging then
   begin
-    AddTile(AMap, X,Y);
+    if Mode = TBrushMode.fixed then
+    begin
+      NewPoint.Reset(X,Y);
+
+      if FEndCooord <> NewPoint then
+      begin
+        //draw line
+        //(modified)Bresenham's algorimth
+        //implementation based on BGRADrawLineAliased from http://sourceforge.net/projects/lazpaint (LGPL)
+
+        D := NewPoint-FEndCooord;
+
+        if D.X < 0 then
+        begin
+          SX := -1;
+          D.X := -D.X;
+        end
+        else
+        begin
+          SX := 1;
+        end;
+
+        if D.Y < 0 then
+        begin
+          SY := -1;
+          D.Y := -D.Y;
+        end
+        else
+        begin
+          SY := 1;
+        end;
+
+        D.X := D.X shl 1;
+        D.Y := D.Y shl 1;
+
+        c := FEndCooord;
+
+        if D.X > D.Y then
+        begin
+          E := D.Y - D.X shr 1;
+
+          while c.X <> NewPoint.X do
+          begin
+            CheckAddTiles(AMap, c);
+            if E >= 0 then
+            begin
+              Inc(c.Y, SY);
+              CheckAddTiles(AMap, c);
+              Dec(E, D.X);
+            end;
+            Inc(c.X, SX);
+            Inc(E, D.Y);
+          end;
+        end
+        else
+        begin
+          E := D.X - D.Y shr 1;
+
+          while c.Y <> NewPoint.Y do
+          begin
+            CheckAddTiles(AMap, c) ;
+            if E >= 0 then
+            begin
+              Inc(c.X, SX);
+              CheckAddTiles(AMap, c);
+              Dec(E, D.Y);
+            end;
+            Inc(c.Y, SY);
+            Inc(E, D.X);
+          end;
+        end;
+      end;
+
+      FEndCooord.Reset(x,y);
+
+      CheckAddTiles(AMap, FEndCooord);
+
+      AddSquare(AMap, x, y);
+    end;
+
+
   end;
 end;
 
 procedure TMapBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-
+  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
+    and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+  begin
+    //TODO: check cursor partially outside map
+    if Mode = TBrushMode.fixed then
+      RenderCursor(State, X, Y);
+  end;
 end;
 
 procedure TMapBrush.RenderSelection(State: TLocalState);
 begin
+  case Mode of
+    TBrushMode.area:
+    begin
+      RenderSelectionRect(State, FStartCoord, FEndCooord);
+    end;
+    TBrushMode.fixed:
+    begin
 
+    end;
+  end;
 end;
 
 procedure TMapBrush.MouseLeave(AMap: TVCMIMap);

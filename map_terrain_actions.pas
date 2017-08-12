@@ -26,9 +26,6 @@ uses
   terrain, map_actions, transitions, editor_gl, map_rect;
 
 type
-  TTerrainBrushMode = (none, fixed, area, fill);
-
-type
   PTileTerrainInfo  = ^TTileTerrainInfo;
 
   TTileTerrainInfo = record
@@ -54,46 +51,28 @@ type
 
   TTerrainBrush = class abstract (TMapBrush)
   private
-    FSize: Integer;
     FTT: TTerrainType;
-    procedure SetSize(AValue: Integer);
     procedure SetTT(AValue: TTerrainType);
-  protected
-    function GetMode: TTerrainBrushMode; virtual; abstract;
   public
-    property Mode: TTerrainBrushMode read GetMode;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
-    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X,Y: integer); override;
 
     property TT: TTerrainType read FTT write SetTT;
-
-    property Size: Integer read FSize write SetSize;
   end;
 
 
   { TFixedTerrainBrush }
 
   TFixedTerrainBrush = class(TTerrainBrush)
-  protected
-    procedure AddTile(AMap: TVCMIMap;X,Y: integer); override;
-    function GetMode: TTerrainBrushMode; override;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure RenderSelection(State: TLocalState); override;
   end;
 
   { TAreaTerrainBrush }
 
   TAreaTerrainBrush = class(TTerrainBrush)
-  strict private
-    FStartCoord: TMapCoord;
-    FEndCooord: TMapCoord;
-  protected
-    procedure AddTile(AMap: TVCMIMap;X,Y: integer);override;
-    function GetMode: TTerrainBrushMode; override;
   public
-    procedure RenderSelection(State: TLocalState); override;
-    procedure TileMouseDown(AMap: TVCMIMap;X,Y: integer);override;
-    procedure TileMouseUp(AMap: TVCMIMap;X,Y: integer);override;
+    constructor Create(AOwner: TComponent); override;
   end;
 
 
@@ -181,12 +160,6 @@ begin
   Clear;
 end;
 
-procedure TTerrainBrush.SetSize(AValue: Integer);
-begin
-  FSize:=AValue;
-  Clear;
-end;
-
 procedure TTerrainBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
   action: TEditTerrain;
@@ -201,59 +174,24 @@ begin
   Clear;
 end;
 
-procedure TTerrainBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
-begin
-  if Mode = TTerrainBrushMode.fixed then
-    inherited RenderCursor(State, X,Y, Size);
-end;
-
 { TAreaTerrainBrush }
 
-procedure TAreaTerrainBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
+
+constructor TAreaTerrainBrush.Create(AOwner: TComponent);
 begin
-  FEndCooord.Reset(x,y);
+  inherited Create(AOwner);
+  Size:=1;
+  SetMode(TBrushMode.area);
 end;
 
-function TAreaTerrainBrush.GetMode: TTerrainBrushMode;
-begin
-  Result := TTerrainBrushMode.area;
-end;
-
-procedure TAreaTerrainBrush.RenderSelection(State: TLocalState);
-begin
-  RenderSelectionRect(State, FStartCoord, FEndCooord);
-end;
-
-procedure TAreaTerrainBrush.TileMouseDown(AMap: TVCMIMap; X, Y: integer);
-begin
-  inherited TileMouseDown(amap, X, Y);
-  FStartCoord.Reset(X,Y);
-end;
-
-procedure TAreaTerrainBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
-  procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
-  begin
-    Selection.Insert(Coord);
-  end;
-var
-  r:TMapRect;
-begin
-  ClearSelection;
-  inherited TileMouseUp(amap, X, Y);
-  r.SetFromCorners(FStartCoord,FEndCooord);
-  r.Iterate(@ProcessTile);
-end;
 
 { TFixedTerrainBrush }
 
-procedure TFixedTerrainBrush.AddTile(AMap: TVCMIMap; X, Y: integer);
-begin
-  AddSquare(AMap, X, Y, Size);
-end;
 
-function TFixedTerrainBrush.GetMode: TTerrainBrushMode;
+constructor TFixedTerrainBrush.Create(AOwner: TComponent);
 begin
-  Result := TTerrainBrushMode.fixed;
+  inherited Create(AOwner);
+  SetMode(TBrushMode.fixed);
 end;
 
 procedure TFixedTerrainBrush.RenderSelection(State: TLocalState);
