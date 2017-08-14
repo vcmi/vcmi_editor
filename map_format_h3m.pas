@@ -1641,8 +1641,7 @@ begin
     custom := FSrc.ReadBoolean;
     if not custom then Continue;
 
-    definition := FMap.PredefinedHeroes.Add;
-    definition.Identifier := FMapEnv.lm.HeroIndexToString(i);
+    definition := FMap.PredefinedHeroes.EnsureItem(FMapEnv.lm.HeroIndexToString(i));
 
     if FSrc.ReadBoolean then
     begin
