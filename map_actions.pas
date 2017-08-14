@@ -24,9 +24,6 @@ uses
   Classes, SysUtils, Math, Map, gset, undo_base, editor_types, map_rect, undo_map,
   editor_gl;
 
-const
-  INVALID_COORDINATE: TMapCoord = (x:-1; y:-1);
-
 type
   TBrushMode = (none, fixed, area);
 
@@ -86,15 +83,14 @@ type
     property Selection: TCoordSet read FSelection;
     property Dragging: Boolean read FDragging;
 
-    procedure ClearSelection;
+    procedure ClearSelection; virtual;
 
-    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); virtual;
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord); virtual;
 
     procedure CheckAddTiles(AMap: TVCMIMap; point: TMapCoord);
 
     procedure RenderCursor(State: TLocalState; X, Y: integer);
     procedure RenderSelectionAllTiles(State: TLocalState);
-
 
     procedure SetMode(AMode: TBrushMode);
   public
@@ -205,7 +201,7 @@ procedure TMapBrush.AddSquare(AMap: TVCMIMap; AX, AY: integer);
 
   procedure CheckAddOneTileNested(const Coord: TMapCoord; var Stop: Boolean);
   begin
-    CheckAddOneTile(Amap, Coord, stop);
+    CheckAddOneTile(Amap, Coord);
   end;
 
 var
@@ -239,7 +235,7 @@ begin
   FSelection := TCoordSet.Create;
 end;
 
-procedure TMapBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
+procedure TMapBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord);
 begin
   Selection.Insert(Coord);
 end;
@@ -343,7 +339,7 @@ end;
 procedure TMapBrush.TileMouseUp(AMap: TVCMIMap; X, Y: integer);
   procedure ProcessTile(const Coord: TMapCoord; var Stop: Boolean);
   begin
-    Selection.Insert(Coord);
+    CheckAddOneTile(AMap, Coord);
   end;
 var
   r:TMapRect;
@@ -368,10 +364,17 @@ begin
 end;
 
 procedure TMapBrush.TileMouseMove(AMap: TVCMIMap; X, Y: integer);
+
+  procedure CheckAddOneTileNested(const Coord: TMapCoord; var Stop: Boolean);
+  begin
+    CheckAddOneTile(Amap, Coord);
+  end;
 var
   NewPoint: TMapCoord = (x:0; y:0);
   d, c: TMapCoord;
   SX, SY, E: integer;
+
+  r: TMapRect;
 
 begin
   if not (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y)) then
@@ -457,16 +460,20 @@ begin
       CheckAddTiles(AMap, FEndCooord);
 
       AddSquare(AMap, x, y);
+    end
+    else if Mode = TBrushMode.area then
+    begin
+      ClearSelection;
+      FEndCooord.Reset(x,y);
+      r.SetFromCorners(FStartCoord, FEndCooord);
+      r.Iterate(@CheckAddOneTileNested);
     end;
-
-
   end;
 end;
 
 procedure TMapBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
-    and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y)) then
   begin
     //TODO: check cursor partially outside map
     if Mode = TBrushMode.fixed then
@@ -483,7 +490,7 @@ begin
     end;
     TBrushMode.fixed:
     begin
-
+      RenderSelectionAllTiles(State);
     end;
   end;
 end;

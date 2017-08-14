@@ -72,7 +72,6 @@ type
     procedure actEraseSizeRectExecute(Sender: TObject);
     procedure actObjSize0Execute(Sender: TObject);
     procedure actObjSizeRectExecute(Sender: TObject);
-    procedure actSize0Execute(Sender: TObject);
     procedure actSize1Execute(Sender: TObject);
     procedure actSize2Execute(Sender: TObject);
     procedure actSize4Execute(Sender: TObject);
@@ -114,6 +113,8 @@ type
     function ObjectEraseMode: TEraseObjectBy;
   public
     constructor Create(TheOwner: TComponent); override;
+
+    procedure SetVisibleObjects(VisibleObjects: TMapObjectsSelection);
 
     property ActiveBrush: TMapBrush read FActiveBrush;
 
@@ -164,11 +165,6 @@ end;
 procedure TToolsFrame.RiverTypeSelectionChanged(Sender: TObject);
 begin
   FRoadRiverBrush.RiverType:=TRiverType(PtrInt(RiverType.Items.Objects[RiverType.ItemIndex]));
-end;
-
-procedure TToolsFrame.actSize0Execute(Sender: TObject);
-begin
-  SetActiveBrush(FIdleBrush);
 end;
 
 procedure TToolsFrame.actObjSize0Execute(Sender: TObject);
@@ -499,6 +495,14 @@ begin
   FillRoadRiverMenu;
   FillEraseMenu;
   FillObjectEraseMenu;
+end;
+
+procedure TToolsFrame.SetVisibleObjects(VisibleObjects: TMapObjectsSelection);
+begin
+  //TODO: maybe free notification?
+  FAreaEraseBrush.VisibleObjects := VisibleObjects;
+  FFixedEraseBrush.VisibleObjects := VisibleObjects;
+  FObjectSelectBrush.VisibleObjects := VisibleObjects;
 end;
 
 procedure TToolsFrame.SwitchToObjects;

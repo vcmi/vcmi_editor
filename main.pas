@@ -88,6 +88,7 @@ type
     actFilterCreatures: TAction;
     actFilterDwelling: TAction;
     actFilterOnMap: TAction;
+    actClearActiveBrush: TAction;
     actZoomOut: TAction;
     actZoomIn: TAction;
     actViewGrid: TAction;
@@ -180,6 +181,7 @@ type
     hScrollBar: TScrollBar;
     vScrollBar: TScrollBar;
     procedure actAnimateObjectsExecute(Sender: TObject);
+    procedure actClearActiveBrushExecute(Sender: TObject);
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
@@ -571,6 +573,11 @@ begin
   AnimTimer.Enabled := actAnimateObjects.Checked;
 end;
 
+procedure TfMain.actClearActiveBrushExecute(Sender: TObject);
+begin
+  FToolsFrame.ActiveBrush.Clear;
+end;
+
 procedure TfMain.actDeleteExecute(Sender: TObject);
 begin
   DeleteObject(FToolsFrame.SelectedObject);
@@ -909,7 +916,7 @@ begin
   FVisibleObjects := TVisibleObjects.Create();
   FVisibleObjectsValid:=false;
 
-  FToolsFrame.ObjectSelectBrush.VisibleObjects := FVisibleObjects;
+  FToolsFrame.SetVisibleObjects(FVisibleObjects);
 
   FObjectCategory:=TObjectCategory.Hero;
 

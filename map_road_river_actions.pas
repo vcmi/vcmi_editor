@@ -36,18 +36,15 @@ type
     FKind: TRoadRiverBrushKind;
     FRiverType: TRiverType;
     FRoadType: TRoadType;
-    FLastPoint: TMapCoord;
     procedure SetKind(AValue: TRoadRiverBrushKind);
     procedure SetRiverType(AValue: TRiverType);
     procedure SetRoadType(AValue: TRoadType);
   protected
-    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); override;
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Clear; override;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);override;
-
-    procedure RenderSelection(State: TLocalState); override;
+    procedure RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer); override;
 
     property RoadType: TRoadType read FRoadType write SetRoadType;
     property RiverType: TRiverType read FRiverType write SetRiverType;
@@ -157,7 +154,7 @@ begin
   Kind := TRoadRiverBrushKind.road;
 end;
 
-procedure TRoadRiverBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
+procedure TRoadRiverBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord);
 begin
   //do not draw on water and rock
   if not (AMap.CurrentLevel.Tile[Coord.x,Coord.y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
@@ -172,11 +169,6 @@ begin
   SetMode(TBrushMode.fixed);
 end;
 
-procedure TRoadRiverBrush.Clear;
-begin
-  inherited Clear;
-  FLastPoint := INVALID_COORDINATE;
-end;
 
 procedure TRoadRiverBrush.SetRiverType(AValue: TRiverType);
 begin
@@ -212,9 +204,11 @@ begin
   Clear;
 end;
 
-procedure TRoadRiverBrush.RenderSelection(State: TLocalState);
+procedure TRoadRiverBrush.RenderCursor(State: TLocalState; AMap: TVCMIMap; X, Y: integer);
 begin
-  RenderSelectionAllTiles(State);
+  if (AMap.IsOnMap(AMap.CurrentLevelIndex,X,Y))
+      and not (AMap.CurrentLevel.Tile[X,Y]^.TerType in [TTerrainType.rock, TTerrainType.water]) then
+    inherited RenderCursor(State, AMap, X, Y);
 end;
 
 { TEditRoadRiver }

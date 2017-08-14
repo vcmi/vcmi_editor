@@ -65,7 +65,6 @@ type
   TFixedTerrainBrush = class(TTerrainBrush)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure RenderSelection(State: TLocalState); override;
   end;
 
   { TAreaTerrainBrush }
@@ -192,11 +191,6 @@ constructor TFixedTerrainBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   SetMode(TBrushMode.fixed);
-end;
-
-procedure TFixedTerrainBrush.RenderSelection(State: TLocalState);
-begin
-  RenderSelectionAllTiles(State);
 end;
 
 { TInvalidTiles }

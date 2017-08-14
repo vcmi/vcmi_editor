@@ -30,16 +30,16 @@ type
 
   TObjectSelectBrush = class (TMapBrush)
   strict private
-
     FSelectedObjects: TMapObjectSet;
     FVisibleObjects: TMapObjectsSelection;
   protected
-    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean); override;
+    procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Clear; override;
+    procedure ClearSelection; override;
 
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
 
@@ -339,9 +339,9 @@ end;
 
 { TObjectSelectBrush }
 
-procedure TObjectSelectBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord; var Stop: Boolean);
+procedure TObjectSelectBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord);
 begin
-  inherited CheckAddOneTile(AMap, Coord, Stop);
+  inherited CheckAddOneTile(AMap, Coord);
 
   if Assigned(FVisibleObjects) then
   begin
@@ -353,6 +353,8 @@ constructor TObjectSelectBrush.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FSelectedObjects := TMapObjectSet.Create;
+  Size:=0;
+  SetMode(TBrushMode.area);
 end;
 
 destructor TObjectSelectBrush.Destroy;
@@ -364,6 +366,11 @@ end;
 procedure TObjectSelectBrush.Clear;
 begin
   inherited Clear;
+end;
+
+procedure TObjectSelectBrush.ClearSelection;
+begin
+  inherited ClearSelection;
   FreeAndNil(FSelectedObjects);
   FSelectedObjects := TMapObjectSet.Create;
 end;

@@ -2015,6 +2015,11 @@ object fMain: TfMain
       Caption = 'On map'
       OnExecute = actFilterOnMapExecute
     end
+    object actClearActiveBrush: TAction
+      Caption = 'Clear active brush'
+      OnExecute = actClearActiveBrushExecute
+      ShortCut = 27
+    end
   end
   object ApplicationProperties1: TApplicationProperties
     OnIdleEnd = ApplicationProperties1IdleEnd
