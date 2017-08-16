@@ -423,7 +423,9 @@ type
     Procedure FPOObservedChanged(ASender: TObject; Operation: TFPObservedOperation; Data: Pointer);
 
     property Visitable: Boolean read FIsVisitable;
-    function IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
+    function IsVisitableAt(ALevel, AX, AY: Integer): Boolean; inline;
+
+    function IsMaskedAt(ALevel, AX, AY: Integer; AMask:TMaskFilter): Boolean;
 
     property Width: Integer read FMaskWidth;
     property Height: Integer read FMaskHeight;
@@ -494,7 +496,7 @@ type
 
     procedure RenderSelectionRect(AState: TLocalState); inline;
 
-    function CoversTile(ALevel, AX, AY: Integer): boolean;
+    function CoversTile(ALevel, AX, AY: Integer; AOption: TSelectObjectBy): boolean;
     function IsVisitableAt(ALevel, AX, AY: Integer): boolean;  inline;
 
     function GetMap:TVCMIMap;
@@ -871,7 +873,9 @@ type
     property ObjectsManager: TObjectsManager read FObjectsManager;
 
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
-    class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet);
+
+    class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet;
+      ASelectBy:TSelectObjectBy);
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
@@ -1730,6 +1734,11 @@ begin
 end;
 
 function TMapObjectAppearance.IsVisitableAt(ALevel, AX, AY: Integer): Boolean;
+begin
+  Result := IsMaskedAt(ALevel, AX, AY, [MASK_ACTIVABLE, MASK_TRIGGER]);
+end;
+
+function TMapObjectAppearance.IsMaskedAt(ALevel, AX, AY: Integer; AMask: TMaskFilter): Boolean;
 var
   dx, dy: Integer;
   line: String;
@@ -1746,7 +1755,7 @@ begin
   line := Mask[FMaskHeight - dy - 1];
   if Length(line) < (dx+1) then
      Exit(false);
-  Result := line[Length(line) - dx] = MASK_ACTIVABLE;
+  Result := line[Length(line) - dx] in AMask;
 end;
 
 procedure TMapObjectAppearance.GetKeyWords(ATarget: TStrings);
@@ -2106,17 +2115,36 @@ end;
 
 { TMapObject }
 
-function TMapObject.CoversTile(ALevel, AX, AY: Integer): boolean;
+function TMapObject.CoversTile(ALevel, AX, AY: Integer; AOption: TSelectObjectBy): boolean;
 var
   w: UInt32;
   h: UInt32;
 begin
-  //TODO: use MASK
-  w := Template.Def.Width div TILE_SIZE;
-  h := Template.Def.Height div TILE_SIZE;
-  Result := (L = ALevel)
-    and (X>=AX) and (Y>=AY)
-    and (X-w<AX) and (Y-h<AY);
+  case AOption of
+  TSelectObjectBy.BBox:
+  begin
+    //TODO: use MASK
+    w := Template.Def.Width div TILE_SIZE;
+    h := Template.Def.Height div TILE_SIZE;
+    Result := (L = ALevel)
+      and (X>=AX) and (Y>=AY)
+      and (X-w<AX) and (Y-h<AY);
+  end;
+  TSelectObjectBy.VisibleMask:
+  begin
+    Result := FAppearance.IsMaskedAt(ALevel, AX, AY, [MASK_VISIBLE, MASK_BLOCKED, MASK_ACTIVABLE]);
+  end;
+  TSelectObjectBy.BlockMask:
+  begin
+    Result := FAppearance.IsMaskedAt(ALevel, AX, AY, [MASK_BLOCKED, MASK_HIDDEN, MASK_ACTIVABLE, MASK_TRIGGER]);
+  end;
+  TSelectObjectBy.VisitableMask:
+  begin
+    Result := FAppearance.IsVisitableAt(ALevel, AX, AY);
+  end;
+
+  end;
+
 end;
 
 function TMapObject.IsVisitableAt(ALevel, AX, AY: Integer): boolean;
@@ -3377,14 +3405,15 @@ begin
   begin
     o := ASource[i];
 
-    if o.CoversTile(Level,x,y) then
+    if o.CoversTile(Level,x,y, TSelectObjectBy.BBox) then
     begin
       ATarget.Push(o);
     end;
   end;
 end;
 
-class procedure TVCMIMap.SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet);
+class procedure TVCMIMap.SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet;
+  ASelectBy: TSelectObjectBy);
 var
   o: TMapObject;
   i: Integer;
@@ -3393,7 +3422,7 @@ begin
   begin
     o := ASource[i];
 
-    if o.CoversTile(Level,x,y) then
+    if o.CoversTile(Level,x,y, ASelectBy) then
     begin
       ATarget.Insert(o);
     end;

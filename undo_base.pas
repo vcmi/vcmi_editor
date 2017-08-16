@@ -32,11 +32,11 @@ type
   TAbstractUndoItem = class abstract
   private
     FState: TUndoItemState;
-    procedure SetState(AValue: TUndoItemState);
   protected
-    property State:TUndoItemState read FState write SetState;
     function GetDescription: string; virtual; abstract;
   public
+    property State:TUndoItemState read FState write FState;
+
     procedure Undo; virtual; abstract;
     procedure Redo; virtual; abstract;
     //return true if action was actually executed
@@ -80,13 +80,6 @@ begin
 end;
 
 
-{ TAbstractUndoItem }
-
-procedure TAbstractUndoItem.SetState(AValue: TUndoItemState);
-begin
-  if FState=AValue then Exit;
-  FState:=AValue;
-end;
 
 end.
 

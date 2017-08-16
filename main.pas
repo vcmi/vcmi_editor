@@ -1376,7 +1376,7 @@ var
      if not DragStarted then
      begin
        if Assigned(FToolsFrame.SelectedObject)
-         and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY)) then
+         and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY, TSelectObjectBy.BBox)) then
        begin
          //MapView.Cursor:=crHandPoint;
          FNextDragSubject:=TDragSubject.MapObject;
@@ -1405,7 +1405,7 @@ begin
         FMap.SelectObjectsOnTile(FVisibleObjects.Data, FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY,q);
 
         if Assigned(FToolsFrame.SelectedObject)
-          and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY))
+          and (FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex,FMouseTileX,FMouseTileY, TSelectObjectBy.BBox))
           then
         begin
           //select next object
@@ -1500,7 +1500,7 @@ begin
   begin
     if (FMouseDTileX = FMouseTileX) and (FMouseDTileY = FMouseTileY) then
     begin
-      if Assigned(FToolsFrame.SelectedObject) and FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex, FMouseDTileX, FMouseDTileY) then
+      if Assigned(FToolsFrame.SelectedObject) and FToolsFrame.SelectedObject.CoversTile(FMap.CurrentLevelIndex, FMouseDTileX, FMouseDTileY, TSelectObjectBy.BBox) then
       begin
         actProperties.Execute;
       end;

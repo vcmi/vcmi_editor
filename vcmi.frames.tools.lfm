@@ -15,9 +15,9 @@ object ToolsFrame: TToolsFrame
     Height = 350
     Top = 0
     Width = 218
-    ActivePage = tsObjects
+    ActivePage = tsErase
     Align = alClient
-    TabIndex = 0
+    TabIndex = 4
     TabOrder = 0
     TabPosition = tpLeft
     OnChange = ToolsPagesChange
@@ -400,7 +400,6 @@ object ToolsFrame: TToolsFrame
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        Enabled = False
         OnClick = EraseObjectsClick
         TabOrder = 2
       end

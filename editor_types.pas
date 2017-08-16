@@ -79,6 +79,8 @@ type
   TArtifactClass = (SPECIAL, TREASURE, MINOR, MAJOR, RELIC);
 
   TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
+
+  TSelectObjectBy = (BBox, VisibleMask, BlockMask, VisitableMask);
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 
@@ -94,6 +96,10 @@ const
   MASK_HIDDEN      = 'H'; //not visible, blocked
   MASK_ACTIVABLE   = 'A'; //visible, blocked, activable
   MASK_TRIGGER     = 'T'; //not visible, blocked, activable
+
+type
+  TMaskFilter = set of char;
+const
 
   Z_INDEX_OVERLAY = 100;
 const

@@ -110,7 +110,7 @@ type
 
     procedure SetActiveBrush(ABrush: TMapBrush);
 
-    function ObjectEraseMode: TEraseObjectBy;
+    function ObjectEraseMode: TSelectObjectBy;
   public
     constructor Create(TheOwner: TComponent); override;
 
@@ -242,7 +242,7 @@ end;
 
 procedure TToolsFrame.EraseObjectsClick(Sender: TObject);
 var
-  m: TEraseObjectBy;
+  m: TSelectObjectBy;
 begin
   m := ObjectEraseMode();
   FAreaEraseBrush.ObjectFilter := m;
@@ -335,18 +335,18 @@ end;
 
 procedure TToolsFrame.FillObjectEraseMenu;
 var
-  filter_captions: array[TEraseObjectBy] of AnsiString;
-  f: TEraseObjectBy;
+  filter_captions: array[TSelectObjectBy] of AnsiString;
+  f: TSelectObjectBy;
 begin
-  filter_captions[TEraseObjectBy.BBox] := rsEraseObjectBBox;
-  filter_captions[TEraseObjectBy.VisibleMask] := rsEraseObjectVisibleMask;
-  filter_captions[TEraseObjectBy.BlockMask] := rsEraseObjectBlockMask;
-  filter_captions[TEraseObjectBy.VisitableMask] := rsEraseObjectVisitableMask;
+  filter_captions[TSelectObjectBy.BBox] := rsEraseObjectBBox;
+  filter_captions[TSelectObjectBy.VisibleMask] := rsEraseObjectVisibleMask;
+  filter_captions[TSelectObjectBy.BlockMask] := rsEraseObjectBlockMask;
+  filter_captions[TSelectObjectBy.VisitableMask] := rsEraseObjectVisitableMask;
 
   EraseObjects.Items.BeginUpdate;
   try
     EraseObjects.Items.Clear;
-    for f in TEraseObjectBy do
+    for f in TSelectObjectBy do
     begin
       EraseObjects.Items.Add(filter_captions[f]);
     end;
@@ -455,7 +455,9 @@ begin
     actEraseSize1.Checked := true;
     SetActiveBrush(FFixedEraseBrush);
     FFixedTerrainBrush.Size:=1;
-  end
+  end;
+
+  EraseObjectsClick(EraseObjects);
 end;
 
 procedure TToolsFrame.SetActiveBrush(ABrush: TMapBrush);
@@ -465,15 +467,15 @@ begin
   FSelectedObject := nil;
 end;
 
-function TToolsFrame.ObjectEraseMode: TEraseObjectBy;
+function TToolsFrame.ObjectEraseMode: TSelectObjectBy;
 begin
   if EraseObjects.ItemIndex < 0 then
   begin
-    Result := TEraseObjectBy(0);
+    Result := TSelectObjectBy(0);
   end
   else
   begin
-    Result := TEraseObjectBy(EraseObjects.ItemIndex);
+    Result := TSelectObjectBy(EraseObjects.ItemIndex);
   end;
 end;
 

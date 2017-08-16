@@ -30,14 +30,14 @@ type
   TEraseTarget = (Roads, Rivers, StaticObjects, InteractiveObjects);
   TEraseFilter = set of TEraseTarget;
 
-  TEraseObjectBy = (BBox, VisibleMask, BlockMask, VisitableMask);
+
 
   { TEraseBrush }
 
   TEraseBrush = class(TMapBrush)
   strict private
     FFilter: TEraseFilter;
-    FObjectFilter: TEraseObjectBy;
+    FObjectFilter: TSelectObjectBy;
 
     FSelectedObjects: TMapObjectSet;
     FVisibleObjects: TMapObjectsSelection;
@@ -50,7 +50,7 @@ type
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
     procedure RenderSelection(State: TLocalState); override;
     property Filter: TEraseFilter read FFilter write FFilter;
-    property ObjectFilter: TEraseObjectBy read FObjectFilter write FObjectFilter;
+    property ObjectFilter: TSelectObjectBy read FObjectFilter write FObjectFilter;
     property VisibleObjects: TMapObjectsSelection read FVisibleObjects write FVisibleObjects;
   end;
 
@@ -131,21 +131,33 @@ procedure TEraseBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord);
 begin
   inherited CheckAddOneTile(AMap, Coord);
 
-  if Assigned(FVisibleObjects) then
+  if Assigned(FVisibleObjects) and (([TEraseTarget.StaticObjects, TEraseTarget.InteractiveObjects] * Filter) <> []) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects, FObjectFilter);
   end;
 end;
 
 procedure TEraseBrush.Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap);
 var
   item: TEraseAction;
+  it: TMapObjectSet.TIterator;
 begin
-  if not Selection.IsEmpty then
+  if not Selection.IsEmpty or not FSelectedObjects.IsEmpty then
   begin
     item := TEraseAction.Create(AMap);
     item.Filter:=Filter;
     item.LoadTiles(Selection);
+
+    it := FSelectedObjects.Min;
+
+    if Assigned(it) then
+    begin
+      repeat
+        item.AddObject(it.Data);
+      until not it.Next;
+      FreeAndNil(it);
+    end;
+
     AManager.ExecuteItem(item);
   end;
 
@@ -186,6 +198,7 @@ begin
   FEraseRiver := TEditRiver.Create(AMap, TRiverType.noRiver);
   FEraseRoad := TEditRoad.Create(AMap, TRoadType.noRoad);
   FEraseObjects := TDeleteObjects.Create(AMap);
+
   FActiveActions := TActiveActions.Create(false);
   FTiles :=  TCoordSet.Create;
 end;
@@ -209,8 +222,22 @@ begin
 end;
 
 procedure TEraseAction.AddObject(AObject: TMapObject);
+var
+  add: Boolean = false;
 begin
-  FEraseObjects.Targets.Add(AObject);
+
+  if TEraseTarget.StaticObjects in Filter then
+  begin
+    if Assigned(AObject.MapObjectGroup) and (AObject.MapObjectGroup.Handler = 'static') then
+      add := true;
+  end
+  else if TEraseTarget.InteractiveObjects in Filter then
+  begin
+    if Assigned(AObject.Template) and AObject.Template.Visitable then
+      add := true;
+  end;
+  if add then
+    FEraseObjects.Targets.Add(AObject);
 end;
 
 function TEraseAction.GetDescription: string;
@@ -252,7 +279,10 @@ var
   iter: TMapUndoItem;
 begin
   for iter in FActiveActions do
+  begin
     iter.Redo;
+    iter.State := TUndoItemState.ReDone;
+  end;
 end;
 
 procedure TEraseAction.Undo;
@@ -260,7 +290,10 @@ var
   iter: TMapUndoItem;
 begin
   for iter in FActiveActions do
+  begin
     iter.Undo;
+    iter.State := TUndoItemState.UnDone;
+  end;
 end;
 
 { TFixedEraseBrush }
