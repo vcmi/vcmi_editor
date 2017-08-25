@@ -299,9 +299,9 @@ type
     //end binary compatible with H3 part
     FOwner: TPlayer;
 
-    FBlockingCount: Int16; //anount of objects blocking this tile
-    FActiveCount: Int16; //anount of objects blocking this tile
-    FFlaggableID: Int32; //Internal id of flaggable object in this tile.
+    FBlockingCount: Int16; //amount of objects blocking this tile
+    FActiveCount: Int16; //amount of objects visitable on this tile
+    FFlaggableID: Int32; //Internal id of (first) flaggable object in this tile.
   public
     constructor Create(ATerType: TTerrainType; ATerSubtype: UInt8);
 

@@ -2,10 +2,10 @@ object fMain: TfMain
   Left = 411
   Height = 809
   Top = 63
-  Width = 1142
+  Width = 995
   Caption = 'VCMI editor'
   ClientHeight = 789
-  ClientWidth = 1142
+  ClientWidth = 995
   Icon.Data = {
     267D000000000100040010100000000020006804000046000000202000000000
     2000A8100000AE0400003030000000002000A825000056150000404000000000
@@ -1024,11 +1024,11 @@ object fMain: TfMain
     Left = 0
     Height = 34
     Top = 0
-    Width = 1142
+    Width = 995
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 1142
+    ClientWidth = 995
     TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
@@ -1125,7 +1125,7 @@ object fMain: TfMain
       Left = 340
       Height = 34
       Top = 0
-      Width = 802
+      Width = 655
       Align = alClient
       BorderSpacing.Left = 340
       ButtonHeight = 32
@@ -1133,87 +1133,80 @@ object fMain: TfMain
       Caption = 'FilterToolBar'
       ShowCaptions = True
       TabOrder = 1
+      Wrapable = False
       object ToolButton11: TToolButton
-        Left = 6
+        Left = 1
         Top = 2
         Action = actFilterHeroes
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton12: TToolButton
-        Left = 51
+        Left = 46
         Top = 2
         Action = actFilterTowns
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton13: TToolButton
-        Left = 94
+        Left = 89
         Top = 2
         Action = actFilterArtifacts
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton14: TToolButton
-        Left = 263
+        Left = 258
         Top = 2
         Action = actFilterResources
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton15: TToolButton
-        Left = 324
+        Left = 319
         Top = 2
         Action = actFilterStatic
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton16: TToolButton
-        Left = 361
+        Left = 356
         Top = 2
         Action = actFilterOther
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton17: TToolButton
-        Left = 146
+        Left = 141
         Top = 2
         Action = actFilterCreatures
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton20: TToolButton
-        Left = 204
+        Left = 199
         Top = 2
         Action = actFilterDwelling
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton21: TToolButton
-        Left = 1
+        Left = 394
         Height = 32
         Top = 2
         Width = 5
         Caption = 'ToolButton21'
         Style = tbsDivider
       end
-      object ToolButton22: TToolButton
-        Left = 399
-        Height = 32
-        Top = 2
-        Width = 2
-        Caption = 'ToolButton22'
-        Style = tbsDivider
-      end
       object ToolButton23: TToolButton
-        Left = 401
+        Left = 399
         Top = 2
         Action = actFilterOnMap
       end
     end
   end
   object pnRight: TPanel
-    Left = 938
+    Left = 791
     Height = 732
     Top = 34
     Width = 204
@@ -1331,7 +1324,7 @@ object fMain: TfMain
     Left = 0
     Height = 23
     Top = 766
-    Width = 1142
+    Width = 995
     Panels = <    
       item
         Width = 300
@@ -1381,7 +1374,7 @@ object fMain: TfMain
     Left = 202
     Height = 732
     Top = 34
-    Width = 736
+    Width = 589
     ActivePage = tsMap
     Align = alClient
     ShowTabs = False
@@ -1391,17 +1384,17 @@ object fMain: TfMain
     object tsMap: TTabSheet
       Caption = 'tsMap'
       ClientHeight = 724
-      ClientWidth = 728
+      ClientWidth = 581
       object pnMap: TPanel
         Left = 0
         Height = 724
         Top = 0
-        Width = 728
+        Width = 581
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnMap'
         ClientHeight = 724
-        ClientWidth = 728
+        ClientWidth = 581
         Color = clWhite
         ParentColor = False
         TabOrder = 0
@@ -1409,7 +1402,7 @@ object fMain: TfMain
           Left = 23
           Height = 685
           Top = 23
-          Width = 689
+          Width = 542
           Align = alClient
           AutoResizeViewport = True
           OpenGLMajorVersion = 3
@@ -1431,7 +1424,7 @@ object fMain: TfMain
           Left = 18
           Height = 16
           Top = 708
-          Width = 692
+          Width = 545
           Align = alBottom
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
@@ -1441,7 +1434,7 @@ object fMain: TfMain
           OnScroll = hScrollBarScroll
         end
         object vScrollBar: TScrollBar
-          Left = 712
+          Left = 565
           Height = 685
           Top = 23
           Width = 16
@@ -1475,19 +1468,19 @@ object fMain: TfMain
           Left = 23
           Height = 23
           Top = 0
-          Width = 687
+          Width = 540
           Align = alTop
           BorderSpacing.Left = 23
           BorderSpacing.Right = 18
           BevelOuter = bvNone
           ClientHeight = 23
-          ClientWidth = 687
+          ClientWidth = 540
           TabOrder = 4
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23
             Top = 0
-            Width = 687
+            Width = 540
             Align = alClient
             OnPaint = HorisontalAxisPaint
           end

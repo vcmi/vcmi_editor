@@ -1734,6 +1734,7 @@ var
   f, build_idx: Integer;
   o, buildings: TJSONObject;
   random_faction: TJsonResource;
+  n: String;
 begin
   legacy_data := TJsonObjectList.Create(true);
 
@@ -1751,7 +1752,9 @@ begin
     begin
       o := CreateJSONObject([]);
 
-      o.Strings['name'] := faction_names.Value[0,f];
+      n := faction_names.Value[0,f];
+
+      o.Strings['name'] :=n;
 
       legacy_data.Add(o);
     end;

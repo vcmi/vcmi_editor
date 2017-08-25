@@ -159,7 +159,6 @@ type
     ToolButton19: TToolButton;
     ToolButton20: TToolButton;
     ToolButton21: TToolButton;
-    ToolButton22: TToolButton;
     ToolButton23: TToolButton;
     ToolButton5: TToolButton;
     ToolButton6: TToolButton;
