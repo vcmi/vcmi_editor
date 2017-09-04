@@ -5,7 +5,7 @@ install:
     - wget http://mirrors.iwi.me/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/lazarus-project_1.6.2-1_amd64.deb
     - wget http://mirrors.iwi.me/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/fpc-src_3.0.0-151205_amd64.deb
     - wget http://mirrors.iwi.me/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/fpc_3.0.0-151205_amd64.deb
-    - sudo dpkg -i fpc-src_3.0.0-151205_amd64.deb fpc-src_3.0.0-151205_amd64.deb lazarus-project_1.6.2-1_amd64.deb
+    - sudo dpkg -i fpc-src_3.0.0-151205_amd64.deb fpc_3.0.0-151205_amd64.deb lazarus-project_1.6.2-1_amd64.deb
 
 script:
     - make
