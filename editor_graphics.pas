@@ -313,6 +313,20 @@ const
 
   PLAYER_COLOR_INDEX = 5;
 
+type
+  TSpecialColorUsage = set of byte;
+
+const
+
+  TERRAIN_DEF_TYPE = $45;
+  TERRAIN_SPEC_COLORS = [0,1,3,4];
+
+  MAP_OBJECT_DEF_TYPE = $43;
+  MAP_OBJECT_SPEC_COLORS = [0,1,4,5];
+
+  HERO_DEF_TYPE = $44;
+//  HERO_SPEC_COLORS = MAP_OBJECT_SPEC_COLORS;
+
   //DEF_TYPE_MAP_OBJECT = $43;
 
 function CompareDefs(const d1,d2: TAnimation): integer;
@@ -836,44 +850,42 @@ var
 
   header: TH3DefHeader;
   orig_position: Int32;
+
+  spec_color_usage: TSpecialColorUsage;
+  typ: DWord;
 begin
   orig_position := AStream.Position;
 
   AStream.Read(header{%H-},SizeOf(header));
 
-  //typ := LEtoN(header.typ);
+  typ := LEtoN(header.typ);
   Current.FHeight := LEtoN(header.height);
   blockCount := LEtoN(header.blockCount);
   Current.FWidth := LEtoN(header.width);
 
-  //TODO: use color comparison instead of index
+  spec_color_usage := [0];
+
+  case typ of
+    TERRAIN_DEF_TYPE: spec_color_usage :=TERRAIN_SPEC_COLORS;
+    MAP_OBJECT_DEF_TYPE, HERO_DEF_TYPE:spec_color_usage :=MAP_OBJECT_SPEC_COLORS;
+  else
+    DebugLn('Def type %d from %s not supported',[typ, AFileName]);
+  end;
 
   if mode <> TGraphicsLoadMode.LoadRest then
   begin
-    palette[0] := STANDARD_COLORS[0];
-    palette[1] := STANDARD_COLORS[1];
 
-    for i := 2 to 7 do
-    begin
-      if header.palette[i] = H3_SPECIAL_COLORS[i] then
-      begin
-        palette[i] := STANDARD_COLORS[i];
-      end
-      else
-      begin
-        palette[i].a := 255; //no alpha in h3 def
-        palette[i].b := header.palette[i].b;
-        palette[i].g := header.palette[i].g;
-        palette[i].r := header.palette[i].r;
-      end;
-    end;
-
-    for i := 8 to 255 do
+    for i := 0 to 255 do
     begin
       palette[i].a := 255; //no alpha in h3 def
       palette[i].b := header.palette[i].b;
       palette[i].g := header.palette[i].g;
       palette[i].r := header.palette[i].r;
+    end;
+
+    for i in spec_color_usage do
+    begin
+      palette[i] := STANDARD_COLORS[i]
     end;
 
     glGenTextures(1,@Current.FPaletteID);
