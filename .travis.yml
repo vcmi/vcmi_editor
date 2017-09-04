@@ -12,3 +12,7 @@ script:
     - make
     - make build_tests
     - make test
+
+notifications:
+  slack:
+    secure: PCe/rd18XEEH3Pq6ugftgz8+lqWn4XOGc6QbNcax5virYuWaYaEEq9Sq3K0HqdEYyLrWV8r3hcEcZd43zsHkeqIZKsT7ieQzaT2r9HoEGeU4xX7WJmj9rZUnpZuY7aD6qa6/1x5XgwDeBYEeKc87HWEuiJeo9NKOmYMtKvPwxzc=
