@@ -1,11 +1,9 @@
 language: c
 
 install:
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/lazarus_1.6-0_amd64.deb
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/fpc-src_3.0.0-151205_amd64.deb
-    - wget ftp://freepascal.dfmk.hu/pub/lazarus/releases/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6/fpc_3.0.0-151205_amd64.deb
-    - sudo dpkg -i fpc-src_3.0.0-151205_amd64.deb fpc_3.0.0-151205_amd64.deb lazarus_1.6-0_amd64.deb
-
+    - sudo add-apt-repository ppa:jonathonf/lazarus
+    - sudo apt-get update
+    - sudo apt-get -y install fpc lazarus
 script:
     - make
     - make build_tests
