@@ -1572,8 +1572,6 @@ begin
   FMapViewState.SetUseFlag(false);
   FMap.RenderTerrain(FMapViewState, FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
-  FMapViewState.SetUseFlag(true);
-
   new_tick := LazUTF8SysUtils.GetTickCount64;
 
   new_anim_frame := false;
@@ -1591,8 +1589,6 @@ begin
   if FMapDragging then
   begin
     Assert(Assigned(FDragging));
-    FMapViewState.SetUseFlag(true);
-
     FMapViewState.StartDrawingSprites;
     FMapViewState.UseTextures(True, True);
 
@@ -1853,7 +1849,6 @@ begin
   FObjectsViewState.StopDrawing;
 
   FObjectsViewState.UseTextures(true, true);
-  FObjectsViewState.SetUseFlag(true);
   FObjectsViewState.StartDrawingSprites();
 
   cy := 0;

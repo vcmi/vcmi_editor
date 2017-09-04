@@ -322,7 +322,7 @@ const
   TERRAIN_SPEC_COLORS = [0,1,3,4];
 
   MAP_OBJECT_DEF_TYPE = $43;
-  MAP_OBJECT_SPEC_COLORS = [0,1,4,5];
+  MAP_OBJECT_SPEC_COLORS = [0,1,4{,5}];
 
   HERO_DEF_TYPE = $44;
 //  HERO_SPEC_COLORS = MAP_OBJECT_SPEC_COLORS;
@@ -885,8 +885,13 @@ begin
 
     for i in spec_color_usage do
     begin
-      palette[i] := STANDARD_COLORS[i]
+      palette[i] := STANDARD_COLORS[i];
     end;
+
+    //if header.palette[5] = H3_SPECIAL_COLORS[5] then
+    //begin
+    //  palette[5] := STANDARD_COLORS[i];
+    //end;
 
     glGenTextures(1,@Current.FPaletteID);
     BindPalette(Current.FPaletteID,@palette);

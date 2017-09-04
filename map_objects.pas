@@ -87,6 +87,7 @@ type
 
   TMapObjectTemplate = class (TNamedCollectionItem, ISerializeNotify)
   strict private
+    FFlaggable: Boolean;
     FDef: TAnimation;
     FMapObjectGroup:TMapObjectGroup;
     FMapObjectType: TMapObjectType;
@@ -103,6 +104,8 @@ type
     procedure SetEditorAnimation(AValue: AnsiString);
 
     procedure UpdateAnimation;
+
+    procedure SetRenderFlagUsage(AState: TLocalState);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -296,7 +299,7 @@ type
 implementation
 
 uses
-  LazLoggerBase, editor_consts, editor_utils;
+  LazLoggerBase, editor_consts, editor_utils, object_options;
 
 const
   OBJECT_LIST = 'DATA/OBJECTS';
@@ -560,6 +563,8 @@ begin
 end;
 
 procedure TMapObjectTemplate.UpdateAnimation;
+var
+  options_class: TObjectOptionsClass;
 begin
   if FEditorAnimation='' then
   begin
@@ -577,6 +582,14 @@ begin
     TMapObjectTemplates(Collection).Manager.GraphicsManager.LoadGraphics(FDef);
     FIconSpriteIndex := 2;
   end;
+
+  options_class := TObjectOptions.GetClassByID(MapObjectGroup.Identifier, MapObjectType.Identifier);
+  FFlaggable := options_class.CanBeOwned;
+end;
+
+procedure TMapObjectTemplate.SetRenderFlagUsage(AState: TLocalState);
+begin
+  AState.SetUseFlag(FFlaggable);
 end;
 
 constructor TMapObjectTemplate.Create(ACollection: TCollection);
@@ -609,6 +622,7 @@ end;
 
 procedure TMapObjectTemplate.RenderIcon(AState: TLocalState; AX, AY, dim: integer; color: TPlayer);
 begin
+  SetRenderFlagUsage(AState);
   AState.SetTranslation(Ax, Ay);
 
   FDef.RenderIcon(AState, FIconSpriteIndex, dim, color);
@@ -621,6 +635,7 @@ end;
 
 procedure TMapObjectTemplate.RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer);
 begin
+  SetRenderFlagUsage(AState);
   Def.RenderO(AState, FIconSpriteIndex, AX, AY, color);
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then

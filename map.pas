@@ -2278,6 +2278,11 @@ procedure TMapObject.Render(AState: TLocalState; Frame: integer; Ax, Ay: integer
 var
   owner : TPlayer;
 begin
+  if HasOptions and Options.CanBeOwned then
+    AState.SetUseFlag(true)
+  else
+    AState.SetUseFlag(false);
+
   if Assigned(FMapObjectGroup) and FMapObjectGroup.IsHero and (FAppearance.EditorAnimation = '') then
   begin
     Frame := 2;
