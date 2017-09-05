@@ -316,18 +316,37 @@ const
 type
   TSpecialColorUsage = set of byte;
 
+  TDefType = (
+    Spell = $40,
+    Sprite = $41,
+    Creature = $42,
+    MapObject = $43,
+    Hero = $44,
+    Terrain = $45,
+    Cursor = $46,
+    Gui = $47,
+    SpriteFrame = $48,
+    CombatHero = $49
+  );
+
+  TSpecialColorOptions = array[0..9] of TSpecialColorUsage;
+
 const
 
-  TERRAIN_DEF_TYPE = $45;
-  TERRAIN_SPEC_COLORS = [0,1,3,4];
+  SpecialColorOptions : TSpecialColorOptions =
+  (
+    [0],
+    [0,1,2,3,4,5,6,7],
+    [0,1,4,5,6,7],
+    [0,1,4],
+    [0,1,4],
+    [0,1,2,3,4],
+    [0],
+    [0,1,4],
+    [0,1,2,3,4,5,6,7],
+    [0,1,4]
+  );
 
-  MAP_OBJECT_DEF_TYPE = $43;
-  MAP_OBJECT_SPEC_COLORS = [0,1,4{,5}];
-
-  HERO_DEF_TYPE = $44;
-//  HERO_SPEC_COLORS = MAP_OBJECT_SPEC_COLORS;
-
-  //DEF_TYPE_MAP_OBJECT = $43;
 
 function CompareDefs(const d1,d2: TAnimation): integer;
 begin
@@ -866,11 +885,13 @@ begin
 
   spec_color_usage := [0];
 
-  case typ of
-    TERRAIN_DEF_TYPE: spec_color_usage :=TERRAIN_SPEC_COLORS;
-    MAP_OBJECT_DEF_TYPE, HERO_DEF_TYPE:spec_color_usage :=MAP_OBJECT_SPEC_COLORS;
+  if (typ >= $40) and (typ <= $49) then
+  begin
+    spec_color_usage := SpecialColorOptions[typ-$40];
+  end
   else
-    DebugLn('Def type %d from %s not supported',[typ, AFileName]);
+  begin
+     DebugLn('Def type %d from %s not supported',[typ, AFileName]);
   end;
 
   if mode <> TGraphicsLoadMode.LoadRest then
