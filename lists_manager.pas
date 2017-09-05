@@ -1736,6 +1736,7 @@ var
   random_faction: TJsonResource;
   n: String;
 begin
+  DebugLn('Loading factions');
   legacy_data := TJsonObjectList.Create(true);
 
   faction_names := TTextResource.Create('DATA/TOWNTYPE.TXT');
@@ -1745,7 +1746,7 @@ begin
 
   random_faction := TJsonResource.Create('config/factions/random.json');
   try
-    DebugLn('Loading factions');
+
     faction_names.Load(ResourceLoader);
 
     for f in [0..9] do
@@ -1837,6 +1838,7 @@ var
   i: SizeInt;
   o, p_skills: TJSONObject;
 begin
+  DebugLn('Loading hero classes');
   hctraits := TTextResource.Create(HERO_CLASS_TRAITS);
   legacy_data := TJsonObjectList.Create(true);
   try
@@ -1877,6 +1879,7 @@ var
   name_count: integer;
   o: TJSONObject;
 begin
+  DebugLn('Loading creatures');
   legacy_data := TJsonObjectList.Create(true);
   crtraits := TTextResource.Create(CREATURE_TRAITS);
   try
@@ -1980,7 +1983,7 @@ var
   i: SizeInt;
   c: TArtifactClass;
 begin
-
+  DebugLn('Loading artifacts');
   legacy_data := TJsonObjectList.Create(true);
   artraits := TTextResource.Create(ARTIFACT_TRAITS);
   try
@@ -2349,7 +2352,7 @@ var
   info: TSkillInfo;
   i: Integer;
 begin
-  for i := 0 to SECONDARY_SKILL_QUANTITY - 1 do
+  for i := 0 to SKILL_QUANTITY - 1 do
   begin
     FNameMap.Insert('skill.' + SECONDARY_SKILL_NAMES[i], i);
   end;
@@ -2412,6 +2415,7 @@ var
   spell_config: TJSONObject;
   loc_name: String;
 begin
+  DebugLn('Loading spells');
   sptrairs := TTextResource.Create(SPELL_TRAITS);
   legacy_config := TJsonObjectList.Create(True);
 
@@ -2453,6 +2457,7 @@ var
   i: SizeInt;
   o: TJSONObject;
 begin
+  DebugLn('Loading heroes');
   legacy_data := TJsonObjectList.Create(true);
   hotraits := TTextResource.Create(HERO_TRAITS);
   herobios := TTextResource.Create(HERO_BIOS);

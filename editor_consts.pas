@@ -193,6 +193,10 @@ const
 
   OBJECT_METACLASS = 'object';
 
+  SKILL_METACLASS = 'skill';
+  SKILL_QUANTITY = 28;
+
+
   RESOURCE_NAMESPACE = 'resource';
   RESOURCE_NAMES: array[TResType] of AnsiString =
   ('wood',  'mercury', 'ore', 'sulfur', 'crystal', 'gems', 'gold', 'mithril');
@@ -201,10 +205,8 @@ const
   PRIMARY_SKILL_NAMES: array[TPrimarySkill] of AnsiString =
   ('attack', 'defence', 'spellpower', 'knowledge');
 
-  SECONDARY_SKILL_QUANTITY = 28;
-  SECONDARY_SKILL_NAMESPACE = 'skill';
 
-  SECONDARY_SKILL_NAMES: array[0..SECONDARY_SKILL_QUANTITY - 1] of string =
+  SECONDARY_SKILL_NAMES: array[0..SKILL_QUANTITY - 1] of string =
   (
     'pathfinding',  'archery',      'logistics',    'scouting',     'diplomacy',    //  5
     'navigation',   'leadership',   'wisdom',       'mysticism',    'luck',         // 10

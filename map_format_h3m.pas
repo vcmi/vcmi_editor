@@ -546,7 +546,7 @@ procedure TMapReaderH3m.ReadAllowedAbilities;
 begin
   if IsAtLeastSoD() then
   begin
-    ReadBitmask(FMap.AllowedAbilities,4,SECONDARY_SKILL_QUANTITY,@FMapEnv.lm.SkillNidToString);
+    ReadBitmask(FMap.AllowedAbilities, 4, SKILL_QUANTITY,@FMapEnv.lm.SkillNidToString);
   end;
 end;
 
@@ -2402,7 +2402,7 @@ procedure TMapReaderH3m.VisitWitchHut(AOptions: TWitchHutOptions);
 begin
   if IsAtLeastAB() then
   begin
-    ReadBitmask(AOptions.AllowedSkills, 4, SECONDARY_SKILL_QUANTITY, @FMapEnv.lm.SkillNidToString, false);
+    ReadBitmask(AOptions.AllowedSkills, 4, SKILL_QUANTITY, @FMapEnv.lm.SkillNidToString, false);
   end
   else
   begin
