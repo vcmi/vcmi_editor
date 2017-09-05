@@ -656,6 +656,8 @@ var
       AStream.Seek(BaseOffsetor + SizeOf(UInt32)*row, soFromBeginning);
       AStream.Read(BaseOffset,SizeOf(BaseOffset));
 
+      AStream.Seek(BaseOffsetor + BaseOffset, soFromBeginning);
+
       SkipIfPositive(h.LeftMargin);
       TotalRowLength :=  0;
       repeat
@@ -664,7 +666,6 @@ var
 
          if SegmentType = $FF then
          begin
-           AStream.Seek(BaseOffsetor+Int32(BaseOffset), soFromBeginning);
            AStream.Read(FBuffer[ftcp],SegmentLength);
            BaseOffset += SegmentLength;
          end
@@ -821,7 +822,7 @@ begin
       ReadType0();
     end;
     1:begin
-      ReadType1(); //TODO: test format 1
+      ReadType1();
     end;
     2:begin
       ReadType2();
