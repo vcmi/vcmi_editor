@@ -265,7 +265,7 @@ procedure Register;
 
 implementation
 
-{$R vcmiopenglcontext.res}
+{$R vcmiopenglcontext.rc}
 
 var
   OpenGLControlStack: TList = nil;

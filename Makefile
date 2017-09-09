@@ -1,8 +1,7 @@
 all: vcmieditor
 
 vcmieditor:
-	lazres 3rd_party/opengl/vcmiopenglcontext.res 3rd_party/opengl/vcmiopenglcontext/topenglcontrol.xpm
-	lazbuild 3rd_party/opengl/vcmiopenglcontext.lpk vcmieditor.lpr
+	lazbuild --no-write-project 3rd_party/opengl/vcmiopenglcontext.lpk vcmieditor.lpr
 
 build_tests: vcmieditor tests/unit_tests.lpi tests/unit_tests.lpr
 	lazbuild tests/unit_tests.lpr
