@@ -47,6 +47,7 @@ unit vcmi.openglcontext;
 {$ENDIF}
 {$IFDEF LCLWin32}
   {$DEFINE UseWin32WGL}
+  {$DEFINE UsesModernGL}
   {$DEFINE HasRGBA}
   {$DEFINE HasRGBBits}
   {$DEFINE HasDebugContext}
