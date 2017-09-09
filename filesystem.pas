@@ -1224,7 +1224,7 @@ begin
         AType := TResourceType.Mask;
         Result := true;
       end;
-    '.BMP','.PCX','.PNG':
+    '.BMP','.PCX', '.PNG', '.TIFF', '.JPEG', '.JPG':
       begin
         AType := TResourceType.Image;
         Result := true;

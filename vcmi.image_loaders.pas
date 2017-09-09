@@ -199,7 +199,10 @@ begin
   if ext <> '.PCX' then
   begin
     //assume anything else is supported out of the box
-    FData.LoadFromStreamWithFileExt(AStream, ext);
+
+    //FData.LoadFromStreamWithFileExt(AStream, ext);
+
+    FData.LoadFromStream(AStream);
   end
   else
   begin
