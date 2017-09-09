@@ -8,7 +8,7 @@
 
   ToDo: MultiSampling, AuxBuffers
 }
-unit GLCarbonAGLContext;
+unit vcmi.glcarbonaglcontext;
 
 {$mode objfpc}{$H+}
 

@@ -7,7 +7,7 @@
   Author: Mattias Gaertner
 
 }
-unit GLWin32WGLContext;
+unit vcmi.glwin32wglcontext;
 
 {$mode objfpc}{$H+}
 

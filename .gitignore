@@ -2,6 +2,7 @@
 *.res
 *.compiled
 *.o
+*.a
 *.ppu
 *.bak
 *.swp

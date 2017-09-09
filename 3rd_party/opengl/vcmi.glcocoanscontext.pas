@@ -16,7 +16,7 @@
       for a NSView always returns false.
     SharedControl
 }
-unit GLCocoaNSContext;
+unit vcmi.glcocoanscontext;
 
 {$mode objfpc}{$H+}
 {$ModeSwitch objectivec1}

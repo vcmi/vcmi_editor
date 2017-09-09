@@ -22,7 +22,7 @@ unit root_form;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, OpenGLContext, Forms, Controls, Graphics,
+  Classes, SysUtils, FileUtil, vcmi.OpenGLContext, Forms, Controls, Graphics,
   Dialogs;
 
 type

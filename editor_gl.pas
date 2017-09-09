@@ -25,7 +25,7 @@ uses
   {$IFDEF WINDOWS}
   windows,
   {$ENDIF}
-  Classes, SysUtils, math, matrix, GL, OpenGLContext, glext40, editor_types, editor_consts;
+  Classes, SysUtils, math, matrix, GL, vcmi.OpenGLContext, glext40, editor_types, editor_consts;
 
 const
   DEFAULT_F_S_RES = 'DEFAULT_FRAGMENT_SHADER';

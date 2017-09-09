@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, math, fgl, Graphics, Map, editor_types, map_rect, editor_utils, editor_consts, editor_classes, editor_gl, ExtCtrls,
-  LCLProc, IntfGraphics, FPimage, OpenGLContext;
+  LCLProc, IntfGraphics, FPimage, vcmi.OpenGLContext;
 
 type
 

@@ -22,7 +22,7 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, OpenGLContext, LCLType, Forms, Controls, Graphics, GraphType,
+  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, vcmi.OpenGLContext, LCLType, Forms, Controls, Graphics, GraphType,
   Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls, Buttons, EditBtn, PopupNotifier, Map, terrain, editor_types,
   undo_base, map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
   zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions, map_object_actions, undo_map, object_options,

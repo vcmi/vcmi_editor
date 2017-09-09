@@ -19,19 +19,11 @@
       - fpgui with glx  : no
       - nogui           : no
 }
-unit OpenGLContext;
+unit vcmi.openglcontext;
 
 {$mode objfpc}{$H+}
 
 // choose the right backend depending on used LCL widgetset
-{$IFDEF LCLGTK}
-  {$IFDEF Linux}
-    {$DEFINE UseGtkGLX}
-    {$DEFINE HasRGBA}
-    {$DEFINE HasRGBBits}
-    {$DEFINE OpenGLTargetDefined}
-  {$ENDIF}
-{$ENDIF}
 {$IFDEF LCLGTK2}
   {$IF defined(Linux) or defined(FreeBSD)}
     {$DEFINE UseGtk2GLX}
@@ -76,23 +68,20 @@ interface
 uses
   Classes, SysUtils, LCLProc, Forms, Controls, LCLType, LCLIntf, LResources,
   Graphics, LMessages, WSLCLClasses, WSControls,
-{$IFDEF UseGtkGLX}
-  GLGtkGlxContext;
-{$ENDIF}
 {$IFDEF UseGtk2GLX}
-  GLGtkGlxContext;
+  vcmi.GLGtkGlxContext;
 {$ENDIF}
 {$IFDEF UseCarbonAGL}
-  GLCarbonAGLContext;
+  vcmi.GLCarbonAGLContext;
 {$ENDIF}
 {$IFDEF UseCocoaNS}
-  GLCocoaNSContext;
+  vcmi.GLCocoaNSContext;
 {$ENDIF}
 {$IFDEF UseWin32WGL}
-  GLWin32WGLContext;
+  vcmi.GLWin32WGLContext;
 {$ENDIF}
 {$IFDEF UseQTGLX}
-  GLQTContext;
+  vcmi.GLQTContext;
 {$ENDIF}
 
 const
@@ -283,7 +272,7 @@ var
 
 procedure Register;
 begin
-  RegisterComponents('OpenGL',[TOpenGLControl]);
+  RegisterComponents('VCMI',[TOpenGLControl]);
 end;
 
 { TCustomOpenGLControl }

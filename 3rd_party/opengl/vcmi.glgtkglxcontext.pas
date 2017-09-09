@@ -7,7 +7,7 @@
   Author: Mattias Gaertner
 
 }
-unit GLGtkGlxContext;
+unit vcmi.glgtkglxcontext;
 
 {$mode objfpc}{$H+}
 {$LinkLib GL}

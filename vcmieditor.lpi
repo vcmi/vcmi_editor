@@ -260,10 +260,10 @@
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="SynEdit"/>
+        <PackageName Value="vcmiOpenGLContext"/>
       </Item1>
       <Item2>
-        <PackageName Value="LazOpenGLContext"/>
+        <PackageName Value="SynEdit"/>
       </Item2>
       <Item3>
         <PackageName Value="LCL"/>

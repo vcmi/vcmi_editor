@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Package Version="4">
-    <Name Value="LazOpenGLContext"/>
+    <Name Value="vcmiOpenGLContext"/>
     <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Mattias Gaertner"/>
@@ -10,7 +10,7 @@
       <SearchPaths>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
       </SearchPaths>
-      <Conditionals Value="if LazOpenGLContext_VerboseMultiSampling='1' then
+      <Conditionals Value="if vcmiOpenGLContext_VerboseMultiSampling='1' then
   CustomOptions+='-dVerboseMultiSampling';
 
 if LCLWidgetType='cocoa' then begin
@@ -20,7 +20,7 @@ end;"/>
       <BuildMacros>
         <Count Value="1"/>
         <Item1>
-          <Identifier Value="LazOpenGLContext_VerboseMultiSampling"/>
+          <Identifier Value="vcmiOpenGLContext_VerboseMultiSampling"/>
           <Values Count="2">
             <Item1 Value="1"/>
             <Item2 Value="0"/>
@@ -33,34 +33,34 @@ end;"/>
     <Version Release="1"/>
     <Files Count="6">
       <Item1>
-        <Filename Value="openglcontext.pas"/>
+        <Filename Value="vcmi.openglcontext.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="OpenGLContext"/>
+        <UnitName Value="vcmi.openglcontext"/>
       </Item1>
       <Item2>
-        <Filename Value="glgtkglxcontext.pas"/>
+        <Filename Value="vcmi.glgtkglxcontext.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="GLGtkGlxContext"/>
+        <UnitName Value="vcmi.glgtkglxcontext"/>
       </Item2>
       <Item3>
-        <Filename Value="glcarbonaglcontext.pas"/>
+        <Filename Value="vcmi.glcarbonaglcontext.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="GLCarbonAGLContext"/>
+        <UnitName Value="vcmi.glcarbonaglcontext"/>
       </Item3>
       <Item4>
-        <Filename Value="glwin32wglcontext.pas"/>
+        <Filename Value="vcmi.glwin32wglcontext.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="GLWin32WGLContext"/>
+        <UnitName Value="vcmi.glwin32wglcontext"/>
       </Item4>
       <Item5>
-        <Filename Value="glqtcontext.pas"/>
+        <Filename Value="vcmi.glqtcontext.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="glqtcontext"/>
+        <UnitName Value="vcmi.glqtcontext"/>
       </Item5>
       <Item6>
-        <Filename Value="glcocoanscontext.pas"/>
+        <Filename Value="vcmi.glcocoanscontext.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="GLCocoaNSContext"/>
+        <UnitName Value="vcmi.glcocoanscontext"/>
       </Item6>
     </Files>
     <RequiredPkgs Count="2">
