@@ -502,6 +502,8 @@ procedure TGlobalState.Init;
 begin
   DefaultProgram := TShaderProgram.Create(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
 
+  CheckGLErrors('default shader create');
+
   DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram.Handle, PChar('fragmentColor'));
 
   UseFlagUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useFlag'));

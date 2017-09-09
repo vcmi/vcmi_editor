@@ -163,6 +163,8 @@ begin
 
   end;
 
+  glGetError();//ignore
+
   Application.ProcessMessages;
 
   if not BatchMode then

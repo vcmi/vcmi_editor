@@ -3140,9 +3140,6 @@ begin
 
   CurrentLevelIndex := 0;
 
-  FListsManager.SpellInfos.FillWithAllIds(FAllowedSpells);
-  FListsManager.SkillInfos.FillWithAllIds(FAllowedAbilities);
-  FListsManager.ArtifactInfos.FillWithAllIds(FAllowedArtifacts);
   FListsManager.HeroInfos.FillWithNotSpecial(FAllowedHeroes);
 end;
 
