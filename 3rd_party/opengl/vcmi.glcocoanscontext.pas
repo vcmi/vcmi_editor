@@ -215,7 +215,7 @@ procedure AddUInt32(i: NSOpenGLPixelFormatAttribute);
     //else
     //AddUInt32(NSOpenGLProfileLegacy); // NSOpenGLProfileLegacy is default and sufficient, later versions depend on SDK we are building against
     AddUInt32(NSOpenGLPFAOpenGLProfile);
-    if (MajorVersion>=4) and (MinorVersion>=1) then
+    if (MajorVersion>=3) and (MinorVersion>=3) then
        AddUInt32(NSOpenGLProfileVersion4_1Core) //OpenGL 4.1, GLSL 4.1
     else if (MajorVersion>=3) and (MinorVersion>=2) then
         AddUInt32(NSOpenGLProfileVersion3_2Core)

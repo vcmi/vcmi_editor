@@ -1,5 +1,4 @@
 *.lps
-*.res
 *.compiled
 *.o
 *.a
@@ -16,3 +15,5 @@ heap.trc
 
 /tests/unit_tests
 /tests/*.exe
+/vcmieditor.res
+/3rd_party/opengl/lib/*

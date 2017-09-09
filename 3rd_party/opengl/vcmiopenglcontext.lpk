@@ -63,6 +63,7 @@ end;"/>
       </Item6>
       <Item7>
         <Filename Value="vcmi.wgl.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="vcmi.wgl"/>
       </Item7>
     </Files>
