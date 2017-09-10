@@ -556,7 +556,7 @@ var
 begin
   if IsAtLeastAB() then
   begin
-    cnt := ifthen(IsAtLeastAB(),18,17);
+    cnt := ifthen(IsAtLeastSoD(),18,17);
 
     ReadBitmask(FMap.AllowedArtifacts, cnt, ARTIFACT_QUANTITY, @FMapEnv.lm.ArtifactIndexToString, true);
   end;
@@ -566,7 +566,6 @@ procedure TMapReaderH3m.ReadAllowedHeros;
 var
   cnt: Integer;
 begin
-
   cnt := ifthen(IsAtLeastAB(),20,16);
 
   ReadBitmask(FMap.AllowedHeroes, cnt, HERO_QUANTITY, @FMapEnv.lm.HeroIndexToString, False);
@@ -655,17 +654,13 @@ var
   bit: UInt8;
   flag: Boolean;
   id: TCustomID;
-
 begin
   SetLength(ADest, 0);
   SetLength(ADest, ACount);
-
   real_count := 0;
-
   for byte_idx := 0 to AMaskSize - 1 do
   begin
     mask_byte := FSrc.ReadByte;
-
     for bit in [0..7] do
     begin
       flag := (mask_byte and (1 shl bit)) > 0;
@@ -678,29 +673,22 @@ begin
       end;
     end;
   end;
-
   SetLength(ADest, real_count);
-
 end;
 
 procedure TMapReaderH3m.ReadBitmask(ADest: TStrings; AMaskSize: SizeInt;
   ACount: SizeInt; ACallback: TIdToString; Negate: Boolean);
 var
   tmp: array of TCustomID;
-
   iter: TCustomID;
 begin
   ADest.Clear;
-
   SetLength(tmp, 0);
-
   ReadBitmask(tmp, AMaskSize, ACount, Negate);
-
   for iter in tmp do
   begin
     ADest.Add(ACallback(iter));
   end;
-
 end;
 
 procedure TMapReaderH3m.ReadBitmask(ADest: TLogicalIDCondition;
@@ -718,8 +706,7 @@ begin
   end;
 end;
 
-function TMapReaderH3m.ReadID1(ACallback: TIdToString; AIDRandom: TCustomID
-  ): AnsiString;
+function TMapReaderH3m.ReadID1(ACallback: TIdToString; AIDRandom: TCustomID): AnsiString;
 var
   index: TCustomID;
 begin
@@ -731,12 +718,11 @@ begin
   end
   else
   begin
-     Result := ACallback(index);
+    Result := ACallback(index);
   end;
 end;
 
-function TMapReaderH3m.ReadID(ACallback: TIdToString; ASize: Integer
-  ): AnsiString;
+function TMapReaderH3m.ReadID(ACallback: TIdToString; ASize: Integer): AnsiString;
 var
   id : TCustomID;
 begin
