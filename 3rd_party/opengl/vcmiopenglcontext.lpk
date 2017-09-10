@@ -30,7 +30,7 @@ end;"/>
     </CompilerOptions>
     <Description Value="Simple cross-platform OpenGL viewer control"/>
     <Version Release="1"/>
-    <Files Count="7">
+    <Files Count="8">
       <Item1>
         <Filename Value="vcmi.openglcontext.pas"/>
         <HasRegisterProc Value="True"/>
@@ -66,6 +66,10 @@ end;"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="vcmi.wgl"/>
       </Item7>
+      <Item8>
+        <Filename Value="vcmi.glext.pp"/>
+        <UnitName Value="GLext"/>
+      </Item8>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

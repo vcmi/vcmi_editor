@@ -7,7 +7,7 @@ unit vcmiOpenGLContext;
 interface
 
 uses
-  vcmi.openglcontext, vcmi.wgl, LazarusPackageIntf;
+  vcmi.openglcontext, vcmi.glext, LazarusPackageIntf;
 
 implementation
 

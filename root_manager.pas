@@ -21,7 +21,7 @@ unit root_manager;
 interface
 
 uses
-  Classes, SysUtils,  FileUtil, Graphics, LazFileUtils, LazLogger, LazUTF8Classes, gl, glext40, Forms, Controls,
+  Classes, SysUtils,  FileUtil, Graphics, LazFileUtils, LazLogger, LazUTF8Classes, gl, vcmi.glext, Forms, Controls,
   progress_form, filesystem_base, root_form, filesystem, terrain, map_objects,
   editor_graphics, lists_manager, vcmi.OpenGLContext, editor_gl, editor_types,
   locale_manager, editor_classes, vcmi.dirs.base, vcmi.image_loaders, zlib_stream;
@@ -155,10 +155,16 @@ begin
     DebugLn('Renderer: ', glGetString(GL_RENDERER));
     DebugLn('Glsl: ', glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    if not Load_GL_VERSION_3_3() then
+    if not Load_GL_version_3_3_CORE() then
     begin
       Application.Terminate;
-      raise Exception.Create('Error initializing OpenGL');
+      raise Exception.Create('Error initializing OpenGL. version 3.3 core required.');
+    end;
+
+    if not Load_GL_ARB_texture_rg() then
+    begin
+       Application.Terminate;
+       raise Exception.Create('Required extension GL_ARB_texture_rg missing');
     end;
 
   end;

@@ -61,7 +61,7 @@ const
     );
 
 implementation
-uses glext;
+uses vcmi.glext;
 
 function GLGetProcAddress(ProcName: PChar):Pointer;
 begin

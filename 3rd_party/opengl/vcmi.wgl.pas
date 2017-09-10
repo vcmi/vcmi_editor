@@ -190,7 +190,7 @@ var
 procedure InitWGL(RequireWGL_ARB_create_context : boolean);
 
 implementation
-uses glext;
+uses vcmi.glext;
 
 var
   WGLInitialized: boolean = false;
