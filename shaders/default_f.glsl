@@ -1,4 +1,4 @@
-#version 130
+#version 330 core
 
 const int playerColorIndex = 5;
 uniform usampler2D bitmap;

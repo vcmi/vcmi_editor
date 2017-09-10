@@ -265,7 +265,7 @@ begin
       raise Exception.Create('LOpenGLCreateContext SetPixelFormat failed');
   end;
 
-  ContextFlags := 0; //TODO: use WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB of not?
+  ContextFlags := WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB; //TODO: use WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB of not?
 
   if DebugContext then
   begin

@@ -1,4 +1,4 @@
-#version 130
+#version 330 core
 
 uniform mat4 projMatrix;
 uniform mat4 translateMatrix;
