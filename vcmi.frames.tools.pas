@@ -225,12 +225,12 @@ end;
 
 procedure TToolsFrame.EraseFilterItemClick(Sender: TObject; Index: integer);
 var
-  filter: TEraseFilter;
-  f: TEraseTarget;
+  filter: TSelectFilter;
+  f: TSelectTarget;
 begin
   filter := [];
 
-  for f in TEraseFilter do
+  for f in TSelectFilter do
   begin
     if EraseFilter.Checked[Integer(f)] then
       Include(filter, f);
@@ -313,18 +313,18 @@ end;
 
 procedure TToolsFrame.FillEraseMenu;
 var
-  filter_captions: array[TEraseTarget] of AnsiString;
-  f: TEraseTarget;
+  filter_captions: array[TSelectTarget] of AnsiString;
+  f: TSelectTarget;
 begin
-  filter_captions[TEraseTarget.InteractiveObjects] := rsEraseFilterInteractive;
-  filter_captions[TEraseTarget.Rivers] := rsEraseFilterRivers;
-  filter_captions[TEraseTarget.Roads] := rsEraseFilterRoads;
-  filter_captions[TEraseTarget.StaticObjects] := rsEraseFilterStatic;
+  filter_captions[TSelectTarget.InteractiveObjects] := rsEraseFilterInteractive;
+  filter_captions[TSelectTarget.Rivers] := rsEraseFilterRivers;
+  filter_captions[TSelectTarget.Roads] := rsEraseFilterRoads;
+  filter_captions[TSelectTarget.StaticObjects] := rsEraseFilterStatic;
 
   EraseFilter.Items.BeginUpdate;
   try
     EraseFilter.Items.Clear;
-    for f in TEraseFilter do
+    for f in TSelectFilter do
     begin
       EraseFilter.Items.Add(filter_captions[f]);
     end;

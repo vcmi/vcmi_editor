@@ -875,7 +875,7 @@ type
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectQueue);
 
     class procedure SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet;
-      ASelectBy:TSelectObjectBy);
+      ASelectBy:TSelectObjectBy; ASelectFilter: TSelectFilter);
 
     procedure NotifyReferenced(AOldIdentifier, ANewIdentifier: AnsiString);
     procedure NotifyOwnerChanged(AObject: TMapObject; AOldOwner, ANewOwner: TPlayer);
@@ -3415,18 +3415,35 @@ begin
 end;
 
 class procedure TVCMIMap.SelectObjectsOnTile(ASource: TMapObjectList; Level, X, Y: Integer; ATarget: TMapObjectSet;
-  ASelectBy: TSelectObjectBy);
+  ASelectBy: TSelectObjectBy; ASelectFilter: TSelectFilter);
 var
-  o: TMapObject;
+  AObject: TMapObject;
   i: Integer;
+
+  add: Boolean;
 begin
   for i := 0 to ASource.Count - 1 do
   begin
-    o := ASource[i];
+    add := false;
+    AObject := ASource[i];
 
-    if o.CoversTile(Level,x,y, ASelectBy) then
+    if TSelectTarget.StaticObjects in ASelectFilter then
     begin
-      ATarget.Insert(o);
+      if not Assigned(AObject.Template) then
+        add := true
+      else if Assigned(AObject.Template) and not AObject.Template.Visitable then
+        add := true;
+    end;
+
+    if TSelectTarget.InteractiveObjects in ASelectFilter then
+    begin
+      if Assigned(AObject.Template) and AObject.Template.Visitable then
+        add := true;
+    end;
+
+    if add and AObject.CoversTile(Level,x,y, ASelectBy) then
+    begin
+      ATarget.Insert(AObject);
     end;
   end;
 end;

@@ -345,7 +345,7 @@ begin
 
   if Assigned(FVisibleObjects) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects, TSelectObjectBy.BBox);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects, TSelectObjectBy.BBox, [TSelectTarget.StaticObjects, TSelectTarget.InteractiveObjects]);
   end;
 end;
 

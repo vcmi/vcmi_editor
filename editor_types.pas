@@ -81,6 +81,11 @@ type
   TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
 
   TSelectObjectBy = (BBox, VisibleMask, BlockMask, VisitableMask);
+
+  TSelectTarget = (Roads, Rivers, StaticObjects, InteractiveObjects);
+  TSelectFilter = set of TSelectTarget;
+
+
 const
   ALL_PLAYERS = [TPlayer.red, TPlayer.blue, TPlayer.tan, TPlayer.green, TPlayer.orange, TPlayer.purple, TPlayer.teal, TPlayer.pink];
 

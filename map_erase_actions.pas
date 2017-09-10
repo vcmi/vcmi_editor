@@ -27,16 +27,11 @@ uses
 
 type
 
-  TEraseTarget = (Roads, Rivers, StaticObjects, InteractiveObjects);
-  TEraseFilter = set of TEraseTarget;
-
-
-
   { TEraseBrush }
 
   TEraseBrush = class(TMapBrush)
   strict private
-    FFilter: TEraseFilter;
+    FFilter: TSelectFilter;
     FObjectFilter: TSelectObjectBy;
 
     FSelectedObjects: TMapObjectSet;
@@ -49,7 +44,7 @@ type
     procedure CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord); override;
     procedure Execute(AManager: TAbstractUndoManager; AMap: TVCMIMap); override;
     procedure RenderSelection(State: TLocalState); override;
-    property Filter: TEraseFilter read FFilter write FFilter;
+    property Filter: TSelectFilter read FFilter write FFilter;
     property ObjectFilter: TSelectObjectBy read FObjectFilter write FObjectFilter;
     property VisibleObjects: TMapObjectsSelection read FVisibleObjects write FVisibleObjects;
   end;
@@ -77,8 +72,8 @@ type
     FEraseRoad: TEditRoad;
     FEraseRiver: TEditRiver;
     FEraseObjects: TDeleteObjects;
-    FFilter: TEraseFilter;
-    FActiveFilter: TEraseFilter;
+    FFilter: TSelectFilter;
+    FActiveFilter: TSelectFilter;
 
     FTiles: TCoordSet;
 
@@ -96,7 +91,7 @@ type
     procedure Redo; override;
     procedure Undo; override;
 
-    property Filter: TEraseFilter read FFilter write FFilter;
+    property Filter: TSelectFilter read FFilter write FFilter;
   end;
 
 implementation
@@ -131,9 +126,9 @@ procedure TEraseBrush.CheckAddOneTile(AMap: TVCMIMap; const Coord: TMapCoord);
 begin
   inherited CheckAddOneTile(AMap, Coord);
 
-  if Assigned(FVisibleObjects) and (([TEraseTarget.StaticObjects, TEraseTarget.InteractiveObjects] * Filter) <> []) then
+  if Assigned(FVisibleObjects) then
   begin
-    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects, FObjectFilter);
+    AMap.SelectObjectsOnTile(FVisibleObjects.Data, AMap.CurrentLevelIndex, Coord.X, Coord.Y, FSelectedObjects, ObjectFilter, Filter);
   end;
 end;
 
@@ -222,22 +217,8 @@ begin
 end;
 
 procedure TEraseAction.AddObject(AObject: TMapObject);
-var
-  add: Boolean = false;
 begin
-
-  if TEraseTarget.StaticObjects in Filter then
-  begin
-    if Assigned(AObject.MapObjectGroup) and (AObject.MapObjectGroup.Handler = 'static') then
-      add := true;
-  end
-  else if TEraseTarget.InteractiveObjects in Filter then
-  begin
-    if Assigned(AObject.Template) and AObject.Template.Visitable then
-      add := true;
-  end;
-  if add then
-    FEraseObjects.Targets.Add(AObject);
+  FEraseObjects.Targets.Add(AObject);
 end;
 
 function TEraseAction.GetDescription: string;
@@ -252,19 +233,19 @@ begin
   FActiveFilter := Filter;
   Result := FActiveFilter <> [];
 
-  if TEraseTarget.Roads in FActiveFilter then
+  if TSelectTarget.Roads in FActiveFilter then
   begin
     FEraseRoad.LoadTiles(FTiles);
     FActiveActions.Add(FEraseRoad);
   end;
 
-  if TEraseTarget.Rivers in FActiveFilter then
+  if TSelectTarget.Rivers in FActiveFilter then
   begin
     FEraseRiver.LoadTiles(FTiles);
     FActiveActions.Add(FEraseRiver);
   end;
 
-  if ([TEraseTarget.StaticObjects, TEraseTarget.InteractiveObjects] * FActiveFilter) <> [] then
+  if ([TSelectTarget.StaticObjects, TSelectTarget.InteractiveObjects] * FActiveFilter) <> [] then
   begin
     //objects already loaded
     FActiveActions.Add(FEraseObjects);
