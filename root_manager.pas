@@ -161,11 +161,11 @@ begin
       raise Exception.Create('Error initializing OpenGL. version 3.3 core required.');
     end;
 
-    if not Load_GL_ARB_texture_rg() then
-    begin
-       Application.Terminate;
-       raise Exception.Create('Required extension GL_ARB_texture_rg missing');
-    end;
+    //if not Load_GL_ARB_texture_rg() then
+    //begin
+    //   Application.Terminate;
+    //   raise Exception.Create('Required extension GL_ARB_texture_rg missing');
+    //end;
 
   end;
 
