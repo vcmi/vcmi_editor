@@ -223,10 +223,9 @@ begin
   FActiveEditors.AddFrame(THeroSpellsFrame, AOptions,rsTabSpells, pcMain);
 end;
 
-procedure TEditObjectOptions.VisitHeroPlaceholder(
-  AOptions: THeroPlaceholderOptions);
+procedure TEditObjectOptions.VisitHeroPlaceholder(AOptions: THeroPlaceholderOptions);
 begin
-  VisitArmedObject(AOptions);
+  //TODO: TEditObjectOptions.VisitHeroPlaceholder
 end;
 
 procedure TEditObjectOptions.VisitLocalEvent(AOptions: TLocalEventOptions);

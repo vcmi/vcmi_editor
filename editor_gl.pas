@@ -123,7 +123,7 @@ type
   { TLocalState }
 
   TLocalState = class
-  private
+  strict private
     FInitialised: Boolean;
     FContext: TOpenGLControl;
 
@@ -202,7 +202,6 @@ uses LazLoggerBase;
 
 procedure BindRGBA(ATextureId: GLuint; w, h: Int32; ARawImage: Pointer; AInternalFormat: GLEnum); inline;
 begin
-
   glBindTexture(GL_TEXTURE_2D, ATextureId);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -210,6 +209,7 @@ begin
 
   glTexImage2D(GL_TEXTURE_2D, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
 
+  CheckGLErrors('Bind RGBA');
 end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -791,17 +791,12 @@ end;
 procedure TLocalState.SetupSpriteVAO;
 begin
   glGenVertexArrays(1,@SpriteVAO);
-
   glBindVertexArray(SpriteVAO);
-
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
   glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
   glVertexAttribPointer(GlobalContextState.FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
-
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
   glBindVertexArray(0);
 end;
 

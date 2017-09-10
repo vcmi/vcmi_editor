@@ -158,7 +158,7 @@ begin
     if not Load_GL_version_3_3_CORE() then
     begin
       Application.Terminate;
-      raise Exception.Create('Error initializing OpenGL. version 3.3 core required.');
+      raise Exception.Create('Error initializing OpenGL. Version 3.3 core required.');
     end;
 
     //if not Load_GL_ARB_texture_rg() then

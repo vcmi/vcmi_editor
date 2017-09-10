@@ -1302,7 +1302,7 @@ begin
       FCurrentObject.Template.VisitableFrom.Assign(template.VisitableFrom);
       FCurrentObject.Template.ZIndex:=template.ZIndex;
 
-      //DebugLn(['Reading ', i,' [', x,' ' , y, ' ', l, '] TID ', tid, ' ID ', FCurrentObject.GetType, ' subid ',  FCurrentObject.GetSubtype]);
+      DebugLn(['Reading ', i,' [', x,' ' , y, ' ', l, '] TID ', tid, ' ID ', FCurrentObject.GetType, ' subid ',  FCurrentObject.GetSubtype]);
 
       FSrc.Skip(5); //junk
 

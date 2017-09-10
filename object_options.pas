@@ -1345,6 +1345,8 @@ begin
       Result := TQuestGuardOptions;
     'shipyard','lighthouse':
       Result := TOwnedObjectOptions;
+    'heroPlaceholder':
+      Result := THeroPlaceholderOptions;
   end;
 end;
 
