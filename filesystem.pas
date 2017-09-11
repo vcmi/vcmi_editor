@@ -1513,7 +1513,7 @@ begin
   end;
 
   LoadFSConfig;
-  FCurrentLoadOrder := -1;
+  FCurrentLoadOrder := Low(FCurrentLoadOrder) + 1;
   ProcessFSConfig(FConfig,FDataPath);
 end;
 
