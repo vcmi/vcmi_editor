@@ -569,15 +569,16 @@ end;
 
 procedure TLocalState.Init;
 begin
+  CheckGLErrors('TLocalState.Init start');
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_DITHER);
-
+  CheckGLErrors('TLocalState.Init 1');
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+  CheckGLErrors('TLocalState.Init 2');
   SetupSpriteVAO;
   SetupRectVAO;
-  CheckGLErrors('TLocalState.Init');
+  CheckGLErrors('TLocalState.Init end');
 end;
 
 procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
@@ -790,13 +791,17 @@ end;
 
 procedure TLocalState.SetupSpriteVAO;
 begin
+  CheckGLErrors('SetupSpriteVAO 1');
   glGenVertexArrays(1,@SpriteVAO);
   glBindVertexArray(SpriteVAO);
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  CheckGLErrors('SetupSpriteVAO 2');
   glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
+  CheckGLErrors('SetupSpriteVAO 3');
   glVertexAttribPointer(GlobalContextState.FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  CheckGLErrors('SetupSpriteVAO 4');
   glBindVertexArray(0);
 end;
 
