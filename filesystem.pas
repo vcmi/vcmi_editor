@@ -241,6 +241,7 @@ type
   TResId = record
     VFSPath: String;
     Typ: TResourceType;
+    ModOrder: integer;
   end;
 
   { TResIDCompare }
@@ -326,7 +327,8 @@ type
     procedure LoadGameConfig;
 
     function SelectResource(AResType: TResourceType; AName: string):TResIDToLocationMap.TIterator;
-    procedure LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource);
+
+    procedure LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource; AResType: TResourceType; AName: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -486,7 +488,19 @@ var
   cres:Integer;
 begin
   cres := CompareStr(a.VFSPath , b.VFSPath);
-  Result := (cres< 0) or ((cres=0) and (a.Typ < b.Typ));
+
+  if cres <> 0 then
+  begin
+    Result := cres < 0;
+  end
+  else if a.Typ <> b.Typ then
+  begin
+    Result := a.Typ < b.Typ;
+  end
+  else
+  begin
+    Result := a.ModOrder < b.ModOrder;
+  end;
 end;
 
 { TFilesystemConfigPath }
@@ -755,7 +769,6 @@ procedure TFSManager.OnDirectoryFound(FileIterator: TFileIterator);
 var
   srch: TFileSearcher;
   p: string;
-
 begin
   srch := TFileSearcher.Create;
   srch.OnFileFound := @OnFileFound;
@@ -773,7 +786,6 @@ var
   arch: TUnZipperEx;
   i: Integer;
 
-var
   res_id: TResId;
   res_loc: TResLocation;
   res_typ: TResourceType;
@@ -819,6 +831,7 @@ begin
 
     res_id.Typ := res_typ;
     res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));
+    res_id.ModOrder:=FCurrentLoadOrder;
 
     FResMap.Insert(res_id,res_loc);
   end;
@@ -916,8 +929,6 @@ var
   res_id: TResId;
   idx: LongInt;
 begin
-  AName := NormalizeResourceName(AName);
-
   idx := FVpathMap.IndexOf(AName);
 
   if idx >=0 then
@@ -927,49 +938,76 @@ begin
 
   res_id.VFSPath := AName;
   res_id.Typ := AResType;
+  res_id.ModOrder:= Low(res_id.ModOrder);
 
-  Result :=FResMap.Find(res_id);
+  Result :=FResMap.FindGreaterEqual(res_id);
+
+  if Assigned(Result) then
+  begin
+    if not ((Result.Key.VFSPath = AName) and (Result.Key.Typ = AResType)) then
+    begin
+      FreeAndNil(Result);
+    end;
+  end;
 end;
 
-procedure TFSManager.LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource);
+procedure TFSManager.LoadSelected(var it: TResIDToLocationMap.TIterator; AResource: IResource; AResType: TResourceType;
+  AName: string);
 var
-  res_loc: TResLocation;
+  last_location: TResLocation;
+
+  order: Integer;
 begin
-  res_loc := it.Value;
+  last_location := it.Value;
+  order := it.Key.ModOrder;
+
+  while it.Next do
+  begin
+    if (it.Key.VFSPath = AName) and (it.Key.Typ = AResType) then
+    begin
+      last_location := it.Value;
+
+      if not (order < it.Key.ModOrder) then
+      begin
+        raise Exception.CreateFmt('[Internal error] wrong order %d for %s', [it.Key.ModOrder, AName]);
+      end;
+
+      order := it.Key.ModOrder;
+    end
+    else
+    begin
+      Break;
+    end;
+  end;
+
   FreeAndNil(it);
 
-  case res_loc.lt of
-    TLocationType.InLod: res_loc.lod.LoadResource(AResource,res_loc.FileHeader) ;
-    TLocationType.InFile: LoadFileResource(AResource,res_loc.path);
-    TLocationType.InArchive: LoadArchiveResource(AResource, res_loc.archive, res_loc.entry);
+  case last_location.lt of
+    TLocationType.InLod: last_location.lod.LoadResource(AResource,last_location.FileHeader) ;
+    TLocationType.InFile: LoadFileResource(AResource,last_location.path);
+    TLocationType.InArchive: LoadArchiveResource(AResource, last_location.archive, last_location.entry);
   end;
 end;
 
 procedure TFSManager.LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
-var
-  it : TResIDToLocationMap.TIterator;
 begin
-  //todo: allow to merge (load from multiple locations) instread of override (f.e. json animation)
-  it := SelectResource(AResType, AName);
-
-  if not Assigned(it) then
+  if not TryLoadResource(AResource, AResType, AName) then
   begin
     raise Exception.Create('Resource not found: '+AName);
   end;
-
-  LoadSelected(it, AResource);
 end;
 
 function TFSManager.TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string): boolean;
 var
   it : TResIDToLocationMap.TIterator;
 begin
+  AName := NormalizeResourceName(AName);
   it := SelectResource(AResType, AName);
 
   Result := Assigned(it);
   if Result then
   begin
-    LoadSelected(it, AResource);
+    LoadSelected(it, AResource, AResType, AName);
   end;
 end;
 
@@ -977,6 +1015,7 @@ function TFSManager.ExistsResource(AResType: TResourceType; AName: string): bool
 var
   it : TResIDToLocationMap.TIterator;
 begin
+  AName := NormalizeResourceName(AName);
   it := SelectResource(AResType, AName);
   Result := Assigned(it);
   FreeAndNil(it);
@@ -1259,6 +1298,7 @@ begin
 
   res_id.Typ := res_typ;
   res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));//
+  res_id.ModOrder:=FCurrentLoadOrder;
 
   res_loc.SetFile(FileIterator.FileName);
 
@@ -1283,12 +1323,12 @@ begin
 
   file_name := ExtractFileNameWithoutExt(file_name);
 
-
   if not  MatchFilter(file_ext,res_typ) then
     exit;
 
   res_id.Typ := res_typ;
   res_id.VFSPath := FCurrentVFSPath+file_name;//
+  res_id.ModOrder:=FCurrentLoadOrder;
 
   res_loc.SetLod(Alod, AItem);
 
@@ -1473,6 +1513,7 @@ begin
   end;
 
   LoadFSConfig;
+  FCurrentLoadOrder := -1;
   ProcessFSConfig(FConfig,FDataPath);
 end;
 
