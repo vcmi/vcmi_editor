@@ -481,9 +481,13 @@ end;
 
 procedure TGlobalState.SetupCoordsBuffer;
 begin
+  CheckGLErrors('SetupCoordsBuffer 0');
   glGenBuffers(1,@CoordsBuffer);
+  CheckGLErrors('SetupCoordsBuffer 1');
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  CheckGLErrors('SetupCoordsBuffer 2');
   glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE * SizeOf(GLfloat), nil, GL_STREAM_DRAW);
+  CheckGLErrors('SetupCoordsBuffer 3');
 end;
 
 constructor TGlobalState.Create;
@@ -791,18 +795,27 @@ end;
 
 procedure TLocalState.SetupSpriteVAO;
 begin
-  CheckGLErrors('SetupSpriteVAO 1');
+  CheckGLErrors('SetupSpriteVAO 0');
+
   glGenVertexArrays(1,@SpriteVAO);
   glBindVertexArray(SpriteVAO);
+  CheckGLErrors('SetupSpriteVAO 1');
+
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  CheckGLErrors('SetupSpriteVAO 2');
+  CheckGLErrors('SetupSpriteVAO 2.1');
+
   glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  CheckGLErrors('SetupSpriteVAO 2.1');
+
   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
-  CheckGLErrors('SetupSpriteVAO 3');
+  CheckGLErrors('SetupSpriteVAO 3.1');
+
   glVertexAttribPointer(GlobalContextState.FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  CheckGLErrors('SetupSpriteVAO 3.2');
+
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  CheckGLErrors('SetupSpriteVAO 4');
   glBindVertexArray(0);
+  CheckGLErrors('SetupSpriteVAO 4');
 end;
 
 procedure TLocalState.SetupRectVAO;
