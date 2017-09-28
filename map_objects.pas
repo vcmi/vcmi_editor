@@ -411,7 +411,7 @@ end;
 
 procedure TMapObjectGroup.UpdateCategory;
 begin
-  if (Handler='') or (Identifier = '') then
+  if (Handler = '') or (Identifier = '') then
     exit;
 
   if IsHeroLike then
@@ -419,9 +419,9 @@ begin
 
   else if (Handler = 'artifact') or (Handler = 'randomArtifact') then
     FCategory:=TObjectCategory.Artifact
-  else if (Handler = 'monster') or (Handler ='randomMonster') then
+  else if (Handler = 'monster') or (Handler = 'randomMonster') then
     FCategory:=TObjectCategory.Creature
-  else if (Handler = 'dwelling') or (Handler ='randomDwelling') then
+  else if (Handler = 'dwelling') or (Handler = 'randomDwelling') then
     FCategory:=TObjectCategory.Dwelling
   else if (Handler = 'town') or (Handler = 'randomTown') then
     FCategory:=TObjectCategory.Town

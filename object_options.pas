@@ -1256,8 +1256,7 @@ begin
   Result := false;
 end;
 
-class function TObjectOptions.GetClassByID(ID: AnsiString; SubID: AnsiString
-  ): TObjectOptionsClass;
+class function TObjectOptions.GetClassByID(ID: AnsiString; SubID: AnsiString): TObjectOptionsClass;
 begin
   Result := TObjectOptions;
   case ID of
@@ -1322,7 +1321,6 @@ begin
         Result := TMineOptions;
       end;
     end;
-
     'abandonedMine':
       Result := TAbandonedOptions;
     'shrineOfMagicLevel1':
@@ -1350,8 +1348,7 @@ begin
   end;
 end;
 
-class function TObjectOptions.CreateByID(ID: AnsiString; SubID: AnsiString;
-  AObject: IMapObject): TObjectOptions;
+class function TObjectOptions.CreateByID(ID: AnsiString; SubID: AnsiString; AObject: IMapObject): TObjectOptions;
 begin
    Result := GetClassByID(Id, SubId).Create(AObject);
 end;

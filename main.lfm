@@ -1,11 +1,11 @@
 object fMain: TfMain
-  Left = 411
-  Height = 809
-  Top = 63
-  Width = 995
+  Left = 220
+  Height = 777
+  Top = 41
+  Width = 1321
   Caption = 'VCMI editor'
-  ClientHeight = 789
-  ClientWidth = 995
+  ClientHeight = 0
+  ClientWidth = 0
   Icon.Data = {
     7C3D01000000010001000000000001004000663D01001600000089504E470D0A
     1A0A0000000D49484452000001000000010008060000005C72A86600013D2D49
@@ -2562,11 +2562,11 @@ object fMain: TfMain
     Left = 0
     Height = 34
     Top = 0
-    Width = 995
+    Width = 0
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 995
+    ClientWidth = 0
     TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
@@ -2660,10 +2660,10 @@ object fMain: TfMain
       end
     end
     object FilterToolBar: TToolBar
-      Left = 340
+      Left = 170
       Height = 34
       Top = 0
-      Width = 655
+      Width = 0
       Align = alClient
       BorderSpacing.Left = 340
       ButtonHeight = 32
@@ -2680,92 +2680,92 @@ object fMain: TfMain
         Style = tbsCheck
       end
       object ToolButton12: TToolButton
-        Left = 46
-        Top = 2
+        Left = 1
+        Top = 34
         Action = actFilterTowns
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton13: TToolButton
-        Left = 89
-        Top = 2
+        Left = 1
+        Top = 66
         Action = actFilterArtifacts
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton14: TToolButton
-        Left = 258
-        Top = 2
+        Left = 1
+        Top = 162
         Action = actFilterResources
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton15: TToolButton
-        Left = 319
-        Top = 2
+        Left = 1
+        Top = 194
         Action = actFilterStatic
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton16: TToolButton
-        Left = 356
-        Top = 2
+        Left = 1
+        Top = 226
         Action = actFilterOther
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton17: TToolButton
-        Left = 141
-        Top = 2
+        Left = 1
+        Top = 98
         Action = actFilterCreatures
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton20: TToolButton
-        Left = 199
-        Top = 2
+        Left = 1
+        Top = 130
         Action = actFilterDwelling
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton21: TToolButton
-        Left = 394
-        Height = 32
-        Top = 2
-        Width = 5
+        Left = 1
+        Height = 5
+        Top = 258
+        Width = 32
         Caption = 'ToolButton21'
         Style = tbsDivider
       end
       object ToolButton23: TToolButton
-        Left = 399
-        Top = 2
+        Left = 1
+        Top = 263
         Action = actFilterOnMap
       end
     end
   end
   object pnRight: TPanel
-    Left = 791
-    Height = 732
-    Top = 34
+    Left = -204
+    Height = 0
+    Top = 0
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 732
+    ClientHeight = 0
     ClientWidth = 204
     TabOrder = 0
     object pnObjects: TPanel
       Left = 0
-      Height = 709
-      Top = 23
+      Height = 0
+      Top = 0
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 709
+      ClientHeight = 0
       ClientWidth = 204
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 709
+        Height = 0
         Top = 0
         Width = 16
         Align = alRight
@@ -2777,7 +2777,7 @@ object fMain: TfMain
       end
       object ObjectsView: TOpenGLControl
         Left = 0
-        Height = 709
+        Height = 0
         Top = 0
         Width = 188
         Align = alClient
@@ -2861,8 +2861,8 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 766
-    Width = 995
+    Top = -23
+    Width = 0
     Panels = <    
       item
         Width = 300
@@ -2878,12 +2878,12 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 732
-    Top = 34
+    Height = 0
+    Top = 0
     Width = 202
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 732
+    ClientHeight = 0
     ClientWidth = 202
     TabOrder = 1
     object pnMinimap: TPanel
@@ -2909,10 +2909,10 @@ object fMain: TfMain
     end
   end
   object pcMain: TPageControl
-    Left = 202
-    Height = 732
-    Top = 34
-    Width = 589
+    Left = 0
+    Height = 0
+    Top = 0
+    Width = 0
     ActivePage = tsMap
     Align = alClient
     ShowTabs = False
@@ -2921,26 +2921,26 @@ object fMain: TfMain
     OnChange = pcMainChange
     object tsMap: TTabSheet
       Caption = 'tsMap'
-      ClientHeight = 724
-      ClientWidth = 581
+      ClientHeight = 0
+      ClientWidth = 0
       object pnMap: TPanel
         Left = 0
-        Height = 724
+        Height = 0
         Top = 0
-        Width = 581
+        Width = 0
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnMap'
-        ClientHeight = 724
-        ClientWidth = 581
+        ClientHeight = 0
+        ClientWidth = 0
         Color = clWhite
         ParentColor = False
         TabOrder = 0
         object MapView: TOpenGLControl
-          Left = 23
-          Height = 685
-          Top = 23
-          Width = 542
+          Left = 0
+          Height = 0
+          Top = 0
+          Width = 0
           Align = alClient
           AutoResizeViewport = True
           OpenGLMajorVersion = 3
@@ -2959,10 +2959,10 @@ object fMain: TfMain
           OnPaint = MapViewPaint
         end
         object hScrollBar: TScrollBar
-          Left = 18
+          Left = 0
           Height = 16
-          Top = 708
-          Width = 545
+          Top = -16
+          Width = 0
           Align = alBottom
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
@@ -2972,9 +2972,9 @@ object fMain: TfMain
           OnScroll = hScrollBarScroll
         end
         object vScrollBar: TScrollBar
-          Left = 565
-          Height = 685
-          Top = 23
+          Left = -16
+          Height = 0
+          Top = 0
           Width = 16
           Align = alRight
           Kind = sbVertical
@@ -2985,17 +2985,17 @@ object fMain: TfMain
         end
         object pnVAxis: TPanel
           Left = 0
-          Height = 685
-          Top = 23
+          Height = 0
+          Top = 0
           Width = 23
           Align = alLeft
           BevelOuter = bvNone
-          ClientHeight = 685
+          ClientHeight = 0
           ClientWidth = 23
           TabOrder = 3
           object VerticalAxis: TPaintBox
             Left = 0
-            Height = 685
+            Height = 0
             Top = 0
             Width = 23
             Align = alClient
@@ -3003,22 +3003,22 @@ object fMain: TfMain
           end
         end
         object pnHAxis: TPanel
-          Left = 23
+          Left = 2
           Height = 23
           Top = 0
-          Width = 540
+          Width = 0
           Align = alTop
           BorderSpacing.Left = 23
           BorderSpacing.Right = 18
           BevelOuter = bvNone
           ClientHeight = 23
-          ClientWidth = 540
+          ClientWidth = 0
           TabOrder = 4
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23
             Top = 0
-            Width = 540
+            Width = 0
             Align = alClient
             OnPaint = HorisontalAxisPaint
           end
