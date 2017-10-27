@@ -1311,7 +1311,7 @@ begin
   begin
     spell := Items[idx];
     if spell.IsValid() and ((ALevel = 0) or (spell.Level = ALevel)) then
-      AList.AddObject(spell.Name, spell);
+      AList.AddObject(spell.Identifier, spell);
   end;
 end;
 

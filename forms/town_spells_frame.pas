@@ -174,13 +174,30 @@ begin
 end;
 
 procedure TTownSpellsFrame.FillSpells(Alevel: Integer);
+var
+  i: Integer;
+  info: TBaseInfo;
 begin
   if Alevel < 0 then
   begin
     Alevel:=0;
   end;
 
-  AllSpells.Items.Assign(FAllSpells[Alevel]);
+  AllSpells.Items.BeginUpdate;
+  try
+    AllSpells.Items.Clear;
+
+    for i := 0 to FAllSpells[Alevel].Count - 1 do
+    begin
+      info := FAllSpells[Alevel].Objects[i] as TBaseInfo;
+
+      AllSpells.Items.AddObject(info.Name, info);
+    end;
+
+  finally
+    AllSpells.Items.EndUpdate;
+  end;
+
 end;
 
 function TTownSpellsFrame.SpellsSelected: Boolean;
@@ -211,8 +228,8 @@ begin
 
   for i := 0 to AFullList.Count - 1 do
   begin
-    item_name := AFullList[i];
     info := AFullList.Objects[i] as TBaseInfo;
+    item_name := info.Name;
 
     if ACache.IndexOf(info.Identifier) >=0 then
     begin

@@ -129,12 +129,8 @@ procedure TDirs.CreatePaths;
 begin
   if not ForceDirectoriesUTF8(UserCachePath) then
   begin
-    raise Exception.CreateFmt('Unbale to create path %s',[UserCachePath]);
+    raise Exception.CreateFmt('Unable to create path %s',[UserCachePath]);
   end;
-  //if not ForceDirectoriesUTF8(UserCachePath) then
-  //begin
-  //  raise Exception.CreateFmt('Unbale to create path %s',[UserCachePath]);
-  //end;
 end;
 
 class function TDirs.GetActualClass: TDirsClass;

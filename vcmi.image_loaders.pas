@@ -48,7 +48,7 @@ type
 
   { TIntfImageResource }
 
-  //RGBA intf bitmap, temprory storage for load into video memory
+  //RGBA intf bitmap
 
   TIntfImageResource = class(TBaseResource, IResource)
   private
