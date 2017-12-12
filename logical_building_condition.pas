@@ -29,7 +29,6 @@ type
   TBuildingConditionItem = class(TLogicalExpressionItem, ISerializeSpecial)
   private
     FBuilding: AnsiString;
-    procedure SetBuilding(AValue: AnsiString);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -38,7 +37,7 @@ type
     function Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
     procedure Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
   public
-    property Building: AnsiString read FBuilding write SetBuilding;
+    property Building: AnsiString read FBuilding write FBuilding;
   end;
 
   TBuildingCondition = class(TLogicalExpression)
@@ -52,12 +51,6 @@ uses
 
 { TBuildingConditionItem }
 
-procedure TBuildingConditionItem.SetBuilding(AValue: AnsiString);
-begin
-  if FBuilding=AValue then Exit;
-  FBuilding:=AValue;
-end;
-
 constructor TBuildingConditionItem.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -68,8 +61,7 @@ begin
   inherited Destroy;
 end;
 
-function TBuildingConditionItem.Serialize(AHandler: TVCMIJSONStreamer
-  ): TJSONData;
+function TBuildingConditionItem.Serialize(AHandler: TVCMIJSONStreamer): TJSONData;
 var
   item: TCollectionItem;
 begin
@@ -88,11 +80,9 @@ begin
   begin
     TJSONArray(Result).Add(Building);
   end;
-
 end;
 
-procedure TBuildingConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer;
-  ASrc: TJSONData);
+procedure TBuildingConditionItem.Deserialize(AHandler: TVCMIJSONDestreamer; ASrc: TJSONData);
 var
   ASrcArray: TJSONArray;
   instruction_name: TJSONStringType;
