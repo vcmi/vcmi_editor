@@ -11,7 +11,7 @@ object EditObjectOptions: TEditObjectOptions
   Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.6.1.0'
+  LCLVersion = '1.8.1.0'
   object pcMain: TPageControl
     Left = 0
     Height = 569

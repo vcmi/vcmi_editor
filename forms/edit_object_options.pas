@@ -110,6 +110,7 @@ begin
     ErrorLabel.Visible:=False;
     SaveChanges;
     ModalResult:=mrOK;
+    Close;
   except
     on e: Exception do
     begin
@@ -127,6 +128,7 @@ end;
 procedure TEditObjectOptions.actDontSaveExecute(Sender: TObject);
 begin
   ModalResult:=mrCancel;
+  Close;
 end;
 
 constructor TEditObjectOptions.Create(TheOwner: TComponent);
