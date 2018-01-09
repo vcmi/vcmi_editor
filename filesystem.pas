@@ -184,7 +184,6 @@ type
 
     property Disabled:Boolean read FDisabled write FDisabled;
     property ID: TModId read FID write SetID;
-    //realtive (to mod root) mod path
     property Path: String read FPath write SetPath;
     procedure MayBeSetDefaultFSConfig;
 
@@ -294,9 +293,12 @@ type
 
     procedure OnFileFound(FileIterator: TFileIterator);
     procedure OnDirectoryFound(FileIterator: TFileIterator);
+    procedure OnTopLevelDirectoryFound(FileIterator: TFileIterator);
+
     procedure OnArchiveFound(FileIterator: TFileIterator);
 
     procedure ScanDir(const RelDir: string; ARootPath: TStrings);
+    procedure ScanContentDir(const RelDir: string; ARootPath: TStrings);
 
     procedure ScanMap(MapPath: string; ARootPath: TStrings);
 
@@ -336,6 +338,7 @@ type
     procedure Load(AProgress: IProgressCallback);
 
     procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
+    procedure LoadResourceCombined(AResource: IResource; AResType: TResourceType; AName: string);
 
     function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string): boolean;
 
@@ -347,6 +350,10 @@ type
   public
     property Configs:TIdToConfigMap read FConfigMap;
     property DataPath: TStringListUTF8 read FDataPath;
+  end;
+
+  EResourceNotFound = class (Exception)
+
   end;
 
 
@@ -602,7 +609,7 @@ begin
     cur_path := Filesystem.Add;
     cur_path.Identifier := '';
 
-    item :=  cur_path.Items.Add;
+    item := cur_path.Items.Add;
     item.&Type := 'dir';
     item.Path := MOD_ROOT;
   end;
@@ -734,7 +741,7 @@ begin
   try
     mod_config := TModConfig.Create;
     mod_config.ID := AModID;
-    mod_config.Path := ExtractFileNameOnly(ExcludeTrailingBackslash(ExtractFilePath(mod_path)));
+    mod_config.Path := ExtractFilePath(mod_path);
     destreamer.JSONStreamToObject(stm, mod_config,'');
     mod_config.MayBeSetDefaultFSConfig;
 
@@ -775,7 +782,30 @@ begin
   srch.OnDirectoryFound:=@OnDirectoryFound;
   try
     p := IncludeTrailingPathDelimiter(FileIterator.FileName);
-    srch.Search(p);
+    srch.Search(p, '', False);
+  finally
+    srch.Free;
+  end;
+end;
+
+procedure TFSManager.OnTopLevelDirectoryFound(FileIterator: TFileIterator);
+var
+  srch: TFileSearcher;
+  p, tld_name: string;
+begin
+  srch := TFileSearcher.Create;
+  srch.OnFileFound := @OnFileFound;
+  srch.OnDirectoryFound:=@OnDirectoryFound;
+  try
+    p := IncludeTrailingPathDelimiter(FileIterator.FileName);
+
+    tld_name := ExtractFileNameOnly(ExcludeTrailingPathDelimiter(FileIterator.FileName));
+
+    if UpperCase(tld_name) <> 'MODS' then
+    begin
+      DebugLn('TLD :', p);
+      srch.Search(p, '', False);
+    end;
   finally
     srch.Free;
   end;
@@ -993,8 +1023,60 @@ procedure TFSManager.LoadResource(AResource: IResource; AResType: TResourceType;
 begin
   if not TryLoadResource(AResource, AResType, AName) then
   begin
-    raise Exception.Create('Resource not found: '+AName);
+    raise EResourceNotFound.Create('Resource not found: '+AName);
   end;
+end;
+
+procedure TFSManager.LoadResourceCombined(AResource: IResource;
+  AResType: TResourceType; AName: string);
+var
+  it : TResIDToLocationMap.TIterator;
+
+  last_location: TResLocation;
+  order: Integer;
+begin
+  AName := NormalizeResourceName(AName);
+  it := SelectResource(AResType, AName);
+  if not Assigned(it) then
+  begin
+    raise EResourceNotFound.Create('Resource not found: '+AName);
+  end;
+
+  last_location := it.Value;
+  order := it.Key.ModOrder;
+
+  case last_location.lt of
+    TLocationType.InLod: last_location.lod.LoadResource(AResource,last_location.FileHeader);
+    TLocationType.InFile: LoadFileResource(AResource,last_location.path);
+    TLocationType.InArchive: LoadArchiveResource(AResource, last_location.archive, last_location.entry);
+  end;
+
+  while it.Next do
+  begin
+    if (it.Key.VFSPath = AName) and (it.Key.Typ = AResType) then
+    begin
+      last_location := it.Value;
+
+      if not (order < it.Key.ModOrder) then
+      begin
+        raise Exception.CreateFmt('[Internal error] wrong order %d for %s', [it.Key.ModOrder, AName]);
+      end;
+
+      case last_location.lt of
+        TLocationType.InLod: last_location.lod.LoadResource(AResource,last_location.FileHeader) ;
+        TLocationType.InFile: LoadFileResource(AResource,last_location.path);
+        TLocationType.InArchive: LoadArchiveResource(AResource, last_location.archive, last_location.entry);
+      end;
+
+      order := it.Key.ModOrder;
+    end
+    else
+    begin
+      Break;
+    end;
+  end;
+
+  FreeAndNil(it);
 end;
 
 function TFSManager.TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string): boolean;
@@ -1132,15 +1214,9 @@ begin
         FCurrentLoadOrder:=load_order;
         mod_paths.Clear;
 
-        for APath in mod_roots do
-        begin
-          mod_paths.Append( IncludeTrailingPathDelimiter(APath) + AMod.Path);
-        end;
+        mod_paths.Append(AMod.Path);
 
-        for APath in mod_roots do
-        begin
-          ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,mod_paths);
-        end;
+        ProcessFSConfig(FModMap.Data[mod_idx].Filesystem,mod_paths);
       end;
     end;
 
@@ -1297,12 +1373,14 @@ begin
   file_name := ExtractFileNameOnly(FileIterator.FileName);
 
   res_id.Typ := res_typ;
-  res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));//
+  res_id.VFSPath := SetDirSeparators(UpperCase(FCurrentVFSPath+ExtractFilePath(rel_path)+file_name));
   res_id.ModOrder:=FCurrentLoadOrder;
 
   res_loc.SetFile(FileIterator.FileName);
 
   FResMap.Insert(res_id,res_loc);
+
+  DebugLn(rel_path, ' => ' , res_id.VFSPath, ' => ', FileIterator.FileName);
 end;
 
 procedure TFSManager.OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
@@ -1327,7 +1405,7 @@ begin
     exit;
 
   res_id.Typ := res_typ;
-  res_id.VFSPath := FCurrentVFSPath+file_name;//
+  res_id.VFSPath := FCurrentVFSPath+file_name;
   res_id.ModOrder:=FCurrentLoadOrder;
 
   res_loc.SetLod(Alod, AItem);
@@ -1395,12 +1473,13 @@ begin
         ScanLod(rel_path,ARootPath);
       end;
       'dir':begin
-        if item.Path = MOD_ROOT then
+        if UpperCase(rel_path) = UpperCase(MOD_ROOT) then
         begin
           ScanArchive(item, rel_path, ARootPath);
-          ScanDir(rel_path,ARootPath);
+          ScanContentDir(rel_path,ARootPath);
         end
-        else begin
+        else if UpperCase(item.Path) <> 'MODS' then
+        begin
           ScanDir(rel_path,ARootPath);
         end;
       end;
@@ -1431,12 +1510,35 @@ begin
   begin
     srch := TFileSearcher.Create;
     srch.OnFileFound := @OnFileFound;
-    //srch.OnDirectoryFound:=@OnDirectoryFound;
+    srch.OnDirectoryFound:=@OnDirectoryFound;
     try
       FCurrentRelPath := RelDir;
       FCurrentRootPath := root_path;
       p := IncludeTrailingPathDelimiter(MakeFullPath(root_path,RelDir));
-      srch.Search(p);
+      srch.Search(p, '', False);
+    finally
+      srch.Free;
+    end;
+  end;
+end;
+
+procedure TFSManager.ScanContentDir(const RelDir: string; ARootPath: TStrings);
+var
+  srch: TFileSearcher;
+  p: string;
+  root_path: String;
+begin
+  for root_path in ARootPath do
+  begin
+    DebugLn('ScanContentDir: ', root_path, ' ', RelDir);
+    srch := TFileSearcher.Create;
+    //srch.OnFileFound := @OnFileFound;
+    srch.OnDirectoryFound:=@OnTopLevelDirectoryFound;
+    try
+      FCurrentRelPath := RelDir;
+      FCurrentRootPath := root_path;
+      p := IncludeTrailingPathDelimiter(MakeFullPath(root_path,RelDir));
+      srch.Search(p, '', False);
     finally
       srch.Free;
     end;

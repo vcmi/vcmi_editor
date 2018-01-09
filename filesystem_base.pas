@@ -45,6 +45,8 @@ type
     *)
     procedure LoadResource(AResource: IResource; AResType: TResourceType; AName: string);
 
+    procedure LoadResourceCombined(AResource: IResource; AResType: TResourceType; AName: string);
+
     function ExistsResource(AResType: TResourceType; AName: string): boolean;
 
     function TryLoadResource(AResource: IResource; AResType: TResourceType; AName: string):boolean;
@@ -67,8 +69,8 @@ type
 
     procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); virtual; abstract;
 
-    procedure Load(ALoader: IResourceLoader);
-    function TryLoad(ALoader: IResourceLoader): Boolean;
+    procedure Load(ALoader: IResourceLoader); virtual;
+    function TryLoad(ALoader: IResourceLoader): Boolean; virtual;
   end;
 
   { TFSConsumer }

@@ -2393,9 +2393,9 @@ end;
 
 procedure TListsManager.LoadTextDataConfig;
 var
-  config: TJsonResource;
+  config: TJsonCombinedResource;
 begin
-  config := TJsonResource.Create(TEXT_DATA_CONFIG);
+  config := TJsonCombinedResource.Create(TEXT_DATA_CONFIG);
   try
     config.Load(ResourceLoader);
     config.DestreamTo(FTextDataConfig, 'textData');

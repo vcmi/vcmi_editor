@@ -139,6 +139,16 @@ type
     procedure DestreamTo(AObject: TObject; AFieldName: string = '');
   end;
 
+
+  { TJsonCombinedResource }
+
+  TJsonCombinedResource = class (TJsonResource)
+  public
+    procedure LoadFromStream(AFileName: AnsiString; AStream: TStream); override;
+    procedure Load(ALoader: IResourceLoader); override;
+    function TryLoad(ALoader: IResourceLoader): Boolean; override;
+  end;
+
   TJsonObjectList = specialize TFPGObjectList<TJSONObject>;
 
 
@@ -355,6 +365,40 @@ begin
     end;
   end;
 
+end;
+
+{ TJsonCombinedResource }
+
+procedure TJsonCombinedResource.LoadFromStream(AFileName: AnsiString;  AStream: TStream);
+var
+  current: TJSONObject;
+begin
+  if not Assigned(FRoot) then
+  begin
+    FRoot := CreateJSONObject([]);
+  end;
+
+  current := destreamer.JSONStreamToJSONObject(AStream,'');
+  try
+    MergeJson(current, Root);
+  finally
+    current.Free;
+  end;
+end;
+
+procedure TJsonCombinedResource.Load(ALoader: IResourceLoader);
+begin
+  ALoader.LoadResourceCombined(Self, Typ, Path);
+end;
+
+function TJsonCombinedResource.TryLoad(ALoader: IResourceLoader): Boolean;
+begin
+  Result:= ALoader.ExistsResource(Self.Typ, Self.Path);
+
+  if Result then
+  begin
+    Load(ALoader);
+  end;
 end;
 
 { TVCMIJsonArray }
