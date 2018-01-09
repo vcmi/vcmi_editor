@@ -15,9 +15,9 @@ object ToolsFrame: TToolsFrame
     Height = 350
     Top = 0
     Width = 218
-    ActivePage = tsErase
+    ActivePage = tsObjects
     Align = alClient
-    TabIndex = 4
+    TabIndex = 0
     TabOrder = 0
     TabPosition = tpLeft
     OnChange = ToolsPagesChange

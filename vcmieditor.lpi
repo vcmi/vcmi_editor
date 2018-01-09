@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="11"/>
-      <BuildNr Value="138"/>
+      <BuildNr Value="139"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
@@ -815,7 +815,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -825,9 +825,6 @@
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
-      <Item4>
-        <Name Value="EJSONParser"/>
-      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>

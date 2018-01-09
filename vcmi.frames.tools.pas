@@ -510,6 +510,7 @@ end;
 procedure TToolsFrame.SwitchToObjects;
 begin
   ToolsPages.ActivePage := tsObjects;
+  SetActiveBrush(FIdleBrush);
   if not actObjSize0.Checked then
   begin
     actObjSize0.Execute;
