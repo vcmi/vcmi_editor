@@ -28,12 +28,12 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <RevisionNr Value="11"/>
-      <BuildNr Value="139"/>
+      <RevisionNr Value="12"/>
+      <BuildNr Value="143"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
-    <BuildModes Count="6">
+    <BuildModes Count="7">
       <Item1 Name="Debug" Default="True"/>
       <Item2 Name="Release">
         <CompilerOptions>
@@ -234,6 +234,56 @@
           </Linking>
         </CompilerOptions>
       </Item6>
+      <Item7 Name="ReleaseWin32">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin32\vcmieditor"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="forms;3rd_party;forms\subframes"/>
+            <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)-$(BuildMode)"/>
+          </SearchPaths>
+          <Parsing>
+            <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Checks>
+              <IOChecks Value="True"/>
+            </Checks>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+              <ShoLineNum Value="True"/>
+            </Verbosity>
+            <ConfigFile>
+              <StopAfterErrCount Value="10"/>
+            </ConfigFile>
+          </Other>
+        </CompilerOptions>
+      </Item7>
       <SharedMatrixOptions Count="3">
         <Item1 ID="127405509966" Targets="#project" Modes="DebugWin64,Debug" Value="-dDEBUG"/>
         <Item2 ID="440454387983" Targets="#project" Modes="Release,ReleaseWin64" Value="-dRELEASE"/>
