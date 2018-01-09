@@ -2792,7 +2792,7 @@ begin
 
   if MainHero = '' then
   begin
-    MainHero:=player_hero.&type;
+    SetMainHero(AObject);
   end;
 end;
 
