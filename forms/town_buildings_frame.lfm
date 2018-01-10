@@ -115,7 +115,6 @@ inherited TownBuildingsFrame: TTownBuildingsFrame
       Width = 432
       Align = alClient
       AutoExpand = True
-      DefaultItemHeight = 18
       Images = img
       ReadOnly = True
       ShowRoot = False

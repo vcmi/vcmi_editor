@@ -45,6 +45,8 @@ type
 
     property Allowed: Boolean read FAllowed write SetAllowed;
     property Built: Boolean read FBuilt write SetBuilt;
+
+    function IsModifiable(): Boolean;
   end;
 
   TBuildingProc =  procedure (ANode: TTreeNode; AData: TBuildingData) of object;
@@ -110,6 +112,13 @@ type
     procedure InvertBuilt(ANode: TTreeNode; AData: TBuildingData);
 
     procedure ModifyEachBuilding(AProc: TBuildingProc);
+
+    procedure ModifyParents(ACurrentNode: TTreeNode; AProc: TBuildingProc);
+    procedure ModifyChildren(ACurrentNode: TTreeNode; AProc: TBuildingProc);
+
+    procedure BuildingChanged(ACurrentNode: TTreeNode);
+
+    procedure ValidateTree;
   protected
     procedure Load; override;
 
@@ -157,6 +166,11 @@ begin
   FBuilding := ABuilding;
 end;
 
+function TBuildingData.IsModifiable(): Boolean;
+begin
+  Result := Building.Mode in [TBuildMode.normal,TBuildMode.grail]
+end;
+
 { TTownBuildingsFrame }
 
 procedure TTownBuildingsFrame.BuildingsDeletion(Sender: TObject; Node: TTreeNode
@@ -199,6 +213,8 @@ begin
   if FDoUpdateNodeData and Assigned(Buildings.Selected) then
   begin
     TBuildingData(Buildings.Selected.Data).Allowed:= Allowed.Checked;
+
+    BuildingChanged(Buildings.Selected);
   end;
   UpdateControls;
   Buildings.Invalidate;
@@ -222,11 +238,13 @@ end;
 procedure TTownBuildingsFrame.actInvertAllowedExecute(Sender: TObject);
 begin
   ModifyEachBuilding(@InvertAllowed);
+  ValidateTree;
 end;
 
 procedure TTownBuildingsFrame.actInvertBuiltExecute(Sender: TObject);
 begin
   ModifyEachBuilding(@InvertBuilt);
+  ValidateTree;
 end;
 
 procedure TTownBuildingsFrame.actRazeAllExecute(Sender: TObject);
@@ -277,6 +295,7 @@ begin
   if FDoUpdateNodeData and Assigned(Buildings.Selected) then
   begin
     TBuildingData(Buildings.Selected.Data).Built:= Allowed.Checked and Built.Checked;
+    BuildingChanged(Buildings.Selected);
   end;
   UpdateControls;
   Buildings.Invalidate;
@@ -422,13 +441,88 @@ begin
   for node in Buildings.Items do
   begin
     data := TBuildingData(node.Data);
-    if Data.Building.Mode in [TBuildMode.normal,TBuildMode.grail] then
+    if data.IsModifiable() then
     begin
       AProc(node,data);
     end;
   end;
   BuildingsSelectionChanged(Buildings);
   Buildings.Invalidate;
+end;
+
+procedure TTownBuildingsFrame.ModifyParents(ACurrentNode: TTreeNode; AProc: TBuildingProc);
+var
+  parent_node: TTreeNode;
+  data: TBuildingData;
+begin
+  parent_node := ACurrentNode.Parent;
+
+  while Assigned(parent_node) do
+  begin
+    data := TBuildingData(parent_node.Data);
+
+    if data.IsModifiable() then
+    begin
+      AProc(parent_node,data);
+    end;
+
+    parent_node := parent_node.Parent;
+  end;
+end;
+
+procedure TTownBuildingsFrame.ModifyChildren(ACurrentNode: TTreeNode; AProc: TBuildingProc);
+var
+  idx: Integer;
+  child_node: TTreeNode;
+  data: TBuildingData;
+begin
+  for idx := 0 to Pred(ACurrentNode.Count) do
+  begin
+    child_node := ACurrentNode.Items[idx];
+
+    data := TBuildingData(child_node.Data);
+
+    if data.IsModifiable() then
+    begin
+      AProc(child_node,data);
+    end;
+
+    ModifyChildren(child_node, AProc);
+  end;
+end;
+
+procedure TTownBuildingsFrame.BuildingChanged(ACurrentNode: TTreeNode);
+var
+  node_data: TBuildingData;
+begin
+  node_data := TBuildingData(ACurrentNode.Data);
+
+  if node_data.Built then
+  begin
+    ModifyParents(ACurrentNode, @Build);
+    ModifyParents(ACurrentNode, @Allow);
+  end;
+
+  if not node_data.Built then
+  begin
+    ModifyChildren(ACurrentNode, @Raze);
+  end;
+
+  if node_data.Allowed then
+  begin
+    ModifyParents(ACurrentNode, @Allow);
+  end;
+
+  if not node_data.Allowed then
+  begin
+    ModifyChildren(ACurrentNode, @Raze);
+    ModifyChildren(ACurrentNode, @Deny);
+  end;
+end;
+
+procedure TTownBuildingsFrame.ValidateTree;
+begin
+  //TODO: TTownBuildingsFrame.ValidateTree
 end;
 
 procedure TTownBuildingsFrame.UpdateControls;
