@@ -816,8 +816,6 @@ type
     procedure SetDescription(AValue: TLocalizedString);
     procedure SetName(AValue: TLocalizedString);
 
-    procedure SetIsDirty(AValue: Boolean);
-
     procedure AddToIndex(AObject: TMapObject);
     procedure RemoveFromIndex(AObject: TMapObject);
 
@@ -864,7 +862,7 @@ type
 
     procedure SaveToStream(ADest: TStream; AWriter: IMapWriter);
 
-    property IsDirty: Boolean read FIsDirty write SetIsDirty;
+    property IsDirty: Boolean read FIsDirty write FIsDirty;
     property TrackObjectChanges: Boolean read FTrackObjectChanges;
 
     property TerrainManager: TTerrainManager read FTerrainManager;
@@ -3642,11 +3640,6 @@ end;
 procedure TVCMIMap.SetName(AValue: TLocalizedString);
 begin
   FName := AValue;
-end;
-
-procedure TVCMIMap.SetIsDirty(AValue: Boolean);
-begin
-  FIsDirty:=AValue;
 end;
 
 procedure TVCMIMap.AddToIndex(AObject: TMapObject);

@@ -170,6 +170,7 @@ end;
 procedure TEditObjectOptions.SaveChanges;
 begin
   FActiveEditors.Commit;
+  FMap.IsDirty:=true;
 end;
 
 procedure TEditObjectOptions.VisitDwelling(AOptions: TObjectOptions);

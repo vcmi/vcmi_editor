@@ -335,43 +335,44 @@ end;
 
 procedure TCreatureSetFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 begin
-  inherited VisitLocalEvent(AOptions);
-  Load(AOptions.Guards);
   edTightFormation.Visible := false;
   edRemovableUnits.Visible := false;
+
+  inherited VisitLocalEvent(AOptions);
+  Load(AOptions.Guards);
 end;
 
 procedure TCreatureSetFrame.ReadHero(AOptions: THeroOptions);
 begin
-  Load(AOptions.Army);
   edTightFormation.Visible := true;
   edRemovableUnits.Visible := false;
+  Load(AOptions.Army);
 end;
 
 procedure TCreatureSetFrame.VisitTown(AOptions: TTownOptions);
 begin
-  inherited VisitTown(AOptions);
-  Load(AOptions.Army);
   edTightFormation.Visible := true;
   edRemovableUnits.Visible := false;
+  inherited VisitTown(AOptions);
+  Load(AOptions.Army);
 end;
 
 procedure TCreatureSetFrame.VisitMine(AOptions: TMineOptions);
 begin
-  inherited VisitMine(AOptions);
-  Load(AOptions.Army);
   edTightFormation.Visible:=false;
   edRemovableUnits.Visible := false;
+  inherited VisitMine(AOptions);
+  Load(AOptions.Army);
 end;
 
 procedure TCreatureSetFrame.VisitQuest(AOptions: TQuest);
 begin
   edCustomize.Visible:=false;
   pnOptions.Visible:=false;
-
-  Load(AOptions.Creatures);
   edTightFormation.Visible := false;
   edRemovableUnits.Visible := false;
+
+  Load(AOptions.Creatures);
 end;
 
 end.

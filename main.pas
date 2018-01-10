@@ -733,7 +733,7 @@ begin
   begin
     actSaveMapAs.Execute;
   end
-  else if FMap.Name <> '' then
+  else if (FMapFilename = '') and (FMap.Name <> '') then
   begin
     SaveMapAsDialog.FileName:=FMap.Name;
     if SaveMapAsDialog.Execute then

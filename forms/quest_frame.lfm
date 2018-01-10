@@ -181,9 +181,9 @@ inherited QuestFrame: TQuestFrame
     Height = 431
     Top = 170
     Width = 817
-    ActivePage = tsArtifacts
+    ActivePage = tsDefault
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 2
     object tsDefault: TTabSheet
       ChildSizing.LeftRightSpacing = 5
