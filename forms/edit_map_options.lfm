@@ -9,7 +9,7 @@ object MapOptionsForm: TMapOptionsForm
   Constraints.MinHeight = 350
   Constraints.MinWidth = 300
   OnShow = FormShow
-  LCLVersion = '1.6.5.0'
+  LCLVersion = '1.8.1.0'
   object btOk: TButton
     AnchorSideRight.Control = btCancel
     AnchorSideBottom.Control = Owner
@@ -51,13 +51,13 @@ object MapOptionsForm: TMapOptionsForm
     Height = 337
     Top = 3
     Width = 646
-    ActivePage = tsMain
+    ActivePage = tsArtifacts
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BorderSpacing.Bottom = 48
-    TabIndex = 0
+    TabIndex = 5
     TabOrder = 0
     object tsMain: TTabSheet
       Caption = 'Main'
@@ -237,6 +237,7 @@ object MapOptionsForm: TMapOptionsForm
         BorderSpacing.Around = 5
         Columns = 2
         ItemHeight = 0
+        Sorted = True
         TabOrder = 0
       end
       object Label3: TLabel
@@ -277,6 +278,7 @@ object MapOptionsForm: TMapOptionsForm
         BorderSpacing.Around = 5
         Columns = 2
         ItemHeight = 0
+        Sorted = True
         TabOrder = 0
       end
       object cbSpellsNegate: TComboBox
@@ -318,6 +320,7 @@ object MapOptionsForm: TMapOptionsForm
         Columns = 2
         ItemHeight = 0
         OnDblClick = edAllowedHeroesDblClick
+        Sorted = True
         TabOrder = 0
       end
       object Label5: TLabel
@@ -359,6 +362,7 @@ object MapOptionsForm: TMapOptionsForm
         BorderSpacing.Around = 5
         Columns = 2
         ItemHeight = 0
+        Sorted = True
         TabOrder = 0
       end
       object Label4: TLabel

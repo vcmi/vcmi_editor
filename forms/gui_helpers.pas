@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, Controls, StdCtrls, ComCtrls, CheckLst,
 
   base_info, logical_id_condition, editor_str_consts,
-  editor_classes;
+  editor_classes, editor_types;
 
 type
 
@@ -160,6 +160,7 @@ function TStringsHelper.FillFrom(AFullList: THashedCollection; ASelected: AnsiSt
 var
   i: Integer;
   info: TBaseInfo;
+  Name: TLocalizedString;
 begin
   Result := -1;
 
@@ -169,7 +170,12 @@ begin
     info := AFullList.Items[i] as TBaseInfo;
     if info.IsValid and AFilter(info) then
     begin
-      Self.AddObject(info.Name+'('+info.Identifier+')',info);
+      Name := info.Name;
+      if Name = '' then
+      begin
+        Name := info.Identifier;
+      end;
+      Self.AddObject(Name,info);
       if(ASelected <> '') and (info.Identifier = ASelected) then
       begin
         Result := Self.Count - 1;
