@@ -170,8 +170,8 @@ begin
     //update
     o := SkillsEdit.Items.Objects[matched] as THeroSecondarySkill;
     o.Level:=mastery;
-    SkillsEdit.Items[matched] := FormatInfo(o);
-    SkillsEdit.Items.Objects[matched] := o;
+    SkillsEdit.Items.Delete(matched);
+    SkillsEdit.AddItem(FormatInfo(o), o);
   end;
 end;
 
