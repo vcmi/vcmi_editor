@@ -5,8 +5,8 @@ inherited CreatureSetFrame: TCreatureSetFrame
   ClientHeight = 458
   ClientWidth = 619
   Constraints.MinWidth = 315
-  DesignLeft = 202
-  DesignTop = 107
+  DesignLeft = 415
+  DesignTop = 141
   object pnCreatures: TPanel[0]
     Left = 0
     Height = 432
@@ -80,7 +80,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel2: TPanel
@@ -119,7 +121,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel3: TPanel
@@ -158,7 +162,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel4: TPanel
@@ -197,7 +203,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel5: TPanel
@@ -236,7 +244,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel6: TPanel
@@ -275,7 +285,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
     object Panel7: TPanel
@@ -315,7 +327,9 @@ inherited CreatureSetFrame: TCreatureSetFrame
         AutoSize = False
         Constraints.MinWidth = 50
         MaxValue = 1000000000
+        MinValue = 1
         TabOrder = 1
+        Value = 1
       end
     end
   end
