@@ -67,8 +67,22 @@ implementation
 uses math;
 
 const
-  STANDARD_SIZES : array[0..6] of Integer = (16, 36, 72, 108, 144, 252, 1024);
-  STANDARD_SIZES_NAMES : array[0..6] of String = ('Min 16x16', 'S 36x36', 'M 72x72', 'L 108x108', 'XL 144x144', 'XXL 252x252', 'Max 1024x1024');
+  STANDARD_SIZES : array[0..8] of Integer =
+  (
+    18, 36, 72, 108, 144, 180, 216, 252, 1008
+  );
+  STANDARD_SIZES_NAMES : array[0..8] of String =
+  (
+    'Min 18x18',
+    'S 36x36',
+    'M 72x72',
+    'L 108x108',
+    'XL 144x144',
+    'H 180x180',
+    'XH 216x216',
+    'G 252x252',
+    'Max 1008x1008'
+  );
 
 {$R *.lfm}
 

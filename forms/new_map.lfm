@@ -45,24 +45,24 @@ object NewMapForm: TNewMapForm
     Height = 23
     Top = 72
     Width = 110
-    Increment = 8
-    MaxValue = 1024
-    MinValue = 8
+    Increment = 9
+    MaxValue = 1008
+    MinValue = 18
     OnChange = edWidthChange
     TabOrder = 1
-    Value = 32
+    Value = 36
   end
   object edHeight: TSpinEdit
     Left = 152
     Height = 23
     Top = 72
     Width = 110
-    Increment = 8
-    MaxValue = 1024
-    MinValue = 8
+    Increment = 9
+    MaxValue = 1008
+    MinValue = 18
     OnChange = edHeightChange
     TabOrder = 2
-    Value = 32
+    Value = 36
   end
   object lbWidth: TLabel
     Left = 17
