@@ -130,6 +130,8 @@ begin
   begin
     StandardSize.Items.Add(STANDARD_SIZES_NAMES[idx]);
   end;
+
+  UpdateControls;
 end;
 
 procedure TNewMapForm.StandardSizeChange(Sender: TObject);

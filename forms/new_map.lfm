@@ -104,7 +104,9 @@ object NewMapForm: TNewMapForm
     Top = 104
     Width = 83
     Caption = 'Square map'
+    Checked = True
     OnChange = cbSquareChange
+    State = cbChecked
     TabOrder = 4
   end
   object Label1: TLabel
@@ -121,6 +123,7 @@ object NewMapForm: TNewMapForm
     Top = 32
     Width = 245
     Anchors = [akTop, akLeft, akRight]
+    DropDownCount = 9
     ItemHeight = 15
     OnChange = StandardSizeChange
     Style = csDropDownList
