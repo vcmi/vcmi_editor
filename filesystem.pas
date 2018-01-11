@@ -803,7 +803,6 @@ begin
 
     if UpperCase(tld_name) <> 'MODS' then
     begin
-      DebugLn('TLD :', p);
       srch.Search(p, '', False);
     end;
   finally
@@ -1380,7 +1379,7 @@ begin
 
   FResMap.Insert(res_id,res_loc);
 
-  DebugLn(rel_path, ' => ' , res_id.VFSPath, ' => ', FileIterator.FileName);
+  //DebugLn(rel_path, ' => ' , res_id.VFSPath, ' => ', FileIterator.FileName);
 end;
 
 procedure TFSManager.OnLodItemFound(Alod: TLod; constref AItem: TLodItem);
@@ -1530,7 +1529,7 @@ var
 begin
   for root_path in ARootPath do
   begin
-    DebugLn('ScanContentDir: ', root_path, ' ', RelDir);
+    //DebugLn('ScanContentDir: ', root_path, ' ', RelDir);
     srch := TFileSearcher.Create;
     //srch.OnFileFound := @OnFileFound;
     srch.OnDirectoryFound:=@OnTopLevelDirectoryFound;

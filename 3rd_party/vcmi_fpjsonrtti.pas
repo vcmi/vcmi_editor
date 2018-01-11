@@ -319,7 +319,7 @@ begin
         ntFloat   : Result:=Data.AsFloat;
         ntInteger : Result:=Data.AsInteger;
         ntInt64   : Result:=Data.Asint64;
-        //ntQWord   : Result:=Data.AsQWord;
+        ntQWord   : Result:=Data.AsQWord;
       end;
     jtString :
       Result:=Data.AsString;
@@ -528,7 +528,7 @@ begin
     tkBool :
       SetOrdProp(AObject,PI,Ord(PropData.AsBoolean));
     tkQWord :
-      SetOrdProp(AObject,PI,PropData.AsInt64);
+      SetOrdProp(AObject,PI,PropData.AsQWord);
     tkObject,
     tkArray,
     tkRecord,
@@ -1163,7 +1163,7 @@ begin
     tkInt64 :
       Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
     tkQWord :
-      Result:=TJSONFloatNumber.Create(GetOrdProp(AObject,PropertyInfo));
+      Result:=TJSONQWordNumber.Create(GetOrdProp(AObject,PropertyInfo));
     tkObject :
       Result:=ObjectToJSON(GetObjectProp(AObject,PropertyInfo));
     tkArray,

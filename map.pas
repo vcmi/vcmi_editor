@@ -2362,11 +2362,12 @@ begin
 
   if old_subtype=AValue then Exit;
 
-  Assert(Assigned(FMapObjectGroup));
-
   NotifyReferenced(old_subtype,AValue);
 
-  FMapObjectType := FMapObjectGroup.Types.FindItem(AValue);
+  if Assigned(FMapObjectGroup) then
+    FMapObjectType := FMapObjectGroup.Types.FindItem(AValue)
+  else
+    FMapObjectType := nil;
 
   RecreateOptions;
 end;
