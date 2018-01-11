@@ -35,6 +35,8 @@ type
     btOk: TButton;
     btCancel: TButton;
     cbSquare: TCheckBox;
+    StandardSize: TComboBox;
+    Label1: TLabel;
     lbWidth: TLabel;
     lbHeight: TLabel;
     lbLevels: TLabel;
@@ -45,9 +47,14 @@ type
     procedure actCancelExecute(Sender: TObject);
     procedure actCreateExecute(Sender: TObject);
     procedure cbSquareChange(Sender: TObject);
+    procedure edHeightChange(Sender: TObject);
     procedure edWidthChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure StandardSizeChange(Sender: TObject);
   private
     procedure UpdateControls;
+
+    procedure CheckStandardSize;
   public
     { public declarations }
 
@@ -59,6 +66,10 @@ implementation
 
 uses math;
 
+const
+  STANDARD_SIZES : array[0..6] of Integer = (16, 36, 72, 108, 144, 252, 1024);
+  STANDARD_SIZES_NAMES : array[0..6] of String = ('Min 16x16', 'S 36x36', 'M 72x72', 'L 108x108', 'XL 144x144', 'XXL 252x252', 'Max 1024x1024');
+
 {$R *.lfm}
 
 { TNewMapForm }
@@ -66,6 +77,11 @@ uses math;
 procedure TNewMapForm.cbSquareChange(Sender: TObject);
 begin
   UpdateControls;
+end;
+
+procedure TNewMapForm.edHeightChange(Sender: TObject);
+begin
+  CheckStandardSize;
 end;
 
 procedure TNewMapForm.actCreateExecute(Sender: TObject);
@@ -83,6 +99,31 @@ begin
   if cbSquare.Checked then
   begin
     edHeight.Value := edWidth.Value;
+  end
+  else
+  begin
+    CheckStandardSize;
+  end;
+end;
+
+procedure TNewMapForm.FormCreate(Sender: TObject);
+var
+  idx: Integer;
+begin
+  StandardSize.Items.Clear;
+
+  for idx := Low(STANDARD_SIZES) to High(STANDARD_SIZES) do
+  begin
+    StandardSize.Items.Add(STANDARD_SIZES_NAMES[idx]);
+  end;
+end;
+
+procedure TNewMapForm.StandardSizeChange(Sender: TObject);
+begin
+  if StandardSize.ItemIndex >= 0 then
+  begin
+    cbSquare.Checked := true;
+    edWidth.Value:=STANDARD_SIZES[StandardSize.ItemIndex];
   end;
 end;
 
@@ -97,6 +138,34 @@ begin
     dim := Max(edWidth.Value, edHeight.Value);
     edWidth.Value := dim;
     edHeight.Value:= dim;
+  end;
+end;
+
+procedure TNewMapForm.CheckStandardSize;
+var
+  idx: Integer;
+  found: Boolean;
+begin
+  if edWidth.Value <> edHeight.Value then
+  begin
+    StandardSize.ItemIndex:=-1;
+    Exit;
+  end;
+
+  found := false;
+
+  for idx := Low(STANDARD_SIZES) to High(STANDARD_SIZES) do
+  begin
+    if edWidth.Value = STANDARD_SIZES[idx] then
+    begin
+      found := true;
+      Break;
+    end;
+  end;
+
+  if not found then
+  begin
+    StandardSize.ItemIndex:=-1;
   end;
 end;
 

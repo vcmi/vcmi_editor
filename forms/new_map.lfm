@@ -1,21 +1,22 @@
 object NewMapForm: TNewMapForm
   Left = 445
-  Height = 200
+  Height = 224
   Top = 193
   Width = 300
   BorderStyle = bsDialog
   Caption = 'New map'
-  ClientHeight = 200
+  ClientHeight = 224
   ClientWidth = 300
   Constraints.MinHeight = 200
   Constraints.MinWidth = 300
+  OnCreate = FormCreate
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.6.3.0'
+  LCLVersion = '1.8.1.0'
   object pnButtons: TPanel
     Left = 0
     Height = 43
-    Top = 157
+    Top = 181
     Width = 300
     Align = alBottom
     BevelOuter = bvNone
@@ -42,7 +43,7 @@ object NewMapForm: TNewMapForm
   object edWidth: TSpinEdit
     Left = 16
     Height = 23
-    Top = 24
+    Top = 72
     Width = 110
     Increment = 8
     MaxValue = 1024
@@ -54,18 +55,19 @@ object NewMapForm: TNewMapForm
   object edHeight: TSpinEdit
     Left = 152
     Height = 23
-    Top = 24
+    Top = 72
     Width = 110
     Increment = 8
     MaxValue = 1024
     MinValue = 8
+    OnChange = edHeightChange
     TabOrder = 2
     Value = 32
   end
   object lbWidth: TLabel
     Left = 17
     Height = 15
-    Top = 8
+    Top = 56
     Width = 32
     Caption = 'Width'
     ParentColor = False
@@ -73,7 +75,7 @@ object NewMapForm: TNewMapForm
   object lbHeight: TLabel
     Left = 152
     Height = 15
-    Top = 8
+    Top = 56
     Width = 36
     Caption = 'Height'
     ParentColor = False
@@ -81,7 +83,7 @@ object NewMapForm: TNewMapForm
   object edLevels: TSpinEdit
     Left = 16
     Height = 23
-    Top = 104
+    Top = 144
     Width = 112
     MaxValue = 2
     MinValue = 1
@@ -91,7 +93,7 @@ object NewMapForm: TNewMapForm
   object lbLevels: TLabel
     Left = 16
     Height = 15
-    Top = 88
+    Top = 128
     Width = 32
     Caption = 'Levels'
     ParentColor = False
@@ -99,11 +101,30 @@ object NewMapForm: TNewMapForm
   object cbSquare: TCheckBox
     Left = 16
     Height = 19
-    Top = 56
+    Top = 104
     Width = 83
     Caption = 'Square map'
     OnChange = cbSquareChange
     TabOrder = 4
+  end
+  object Label1: TLabel
+    Left = 17
+    Height = 15
+    Top = 11
+    Width = 72
+    Caption = 'Standard size:'
+    ParentColor = False
+  end
+  object StandardSize: TComboBox
+    Left = 17
+    Height = 23
+    Top = 32
+    Width = 245
+    Anchors = [akTop, akLeft, akRight]
+    ItemHeight = 15
+    OnChange = StandardSizeChange
+    Style = csDropDownList
+    TabOrder = 5
   end
   object act: TActionList
     left = 208
