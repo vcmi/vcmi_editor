@@ -108,7 +108,6 @@ begin
   Result := True;
 end;
 
-
 function FillItems(ATarget: TStrings; AFullList: TStrings; ASelected: AnsiString): integer;
 var
   i: Integer;
@@ -122,7 +121,7 @@ begin
     info := AFullList.Objects[i] as TBaseInfo;
     if info.IsValid then
     begin
-      ATarget.AddObject(info.Name+'('+info.Identifier+')',info);
+      ATarget.AddObject(info.Name,info);
       if(ASelected <>'') and (info.Identifier = ASelected) then
       begin
         Result := ATarget.Count - 1;

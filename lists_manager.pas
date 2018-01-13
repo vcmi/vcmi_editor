@@ -550,7 +550,7 @@ type
     FCreatureInfos: TCreatureInfos;
     FHeroInfos: THeroInfos;
     FArtifactInfos: TArtifactInfos;
-    FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStrings;
+    FArtifactSlotMaps: array[0..ARTIFACT_SLOT_COUNT-1] of TStringList;
     FSlotIds: TSlotMap;
 
     FResolveRequests: TResolveRequests;
@@ -1368,7 +1368,9 @@ begin
 
   for i in [0..ARTIFACT_SLOT_COUNT-1] do
   begin
-    FArtifactSlotMaps[i] := CrStrList;
+    FArtifactSlotMaps[i] := TStringList.Create;
+    FArtifactSlotMaps[i].Sorted:=false;
+    FArtifactSlotMaps[i].Duplicates:=dupAccept;
   end;
 
   FHeroInfos := THeroInfos.Create(self);
@@ -2076,6 +2078,7 @@ begin
 
     FDestreamer.JSONToObjectEx(FCombinedConfig, ATarget);
 
+    ATarget.SortByDisplayName;
   finally
     FCombinedConfig.Free;
     FConfig.Free;

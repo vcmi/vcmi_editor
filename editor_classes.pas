@@ -115,6 +115,7 @@ type
   THashedCollection = class(TCollection)
   private
     FHash: TFPHashObjectList;
+
   protected
     procedure ItemIdentifierChanged(Item: TCollectionItem; AOldName: String; ANewName: String); virtual;
     procedure ItemAdded(Item: TCollectionItem); virtual;
@@ -132,6 +133,8 @@ type
     procedure Remove(AIdentifier: String);
 
     function FindItem(const AName: String): TNamedCollectionItem;
+
+    procedure SortByDisplayName;
   end;
 
 
@@ -562,6 +565,16 @@ begin
     Result := nil
   else
     Result := TNamedCollectionItem(Items[idx]);
+end;
+
+function CompareByDisplayName(Item1, Item2: TCollectionItem): Integer;
+begin
+  Result := CompareStr(Item1.DisplayName,Item2.DisplayName);
+end;
+
+procedure THashedCollection.SortByDisplayName;
+begin
+  Sort(@CompareByDisplayName);
 end;
 
 { TNamedCollectionItem }
