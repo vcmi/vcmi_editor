@@ -208,7 +208,7 @@ type
 implementation
 
 uses
-  LazLoggerBase, editor_consts, rttiutils, types;
+  LazLoggerBase, editor_consts, editor_utils, rttiutils, types;
 
 var
   rexp_oid: TRegExpr;
@@ -777,7 +777,7 @@ begin
     end
     else if {new_item.UseMeta and} (item is TVCMIJsonArray) then
     begin
-      meta := TVCMIJsonObject(Item).Meta;
+      meta := TVCMIJsonArray(Item).Meta;
       new_item.Meta:=Meta;
     end
     else
@@ -787,11 +787,11 @@ begin
 
     if new_item.UseMeta and (meta <> '') then
     begin
-      new_item.Identifier :=  Meta + ':' + AName;
+      new_item.Identifier := NormalizeIndentifier(EncodeIdentifier(Meta, AName));
     end
     else
     begin
-      new_item.Identifier := AName;
+      new_item.Identifier := NormalizeIndentifier(AName);
     end;
 
     DestreamCollectionItem(ACollection, Item, new_item);

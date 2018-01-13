@@ -917,7 +917,7 @@ begin
 
   end;
 
-  Result := Format('%s:%s',[group_name, tp_name]);
+  Result := Format('%s::%s',[group_name, tp_name]);
 end;
 
 function TObjectsManager.TypToId(Typ, SubType: uint32): TLegacyTemplateId;

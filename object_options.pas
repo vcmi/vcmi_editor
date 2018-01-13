@@ -2145,7 +2145,7 @@ begin
 
     if DecodeFullIdentifier(r.Identifier, metaclass, scope, ident) then
     begin
-      full_ident := EncodeFullIdentifier(scope,ident);
+      full_ident := EncodeIdentifier(scope,ident);
 
       case metaclass of
         TMetaclass.artifact:

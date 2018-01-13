@@ -53,6 +53,8 @@ type
   function NormalizeResourceName(const AName: string): string;
   function NormalizeKeyWord(const AValue: string): string;
 
+  function NormalizeIndentifier(const AValue: AnsiString): AnsiString;
+
   function StripScope(const AIdentifier: string): string;
 
   procedure GenerateDefaultVisitableFrom(ADest: TStrings; AGroup: UInt8; Atyp: Tobj);
@@ -62,7 +64,8 @@ type
 
   function DecodeFullIdentifier(const ASource: AnsiString; out AMetaclass: TMetaclass; out AScope: AnsiString; out AIdentifier: AnsiString): Boolean;
   function EncodeFullIdentifier(AMetaclass: AnsiString; AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
-  function EncodeFullIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+
+  function EncodeIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
 
   function CompareStringProxy(const s1,s2: string): integer;
 
@@ -148,6 +151,25 @@ end;
 function NormalizeKeyWord(const AValue: string): string;
 begin
   result := UTF8LowerCase(UTF8Trim(AValue));
+end;
+
+function NormalizeIndentifier(const AValue: AnsiString): AnsiString;
+var
+  id_only: AnsiString;
+  mod_id, mod_id2: String;
+begin
+  id_only := AValue;
+
+  mod_id := ExtractModID2(id_only);
+
+  mod_id2 := mod_id;
+
+  while mod_id2 <> '' do
+  begin
+    mod_id2 := ExtractModID2(id_only);
+  end;
+
+  Result := EncodeIdentifier(mod_id, id_only);
 end;
 
 function StripScope(const AIdentifier: string): string;
@@ -310,7 +332,7 @@ begin
   end;
 end;
 
-function EncodeFullIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
+function EncodeIdentifier(AScope: AnsiString; AIdentifier: AnsiString): AnsiString;
 begin
   if AScope = '' then
   begin

@@ -452,6 +452,9 @@ type
     FMapObjectGroup: TMapObjectGroup;
     FMapObjectType: TMapObjectType;
 
+    FGroupID: AnsiString;
+    FTypeID: AnsiString;
+
     FModUsage: TModUsage;
     FPosition: TPosition;
     FLastFrame: Integer;
@@ -2209,7 +2212,7 @@ begin
   if Assigned(FMapObjectType) then
     Result := FMapObjectType.Identifier
   else
-    Result := '';
+    Result := FTypeID;
 end;
 
 function TMapObject.GetType: AnsiString;
@@ -2217,7 +2220,7 @@ begin
   if Assigned(FMapObjectGroup) then
     Result := FMapObjectGroup.Identifier
   else
-    Result := '';
+    Result := FGroupID;
 end;
 
 function TMapObject.GetX: integer;
@@ -2362,10 +2365,12 @@ begin
 
   if old_subtype=AValue then Exit;
 
-  NotifyReferenced(old_subtype,AValue);
+  FTypeID:=NormalizeIndentifier(AValue);
+
+  NotifyReferenced(old_subtype,FTypeID);
 
   if Assigned(FMapObjectGroup) then
-    FMapObjectType := FMapObjectGroup.Types.FindItem(AValue)
+    FMapObjectType := FMapObjectGroup.Types.FindItem(FTypeID)
   else
     FMapObjectType := nil;
 
@@ -2380,9 +2385,11 @@ begin
 
   if old_type=AValue then Exit;
 
-  NotifyReferenced(old_type,AValue);
+  FGroupID := NormalizeIndentifier(AValue);
 
-  FMapObjectGroup := GetMap.ObjectsManager.MapObjectGroups.FindItem(AValue);
+  NotifyReferenced(old_type,FGroupID);
+
+  FMapObjectGroup := GetMap.ObjectsManager.MapObjectGroups.FindItem(FGroupID);
   FMapObjectType := nil; //???
 
   RecreateOptions;
