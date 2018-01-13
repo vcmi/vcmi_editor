@@ -28,7 +28,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
-      <RevisionNr Value="13"/>
+      <RevisionNr Value="14"/>
       <BuildNr Value="143"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
@@ -298,7 +298,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="C:\projects\vcmi\tests\problemMaps\Map5.h3m"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
