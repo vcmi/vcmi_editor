@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectGroup FileVersion="1">
-    <Targets Count="1">
+    <Targets Count="2">
       <Target0 FileName="vcmieditor.lpi">
-        <BuildModes Count="6"/>
+        <BuildModes Count="7"/>
         <Mode1 Name="Debug" Compile="True"/>
         <Mode2 Name="Release" Compile="True"/>
         <Mode3 Name="Profile" Compile="True"/>
         <Mode4 Name="ReleaseWin64" Compile="True"/>
         <Mode5 Name="DebugWin64" Compile="True"/>
         <Mode6 Name="RD" Compile="True"/>
+        <Mode7 Name="ReleaseWin32"/>
       </Target0>
+      <Target1 FileName="tests\unit_tests.lpi">
+        <BuildModes Count="1"/>
+        <Mode1 Name="Default"/>
+      </Target1>
     </Targets>
   </ProjectGroup>
 </CONFIG>

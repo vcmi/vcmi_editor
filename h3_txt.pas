@@ -66,7 +66,9 @@ constructor TTextResource.Create(APath: AnsiString);
 begin
   Inherited Create(TResourceType.Text, APath);
   FDoc := TCSVDocument.Create;
-  FDoc.Delimiter := #9; //tab
+
+  SetDelimiter(TDelimiter.Tab);
+
   FDoc.EqualColCountPerRow := False;
   FDoc.IgnoreOuterWhitespace := False;
   FDoc.QuoteOuterWhitespace := False;
@@ -97,6 +99,7 @@ end;
 
 function TTextResource.HasCell(Col, Row: Integer): boolean;
 begin
+  row := row + TopRowSkip;
   Result := FDoc.HasCell(Col,Row);
 end;
 

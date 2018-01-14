@@ -3,7 +3,7 @@ program unit_tests;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner;
+  Classes, consoletestrunner, test_CSVDocunent;
 
 type
 

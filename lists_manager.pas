@@ -1846,17 +1846,27 @@ begin
   try
     hctraits.Load(ResourceLoader);
 
+    //DebugLn('49',' "',hctraits.Value[49,0],'"');
+    //DebugLn('50',' "',hctraits.Value[50,0],'"');
+
+    if hctraits.Value[0,1] <> 'Name' then
+    begin
+      raise Exception.Create('Invalid hctraits format.');
+    end;
+
+    hctraits.TopRowSkip:=2;
+
     for i in [0..HEROCLASS_QUANTITY-1] do
     begin
       o := CreateJSONObject([]);
 
-      o.Strings['name'] := hctraits.Value[0,i+2];
+      o.Strings['name'] := hctraits.Value[0,i];
 
       p_skills := CreateJSONObject([]);
-      p_skills.Integers['attack'] := StrToInt(hctraits.Value[2,i+2]);
-      p_skills.Integers['defence'] := StrToInt(hctraits.Value[3,i+2]);
-      p_skills.Integers['spellpower'] := StrToInt(hctraits.Value[4,i+2]);
-      p_skills.Integers['knowledge'] := StrToInt(hctraits.Value[5,i+2]);
+      p_skills.Integers['attack'] := StrToInt(hctraits.Value[2,i]);
+      p_skills.Integers['defence'] := StrToInt(hctraits.Value[3,i]);
+      p_skills.Integers['spellpower'] := StrToInt(hctraits.Value[4,i]);
+      p_skills.Integers['knowledge'] := StrToInt(hctraits.Value[5,i]);
 
       o.Objects['primarySkills'] := p_skills;
       legacy_data.Add(o);
