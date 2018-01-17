@@ -140,7 +140,7 @@ type
 
   { TGArrayCollection }
 
-  generic TGArrayCollection <TItem> = class (TCollection, IArrayCollection)
+  generic TGArrayCollection <TItem : TCollectionItem> = class (TCollection, IArrayCollection)
   public
     type
       TItemType = TItem;
@@ -156,26 +156,26 @@ type
 
   { TGNamedCollection }
 
-  generic TGNamedCollection <TItem> = class (THashedCollection, INamedCollection)
-  private
-    function GetItems(const Idx: Integer): TItem;
-    procedure SetItems(const Idx: Integer; AValue: TItem);
+  generic TGNamedCollection <TItem : TNamedCollectionItem> = class (THashedCollection, INamedCollection)
   public
-    type
+  type
       TItemType = TItem;
+  private
+    function GetItems(const Idx: Integer): TItemType;
+    procedure SetItems(const Idx: Integer; AValue: TItemType);
+  public
     constructor Create;
 
-    function Add: TItem;
+    function Add: TItemType;
+    property Items[const Idx: Integer]: TItemType read GetItems write SetItems; default;
 
-    property Items[const Idx: Integer]: TItem read GetItems write SetItems; default;
-
-    function FindItem(const AName: String): TItem;
-    function EnsureItem(const AName: String): TItem;
+    function FindItem(const AName: String): TItemType;
+    function EnsureItem(const AName: String): TItemType;
   end;
 
   { TObjectMap }
 
-  generic TObjectMap <TKey, TValue> = class (specialize TFPGMap<TKey, TValue>)
+  generic TObjectMap <TKey; TValue : TObject> = class (specialize TFPGMap<TKey, TValue>)
   protected
     procedure Deref(Item: Pointer); override;
   end;
@@ -428,27 +428,27 @@ end;
 
 { TGNamedCollection }
 
-function TGNamedCollection.GetItems(const Idx: Integer): TItem;
+function TGNamedCollection.GetItems(const Idx: Integer): TItemType;
 begin
-  Result := TItem( inherited Items[Idx]);
+  Result := TItemType( inherited Items[Idx]);
 end;
 
-procedure TGNamedCollection.SetItems(const Idx: Integer; AValue: TItem);
+procedure TGNamedCollection.SetItems(const Idx: Integer; AValue: TItemType);
 begin
   inherited Items[Idx] := AValue;
 end;
 
 constructor TGNamedCollection.Create;
 begin
-  inherited Create(TItem);
+  inherited Create(TItemType);
 end;
 
-function TGNamedCollection.Add: TItem;
+function TGNamedCollection.Add: TItemType;
 begin
-   Result := TItem(inherited Add);
+   Result := TItemType(inherited Add);
 end;
 
-function TGNamedCollection.FindItem(const AName: String): TItem;
+function TGNamedCollection.FindItem(const AName: String): TItemType;
 begin
   if AName = '' then
     Result := nil
@@ -456,7 +456,7 @@ begin
     Result := TItemType(inherited FindItem(AName));
 end;
 
-function TGNamedCollection.EnsureItem(const AName: String): TItem;
+function TGNamedCollection.EnsureItem(const AName: String): TItemType;
 begin
   Result := FindItem(AName);
   if Result = nil then
