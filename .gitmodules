@@ -1,0 +1,4 @@
+[submodule "3rd_party/vt"]
+	path = 3rd_party/vt
+	url = https://github.com/blikblum/VirtualTreeView-Lazarus.git
+	branch = lazarus_v5

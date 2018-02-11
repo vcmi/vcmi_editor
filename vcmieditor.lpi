@@ -298,6 +298,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="&quot;C:\projects\vcmi\tests\Maps\0091_VLC_UpgradeTown4.h3m&quot;"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
@@ -307,16 +308,19 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="vcmiOpenGLContext"/>
+        <PackageName Value="virtualtreeview_package"/>
       </Item1>
       <Item2>
-        <PackageName Value="SynEdit"/>
+        <PackageName Value="vcmiOpenGLContext"/>
       </Item2>
       <Item3>
-        <PackageName Value="LCL"/>
+        <PackageName Value="SynEdit"/>
       </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
     </RequiredPackages>
     <Units Count="96">
       <Unit0>

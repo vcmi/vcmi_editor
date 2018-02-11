@@ -164,9 +164,6 @@ type
   TEnumEditor = class(TBaseFieldEditor)
   private
     FOldValue: Int64;
-    FDefaultValue: Int64;
-    FCustomValue: Int64;
-
     FWidget: TCustomComboBox;
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomComboBox);
@@ -183,7 +180,6 @@ type
     procedure Commit;
     procedure Load;
     procedure ReloadDefaults;
-
     function IsDirty: Boolean;
   end;
 

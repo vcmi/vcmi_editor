@@ -321,12 +321,12 @@ var
 begin
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
-  //TODO: TRootManager.LoadHeroPortraits
+
   portrait_count := FListsManager.HeroPortraits.Count;
 
   for i := 0 to portrait_count - 1 do
   begin
-    info :=  FListsManager.HeroPortraits[i];
+    info := FListsManager.HeroPortraits[i];
 
     if info.IsEmpty then
     begin

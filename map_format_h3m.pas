@@ -1042,10 +1042,45 @@ begin
   FSrc.Skip(31);
 end;
 
+{$PUSH}
+{$WARN 5027 OFF : Local variable "$1" is assigned but never used}
+
 procedure TMapReaderH3m.ReadEvents;
+var
+  numberOfEvents: Int32;
+  ev_name, ev_descr: TLocalizedString;
+  ev_resources : TResourceSet;
+  ev_player_mask, ev_next_occurence: Byte;
+  ev_human, ev_ai: Boolean;
+  ev_first_occurence: Word;
+  i: Integer;
 begin
   //TODO: read events
+  numberOfEvents := FSrc.ReadInt32;
+  for i := 0 to Pred(numberOfEvents) do
+  begin
+     ev_name := FSrc.ReadLocalizedString;
+     ev_descr := FSrc.ReadLocalizedString;
+
+     ev_resources := TIndepResourceSet.Create;;
+     ReadResources(ev_resources);
+     ev_resources.Free;
+
+     ev_player_mask := FSrc.ReadByte;
+     if IsAtLeastSoD then
+     begin
+        ev_human := Fsrc.ReadBoolean;
+     end;
+     ev_ai := Fsrc.ReadBoolean;
+     ev_first_occurence := FSrc.ReadWord;
+     ev_next_occurence := FSrc.ReadByte;
+
+     FSrc.Skip(17);
+
+  end;
 end;
+
+{$POP}
 
 procedure TMapReaderH3m.VisitGarrison(AOptions: TGarrisonOptions);
 begin
@@ -2360,22 +2395,23 @@ begin
     cnt := ReadDWord;
     for i := 0 to cnt - 1 do
     begin
-      SkipString;
-      SkipString;
+      SkipString;  //name
+      SkipString;  //message
 
-      SkipNotImpl(28);
+      SkipNotImpl(28); //resources
 
-      SkipNotImpl(1);
+      SkipNotImpl(1); //players
       if IsAtLeastSoD() then
-        SkipNotImpl(1);
-      SkipNotImpl(1);
+        SkipNotImpl(1); //human affected
+      SkipNotImpl(1); //AI affected
 
-      SkipNotImpl(3);
+      SkipNotImpl(2); //first occ.
+      SkipNotImpl(1); //next occ
 
       skip(17);//junk
 
-      SkipNotImpl(6);
-      SkipNotImpl(14);
+      SkipNotImpl(6); //buildings
+      SkipNotImpl(14); //creature grouth add.
       skip(4); //junk
     end;
     if IsAtLeastSoD() then

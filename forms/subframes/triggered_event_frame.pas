@@ -24,9 +24,25 @@ interface
 uses
   Classes, SysUtils, fgl, typinfo, fpjson,
   FileUtil, SynEdit, Forms, Controls, StdCtrls, ComCtrls,
-  logical_event_condition, field_editors, editor_classes, vcmi_fpjsonrtti, vcmi_json;
+  editor_types,
+  logical_event_condition, field_editors, editor_classes, vcmi_fpjsonrtti, VirtualTrees, vcmi_json, logical_expression;
 
 type
+
+  { TConditionItemData }
+
+  TConditionItemData = class
+  private
+    FConditionItem: TLogicalEventConditionItem;
+
+  public
+    constructor Create(AConditionItem: TLogicalEventConditionItem);
+
+    function getDisplayName(): AnsiString;
+
+    property Item: TLogicalEventConditionItem read FConditionItem;
+
+  end;
 
   { TTriggeredEventFrame }
 
@@ -34,11 +50,18 @@ type
     edEffect: TComboBox;
     edMessage: TEdit;
     edMessageToSend: TEdit;
-    JsonEditor: TSynEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    Label4: TLabel;
+    ConditionLabel: TLabel;
+    Condition: TVirtualStringTree;
+    procedure ConditionFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ConditionGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ConditionGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: String);
+    procedure ConditionInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure ConditionInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
   private
     FStreamer: TVCMIJSONStreamer;
     FDeStreamer: TVCMIJSONDestreamer;
@@ -47,6 +70,8 @@ type
 
     Procedure OnPropertyError(Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData;
       Error : Exception; Var Continue : Boolean);
+
+    function GetTreeNodeData(ATree: TBaseVirtualTree; Node: PVirtualNode): TConditionItemData;
 
   public
     constructor Create(TheOwner: TComponent); override;
@@ -81,6 +106,25 @@ type
 implementation
 
 {$R *.lfm}
+
+{ TConditionItemData }
+
+constructor TConditionItemData.Create(AConditionItem: TLogicalEventConditionItem);
+begin
+  FConditionItem := AConditionItem;
+end;
+
+function TConditionItemData.getDisplayName(): AnsiString;
+begin
+  if FConditionItem.SubExpressions.Count > 0 then
+  begin
+    Result := GetEnumName( TypeInfo(TLogicalOperator), Integer(FConditionItem.LogicalOperator));
+  end
+  else
+  begin
+    Result := GetEnumName(TypeInfo(TWinLossCondition), Integer(FConditionItem.ConditionType));
+  end;
+end;
 
 { TTriggeredEventFrameList }
 
@@ -203,10 +247,77 @@ end;
 
 { TTriggeredEventFrame }
 
-procedure TTriggeredEventFrame.OnPropertyError(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData;
-  Error: Exception; var Continue: Boolean);
+
+procedure TTriggeredEventFrame.ConditionFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  TObject(Sender.GetNodeData(Node)^).Free;
+end;
+
+procedure TTriggeredEventFrame.ConditionGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+begin
+  NodeDataSize:=SizeOf(Pointer);
+end;
+
+procedure TTriggeredEventFrame.ConditionGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType; var CellText: String);
+var
+  node_data: TConditionItemData;
+begin
+  node_data := GetTreeNodeData(Sender, Node);
+  CellText := node_data.getDisplayName();
+end;
+
+procedure TTriggeredEventFrame.ConditionInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+var
+  node_data: TConditionItemData;
+begin
+  node_data := GetTreeNodeData(Sender, Node);
+
+  ChildCount:=node_data.Item.SubExpressions.Count;
+end;
+
+procedure TTriggeredEventFrame.ConditionInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+  var InitialStates: TVirtualNodeInitStates);
+var
+  node_data, parent_node_data: TConditionItemData;
+  this_item: TLogicalEventConditionItem;
+begin
+  if Assigned(ParentNode) then
+  begin
+    parent_node_data := GetTreeNodeData(Sender, ParentNode);
+
+    this_item := TLogicalEventConditionItem(parent_node_data.Item.SubExpressions.Items[Node^.Index]);
+  end
+  else
+  begin
+    this_item := TLogicalEventConditionItem(FBuffer.Condition.Items[0]);
+  end;
+
+  node_data := TConditionItemData.Create(this_item);
+
+  if this_item.SubExpressions.Count > 0 then
+  begin
+     Include(InitialStates, ivsHasChildren);
+  end
+  else
+  begin
+    Exclude(InitialStates, ivsHasChildren);
+  end;
+
+  PPointer(Sender.GetNodeData(Node))^ := node_data;
+end;
+
+procedure TTriggeredEventFrame.OnPropertyError(Sender: TObject;
+  AObject: TObject; Info: PPropInfo; AValue: TJSONData; Error: Exception;
+  Var Continue: Boolean);
 begin
   Continue := false;
+end;
+
+function TTriggeredEventFrame.GetTreeNodeData(ATree: TBaseVirtualTree; Node: PVirtualNode): TConditionItemData;
+begin
+  Result := TConditionItemData(PPointer(ATree.GetNodeData(Node))^);
 end;
 
 constructor TTriggeredEventFrame.Create(TheOwner: TComponent);
@@ -227,8 +338,6 @@ begin
 end;
 
 procedure TTriggeredEventFrame.LoadFrom(AObject: TTriggeredEvent);
-var
-  FRawData: TJSONData;
 begin
   FEditors.Clear;
   FBuffer.Clear;
@@ -241,21 +350,18 @@ begin
   FEditors.Add(TStringFieldEditor.Create(FBuffer.Effect, 'MessageToSend', edMessageToSend));
   FEditors.Add(TEnumEditor.Create(FBuffer.Effect, 'type', edEffect));
 
-  FRawData := FStreamer.ObjectToJsonEx(FBuffer.Condition);
-  JsonEditor.Text := FRawData.FormatJSON([foUseTabchar], 1);
-  FRawData.Free;
+  Condition.RootNodeCount:=1;
 
   FEditors.Load;
 end;
 
-function TTriggeredEventFrame.Stash: AnsiString;
+function TTriggeredEventFrame.Stash(): AnsiString;
 begin
   Result := '';
 
   try
-    FBuffer.Clear;
     FEditors.Commit;
-    FDeStreamer.JSONToObject(JsonEditor.Text, FBuffer.Condition);
+    //TODO: stash tree too?
   except
     on e: Exception do
     begin

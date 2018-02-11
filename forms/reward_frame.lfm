@@ -1,17 +1,17 @@
 inherited RewardFrame: TRewardFrame
-  Height = 323
-  Width = 428
-  ClientHeight = 323
-  ClientWidth = 428
+  Height = 320
+  Width = 409
+  ClientHeight = 320
+  ClientWidth = 409
   Constraints.MinHeight = 270
   Constraints.MinWidth = 400
-  DesignLeft = 614
-  DesignTop = 204
+  DesignLeft = 702
+  DesignTop = 210
   object RewardsEdit: TListBox[0]
     Left = 10
-    Height = 243
+    Height = 240
     Top = 70
-    Width = 408
+    Width = 389
     Align = alClient
     BorderSpacing.Top = 60
     BorderSpacing.Around = 10
@@ -31,17 +31,17 @@ inherited RewardFrame: TRewardFrame
     TabOrder = 1
   end
   object TypeEdit: TComboBox[2]
-    Left = 127
+    Left = 128
     Height = 23
     Top = 40
-    Width = 201
+    Width = 181
     Anchors = [akTop, akLeft, akRight]
     ItemHeight = 15
     Style = csDropDownList
     TabOrder = 2
   end
   object AmountEdit: TSpinEdit[3]
-    Left = 336
+    Left = 317
     Height = 23
     Top = 40
     Width = 82
@@ -57,7 +57,7 @@ inherited RewardFrame: TRewardFrame
     Action = actAdd
   end
   object ButtonRemove: TSpeedButton[5]
-    Left = 127
+    Left = 128
     Height = 22
     Top = 8
     Width = 111
