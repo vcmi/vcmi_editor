@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="14"/>
-      <BuildNr Value="144"/>
+      <BuildNr Value="145"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
@@ -322,7 +322,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="96">
+    <Units Count="97">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -822,6 +822,13 @@
         <Filename Value="map_erase_actions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit95>
+      <Unit96>
+        <Filename Value="forms\subframes\event_condition_item_frame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EventConditionItemFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit96>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

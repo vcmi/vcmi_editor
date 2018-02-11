@@ -25,24 +25,10 @@ uses
   Classes, SysUtils, fgl, typinfo, fpjson,
   FileUtil, SynEdit, Forms, Controls, StdCtrls, ComCtrls,
   editor_types,
-  logical_event_condition, field_editors, editor_classes, vcmi_fpjsonrtti, VirtualTrees, vcmi_json, logical_expression;
+  logical_event_condition, field_editors, editor_classes, vcmi_fpjsonrtti, VirtualTrees, vcmi_json, logical_expression,
+  event_condition_item_frame, Graphics;
 
 type
-
-  { TConditionItemData }
-
-  TConditionItemData = class
-  private
-    FConditionItem: TLogicalEventConditionItem;
-
-  public
-    constructor Create(AConditionItem: TLogicalEventConditionItem);
-
-    function getDisplayName(): AnsiString;
-
-    property Item: TLogicalEventConditionItem read FConditionItem;
-
-  end;
 
   { TTriggeredEventFrame }
 
@@ -55,6 +41,14 @@ type
     Label3: TLabel;
     ConditionLabel: TLabel;
     Condition: TVirtualStringTree;
+    procedure ConditionBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure ConditionBeforeGetMaxColumnWidth(Sender: TVTHeader; Column: TColumnIndex; var UseSmartColumnWidth: Boolean);
+    procedure ConditionCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out
+      EditLink: IVTEditLink);
+    procedure ConditionEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
+    procedure ConditionEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure ConditionEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure ConditionFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ConditionGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure ConditionGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
@@ -62,11 +56,14 @@ type
     procedure ConditionInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure ConditionInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
+    procedure ConditionMeasureItem(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer);
   private
     FStreamer: TVCMIJSONStreamer;
     FDeStreamer: TVCMIJSONDestreamer;
     FEditors: TFieldEditors;
     FBuffer: TTriggeredEvent;
+
+    FTreeEditor: TEventConditionItemFrame;
 
     Procedure OnPropertyError(Sender : TObject; AObject : TObject; Info : PPropInfo; AValue : TJSONData;
       Error : Exception; Var Continue : Boolean);
@@ -106,25 +103,6 @@ type
 implementation
 
 {$R *.lfm}
-
-{ TConditionItemData }
-
-constructor TConditionItemData.Create(AConditionItem: TLogicalEventConditionItem);
-begin
-  FConditionItem := AConditionItem;
-end;
-
-function TConditionItemData.getDisplayName(): AnsiString;
-begin
-  if FConditionItem.SubExpressions.Count > 0 then
-  begin
-    Result := GetEnumName( TypeInfo(TLogicalOperator), Integer(FConditionItem.LogicalOperator));
-  end
-  else
-  begin
-    Result := GetEnumName(TypeInfo(TWinLossCondition), Integer(FConditionItem.ConditionType));
-  end;
-end;
 
 { TTriggeredEventFrameList }
 
@@ -253,6 +231,39 @@ begin
   TObject(Sender.GetNodeData(Node)^).Free;
 end;
 
+procedure TTriggeredEventFrame.ConditionCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; out EditLink: IVTEditLink);
+begin
+  EditLink := FTreeEditor;
+end;
+
+procedure TTriggeredEventFrame.ConditionEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
+begin
+
+end;
+
+procedure TTriggeredEventFrame.ConditionEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+begin
+  //Sender.InvalidateNode(Node);
+end;
+
+procedure TTriggeredEventFrame.ConditionBeforeGetMaxColumnWidth(Sender: TVTHeader; Column: TColumnIndex; var UseSmartColumnWidth: Boolean);
+begin
+  UseSmartColumnWidth := true;
+end;
+
+procedure TTriggeredEventFrame.ConditionBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode;
+  CellRect: TRect; var ContentRect: TRect);
+begin
+  //
+end;
+
+procedure TTriggeredEventFrame.ConditionEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+begin
+  Allowed:=true;
+  //Sender.InvalidateNode(Node);
+end;
+
 procedure TTriggeredEventFrame.ConditionGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
   NodeDataSize:=SizeOf(Pointer);
@@ -308,6 +319,14 @@ begin
   PPointer(Sender.GetNodeData(Node))^ := node_data;
 end;
 
+procedure TTriggeredEventFrame.ConditionMeasureItem(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer);
+begin
+  //if Node = FTreeEditor.CurrentNode then
+  //begin
+  //  NodeHeight:=FTreeEditor.Height;
+  //end;
+end;
+
 procedure TTriggeredEventFrame.OnPropertyError(Sender: TObject;
   AObject: TObject; Info: PPropInfo; AValue: TJSONData; Error: Exception;
   Var Continue: Boolean);
@@ -328,6 +347,8 @@ begin
   FDeStreamer.OnPropertyError := @OnPropertyError;
   FEditors := TFieldEditors.Create;
   FBuffer := TTriggeredEvent.Create(nil);
+
+  FTreeEditor := TEventConditionItemFrame.Create(Self);
 end;
 
 destructor TTriggeredEventFrame.Destroy;
