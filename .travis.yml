@@ -3,10 +3,10 @@ language: generic
 install:
     - sudo apt -y install libgtk2.0-dev
 
-    - wget -t 10 -O lazarus-project_1.6.2-1_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/lazarus-project_1.6.2-1_amd64.deb/download
-    - wget -t 10 -O fpc_3.0.0-151205_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/fpc_3.0.0-151205_amd64.deb/download
-    - wget -t 10 -O fpc-src_3.0.0-151205_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.6.2/fpc-src_3.0.0-151205_amd64.deb/download
-    - sudo dpkg -i fpc-src_3.0.0-151205_amd64.deb fpc_3.0.0-151205_amd64.deb lazarus-project_1.6.2-1_amd64.deb
+    - wget -t 10 -O lazarus-project_1.8.2-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.8.2/lazarus-project_1.8.2-0_amd64.deb/download
+    - wget -t 10 -O fpc_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.8.2/fpc_3.0.4-2_amd64.deb/download
+    - wget -t 10 -O fpc-src_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.8.2/fpc-src_3.0.4-2_amd64.deb/download
+    - sudo dpkg -i fpc-src_3.0.4-2_amd64.deb fpc_3.0.4-2_amd64.deb lazarus-project_1.8.2-0_amd64.deb
 
 script:
     - make
