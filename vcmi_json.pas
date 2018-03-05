@@ -26,6 +26,7 @@ uses
   editor_classes, editor_types, editor_rtti;
 
 type
+  TSubstMap = specialize TFPGMap<TJSONStringType,TJSONStringType>;
 
   { TVCMIJsonString }
 
@@ -42,13 +43,17 @@ type
 
   TVCMIJsonObject = class(TJSONObject)
   private
+    FMergeOverride: Boolean;
     FMeta: AnsiString;
+    procedure SetMergeOverride(AValue: Boolean);
   public
      function Clone: TJSONData; override;
      procedure SetMeta(AValue: AnsiString; Recursive: Boolean = true);
      property Meta: AnsiString read FMeta;
 
      procedure InheritFrom(ABase:TVCMIJsonObject);
+
+     property MergeOverride: Boolean read FMergeOverride write SetMergeOverride;
   end;
 
   { TVCMIJsonArray }
@@ -76,11 +81,12 @@ type
 
     procedure CollectionArrayCallback(Item: TJSONData; Data: TObject; var Continue: Boolean);
 
+    procedure PostProcessTags(AObject: TVCMIJsonObject);
   protected
     procedure DoPreparePropName(var PropName: AnsiString); override;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); override;
 
-    //preprocess comments
+    //preprocess comments, postprocess tags
     function ObjectFromString(const JSON: TJSONStringType): TJSONData; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -212,8 +218,9 @@ uses
 
 var
   rexp_oid: TRegExpr;
+  rexp_tags: TRegExpr;
 
-procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject); forward;
+procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject; AllowOverride: Boolean); forward;
 procedure MergeJsonStruct(ASrc: TVCMIJsonArray; ADest: TVCMIJsonArray); forward;
 
 procedure DoSetMeta(ATarget: TJSONData; AValue: AnsiString);
@@ -258,7 +265,7 @@ begin
         ntInteger: ADest.AsInteger := ASrc.AsInteger;
       end;
     end;
-    jtObject:MergeJsonStruct(ASrc as TVCMIJsonObject, ADest as TVCMIJsonObject) ;
+    jtObject:MergeJsonStruct(ASrc as TVCMIJsonObject, ADest as TVCMIJsonObject, true) ;
     jtString:ADest.AsString := ASrc.AsString;
   else
     begin
@@ -267,39 +274,54 @@ begin
   end;
 end;
 
-procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject);
+procedure MergeJsonStruct(ASrc: TVCMIJsonObject; ADest: TVCMIJsonObject; AllowOverride: Boolean);
 var
   src_idx, dest_idx: Integer;
   name: TJSONStringType;
 begin
-  src_idx := ASrc.Count - 1;
-
-  while src_idx >= 0 do
+  if AllowOverride and ASrc.MergeOverride then
   begin
-    name := ASrc.Names[src_idx];
-    dest_idx := ADest.IndexOfName(name);
+    ADest.Clear;
+    src_idx := ASrc.Count - 1;
 
-    if dest_idx >=0 then
+    while src_idx >= 0 do
     begin
-      if ADest.Types[name] = jtNull then
-      begin
-        ADest.Delete(dest_idx);
-        ADest.Add(name, ASrc.Extract(src_idx));
-      end
-      else if Asrc.Types[name] = jtNull then
-      begin
-        ADest.Delete(dest_idx);
-      end
-      else
-      begin
-        MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
-      end;
-    end
-    else
-    begin
+      name := ASrc.Names[src_idx];
       ADest.Add(name, ASrc.Extract(src_idx));
+      dec(src_idx);
     end;
-    dec(src_idx);
+  end
+  else
+  begin
+    src_idx := ASrc.Count - 1;
+
+      while src_idx >= 0 do
+      begin
+        name := ASrc.Names[src_idx];
+        dest_idx := ADest.IndexOfName(name);
+
+        if dest_idx >=0 then
+        begin
+          if ADest.Types[name] = jtNull then
+          begin
+            ADest.Delete(dest_idx);
+            ADest.Add(name, ASrc.Extract(src_idx));
+          end
+          else if Asrc.Types[name] = jtNull then
+          begin
+            ADest.Delete(dest_idx);
+          end
+          else
+          begin
+            MergeJson(ASrc.Items[src_idx],ADest.Items[dest_idx]);
+          end;
+        end
+        else
+        begin
+          ADest.Add(name, ASrc.Extract(src_idx));
+        end;
+        dec(src_idx);
+      end;
   end;
 end;
 
@@ -424,6 +446,12 @@ end;
 
 { TVCMIJsonObject }
 
+procedure TVCMIJsonObject.SetMergeOverride(AValue: Boolean);
+begin
+  if FMergeOverride=AValue then Exit;
+  FMergeOverride:=AValue;
+end;
+
 function TVCMIJsonObject.Clone: TJSONData;
 begin
   Result:=inherited Clone;
@@ -451,7 +479,7 @@ begin
   old_meta := Meta;
   temp := ABase.Clone as TVCMIJsonObject;
 
-  MergeJsonStruct(Self, temp);
+  MergeJsonStruct(Self, temp, false);
   Clear;
 
   while temp.Count > 0 do
@@ -697,6 +725,86 @@ begin
   Continue := True;
 end;
 
+procedure TVCMIJSONDestreamer.PostProcessTags(AObject: TVCMIJsonObject);
+var
+  substitution_map: TSubstMap;
+
+  iter: TJSONEnum;
+  key: TJSONStringType;
+  parts: TStrings;
+
+  i: Integer;
+  merge_override: Boolean;
+  data: TJSONData;
+  old_key, new_key: String;
+
+  procedure EnsureMap();
+  begin
+    if not Assigned(substitution_map) then
+    begin
+      substitution_map := TSubstMap.Create;
+    end;
+  end;
+begin
+  substitution_map := nil;
+  parts := TStringList.Create;
+
+  for iter in AObject do
+  begin
+    key := iter.Key;
+    parts.Clear;
+    rexp_tags.Split(key, parts);
+
+    if parts.Count > 1 then
+    begin
+      EnsureMap();
+      key := parts[0];
+
+      merge_override := false;
+
+      for i := 1 to parts.Count - 1 do
+      begin
+        if parts[i] = 'override' then
+        begin
+          merge_override := true;
+        end;
+      end;
+
+      if merge_override then
+      begin
+        data := iter.Value;
+        (data as TVCMIJsonObject).MergeOverride:=true;
+        substitution_map.Add(iter.Key, key);
+      end;
+    end;
+  end;
+
+  if Assigned(substitution_map) then
+  begin
+    for i := 0 to Pred(substitution_map.Count) do
+    begin
+      old_key := substitution_map.Keys[i];
+      new_key := substitution_map.Data[i];
+
+      data := AObject.Extract(old_key);
+      AObject.Add(new_key, data);
+    end;
+
+    FreeAndNil(substitution_map);
+  end;
+
+  for iter in AObject do
+  begin
+    if iter.Value is TVCMIJsonObject then
+    begin
+      PostProcessTags(TVCMIJsonObject(iter.Value));
+    end;
+  end;
+
+  FreeAndNil(parts);
+
+end;
+
 procedure TVCMIJSONDestreamer.DestreamEmbeddedValue(ASrc: TJSONData;
   AObject: TObject);
 var
@@ -912,8 +1020,7 @@ begin
 
 end;
 
-function TVCMIJSONDestreamer.JSONStreamToJSONObject(AStream: TStream;
-  AName: string): TJSONObject;
+function TVCMIJSONDestreamer.JSONStreamToJSONObject(AStream: TStream; AName: string): TJSONObject;
 var
   root: TJSONObject;
   dt, res_dt:TJSONData;
@@ -1034,6 +1141,7 @@ var
   in_string: Boolean;
   may_be_comment: Boolean;
   len: Integer;
+  result_o: TVCMIJsonObject;
 begin
   stm := TStringStream.Create(JSON);
   prepase_buffer:= TStringList.Create;
@@ -1095,7 +1203,15 @@ begin
       end;
     end;
 
-     Result := inherited ObjectFromString(prepase_buffer.Text);
+    Result := inherited ObjectFromString(prepase_buffer.Text);
+
+    if Result is TVCMIJsonObject then
+    begin
+      result_o := TVCMIJsonObject(Result);
+
+      PostProcessTags(result_o);
+    end;
+
   finally
     stm.Free;
     prepase_buffer.Free;
@@ -1317,6 +1433,10 @@ initialization
   rexp_oid.Expression := '^((.*):)?(.*)$';
   rexp_oid.Compile;
 
+  rexp_tags := TRegExpr.Create;
+  rexp_tags.Expression:= '#';
+  rexp_tags.Compile;
+
   SetJSONInstanceType(TJSONInstanceType.jitObject, TVCMIJsonObject);
   SetJSONInstanceType(TJSONInstanceType.jitString, TVCMIJsonString);
   SetJSONInstanceType(TJSONInstanceType.jitArray,  TVCMIJsonArray);
@@ -1324,6 +1444,7 @@ initialization
 finalization
 
   rexp_oid.Free;
+  rexp_tags.Free;
 
 end.
 

@@ -278,9 +278,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONStringType;
-  AObject: TObject);
-
+procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONStringType; AObject: TObject);
 Var
   D : TJSONData;
 
