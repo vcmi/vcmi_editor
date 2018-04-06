@@ -25,7 +25,7 @@ uses
   {$IFDEF WINDOWS}
   windows,
   {$ENDIF}
-  Classes, SysUtils, math, matrix, GL, vcmi.OpenGLContext, vcmi.glext, editor_types, editor_consts;
+  Classes, SysUtils, Controls, math, matrix, GL, vcmi.OpenGLContext, vcmi.glext, editor_types, editor_consts;
 
 const
   DEFAULT_F_S_RES = 'DEFAULT_FRAGMENT_SHADER';
@@ -182,6 +182,8 @@ type
     property Scale: GLfloat read FScale write FScale;
   end;
 
+procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
 procedure BindUncompressedPalettedSub(ATextureId: GLuint; x, y, w, h: Int32; ARawImage: Pointer);
@@ -210,6 +212,19 @@ begin
   glTexImage2D(GL_TEXTURE_2D, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
 
   CheckGLErrors('Bind RGBA');
+end;
+
+procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+begin
+  AControl.AlphaBits:=8;
+  AControl.AutoResizeViewport := true;
+  AControl.OpenGLMajorVersion:=3;
+  AControl.OpenGLMinorVersion:=3;
+
+  if Assigned(ARoot) and (AControl <> ARoot) then
+  begin
+    AControl.SharedControl := ARoot;
+  end;
 end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);

@@ -130,8 +130,6 @@ type
     MenuItem9: TMenuItem;
     mm:      TMainMenu;
     menuFile: TMenuItem;
-    MapView: TOpenGLControl;
-    ObjectsView: TOpenGLControl;
     OpenMapDialog: TOpenDialog;
     pcMain: TPageControl;
     pnTop: TPanel;
@@ -224,22 +222,7 @@ type
     procedure HorisontalAxisPaint(Sender: TObject);
     procedure hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
-    procedure MapViewClick(Sender: TObject);
-    procedure MapViewDblClick(Sender: TObject);
-    procedure MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
-      State: TDragState; var Accept: Boolean);
-    procedure MapViewMakeCurrent(Sender: TObject; var Allow: boolean);
-    procedure MapViewMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure MapViewMouseEnter(Sender: TObject);
-    procedure MapViewMouseLeave(Sender: TObject);
-    procedure MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure MapViewMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
-      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-    procedure MapViewPaint(Sender: TObject);
+
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure MinimapMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -247,20 +230,13 @@ type
     procedure ObjectsSearchButtonClick(Sender: TObject);
     procedure ObjectsSearchChange(Sender: TObject);
     procedure ObjectsSearchEditingDone(Sender: TObject);
-    procedure ObjectsViewClick(Sender: TObject);
-    procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
-      State: TDragState; var Accept: Boolean);
+
     procedure pcMainChange(Sender: TObject);
     procedure pcToolBoxChange(Sender: TObject);
     procedure PlayerMenuClick(Sender: TObject);
     procedure LevelMenuClick(Sender: TObject);
     procedure MinimapPaint(Sender: TObject);
-    procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ObjectsViewPaint(Sender: TObject);
-    procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
-      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+
     procedure pbObjectsResize(Sender: TObject);
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -276,6 +252,36 @@ type
 
       FTileSizes: array [0..3] of Integer = (8, 16, 24, 32);
   private
+    procedure MapViewPaint(Sender: TObject);
+    procedure MapViewClick(Sender: TObject);
+    procedure MapViewDblClick(Sender: TObject);
+    procedure MapViewDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure MapViewDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+    procedure MapViewMakeCurrent(Sender: TObject; var Allow: boolean);
+    procedure MapViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure MapViewMouseEnter(Sender: TObject);
+    procedure MapViewMouseLeave(Sender: TObject);
+    procedure MapViewMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure MapViewMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure MapViewMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+
+    procedure ObjectsViewPaint(Sender: TObject);
+    procedure ObjectsViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ObjectsViewMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    procedure ObjectsViewClick(Sender: TObject);
+    procedure ObjectsViewDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+  private
+    ObjectsView: TOpenGLControl;
+    MapView: TOpenGLControl;
+
     FEnv: TMapEnvironment;
     FZoomIndex: integer;
 
@@ -869,6 +875,38 @@ var
   dir: String;
   map_filename: String;
 begin
+  ObjectsView := TOpenGLControl.Create(Self);
+  ObjectsView.Align:=alClient;
+  ObjectsView.Parent := pnObjects;
+
+  ObjectsView.OnClick:=@ObjectsViewClick;
+  ObjectsView.OnDragDrop:=@ObjectsViewDragDrop;
+  ObjectsView.OnDragOver:=@ObjectsViewDragOver;
+  ObjectsView.OnMouseDown:=@ObjectsViewMouseDown;
+  ObjectsView.OnMouseWheel:=@ObjectsViewMouseWheel;
+  ObjectsView.OnPaint:=@ObjectsViewPaint;
+
+  SetupGLControl(ObjectsView,RootManager.SharedContext);
+
+  MapView := TOpenGLControl.Create(Self);
+  MapView.Left:=23;
+  MapView.Top:=23;
+  MapView.Align:=alClient;
+  MapView.Parent := pnMap;
+  MapView.OnClick:=@MapViewClick;
+  MapView.OnDblClick:=@MapViewDblClick;
+  MapView.OnDragDrop:=@MapViewDragDrop;
+  MapView.OnDragOver:=@MapViewDragOver;
+  MapView.OnMouseDown:=@MapViewMouseDown;
+  MapView.OnMouseEnter:=@MapViewMouseEnter;
+  MapView.OnMouseLeave:=@MapViewMouseLeave;
+  MapView.OnMouseMove:=@MapViewMouseMove;
+  MapView.OnMouseUp:=@MapViewMouseUp;
+  MapView.OnMouseWheel:=@MapViewMouseWheel;
+  MapView.OnPaint:=@MapViewPaint;
+
+  SetupGLControl(MapView, RootManager.SharedContext);
+
   FObjectCellSize:=OBJ_CELL_SIZE;
   FObjectsPerRow:=OBJ_PER_ROW;
   FRealTileSize := TILE_SIZE;
@@ -880,7 +918,7 @@ begin
   pnVAxis.DoubleBuffered := True;
   pnMinimap.DoubleBuffered := True;
   MapView.SharedControl := RootManager.SharedContext;
-  ObjectsView.SharedControl := RootManager.SharedContext;
+
 
   FToolsFrame := TToolsFrame.Create(self);
   FToolsFrame.BorderStyle :=  bsNone;

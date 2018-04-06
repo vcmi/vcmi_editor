@@ -1,7 +1,7 @@
 object fMain: TfMain
-  Left = 220
+  Left = 329
   Height = 777
-  Top = 41
+  Top = 9
   Width = 1321
   Caption = 'VCMI editor'
   ClientHeight = 757
@@ -2557,7 +2557,7 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
-  LCLVersion = '1.8.1.0'
+  LCLVersion = '1.8.3.0'
   object pnTop: TPanel
     Left = 0
     Height = 34
@@ -2758,6 +2758,8 @@ object fMain: TfMain
       BevelOuter = bvNone
       ClientHeight = 677
       ClientWidth = 204
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
@@ -2770,23 +2772,6 @@ object fMain: TfMain
         TabOrder = 0
         TabStop = False
         OnScroll = sbObjectsScroll
-      end
-      object ObjectsView: TOpenGLControl
-        Left = 0
-        Height = 677
-        Top = 0
-        Width = 188
-        Align = alClient
-        AutoResizeViewport = True
-        OpenGLMajorVersion = 3
-        OpenGLMinorVersion = 3
-        AlphaBits = 8
-        OnClick = ObjectsViewClick
-        OnDragDrop = ObjectsViewDragDrop
-        OnDragOver = ObjectsViewDragOver
-        OnMouseDown = ObjectsViewMouseDown
-        OnMouseWheel = ObjectsViewMouseWheel
-        OnPaint = ObjectsViewPaint
       end
     end
     object pnObjectsSearch: TPanel
@@ -2932,28 +2917,6 @@ object fMain: TfMain
         Color = clWhite
         ParentColor = False
         TabOrder = 0
-        object MapView: TOpenGLControl
-          Left = 23
-          Height = 653
-          Top = 23
-          Width = 868
-          Align = alClient
-          AutoResizeViewport = True
-          OpenGLMajorVersion = 3
-          OpenGLMinorVersion = 3
-          AlphaBits = 8
-          OnClick = MapViewClick
-          OnDblClick = MapViewDblClick
-          OnDragDrop = MapViewDragDrop
-          OnDragOver = MapViewDragOver
-          OnMouseDown = MapViewMouseDown
-          OnMouseEnter = MapViewMouseEnter
-          OnMouseLeave = MapViewMouseLeave
-          OnMouseMove = MapViewMouseMove
-          OnMouseUp = MapViewMouseUp
-          OnMouseWheel = MapViewMouseWheel
-          OnPaint = MapViewPaint
-        end
         object hScrollBar: TScrollBar
           Left = 18
           Height = 16
@@ -2963,7 +2926,7 @@ object fMain: TfMain
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
           PageSize = 0
-          TabOrder = 2
+          TabOrder = 1
           TabStop = False
           OnScroll = hScrollBarScroll
         end
@@ -2975,7 +2938,7 @@ object fMain: TfMain
           Align = alRight
           Kind = sbVertical
           PageSize = 0
-          TabOrder = 1
+          TabOrder = 0
           TabStop = False
           OnScroll = vScrollBarScroll
         end
@@ -2988,7 +2951,7 @@ object fMain: TfMain
           BevelOuter = bvNone
           ClientHeight = 653
           ClientWidth = 23
-          TabOrder = 3
+          TabOrder = 2
           object VerticalAxis: TPaintBox
             Left = 0
             Height = 653
@@ -3009,7 +2972,7 @@ object fMain: TfMain
           BevelOuter = bvNone
           ClientHeight = 23
           ClientWidth = 866
-          TabOrder = 4
+          TabOrder = 3
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23

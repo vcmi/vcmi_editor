@@ -30,16 +30,30 @@ type
   { TRootForm }
 
   TRootForm = class(TForm)
-    RootContext: TOpenGLControl;
+    procedure FormCreate(Sender: TObject);
   private
     { private declarations }
   public
-    { public declarations }
+    RootContext: TOpenGLControl;
   end;
 
 implementation
 
 {$R *.lfm}
+
+{ TRootForm }
+
+procedure TRootForm.FormCreate(Sender: TObject);
+begin
+  //
+  RootContext := TOpenGLControl.Create(Self);
+  RootContext.Align:=alClient;
+  RootContext.Parent := Self;
+
+
+  RootContext.OpenGLMajorVersion:=3;
+  RootContext.OpenGLMinorVersion:=3;
+end;
 
 end.
 
