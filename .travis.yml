@@ -1,6 +1,11 @@
 language: generic
 
+addons:
+  apt:
+    update: true
+
 install:
+    - sudo apt-get update
     - sudo apt -y install libgtk2.0-dev
 
     - wget -t 10 -O lazarus-project_1.8.2-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%201.8.2/lazarus-project_1.8.2-0_amd64.deb/download
