@@ -3,9 +3,10 @@ object RootManager: TRootManager
   OnDestroy = DataModuleDestroy
   OldCreateOrder = False
   Height = 173
-  HorizontalOffset = 394
-  VerticalOffset = 207
+  HorizontalOffset = 450
+  VerticalOffset = 213
   Width = 302
+  PPI = 96
   object HeroIcons: TImageList
     AllocBy = 16
     Height = 64

@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, fgl,
   FPimage,
-  FPReadBMP,FPReadJPEG,FPReadPNG,FPReadTGA,FPReadTiff,
+  FPReadBMP,FPReadJPEG,FPReadPNG,FPReadTGA,FPReadTiff,FPReadPCX,
 
   Graphics, IntfGraphics, GraphType, LazLoggerBase,
 
@@ -81,8 +81,42 @@ type
 
 implementation
 
+uses
+  stream_adapter;
+
 var
   GImageLoaders: TImageReaders;
+
+
+function isH3PCX(AStream: TStream ): Boolean;
+var
+  width, height: UInt32;
+  size: UInt64;
+  source: TStreamReadAdapter;
+begin
+  Result := false;
+
+  source.Create(AStream);
+
+  size := source.ReadDWord;
+  width := source.ReadDWord;
+  height := source.ReadDWord;
+
+  if (size > 10000000) or (width > 100000) or (height > 100000) then
+  begin
+    exit;
+  end;
+
+  if size = width * height * 3 then
+  begin
+    Result := true;
+  end
+  else if size = width * height then
+  begin
+    Result := true;
+  end;
+
+end;
 
 { TImageReaders }
 
@@ -192,21 +226,30 @@ end;
 
 procedure TImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 var
-  ext: AnsiString;
+  initial_pos: Int64;
+  is_pcx: Boolean;
 begin
-  ext:=UpperCase(ExtractFileExt(AFileName));
+  initial_pos := AStream.Position;
 
-  if ext <> '.PCX' then
+  is_pcx := isH3PCX(AStream);
+  AStream.Seek(initial_pos, soBeginning);
+
+  if is_pcx then
   begin
-    //assume anything else is supported out of the box
-
-    //FData.LoadFromStreamWithFileExt(AStream, ext);
-
-    FData.LoadFromStream(AStream);
+    LoadH3Pcx(AStream, FData);
   end
   else
   begin
-    LoadH3Pcx(AStream, FData);
+    //assume anything else is supported out of the box
+
+    try
+       FData.LoadFromStream(AStream);
+    except
+      on e: exception do
+      begin
+        DebugLn('Failed loading %s, error: %s',[AFileName, e.Message]);
+      end;
+    end;
   end;
 end;
 
