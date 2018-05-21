@@ -161,6 +161,8 @@ begin
       raise Exception.Create('Error initializing OpenGL. Version 3.3 core required.');
     end;
 
+    GImageLoaders.CheckUpdated();
+
     //if not Load_GL_ARB_texture_rg() then
     //begin
     //   Application.Terminate;

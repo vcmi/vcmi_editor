@@ -24,25 +24,9 @@ interface
 uses
   Classes, SysUtils, FPImage, Graphics, IntfGraphics, GraphType, stream_adapter, editor_types;
 
-
-  procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
   procedure LoadH3Pcx(ASourceStream: TStream; ADest: TLazIntfImage);
 
 implementation
-
-procedure LoadH3Pcx(ASourceStream: TStream; ADest: TPicture);
-var
-  ATempImage: TLazIntfImage;
-begin
-  ATempImage := ADest.Bitmap.CreateIntfImage;
-
-  try
-    LoadH3Pcx(ASourceStream, ATempImage);
-    ADest.Bitmap.LoadFromIntfImage(ATempImage);
-  finally
-    ATempImage.Free;
-  end;
-end;
 
 procedure LoadH3Pcx(ASourceStream: TStream; ADest: TLazIntfImage);
 var

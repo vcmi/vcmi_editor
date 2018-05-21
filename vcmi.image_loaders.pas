@@ -63,7 +63,7 @@ type
     property Data: TLazIntfImage read FData;
   end;
 
-  TReadersMap = specialize TObjectMap<AnsiString, TFPCustomImageReader>;
+  TReadersMap = specialize TFPGMap<AnsiString, TFPCustomImageReaderClass>;
 
   { TImageReaders }
 
@@ -71,29 +71,34 @@ type
   private
     FUpdated: Boolean;
     FMap:TReadersMap;
-    procedure CheckUpdated;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function GetLoader(AExt: string): TFPCustomImageReader;
+    function GetLoader(AExt: string): TFPCustomImageReaderClass;
+
+    procedure CheckUpdated;
+
+    class procedure Load(AFileName: AnsiString; ASource: TStream; ATarget: TLazIntfImage); static;
   end;
-
-implementation
-
-uses
-  stream_adapter;
 
 var
   GImageLoaders: TImageReaders;
 
+implementation
+
+uses
+  stream_adapter, strutils;
 
 function isH3PCX(AStream: TStream ): Boolean;
 var
+  initial_pos: Int64;
   width, height: UInt32;
   size: UInt64;
   source: TStreamReadAdapter;
 begin
+  initial_pos := AStream.Position;
+
   Result := false;
 
   source.Create(AStream);
@@ -101,6 +106,8 @@ begin
   size := source.ReadDWord;
   width := source.ReadDWord;
   height := source.ReadDWord;
+
+  AStream.Seek(initial_pos, soBeginning);
 
   if (size > 10000000) or (width > 100000) or (height > 100000) then
   begin
@@ -123,8 +130,9 @@ end;
 procedure TImageReaders.CheckUpdated;
 var
   i: Integer;
-  typename, ext: String;
+  typename, ext, exts, s: String;
   c: TFPCustomImageReaderClass;
+  exts_ar: TStringArray;
 begin
   if not FUpdated then
   begin
@@ -134,10 +142,19 @@ begin
     begin
       typename := ImageHandlers.TypeNames[i];
       c := ImageHandlers.ImageReader[typename];
-      ext := '.'+Trim(UpperCase(ImageHandlers.Extensions[typename]));
+
       if Assigned(c) then
       begin
-        FMap.Add(ext,c.Create());
+        exts := UpperCase(ImageHandlers.Extensions[typename]);
+        exts_ar := exts.Split([';']);
+
+        for s in exts_ar do
+        begin
+          ext := '.'+Trim(s);
+          FMap.Add(ext,c);
+
+          DebugLn('Registered image format loader %s(%s) for file type %s',[typename, c.ClassName, ext]);
+        end;
       end;
     end;
   end;
@@ -154,7 +171,7 @@ begin
   inherited Destroy;
 end;
 
-function TImageReaders.GetLoader(AExt: string): TFPCustomImageReader;
+function TImageReaders.GetLoader(AExt: string): TFPCustomImageReaderClass;
 var
   idx: LongInt;
 begin
@@ -163,6 +180,42 @@ begin
   if idx >= 0 then
   begin
     Result := FMap.Data[idx];
+  end;
+end;
+
+class procedure TImageReaders.Load(AFileName: AnsiString; ASource: TStream; ATarget: TLazIntfImage);
+var
+  ext: AnsiString;
+  Loader: TFPCustomImageReader;
+  is_pcx: Boolean;
+  LoaderType: TFPCustomImageReaderClass;
+begin
+  ext:=UpperCase(ExtractFileExt(AFileName));
+
+  is_pcx := isH3PCX(ASource);
+
+  if is_pcx then
+  begin
+    LoadH3Pcx(ASource, ATarget);
+  end
+  else
+  begin
+    LoaderType := GImageLoaders.GetLoader(ext);
+
+    if Assigned(LoaderType) then
+    begin
+      Loader := LoaderType.Create();
+
+      try
+        ATarget.LoadFromStream(ASource, Loader)
+      finally
+        FreeAndNil(Loader);
+      end;
+    end
+    else
+    begin
+      raise Exception.CreateFmt('Unknown image file extension for ',[AFileName]);
+    end;
   end;
 end;
 
@@ -187,26 +240,8 @@ begin
 end;
 
 procedure TIntfImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
-var
-  ext: AnsiString;
-  r: TFPCustomImageReader;
 begin
-  ext:=UpperCase(ExtractFileExt(AFileName));
-
-  if ext = '.PCX' then
-  begin
-    //(!)untested
-    LoadH3Pcx(AStream, FData);
-  end
-  else
-  begin
-    r := GImageLoaders.GetLoader(ext);
-
-    if Assigned(r) then
-      FData.LoadFromStream(AStream, r)
-    else
-      raise Exception.CreateFmt('Unknown image file extension for ',[AFileName]);
-  end;
+  TImageReaders.Load(AFileName, AStream, FData);
 end;
 
 { TImageResource }
@@ -226,36 +261,20 @@ end;
 
 procedure TImageResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 var
-  initial_pos: Int64;
-  is_pcx: Boolean;
+  ATempImage: TLazIntfImage;
 begin
-  initial_pos := AStream.Position;
+  ATempImage := FData.Bitmap.CreateIntfImage;
 
-  is_pcx := isH3PCX(AStream);
-  AStream.Seek(initial_pos, soBeginning);
-
-  if is_pcx then
-  begin
-    LoadH3Pcx(AStream, FData);
-  end
-  else
-  begin
-    //assume anything else is supported out of the box
-
-    try
-       FData.LoadFromStream(AStream);
-    except
-      on e: exception do
-      begin
-        DebugLn('Failed loading %s, error: %s',[AFileName, e.Message]);
-      end;
-    end;
+  try
+    TImageReaders.Load(AFileName, AStream, ATempImage);
+    FData.Bitmap.LoadFromIntfImage(ATempImage);
+  finally
+    ATempImage.Free;
   end;
 end;
 
 initialization
   GImageLoaders := TImageReaders.Create;
-  GImageLoaders.CheckUpdated();
 finalization;
   FreeAndNil(GImageLoaders);
 end.
