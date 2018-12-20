@@ -2557,7 +2557,7 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
-  LCLVersion = '1.8.3.0'
+  LCLVersion = '2.0.0.3'
   object pnTop: TPanel
     Left = 0
     Height = 34

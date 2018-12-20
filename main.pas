@@ -410,7 +410,7 @@ implementation
 uses
   map_format, map_format_h3m, editor_str_consts,
   root_manager, map_format_zip, editor_consts, edit_map_options,
-  new_map, edit_object_options, Math, lazutf8classes, LazUTF8SysUtils;
+  new_map, edit_object_options, Math, lazutf8classes, LazSysUtils;
 
 {$R *.lfm}
 
@@ -1610,7 +1610,7 @@ begin
   FMapViewState.SetUseFlag(false);
   FMap.RenderTerrain(FMapViewState, FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
-  new_tick := LazUTF8SysUtils.GetTickCount64;
+  new_tick := LazSysUtils.GetTickCount64;
 
   new_anim_frame := false;
 
