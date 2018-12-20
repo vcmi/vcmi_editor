@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="15"/>
-      <BuildNr Value="148"/>
+      <BuildNr Value="149"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
@@ -292,12 +292,9 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
         <WorkingDirectory Value="$Path($(TargetFile))"/>
       </local>
       <environment>
@@ -306,6 +303,20 @@
           <Variable1 Name="MESA_GLSL_VERSION_OVERRIDE" Value="330"/>
         </UserOverrides>
       </environment>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <WorkingDirectory Value="$Path($(TargetFile))"/>
+          </local>
+          <environment>
+            <UserOverrides Count="2">
+              <Variable0 Name="MESA_GL_VERSION_OVERRIDE" Value="3.3"/>
+              <Variable1 Name="MESA_GLSL_VERSION_OVERRIDE" Value="330"/>
+            </UserOverrides>
+          </environment>
+        </Mode0>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>

@@ -18,7 +18,7 @@ uses
   Win32Int, WSLCLClasses, WSControls, Win32WSControls, Win32Proc, LCLMessageGlue,
   vcmi.wgl;
 
-procedure LOpenGLViewport(Left, Top, Width, Height: integer);
+procedure LOpenGLViewport(Handle: HWND; Left, Top, Width, Height: integer);
 procedure LOpenGLSwapBuffers(Handle: HWND);
 function LOpenGLMakeCurrent(Handle: HWND): boolean;
 function LOpenGLReleaseContext(Handle: HWND): boolean;
@@ -68,7 +68,7 @@ begin
   Result := wglGetProcAddress(ProcName);
 end;
 
-procedure LOpenGLViewport(Left, Top, Width, Height: integer);
+procedure LOpenGLViewport(Handle: HWND; Left, Top, Width, Height: integer);
 begin
   glViewport(Left,Top,Width,Height);
 end;
@@ -121,7 +121,82 @@ begin
   end;
 end;
 
-function LGlMsCreateOpenGLContextAttrList(DoubleBuffered: boolean; RGBA: boolean;
+var
+  Temp_h_GLRc: HGLRC;
+  Temp_h_Dc: HDC;
+  Temp_h_Wnd: HWND;
+procedure LGlMsDestroyTemporaryWindow; forward;
+procedure LGlMsCreateTemporaryWindow;
+var
+  PixelFormat: LongInt;
+  pfd: PIXELFORMATDESCRIPTOR;
+begin
+  Temp_h_Wnd := 0;
+  Temp_h_Dc := 0;
+  Temp_h_GLRc := 0;
+  try
+    { create Temp_H_wnd }
+    Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
+      PChar('STATIC'),
+      PChar('temporary window for wgl'),
+      WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+      0, 0, 100, 100,
+      0 { no parent window }, 0 { no menu }, hInstance,
+      nil);
+    if Temp_H_wnd=0 then
+      raise Exception.Create('LGlMsCreateTemporaryWindow CreateWindowEx failed');
+    { create Temp_h_Dc }
+    Temp_h_Dc := GetDC(Temp_h_Wnd);
+    if Temp_h_Dc=0 then
+      raise Exception.Create('LGlMsCreateTemporaryWindow GetDC failed');
+    { create and set PixelFormat (must support OpenGL to be able to
+      later do wglCreateContext) }
+    FillChar(pfd, SizeOf(pfd), 0);
+    with pfd do
+    begin
+      nSize := SizeOf(pfd);
+      nVersion := 1;
+      dwFlags := PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
+      iPixelType := PFD_TYPE_RGBA;
+      iLayerType := PFD_MAIN_PLANE;
+    end;
+    PixelFormat := ChoosePixelFormat(Temp_h_Dc, @pfd);
+    if PixelFormat = 0 then
+      raise Exception.Create('LGlMsCreateTemporaryWindow ChoosePixelFormat failed');
+    if not SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd) then
+      raise Exception.Create('LGlMsCreateTemporaryWindow SetPixelFormat failed');
+    { create and make current Temp_h_GLRc }
+    Temp_h_GLRc := wglCreateContext(Temp_h_Dc);
+    if Temp_h_GLRc = 0 then
+      raise Exception.Create('LGlMsCreateTemporaryWindow wglCreateContext failed');
+    if not wglMakeCurrent(Temp_h_Dc, Temp_h_GLRc) then
+      raise Exception.Create('LGlMsCreateTemporaryWindow wglMakeCurrent failed');
+  except
+    { make sure to finalize all partially initialized window parts }
+    LGlMsDestroyTemporaryWindow;
+    raise;
+  end;
+end;
+procedure LGlMsDestroyTemporaryWindow;
+begin
+  if Temp_h_GLRc <> 0 then
+  begin
+    wglMakeCurrent(Temp_h_Dc, 0);
+    wglDeleteContext(Temp_h_GLRc);
+    Temp_h_GLRc := 0;
+  end;
+  if Temp_h_Dc <> 0 then
+  begin
+    ReleaseDC(Temp_h_Wnd, Temp_h_Dc);
+    Temp_h_Dc := 0;
+  end;
+  if Temp_h_Wnd <> 0 then
+  begin
+    DestroyWindow(Temp_h_Wnd);
+    Temp_h_Wnd := 0;
+  end;
+end;
+function LGlMsCreateOpenGLContextAttrList(DoubleBuffered: boolean; RGBA: boolean; 
   const RedBits, GreenBits, BlueBits, MultiSampling, AlphaBits, DepthBits,
   StencilBits, AUXBuffers: Cardinal): PInteger;
 var
