@@ -4,18 +4,12 @@
 
 unit vcmiOpenGLContext;
 
+{$warn 5023 off : no warning about unused units}
 interface
 
 uses
-  vcmi.openglcontext, vcmi.glext, LazarusPackageIntf;
+  vcmi.openglcontext, vcmi.glext;
 
 implementation
 
-procedure Register;
-begin
-  RegisterUnit('vcmi.openglcontext', @vcmi.openglcontext.Register);
-end;
-
-initialization
-  RegisterPackage('vcmiOpenGLContext', @Register);
 end.

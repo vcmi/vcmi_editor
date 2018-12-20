@@ -70,7 +70,8 @@ type
 
     procedure LoadMapObjects;
     procedure LoadHeroPortraits;
-    procedure LoadVictLossIcons; unimplemented;
+    procedure LoadVictIcons; unimplemented;
+    procedure LoadLossIcons; unimplemented;
 
     procedure PrintUsage;
     procedure ProcessCommandLine;
@@ -211,7 +212,8 @@ begin
   begin
     ProgressForm.NextStage('Loading icons ...');
     LoadHeroPortraits;
-    LoadVictLossIcons;
+    LoadVictIcons;
+    LoadLossIcons;
   end;
 
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
@@ -323,7 +325,7 @@ var
 begin
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
-  //TODO: TRootManager.LoadHeroPortraits
+
   portrait_count := FListsManager.HeroPortraits.Count;
 
   for i := 0 to portrait_count - 1 do
@@ -368,9 +370,15 @@ begin
   end;
 end;
 
-procedure TRootManager.LoadVictLossIcons;
+procedure TRootManager.LoadVictIcons;
 begin
+  //SCNRVICT
+  VictoryIcons.Clear;
+end;
 
+procedure TRootManager.LoadLossIcons;
+begin
+  //SCNRLOSS
 end;
 
 procedure TRootManager.PrintUsage;

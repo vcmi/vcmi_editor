@@ -31,6 +31,19 @@ type
   TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
   TGraphicsLoadFlag = (None, First, Complete);
 
+  { TIconList }
+
+  TIconList = class
+  strict private
+    type
+       TImages = specialize TFPGObjectList<TLazIntfImage>;
+    var
+       FImages: TImages;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
   { TAnimation }
 
   TAnimation = class
@@ -49,6 +62,7 @@ type
     function GetFrameCount: Integer; inline;
     procedure SetFrameCount(AValue: Integer);
 
+    procedure UnbindPalette;
   public
     constructor Create;
     destructor Destroy; override;
@@ -75,13 +89,13 @@ type
 
     procedure UnBindTextures;
     property Loaded: TGraphicsLoadFlag read FLoaded write FLoaded;
+
+    procedure SetPalette(constref APlalette: TRGBAPalette);
   end;
 
   { TAnimationMap }
 
-  TAnimationMap = class (specialize TFPGMap<string,TAnimation>)
-  protected
-    procedure Deref(Item: Pointer); override;
+  TAnimationMap = class (specialize TObjectMap<string,TAnimation>)
   public
     constructor Create;
   end;
@@ -351,6 +365,19 @@ const
 function CompareDefs(const d1,d2: TAnimation): integer;
 begin
   Result := PtrInt(d1) - PtrInt(d2);
+end;
+
+{ TIconList }
+
+constructor TIconList.Create;
+begin
+  FImages := TImages.Create(true);
+end;
+
+destructor TIconList.Destroy;
+begin
+  FImages.Free;
+  inherited Destroy;
 end;
 
 { TAnimationFrame }
@@ -915,8 +942,8 @@ begin
     //  palette[5] := STANDARD_COLORS[i];
     //end;
 
-    glGenTextures(1,@Current.FPaletteID);
-    BindPalette(Current.FPaletteID,@palette);
+    Current.SetPalette(palette);
+
   end;
 
   FFrameCount := 0;
@@ -1126,12 +1153,6 @@ begin
   Sorted := True;
 end;
 
-procedure TAnimationMap.Deref(Item: Pointer);
-begin
-  Finalize(string(Item^));
-  TAnimation(Pointer(PByte(Item)+KeySize)^).Free;
-end;
-
 { TAnimation }
 
 constructor TAnimation.Create;
@@ -1171,6 +1192,15 @@ begin
       PEntry := entries.Mutable[i];
       PEntry^.Init;
     end;
+  end;
+end;
+
+procedure TAnimation.UnbindPalette;
+begin
+  if FPaletteID <> 0 then
+  begin
+    glDeleteTextures(1,@FPaletteID);
+    FPaletteID := 0;
   end;
 end;
 
@@ -1286,6 +1316,13 @@ begin
     glDeleteTextures(1,@FPaletteID);
     FPaletteID := 0;
   end;
+end;
+
+procedure TAnimation.SetPalette(constref APlalette: TRGBAPalette);
+begin
+  UnbindPalette;
+  glGenTextures(1, @FPaletteID);
+  BindPalette(FPaletteID,@APlalette);
 end;
 
 end.

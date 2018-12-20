@@ -2,7 +2,6 @@
 <CONFIG>
   <Package Version="4">
     <Name Value="vcmiOpenGLContext"/>
-    <Type Value="RunAndDesignTime"/>
     <Author Value="Mattias Gaertner"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -68,7 +67,7 @@ end;"/>
       </Item7>
       <Item8>
         <Filename Value="vcmi.glext.pp"/>
-        <UnitName Value="GLext"/>
+        <UnitName Value="vcmi.glext"/>
       </Item8>
     </Files>
     <RequiredPkgs Count="2">
