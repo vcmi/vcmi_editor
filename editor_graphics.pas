@@ -27,7 +27,7 @@ uses
   fpjson;
 
 type
-  TDefEntries = specialize gvector.TVector<TGLSprite>;
+  TSprites = specialize gvector.TVector<TGLSprite>;
   TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
   TGraphicsLoadFlag = (None, First, Complete);
 
@@ -49,6 +49,7 @@ type
   TAnimation = class
   private
     FLoaded: TGraphicsLoadFlag;
+
     FPaletteID: GLuint;
 
     FResourceID: AnsiString;
@@ -57,7 +58,7 @@ type
     FWidth: UInt32;
     FHeight: UInt32;
 
-    entries: TDefEntries;
+    entries: TSprites;
 
     function GetFrameCount: Integer; inline;
     procedure SetFrameCount(AValue: Integer);
@@ -243,7 +244,7 @@ type
     procedure PreLoad;
 
     //complete load
-    function GetGraphics (const AResourceName:string): TAnimation;
+    function GetGraphics(const AResourceName:string): TAnimation;
     //load first frame
     function GetPreloadedGraphics(const AResourceName:string): TAnimation;
     //load all expect first
@@ -1157,7 +1158,7 @@ end;
 
 constructor TAnimation.Create;
 begin
-  entries := TDefEntries.Create;
+  entries := TSprites.Create;
   FLoaded := TGraphicsLoadFlag.None;
   FWidth := TILE_SIZE;
   FHeight:= TILE_SIZE;

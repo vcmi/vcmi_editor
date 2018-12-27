@@ -960,8 +960,9 @@ begin
   FTemplatesResult := TObjectsSelection.Create();
   FMapObjectsResult := TMapObjectsSelection.Create();
 
-  FMapViewState := TLocalState.Create(MapView);
   FObjectsViewState := TLocalState.Create(ObjectsView);
+
+  FMapViewState := TLocalState.Create(MapView);
 
   //load map if specified
 

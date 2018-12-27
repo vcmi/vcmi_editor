@@ -60,7 +60,6 @@ type
     FShaderType: GLenum;
   public
     constructor Create(const ResName: string; AShaderType: GLenum);
-
     function Make: GLuint;
   end;
 
@@ -82,17 +81,6 @@ type
     property Handle: GLuint read FHandle;
   end;
 
-  { TGlobalState }
-
-  TGlobalState = class
-
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-  end;
-
-
   { TLocalState }
 
   TLocalState = class
@@ -102,7 +90,7 @@ type
      UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
   var
     FInitialised: Boolean;
-    FContext: TOpenGLControl;
+    FContext: TCustomOpenGLControl;
 
     SpriteVAO: GLuint;
     RectVAO: GLuint;
@@ -139,7 +127,7 @@ type
 
     procedure DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
  public
-    constructor Create(AContext: TOpenGLControl);
+    constructor Create(AContext: TCustomOpenGLControl);
     destructor Destroy; override;
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
@@ -426,25 +414,9 @@ begin
   PaletteID:=0;
 end;
 
-
-{ TGlobalState }
-
-
-constructor TGlobalState.Create;
-begin
-
-end;
-
-destructor TGlobalState.Destroy;
-begin
-
-  inherited Destroy;
-end;
-
-
 { TLocalState }
 
-constructor TLocalState.Create(AContext: TOpenGLControl);
+constructor TLocalState.Create(AContext: TCustomOpenGLControl);
 begin
   FInitialised := False;
   FContext := AContext;
@@ -453,6 +425,14 @@ end;
 
 destructor TLocalState.Destroy;
 begin
+  FContext.MakeCurrent();
+
+  glDeleteVertexArrays(1, @SpriteVAO);
+  glDeleteVertexArrays(1, @RectVAO);
+
+  glDeleteBuffers(1, @MirroredUVBuffer);
+  glDeleteBuffers(1, @CoordsBuffer);
+
   FreeAndNil(DefaultProgram);
   inherited Destroy;
 end;
