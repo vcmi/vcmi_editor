@@ -176,11 +176,6 @@ begin
 
   Application.ProcessMessages;
 
-  if not BatchMode then
-  begin
-    GlobalContextState := TGlobalState.Create;
-    GlobalContextState.Init;
-  end;
 
   FResourceManager := TFSManager.Create(self);
   FDirs.FillDataPaths(FResourceManager.DataPath);
@@ -239,8 +234,6 @@ end;
 procedure TRootManager.DataModuleDestroy(Sender: TObject);
 begin
   FSrcFiles.Free;
-  GlobalContextState.Free;
-  GlobalContextState := nil;
   FDirs.Free;
 end;
 

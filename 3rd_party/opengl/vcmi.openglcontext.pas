@@ -86,7 +86,7 @@ uses
   Classes, SysUtils, LCLProc, Forms, Controls, LCLType, LCLIntf, LResources,
   Graphics, LMessages, WSLCLClasses, WSControls,
 {$IFDEF UseGtkGLX}
-  GLGtkGlxContext;
+  vcmi.GLGtkGlxContext;
 {$ENDIF}
 {$IFDEF UseGtk2GLX}
   vcmi.GLGtkGlxContext;
