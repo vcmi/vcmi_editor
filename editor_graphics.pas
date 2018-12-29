@@ -101,6 +101,13 @@ type
     constructor Create;
   end;
 
+  { TAnimationLoadQueue }
+
+  TAnimationLoadQueue = class(specialize TFPGObjectList<TAnimation>)
+  public
+    constructor Create;
+  end;
+
   { TAnimationLoader }
 
   TAnimationLoader = class abstract(TFSConsumer)
@@ -221,21 +228,51 @@ type
     destructor Destroy; override;
   end;
 
+  { TGraphicsStorage }
+
+  TGraphicsStorage = class (TFSConsumer)
+  strict private
+    FDefLoader: TDefFormatLoader;
+    FJsonLoader: TJsonFormatLoader;
+
+    FHeroFlagAnimations: array[TPlayerColor] of TAnimation;
+
+    FData: TAnimationMap;
+
+    FQueue: TAnimationLoadQueue;
+
+    FBlocked: Boolean;
+    procedure SetBlocked(AValue: Boolean);
+
+    procedure DoLoadGraphics(const AResourceName:string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure PreLoad;
+
+    property Blocked: Boolean read FBlocked write SetBlocked;
+
+    //load all expect first
+    procedure Load(AAnimation: TAnimation);
+
+    function GetGraphics(const AResourceName:string; ALoadMode: TGraphicsLoadMode): TAnimation;
+    function GetHeroFlagAnimation(APlayer: TPlayer): TAnimation;
+  end;
+
   { TGraphicsManager }
 
   TGraphicsManager = class (TFSConsumer)
   strict private
     FBlocked: Boolean;
-    FNameToAnimMap: TAnimationMap;
-    FDefLoader: TDefFormatLoader;
-    FJsonLoader: TJsonFormatLoader;
-
-    FHeroFlagDefs: array[TPlayerColor] of TAnimation;
+    FAnimations: TGraphicsStorage;
+    FIcons: TGraphicsStorage;
 
     FBuffer: TMemoryStream;
 
-    procedure DoLoadGraphics(const AResourceName:string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
-    function DoGetGraphics (const AResourceName:string; ALoadMode: TGraphicsLoadMode): TAnimation;
+    FIconsQueue: TAnimationLoadQueue;
+    FMapAnimationsQueue: TAnimationLoadQueue;
+
     procedure SetBlocked(AValue: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -243,17 +280,17 @@ type
 
     procedure PreLoad;
 
-    //complete load
-    function GetGraphics(const AResourceName:string): TAnimation;
-    //load first frame
-    function GetPreloadedGraphics(const AResourceName:string): TAnimation;
-    //load all expect first
-    procedure LoadGraphics(AAnimation: TAnimation);
+    function GetIcon(const AResourceName:string): TAnimation;
+    function GetMapAnimation(const AResourceName:string): TAnimation;
 
-    function GetHeroFlagDef(APlayer: TPlayer): TAnimation;
+    procedure LoadIcons(AState: TLocalState; AProgress: IProgressCallback); unimplemented;
+    procedure LoadMapAnimations(AState: TLocalState; AProgress: IProgressCallback); unimplemented;
 
     //if true blocks all actual assets operations
     property Blocked: Boolean read FBlocked write SetBlocked;
+
+    property Icons: TGraphicsStorage read FIcons;
+    property Animations: TGraphicsStorage read FAnimations;
   end;
 
   { TGraphicsConsumer }
@@ -303,8 +340,9 @@ type
     LeftMargin: Int32;
     TopMargin: Int32;
   end;
-const
 
+{$IF FALSE}
+const
   H3_SPECIAL_COLORS: array[0..7] of TH3DefColor = (
    {0} (r: 0;   g: 255; b:255),
    {1} (r: 255; g: 150; b:255),
@@ -314,6 +352,7 @@ const
    {5} (r: 255; g: 255; b:0),
    {6} (r: 180; g: 0;   b:255),
    {7} (r: 0;   g: 255; b:0));
+{$ENDIF}
 
 const
   STANDARD_COLORS: array[0..7] of TRBGAColor = (
@@ -331,6 +370,7 @@ const
 type
   TSpecialColorUsage = set of byte;
 
+{$IF FALSE}
   TDefType = (
     Spell = $40,
     Sprite = $41,
@@ -343,6 +383,7 @@ type
     SpriteFrame = $48,
     CombatHero = $49
   );
+{$ENDIF}
 
   TSpecialColorOptions = array[0..9] of TSpecialColorUsage;
 
@@ -366,6 +407,118 @@ const
 function CompareDefs(const d1,d2: TAnimation): integer;
 begin
   Result := PtrInt(d1) - PtrInt(d2);
+end;
+
+{ TGraphicsStorage }
+
+procedure TGraphicsStorage.SetBlocked(AValue: Boolean);
+begin
+  if FBlocked=AValue then Exit;
+  FBlocked:=AValue;
+end;
+
+procedure TGraphicsStorage.DoLoadGraphics(const AResourceName: string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
+var
+  found: Boolean;
+begin
+  if Blocked or (ADef.Loaded = TGraphicsLoadFlag.Complete) then
+    begin
+      exit;
+    end;
+
+    ADef.FixLoadMode(ALoadMode);
+
+    FDefLoader.Current := ADef;
+    FDefLoader.Mode := ALoadMode;
+    FDefLoader.CurrentPath := AResourceName;
+    found := FDefLoader.TryLoad();
+
+    FJsonLoader.Current := ADef;
+    FJsonLoader.Mode:=ALoadMode;
+    FJsonLoader.CurrentPath:=AResourceName;
+
+    if FJsonLoader.TryLoad() then
+    begin
+      found := true;
+    end;
+
+    if not found then
+    begin
+      DebugLn('Animation not found: '+AResourceName);
+
+      ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
+    end;
+
+    ADef.UpdateLoadFlag(ALoadMode);
+end;
+
+function TGraphicsStorage.GetGraphics(const AResourceName: string; ALoadMode: TGraphicsLoadMode): TAnimation;
+var
+  res_index: Integer;
+begin
+  res_index := FData.IndexOf(AResourceName);
+
+  if res_index >= 0 then
+  begin
+    Result := FData.Data[res_index];
+
+    if ALoadMode = TGraphicsLoadMode.LoadComplete then
+    begin
+      Load(Result);
+    end;
+  end
+  else begin
+    Result := TAnimation.Create;
+    DoLoadGraphics(AResourceName,Result, ALoadMode);
+    FData.Add(AResourceName,Result);
+    Result.ResourceID := AResourceName;
+  end;
+end;
+
+function TGraphicsStorage.GetHeroFlagAnimation(APlayer: TPlayer): TAnimation;
+begin
+  Result := FHeroFlagAnimations[APlayer];
+end;
+
+constructor TGraphicsStorage.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FDefLoader := TDefFormatLoader.Create(Self);
+  FJsonLoader := TJsonFormatLoader.Create(Self);
+
+  FData := TAnimationMap.Create;
+end;
+
+destructor TGraphicsStorage.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
+
+procedure TGraphicsStorage.PreLoad;
+const
+  FMT = 'AF0%dE';
+var
+  i: TPlayer;
+begin
+  for i in TPlayerColor do
+  begin
+    FHeroFlagAnimations[i] := GetGraphics(Format(FMT,[Integer(i)]), TGraphicsLoadMode.LoadComplete);
+  end;
+end;
+
+procedure TGraphicsStorage.Load(AAnimation: TAnimation);
+begin
+  if AAnimation.Loaded <> TGraphicsLoadFlag.Complete then
+    DoLoadGraphics(AAnimation.ResourceID, AAnimation, TGraphicsLoadMode.LoadRest);
+end;
+
+{ TAnimationLoadQueue }
+
+constructor TAnimationLoadQueue.Create;
+begin
+  inherited Create(False);
 end;
 
 { TIconList }
@@ -1032,114 +1185,67 @@ end;
 constructor TGraphicsManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FNameToAnimMap := TAnimationMap.Create;
+
+  FIcons := TGraphicsStorage.Create(Self);
+  FAnimations := TGraphicsStorage.Create(Self);
+
+
   FBuffer := TMemoryStream.Create;
 
-  FDefLoader := TDefFormatLoader.Create(Self);
-  FJsonLoader := TJsonFormatLoader.Create(Self);
+  FIconsQueue := TAnimationLoadQueue.Create;
+  FMapAnimationsQueue := TAnimationLoadQueue.Create;
 end;
 
 destructor TGraphicsManager.Destroy;
 begin
+  FMapAnimationsQueue.Free;
+  FIconsQueue.Free;
   FBuffer.Free;
-  FNameToAnimMap.Free;
+
   inherited Destroy;
 end;
 
 procedure TGraphicsManager.PreLoad;
-const
-  FMT = 'AF0%dE';
-var
-  i: TPlayer;
 begin
-  for i in TPlayerColor do
+  FIcons.PreLoad;
+  FAnimations.PreLoad;
+end;
+
+function TGraphicsManager.GetIcon(const AResourceName: string): TAnimation;
+begin
+  Result := Icons.GetGraphics(AResourceName, TGraphicsLoadMode.LoadFisrt);
+end;
+
+function TGraphicsManager.GetMapAnimation(const AResourceName: string): TAnimation;
+begin
+  Result := Animations.GetGraphics(AResourceName, TGraphicsLoadMode.LoadComplete);
+end;
+
+
+procedure TGraphicsManager.LoadIcons(AState: TLocalState; AProgress: IProgressCallback);
+begin
+  if not Blocked then
   begin
-    FHeroFlagDefs[i] := GetGraphics(Format(FMT,[Integer(i)]));
+
+
   end;
+  FIconsQueue.Clear;
 end;
 
-function TGraphicsManager.GetGraphics(const AResourceName: string): TAnimation;
+procedure TGraphicsManager.LoadMapAnimations(AState: TLocalState; AProgress: IProgressCallback);
 begin
-  Result := DoGetGraphics(AResourceName, TGraphicsLoadMode.LoadComplete);
-end;
-
-function TGraphicsManager.GetPreloadedGraphics(const AResourceName: string): TAnimation;
-begin
-  Result := DoGetGraphics(AResourceName, TGraphicsLoadMode.LoadFisrt);
-end;
-
-procedure TGraphicsManager.LoadGraphics(AAnimation: TAnimation);
-begin
-  if AAnimation.Loaded <> TGraphicsLoadFlag.Complete then
-    DoLoadGraphics(AAnimation.ResourceID, AAnimation, TGraphicsLoadMode.LoadRest);
-end;
-
-function TGraphicsManager.GetHeroFlagDef(APlayer: TPlayer): TAnimation;
-begin
-  Result := FHeroFlagDefs[APlayer];
-end;
-
-procedure TGraphicsManager.DoLoadGraphics(const AResourceName: string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
-var
-  found: Boolean;
-begin
-  if Blocked or (ADef.Loaded = TGraphicsLoadFlag.Complete) then
+  if not Blocked then
   begin
-    exit;
+
   end;
-
-  ADef.FixLoadMode(ALoadMode);
-
-  FDefLoader.Current := ADef;
-  FDefLoader.Mode := ALoadMode;
-  FDefLoader.CurrentPath := AResourceName;
-  found := FDefLoader.TryLoad();
-
-  FJsonLoader.Current := ADef;
-  FJsonLoader.Mode:=ALoadMode;
-  FJsonLoader.CurrentPath:=AResourceName;
-
-  if FJsonLoader.TryLoad() then
-  begin
-    found := true;
-  end;
-
-  if not found then
-  begin
-    DebugLn('Animation not found: '+AResourceName);
-
-    ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
-  end;
-
-  ADef.UpdateLoadFlag(ALoadMode);
-end;
-
-function TGraphicsManager.DoGetGraphics(const AResourceName: string; ALoadMode: TGraphicsLoadMode): TAnimation;
-var
-  res_index: Integer;
-begin
-  res_index := FNameToAnimMap.IndexOf(AResourceName);
-
-  if res_index >= 0 then
-  begin
-    Result := FNameToAnimMap.Data[res_index];
-
-    if ALoadMode = TGraphicsLoadMode.LoadComplete then
-    begin
-      LoadGraphics(Result);
-    end;
-  end
-  else begin
-    Result := TAnimation.Create;
-    DoLoadGraphics(AResourceName,Result, ALoadMode);
-    FNameToAnimMap.Add(AResourceName,Result);
-    Result.ResourceID := AResourceName;
-  end;
+  FMapAnimationsQueue.Clear;
 end;
 
 procedure TGraphicsManager.SetBlocked(AValue: Boolean);
 begin
   FBlocked:=AValue;
+  Animations.Blocked:=AValue;
+  Icons.Blocked:=AValue;
 end;
 
 

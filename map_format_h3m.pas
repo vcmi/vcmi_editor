@@ -359,7 +359,7 @@ begin
   if FAnimation = AValue then Exit;
   FAnimation := AValue;
 
-  FDef := (Collection as TLegacyMapObjectTemplates).FGraphicsManager.GetGraphics(FAnimation);
+  FDef := (Collection as TLegacyMapObjectTemplates).FGraphicsManager.GetMapAnimation(FAnimation);
   //todo: load and check
 end;
 

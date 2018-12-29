@@ -88,13 +88,17 @@ type
   TMapObjectTemplate = class (TNamedCollectionItem, ISerializeNotify)
   strict private
     FFlaggable: Boolean;
-    FDef: TAnimation;
+
+    FMapAnimation: TAnimation;
+    FIcon: TAnimation;
+
     FMapObjectGroup:TMapObjectGroup;
     FMapObjectType: TMapObjectType;
 
     FAllowedTerrains: TTerrainTypes;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
+
     FTags: TStrings;
     FVisitableFrom: TStrings;
     FMask: TStrings;
@@ -109,7 +113,8 @@ type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
-    property Def: TAnimation read FDef;
+    property MapAnimation: TAnimation read FMapAnimation;
+    property Icon: TAnimation read FIcon;
     property MapObjectGroup: TMapObjectGroup read FMapObjectGroup;
     property MapObjectType: TMapObjectType read FMapObjectType;
     class function UseMeta: boolean; override;
@@ -554,7 +559,7 @@ end;
 
 procedure TMapObjectTemplate.SetAnimation(AValue: AnsiString);
 begin
-  FAnimation:=NormalizeResourceName(AValue);
+  FAnimation := NormalizeResourceName(AValue);
 end;
 
 procedure TMapObjectTemplate.SetEditorAnimation(AValue: AnsiString);
@@ -565,21 +570,26 @@ end;
 procedure TMapObjectTemplate.UpdateAnimation;
 var
   options_class: TObjectOptionsClass;
+  animation_url: String;
 begin
   if FEditorAnimation='' then
   begin
-    FDef := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetGraphics(FAnimation);
+    animation_url := FAnimation;
   end
   else
   begin
-    FDef := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetGraphics(FEditorAnimation);
+    animation_url := FEditorAnimation;
   end;
+
+  FMapAnimation := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetMapAnimation(animation_url);
+  FIcon := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetIcon(animation_url);
 
   FIconSpriteIndex:=0;
 
   if MapObjectGroup.IsHero and (FEditorAnimation='') then
   begin
-    TMapObjectTemplates(Collection).Manager.GraphicsManager.LoadGraphics(FDef);
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.Icons.Load(FIcon);
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.Animations.Load(FMapAnimation);
     FIconSpriteIndex := 2;
   end;
 
@@ -625,22 +635,22 @@ begin
   SetRenderFlagUsage(AState);
   AState.SetTranslation(Ax, Ay);
 
-  FDef.RenderIcon(AState, FIconSpriteIndex, dim, color);
+  FIcon.RenderIcon(AState, FIconSpriteIndex, dim, color);
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    TMapObjectTemplates(Collection).Manager.GraphicsManager.GetHeroFlagDef(color).RenderOverlayIcon(AState, dim, FDef.GetSpriteHeight(FIconSpriteIndex));
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.Icons.GetHeroFlagAnimation(color).RenderOverlayIcon(AState, dim, FIcon.GetSpriteHeight(FIconSpriteIndex));
   end;
 end;
 
 procedure TMapObjectTemplate.RenderFloating(AState: TLocalState; AX, AY: integer; color: TPlayer);
 begin
   SetRenderFlagUsage(AState);
-  Def.RenderO(AState, FIconSpriteIndex, AX, AY, color);
+  MapAnimation.RenderO(AState, FIconSpriteIndex, AX, AY, color);
 
   if (color <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    TMapObjectTemplates(Collection).Manager.GraphicsManager.GetHeroFlagDef(color).RenderO(AState, 0, AX, AY);
+    TMapObjectTemplates(Collection).Manager.GraphicsManager.Animations.GetHeroFlagAnimation(color).RenderO(AState, 0, AX, AY);
   end;
 end;
 

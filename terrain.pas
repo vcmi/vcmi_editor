@@ -991,17 +991,17 @@ var
 begin
   for tt := Low(TTerrainType) to High(TTerrainType) do
   begin
-    FTerrainDefs[tt] := GraphicsManager.GetGraphics(TERRAIN_DEF_FILES[tt])
+    FTerrainDefs[tt] := GraphicsManager.GetMapAnimation(TERRAIN_DEF_FILES[tt])
   end;
 
   for rt in [TRiverType.clearRiver..TRiverType.lavaRiver] do
   begin
-    FRiverDefs[rt] := GraphicsManager.GetGraphics(RIVER_DEF_FILES[rt]);
+    FRiverDefs[rt] := GraphicsManager.GetMapAnimation(RIVER_DEF_FILES[rt]);
   end;
 
   for rdt in [TRoadType.dirtRoad..TRoadType.cobblestoneRoad] do
   begin
-    FRoadDefs[rdt] := GraphicsManager.GetGraphics(ROAD_DEF_FILES[rdt]);
+    FRoadDefs[rdt] := GraphicsManager.GetMapAnimation(ROAD_DEF_FILES[rdt]);
   end;
 end;
 
