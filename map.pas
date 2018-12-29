@@ -1668,17 +1668,22 @@ begin
 end;
 
 procedure TMapObjectAppearance.AnimationChanged;
+var
+  animation_url: String;
 begin
+
   if FEditorAnimation='' then
   begin
-    SetMapAnimation(FOwner.GetMap.GraphicsManager.GetMapAnimation(FAnimation));
-    SetIcon(FOwner.GetMap.GraphicsManager.GetIcon(FAnimation));
+    animation_url := FAnimation;
   end
   else
   begin
-    SetMapAnimation(FOwner.GetMap.GraphicsManager.GetMapAnimation(FEditorAnimation));
-    SetIcon(FOwner.GetMap.GraphicsManager.GetIcon(FEditorAnimation));
+    animation_url := FEditorAnimation;
   end;
+
+  SetMapAnimation(FOwner.GetMap.GraphicsManager.Animations.GetGraphics(animation_url));
+  SetIcon(FOwner.GetMap.GraphicsManager.Icons.GetGraphics(animation_url));
+
 end;
 
 procedure TMapObjectAppearance.CompactMask;
@@ -1785,8 +1790,8 @@ begin
   FMask := TStringList.Create;
   FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
-  SetMapAnimation(FOwner.GetMap.GraphicsManager.GetMapAnimation('default'));
-  SetIcon(FOwner.GetMap.GraphicsManager.GetIcon('default'));
+  SetMapAnimation(FOwner.GetMap.GraphicsManager.Animations.GetGraphics('default'));
+  SetIcon(FOwner.GetMap.GraphicsManager.Icons.GetGraphics('default'));
   FAllowedTerrains := ALL_TERRAINS;
   FTags := TStringList.Create;
 end;

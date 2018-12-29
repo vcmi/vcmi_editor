@@ -47,8 +47,8 @@ type
   { TLegacyMapObjectTemplate }
 
   TLegacyMapObjectTemplate = class (TCollectionItem)
-  private
-    FDef: TAnimation;
+  //strict private
+  //  FDef: TAnimation;
   private
     FType: AnsiString;
     FAllowedTerrains: TTerrainTypes;
@@ -359,7 +359,7 @@ begin
   if FAnimation = AValue then Exit;
   FAnimation := AValue;
 
-  FDef := (Collection as TLegacyMapObjectTemplates).FGraphicsManager.GetMapAnimation(FAnimation);
+  //FDef := (Collection as TLegacyMapObjectTemplates).FGraphicsManager.GetMapAnimation(FAnimation);
   //todo: load and check
 end;
 

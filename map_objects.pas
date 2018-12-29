@@ -581,8 +581,8 @@ begin
     animation_url := FEditorAnimation;
   end;
 
-  FMapAnimation := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetMapAnimation(animation_url);
-  FIcon := TMapObjectTemplates(Collection).Manager.GraphicsManager.GetIcon(animation_url);
+  FMapAnimation := TMapObjectTemplates(Collection).Manager.GraphicsManager.Animations.GetGraphics(animation_url);
+  FIcon := TMapObjectTemplates(Collection).Manager.GraphicsManager.Icons.GetGraphics(animation_url);
 
   FIconSpriteIndex:=0;
 
