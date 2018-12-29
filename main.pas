@@ -27,7 +27,7 @@ uses
   undo_base, map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
   zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions, map_object_actions, undo_map, object_options,
   map_rect, map_format_json, search_index, vcmi.frames.tools, player_options_form, edit_triggered_events,
-  player_selection_form, types;
+  player_selection_form, types, vcmi.glext;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -410,7 +410,7 @@ implementation
 uses
   map_format, map_format_h3m, editor_str_consts,
   root_manager, map_format_zip, editor_consts, edit_map_options,
-  new_map, edit_object_options, Math, lazutf8classes, LazSysUtils;
+  new_map, edit_object_options, Math, lazutf8classes, LazSysUtils, LazLoggerBase;
 
 {$R *.lfm}
 
@@ -835,6 +835,9 @@ end;
 procedure TfMain.ApplicationProperties1IdleEnd(Sender: TObject);
 begin
   UpdateWidgets;
+
+  FGraphicsManager.Icons.LoadQueued(FObjectsViewState);
+  FGraphicsManager.Animations.LoadQueued(FMapViewState);
 end;
 
 function TfMain.CheckUnsavedMap: boolean;
@@ -886,7 +889,7 @@ begin
   ObjectsView.OnMouseWheel:=@ObjectsViewMouseWheel;
   ObjectsView.OnPaint:=@ObjectsViewPaint;
 
-  SetupGLControl(ObjectsView,RootManager.SharedContext);
+  SetupGLControl(ObjectsView);
 
   MapView := TOpenGLControl.Create(Self);
   MapView.Left:=23;
@@ -905,7 +908,7 @@ begin
   MapView.OnMouseWheel:=@MapViewMouseWheel;
   MapView.OnPaint:=@MapViewPaint;
 
-  SetupGLControl(MapView, RootManager.SharedContext);
+  SetupGLControl(MapView);
 
   FObjectCellSize:=OBJ_CELL_SIZE;
   FObjectsPerRow:=OBJ_PER_ROW;
@@ -917,8 +920,6 @@ begin
   pnHAxis.DoubleBuffered := True;
   pnVAxis.DoubleBuffered := True;
   pnMinimap.DoubleBuffered := True;
-  MapView.SharedControl := RootManager.SharedContext;
-
 
   FToolsFrame := TToolsFrame.Create(self);
   FToolsFrame.BorderStyle :=  bsNone;
@@ -963,6 +964,31 @@ begin
   FObjectsViewState := TLocalState.Create(ObjectsView);
 
   FMapViewState := TLocalState.Create(MapView);
+
+  if not MapView.MakeCurrent() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Unable to switch GL context');
+  end;
+
+  DebugLn('Version: ', glGetString(GL_VERSION));
+  DebugLn('Vendor: ', glGetString(GL_VENDOR));
+  DebugLn('Renderer: ', glGetString(GL_RENDERER));
+  DebugLn('Glsl: ', glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+  if not Load_GL_version_3_3_CORE() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Error initializing OpenGL. Version 3.3 core required.');
+  end;
+
+  glGetError();//ignore
+
+  RootManager.ProgressForm.NextStage('Loading object icons ...');
+  FGraphicsManager.Icons.LoadQueued(FObjectsViewState);
+
+  RootManager.ProgressForm.NextStage('Loading object animations ...');
+  FGraphicsManager.Animations.LoadQueued(FMapViewState);
 
   //load map if specified
 

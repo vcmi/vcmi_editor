@@ -170,7 +170,7 @@ type
     property Scale: GLfloat read FScale write FScale;
   end;
 
-procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+procedure SetupGLControl(AControl: TOpenGLControl);
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
@@ -200,17 +200,13 @@ begin
   CheckGLErrors('Bind RGBA');
 end;
 
-procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+procedure SetupGLControl(AControl: TOpenGLControl);
 begin
   AControl.AlphaBits:=8;
   AControl.AutoResizeViewport := true;
   AControl.OpenGLMajorVersion:=3;
   AControl.OpenGLMinorVersion:=3;
 
-  if Assigned(ARoot) and (AControl <> ARoot) then
-  begin
-    AControl.SharedControl := ARoot;
-  end;
 end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);

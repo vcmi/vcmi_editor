@@ -101,9 +101,22 @@ type
     constructor Create;
   end;
 
+  { TAnimationLoadTask }
+
+  TAnimationLoadTask = class
+  private
+    FMode: TGraphicsLoadMode;
+    FTarget: TAnimation;
+  public
+    constructor Create(ATarget: TAnimation; AMode: TGraphicsLoadMode);
+
+    property Target: TAnimation read FTarget;
+    property Mode: TGraphicsLoadMode read FMode;
+  end;
+
   { TAnimationLoadQueue }
 
-  TAnimationLoadQueue = class(specialize TFPGObjectList<TAnimation>)
+  TAnimationLoadQueue = class(specialize TFPGObjectList<TAnimationLoadTask>)
   public
     constructor Create;
   end;
@@ -247,6 +260,8 @@ type
 
     procedure DoLoadGraphics(const AResourceName:string; ADef: TAnimation; ALoadMode: TGraphicsLoadMode);
     procedure SetLoadMode(AValue: TGraphicsLoadMode);
+
+    procedure AddTask(ATarget: TAnimation; AMode: TGraphicsLoadMode);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -258,6 +273,8 @@ type
 
     //load all expect first
     procedure Load(AAnimation: TAnimation);
+
+    procedure LoadQueued(AState: TLocalState);
 
     function GetGraphics(const AResourceName:string): TAnimation;
     function GetHeroFlagAnimation(APlayer: TPlayer): TAnimation;
@@ -401,6 +418,14 @@ begin
   Result := PtrInt(d1) - PtrInt(d2);
 end;
 
+{ TAnimationLoadTask }
+
+constructor TAnimationLoadTask.Create(ATarget: TAnimation; AMode: TGraphicsLoadMode);
+begin
+  FTarget := ATarget;
+  FMode:=AMode;
+end;
+
 { TGraphicsStorage }
 
 procedure TGraphicsStorage.SetBlocked(AValue: Boolean);
@@ -418,39 +443,47 @@ var
   found: Boolean;
 begin
   if Blocked or (ADef.Loaded = TGraphicsLoadFlag.Complete) then
-    begin
-      exit;
-    end;
+  begin
+    exit;
+  end;
 
-    ADef.FixLoadMode(ALoadMode);
+  ADef.FixLoadMode(ALoadMode);
 
-    FDefLoader.Current := ADef;
-    FDefLoader.Mode := ALoadMode;
-    FDefLoader.CurrentPath := AResourceName;
-    found := FDefLoader.TryLoad();
+  FDefLoader.Current := ADef;
+  FDefLoader.Mode := ALoadMode;
+  FDefLoader.CurrentPath := AResourceName;
+  found := FDefLoader.TryLoad();
 
-    FJsonLoader.Current := ADef;
-    FJsonLoader.Mode:=ALoadMode;
-    FJsonLoader.CurrentPath:=AResourceName;
+  FJsonLoader.Current := ADef;
+  FJsonLoader.Mode:=ALoadMode;
+  FJsonLoader.CurrentPath:=AResourceName;
 
-    if FJsonLoader.TryLoad() then
-    begin
-      found := true;
-    end;
+  if FJsonLoader.TryLoad() then
+  begin
+    found := true;
+  end;
 
-    if not found then
-    begin
-      DebugLn('Animation not found: '+AResourceName);
+  if not found then
+  begin
+    DebugLn('Animation not found: '+AResourceName);
 
-      ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
-    end;
+    ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
+  end;
 
-    ADef.UpdateLoadFlag(ALoadMode);
+  ADef.UpdateLoadFlag(ALoadMode);
 end;
 
 procedure TGraphicsStorage.SetLoadMode(AValue: TGraphicsLoadMode);
 begin
   FLoadMode:=AValue;
+end;
+
+procedure TGraphicsStorage.AddTask(ATarget: TAnimation; AMode: TGraphicsLoadMode);
+begin
+  if ATarget.Loaded <> TGraphicsLoadFlag.Complete then
+  begin
+    FQueue.Add(TAnimationLoadTask.Create(ATarget, AMode));
+  end;
 end;
 
 function TGraphicsStorage.GetGraphics(const AResourceName: string): TAnimation;
@@ -462,17 +495,12 @@ begin
   if res_index >= 0 then
   begin
     Result := FData.Data[res_index];
-
-    if LoadMode = TGraphicsLoadMode.LoadComplete then
-    begin
-      Load(Result);
-    end;
   end
   else begin
     Result := TAnimation.Create;
-    DoLoadGraphics(AResourceName,Result, LoadMode);
     FData.Add(AResourceName,Result);
     Result.ResourceID := AResourceName;
+    AddTask(Result, LoadMode);
   end;
 end;
 
@@ -515,14 +543,66 @@ end;
 procedure TGraphicsStorage.Load(AAnimation: TAnimation);
 begin
   if AAnimation.Loaded <> TGraphicsLoadFlag.Complete then
-    DoLoadGraphics(AAnimation.ResourceID, AAnimation, TGraphicsLoadMode.LoadRest);
+    AddTask(AAnimation, TGraphicsLoadMode.LoadRest);
+end;
+
+procedure TGraphicsStorage.LoadQueued(AState: TLocalState);
+var
+  ATask: TAnimationLoadTask;
+  ALoadMode: TGraphicsLoadMode;
+  ATarget: TAnimation;
+  found: Boolean;
+begin
+  if Blocked then
+  begin
+    FQueue.Clear;
+    exit;
+  end;
+
+  if not AState.StartFrame then
+  begin
+    exit;
+  end;
+
+  for ATask in FQueue do
+  begin
+    ALoadMode := ATask.Mode;
+    ATarget := ATask.Target;
+
+    ATarget.FixLoadMode(ALoadMode);
+
+    FDefLoader.Current := ATarget;
+    FDefLoader.Mode := ALoadMode;
+    FDefLoader.CurrentPath := ATarget.ResourceID;
+
+    found := FDefLoader.TryLoad();
+
+    FJsonLoader.Current := ATarget;
+    FJsonLoader.Mode:=ALoadMode;
+    FJsonLoader.CurrentPath:=ATarget.ResourceID;
+
+    if FJsonLoader.TryLoad() then
+    begin
+      found := true;
+    end;
+
+    if not found then
+    begin
+      DebugLn('Animation not found: '+ATarget.ResourceID);
+
+      ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
+    end;
+
+    ATarget.UpdateLoadFlag(ALoadMode);
+  end;
+  FQueue.Clear;
 end;
 
 { TAnimationLoadQueue }
 
 constructor TAnimationLoadQueue.Create;
 begin
-  inherited Create(False);
+  inherited Create(True);
 end;
 
 { TIconList }

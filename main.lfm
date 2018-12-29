@@ -4,7 +4,7 @@ object fMain: TfMain
   Top = 9
   Width = 1321
   Caption = 'VCMI editor'
-  ClientHeight = 757
+  ClientHeight = 777
   ClientWidth = 1321
   Icon.Data = {
     7C3D01000000010001000000000001004000663D01001600000089504E470D0A
@@ -2557,7 +2557,6 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
-  LCLVersion = '2.0.0.3'
   object pnTop: TPanel
     Left = 0
     Height = 34
@@ -2741,29 +2740,29 @@ object fMain: TfMain
   end
   object pnRight: TPanel
     Left = 1117
-    Height = 700
+    Height = 720
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 700
+    ClientHeight = 720
     ClientWidth = 204
     TabOrder = 0
     object pnObjects: TPanel
       Left = 0
-      Height = 677
+      Height = 697
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 677
+      ClientHeight = 697
       ClientWidth = 204
       Color = clWhite
       ParentColor = False
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 677
+        Height = 697
         Top = 0
         Width = 16
         Align = alRight
@@ -2842,7 +2841,7 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 734
+    Top = 754
     Width = 1321
     Panels = <    
       item
@@ -2859,12 +2858,12 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 700
+    Height = 720
     Top = 34
     Width = 202
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 700
+    ClientHeight = 720
     ClientWidth = 202
     TabOrder = 1
     object pnMinimap: TPanel
@@ -2891,7 +2890,7 @@ object fMain: TfMain
   end
   object pcMain: TPageControl
     Left = 202
-    Height = 700
+    Height = 720
     Top = 34
     Width = 915
     ActivePage = tsMap
@@ -2902,17 +2901,17 @@ object fMain: TfMain
     OnChange = pcMainChange
     object tsMap: TTabSheet
       Caption = 'tsMap'
-      ClientHeight = 692
+      ClientHeight = 712
       ClientWidth = 907
       object pnMap: TPanel
         Left = 0
-        Height = 692
+        Height = 712
         Top = 0
         Width = 907
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnMap'
-        ClientHeight = 692
+        ClientHeight = 712
         ClientWidth = 907
         Color = clWhite
         ParentColor = False
@@ -2920,7 +2919,7 @@ object fMain: TfMain
         object hScrollBar: TScrollBar
           Left = 18
           Height = 16
-          Top = 676
+          Top = 696
           Width = 871
           Align = alBottom
           BorderSpacing.Left = 18
@@ -2932,7 +2931,7 @@ object fMain: TfMain
         end
         object vScrollBar: TScrollBar
           Left = 891
-          Height = 653
+          Height = 673
           Top = 23
           Width = 16
           Align = alRight
@@ -2944,17 +2943,17 @@ object fMain: TfMain
         end
         object pnVAxis: TPanel
           Left = 0
-          Height = 653
+          Height = 673
           Top = 23
           Width = 23
           Align = alLeft
           BevelOuter = bvNone
-          ClientHeight = 653
+          ClientHeight = 673
           ClientWidth = 23
           TabOrder = 2
           object VerticalAxis: TPaintBox
             Left = 0
-            Height = 653
+            Height = 673
             Top = 0
             Width = 23
             Align = alClient
