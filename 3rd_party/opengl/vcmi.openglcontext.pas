@@ -289,7 +289,7 @@ type
 
 
 
-procedure Register;
+//procedure Register;
 
 
 implementation
@@ -299,10 +299,10 @@ implementation
 var
   OpenGLControlStack: TList = nil;
 
-procedure Register;
-begin
-  RegisterComponents('VCMI',[TOpenGLControl]);
-end;
+//procedure Register;
+//begin
+//  RegisterComponents('VCMI',[TOpenGLControl]);
+//end;
 
 { TCustomOpenGLControl }
 

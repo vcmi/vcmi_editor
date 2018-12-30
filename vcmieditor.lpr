@@ -36,7 +36,7 @@ begin
   SetHeapTraceOutput('heap.trc');
   {$ENDIF DEBUG}
 
-  Application.Title := 'VCMI Editor';
+  Application.Title:='VCMI Editor';
   RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TRootManager, RootManager);

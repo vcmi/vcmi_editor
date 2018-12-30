@@ -1,11 +1,11 @@
 object fMain: TfMain
   Left = 376
-  Height = 777
+  Height = 569
   Top = 9
-  Width = 1321
+  Width = 1284
   Caption = 'VCMI editor'
-  ClientHeight = 777
-  ClientWidth = 1321
+  ClientHeight = 549
+  ClientWidth = 1284
   Icon.Data = {
     7C3D01000000010001000000000001004000663D01001600000089504E470D0A
     1A0A0000000D49484452000001000000010008060000005C72A86600013D2D49
@@ -2557,15 +2557,16 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
+  LCLVersion = '2.0.0.3'
   object pnTop: TPanel
     Left = 0
     Height = 34
     Top = 0
-    Width = 1321
+    Width = 1284
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 1321
+    ClientWidth = 1284
     TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
@@ -2599,7 +2600,7 @@ object fMain: TfMain
       end
       object ToolButton4: TToolButton
         Left = 109
-        Height = 32
+        Height = 5
         Top = 2
         Caption = 'ToolButton4'
         Style = tbsDivider
@@ -2618,7 +2619,7 @@ object fMain: TfMain
       end
       object ToolButton7: TToolButton
         Left = 186
-        Height = 32
+        Height = 5
         Top = 2
         Caption = 'ToolButton7'
         Style = tbsDivider
@@ -2643,7 +2644,7 @@ object fMain: TfMain
       end
       object ToolButton9: TToolButton
         Left = 299
-        Height = 32
+        Height = 5
         Top = 2
         Caption = 'ToolButton9'
         Style = tbsDivider
@@ -2659,7 +2660,7 @@ object fMain: TfMain
       Left = 340
       Height = 34
       Top = 0
-      Width = 981
+      Width = 944
       Align = alClient
       BorderSpacing.Left = 340
       ButtonHeight = 32
@@ -2726,7 +2727,7 @@ object fMain: TfMain
       end
       object ToolButton21: TToolButton
         Left = 394
-        Height = 32
+        Height = 5
         Top = 2
         Caption = 'ToolButton21'
         Style = tbsDivider
@@ -2739,30 +2740,30 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = 1117
-    Height = 720
+    Left = 1080
+    Height = 512
     Top = 34
     Width = 204
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 720
+    ClientHeight = 512
     ClientWidth = 204
     TabOrder = 0
     object pnObjects: TPanel
       Left = 0
-      Height = 697
+      Height = 489
       Top = 23
       Width = 204
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 697
+      ClientHeight = 489
       ClientWidth = 204
       Color = clWhite
       ParentColor = False
       TabOrder = 0
       object sbObjects: TScrollBar
         Left = 188
-        Height = 697
+        Height = 489
         Top = 0
         Width = 16
         Align = alRight
@@ -2841,8 +2842,8 @@ object fMain: TfMain
   object StatusBar: TStatusBar
     Left = 0
     Height = 23
-    Top = 754
-    Width = 1321
+    Top = 546
+    Width = 1284
     Panels = <    
       item
         Width = 300
@@ -2858,12 +2859,12 @@ object fMain: TfMain
   end
   object pnLeft: TPanel
     Left = 0
-    Height = 720
+    Height = 512
     Top = 34
     Width = 202
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 720
+    ClientHeight = 512
     ClientWidth = 202
     TabOrder = 1
     object pnMinimap: TPanel
@@ -2890,9 +2891,9 @@ object fMain: TfMain
   end
   object pcMain: TPageControl
     Left = 202
-    Height = 720
+    Height = 512
     Top = 34
-    Width = 915
+    Width = 878
     ActivePage = tsMap
     Align = alClient
     ShowTabs = False
@@ -2901,26 +2902,25 @@ object fMain: TfMain
     OnChange = pcMainChange
     object tsMap: TTabSheet
       Caption = 'tsMap'
-      ClientHeight = 712
-      ClientWidth = 907
+      ClientHeight = 504
+      ClientWidth = 870
       object pnMap: TPanel
         Left = 0
-        Height = 712
+        Height = 504
         Top = 0
-        Width = 907
+        Width = 870
         Align = alClient
         BevelOuter = bvNone
-        Caption = 'pnMap'
-        ClientHeight = 712
-        ClientWidth = 907
+        ClientHeight = 504
+        ClientWidth = 870
         Color = clWhite
         ParentColor = False
         TabOrder = 0
         object hScrollBar: TScrollBar
           Left = 18
           Height = 16
-          Top = 696
-          Width = 871
+          Top = 488
+          Width = 834
           Align = alBottom
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
@@ -2930,8 +2930,8 @@ object fMain: TfMain
           OnScroll = hScrollBarScroll
         end
         object vScrollBar: TScrollBar
-          Left = 891
-          Height = 673
+          Left = 854
+          Height = 465
           Top = 23
           Width = 16
           Align = alRight
@@ -2943,17 +2943,17 @@ object fMain: TfMain
         end
         object pnVAxis: TPanel
           Left = 0
-          Height = 673
+          Height = 465
           Top = 23
           Width = 23
           Align = alLeft
           BevelOuter = bvNone
-          ClientHeight = 673
+          ClientHeight = 465
           ClientWidth = 23
           TabOrder = 2
           object VerticalAxis: TPaintBox
             Left = 0
-            Height = 673
+            Height = 465
             Top = 0
             Width = 23
             Align = alClient
@@ -2964,19 +2964,19 @@ object fMain: TfMain
           Left = 23
           Height = 23
           Top = 0
-          Width = 866
+          Width = 829
           Align = alTop
           BorderSpacing.Left = 23
           BorderSpacing.Right = 18
           BevelOuter = bvNone
           ClientHeight = 23
-          ClientWidth = 866
+          ClientWidth = 829
           TabOrder = 3
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23
             Top = 0
-            Width = 866
+            Width = 829
             Align = alClient
             OnPaint = HorisontalAxisPaint
           end
@@ -4527,7 +4527,7 @@ object fMain: TfMain
   end
   object SaveMapAsDialog: TSaveDialog
     Title = 'Select file to save map to'
-    DefaultExt = '.json'
+    DefaultExt = '.vmap'
     Filter = 'VCMI maps|*.vmap'
     FilterIndex = 0
     left = 440

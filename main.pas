@@ -741,7 +741,7 @@ begin
   end
   else if (FMapFilename = '') and (FMap.Name <> '') then
   begin
-    SaveMapAsDialog.FileName:=FMap.Name;
+    SaveMapAsDialog.FileName:=FMap.Name + '.vmap';
     if SaveMapAsDialog.Execute then
     begin
       SaveMap(SaveMapAsDialog.FileName);
@@ -917,9 +917,6 @@ begin
   FObjectCellTotalSize:=FObjectCellSize+FObjectBorderWidth*2;
 
   FZbuffer := TZBuffer.Create;
-  pnHAxis.DoubleBuffered := True;
-  pnVAxis.DoubleBuffered := True;
-  pnMinimap.DoubleBuffered := True;
 
   FToolsFrame := TToolsFrame.Create(self);
   FToolsFrame.BorderStyle :=  bsNone;
@@ -1945,39 +1942,40 @@ procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
 var
   ctx: TCanvas;
   i:   Integer;
-  tiles, tmp: Integer;
+  tiles, MapLength, AxisLength: Integer;
   text_width: Integer;
   txt: string;
   ofs, text_scale: Integer;
 
-  img: TBitmap;
 begin
   case Kind of
-    TAxisKind.Horizontal: tmp := Axis.Width;
-    TAxisKind.Vertical: tmp := Axis.Height;
+    TAxisKind.Horizontal: AxisLength := Axis.Width;
+    TAxisKind.Vertical: AxisLength := Axis.Height;
   end;
 
-  tiles := tmp div FRealTileSize;
+  tiles := AxisLength div FRealTileSize;
 
-  img := TBitmap.Create;
-
-  img.SetSize(Axis.Width,Axis.Height);
-
-  ctx := img.Canvas;
-
-  case Kind of
-    TAxisKind.Horizontal: tmp := FMapHPos;
-    TAxisKind.Vertical: tmp := FMapVPos;
-  end;
-
-  txt := IntToStr(tmp + tiles);//max number
-  text_width := ctx.GetTextWidth(txt);
-
-  text_scale := 1 + (text_width div FRealTileSize);
+  ctx := axis.Canvas;
+  ctx.Changing;
 
   try
+    case Kind of
+      TAxisKind.Horizontal: MapLength := FMapHPos;
+      TAxisKind.Vertical: MapLength := FMapVPos;
+    end;
+
+    case Kind of
+      TAxisKind.Horizontal: ctx.Font.Orientation := 0;
+      TAxisKind.Vertical: ctx.Font.Orientation := 900;
+    end;
+
+    txt := IntToStr(MapLength + tiles);//maximum possible number
+    text_width := ctx.GetTextWidth(txt);
+
+    text_scale := 1 + (text_width div FRealTileSize);
+
     ctx.Brush.Color := clWhite;
-    ctx.FillRect(0, 0, Axis.Width, Axis.Height);
+    ctx.FillRect(0, 0, ctx.Width, ctx.Height);
 
     for i := 0 to tiles do
     begin
@@ -1986,37 +1984,31 @@ begin
         Continue;
       end;
 
-      txt := IntToStr(tmp + i);
+      txt := IntToStr(MapLength + i);
       text_width := ctx.GetTextWidth(txt);
 
       case Kind of
-        TAxisKind.Horizontal: ofs := (FRealTileSize - text_width) div 2;
-        TAxisKind.Vertical: ofs :=(FRealTileSize + text_width) div 2;
-      end;
-
-      case Kind of
-        TAxisKind.Horizontal: begin
+        TAxisKind.Horizontal:
+        begin
           if (FMapHPos + 1 + i) <= FMap.CurrentLevel.Width then
           begin
+            ofs := (FRealTileSize - text_width) div 2;
             ctx.TextOut(I * FRealTileSize + ofs, 0, txt);
           end;
         end;
-        TAxisKind.Vertical: begin
+        TAxisKind.Vertical:
+        begin
           if (FMapVPos + 1 + i) <= FMap.CurrentLevel.Height then
           begin
-            ctx.Font.Orientation := 900;
+            ofs :=(FRealTileSize + text_width) div 2;
             ctx.TextOut(0, I * FRealTileSize + ofs, txt);
-            ctx.Font.Orientation := 0;
           end;
         end;
       end;
     end;
 
-    axis.Canvas.Changing;
-    Axis.Canvas.Draw(0,0,img);
-    Axis.Canvas.Changed;
   finally
-    img.Free;
+    ctx.Changed;
   end;
 end;
 
