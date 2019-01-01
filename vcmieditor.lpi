@@ -329,7 +329,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="95">
+    <Units Count="97">
       <Unit0>
         <Filename Value="vcmieditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -822,6 +822,14 @@
         <Filename Value="map_erase_actions.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit94>
+      <Unit95>
+        <Filename Value=".travis.yml"/>
+        <IsPartOfProject Value="True"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="Makefile"/>
+        <IsPartOfProject Value="True"/>
+      </Unit96>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
