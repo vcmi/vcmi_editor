@@ -52,6 +52,20 @@ type
     constructor Create(ATarget: TObject; const APropName: string; AEditorControl: TWinControl);
   end;
 
+  { TGFieldEditor }
+
+  generic TGFieldEditor<V; E: TWinControl> = class(TBaseFieldEditor)
+  public
+    type
+      TValueType = V;
+      TEditorType = E;
+
+    constructor Create(ATarget: TObject; const APropName: string; AEditorControl: TEditorType);
+  strict protected
+    FOldValue: TValueType;
+    FWidget: TEditorType;
+  end;
+
   { TBaseOptFieldEditor }
 
   TBaseOptFieldEditor = class abstract(TBaseFieldEditor)
@@ -81,13 +95,9 @@ type
 
   { TStringFieldEditor }
 
-  TStringFieldEditor = class(TBaseFieldEditor)
-  strict private
-    FOldValue: string;
-    FWidget: TCustomEdit;
+  TStringFieldEditor = class(specialize TGFieldEditor<string, TCustomEdit>)
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
-
     procedure Commit; override;
     function IsDirty: Boolean; override;
     procedure Load; override;
@@ -124,10 +134,7 @@ type
 
   { TIntEditor }
 
-  TIntEditor = class(TBaseFieldEditor)
-  private
-    FOldValue: Int64;
-    FWidget: TCustomSpinEdit;
+  TIntEditor = class(specialize TGFieldEditor<Int64, TCustomSpinEdit>)
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
 
@@ -161,15 +168,22 @@ type
 
   { TEnumEditor }
 
-  TEnumEditor = class(TBaseFieldEditor)
-  private
-    FOldValue: Int64;
-    FDefaultValue: Int64;
-    FCustomValue: Int64;
-
-    FWidget: TCustomComboBox;
+  TEnumEditor = class(specialize TGFieldEditor<Int64, TCustomComboBox>)
   public
     constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomComboBox);
+
+    procedure Commit; override;
+    function IsDirty: Boolean; override;
+    procedure Load; override;
+  end;
+
+
+  { TBooleanEditor }
+
+  TBooleanEditor = class(specialize TGFieldEditor<Boolean, TCustomCheckBox>)
+  public
+    constructor Create(ATarget: TObject; const APropName: string; AWidget: TCustomCheckBox);
+
     procedure Commit; override;
     function IsDirty: Boolean; override;
     procedure Load; override;
@@ -189,11 +203,51 @@ type
 
 implementation
 
+{ TBooleanEditor }
+
+constructor TBooleanEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomCheckBox);
+begin
+  inherited Create(ATarget, APropName, AWidget);
+end;
+
+procedure TBooleanEditor.Commit;
+var
+  tmp : Boolean;
+begin
+  tmp := FWidget.State = cbChecked;
+  SetOrdProp(FTarget, FPropInfo, Int64(tmp));
+end;
+
+function TBooleanEditor.IsDirty: Boolean;
+begin
+  Result := FOldValue <> (FWidget.State = cbChecked);
+end;
+
+procedure TBooleanEditor.Load;
+begin
+  FOldValue:=GetOrdProp(FTarget, FPropInfo) <> 0;
+
+  if FOldValue then
+  begin
+    FWidget.State := cbChecked;
+  end
+  else begin
+    FWidget.State := cbUnchecked;
+  end;
+end;
+
+{ TGFieldEditor }
+
+constructor TGFieldEditor.Create(ATarget: TObject; const APropName: string; AEditorControl: TEditorType);
+begin
+  FWidget:=AEditorControl;
+  inherited Create(ATarget, APropName, AEditorControl);
+end;
+
 { TStringFieldEditor }
 
 constructor TStringFieldEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
 begin
-  FWidget := AWidget;
   inherited Create(ATarget, APropName, AWidget);
 end;
 
@@ -357,7 +411,6 @@ end;
 
 constructor TIntEditor.Create(ATarget: TObject; const APropName: string; AWidget: TCustomSpinEdit);
 begin
-  FWidget := AWidget;
   inherited Create(ATarget, APropName, AWidget);
 end;
 
@@ -487,7 +540,6 @@ var
   i, cnt: SizeInt;
   value_name: AnsiString;
 begin
-  FWidget := AWidget;
   inherited Create(ATarget, APropName, AWidget);
 
   AWidget.Items.Clear;

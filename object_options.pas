@@ -480,6 +480,7 @@ type
     FHumanActivable: boolean;
     FRemoveAfterVisit: Boolean;
   public
+    constructor Create(AObject: IMapObject); override;
     procedure ApplyVisitor(AVisitor: IObjectOptionsVisitor); override;
     procedure Clear; override;
   published
@@ -2837,6 +2838,12 @@ begin
 end;
 
 { TLocalEventOptions }
+
+constructor TLocalEventOptions.Create(AObject: IMapObject);
+begin
+  inherited Create(AObject);
+  Clear;
+end;
 
 procedure TLocalEventOptions.ApplyVisitor(AVisitor: IObjectOptionsVisitor);
 begin

@@ -35,6 +35,8 @@ type
     edPlayers: TCheckGroup;
     edActivableBy: TComboBox;
     Label1: TLabel;
+    MessageEdit: TMemo;
+    MessageLabel: TLabel;
   private
     FOptions: TLocalEventOptions;
   public
@@ -53,11 +55,12 @@ procedure TLocalEventFrame.VisitLocalEvent(AOptions: TLocalEventOptions);
 var
   pl: TPlayer;
 begin
-  inherited VisitLocalEvent(AOptions);
-
   FOptions := AOptions;
 
-  edRemoveAfterVisit.Checked:=FOptions.RemoveAfterVisit;
+  inherited VisitLocalEvent(AOptions);
+
+  AddStrEditor(AOptions, 'GuardMessage', MessageEdit);
+  AddBoolEditor(AOptions, 'RemoveAfterVisit', edRemoveAfterVisit);
 
   if FOptions.HumanActivable then
   begin
@@ -77,6 +80,8 @@ begin
   begin
     edPlayers.Checked[Integer(pl)] := FOptions.AvailableFor * [pl] = [pl];
   end;
+
+  Load();
 end;
 
 procedure TLocalEventFrame.Commit;
@@ -84,14 +89,12 @@ var
   pl: TPlayer;
 begin
   inherited Commit;
-  FOptions.RemoveAfterVisit := edRemoveAfterVisit.Checked;
 
   case edActivableBy.ItemIndex of
     0:begin FOptions.HumanActivable := true; FOptions.AIActivable:=False; end;
     1:begin FOptions.HumanActivable := False; FOptions.AIActivable:=True; end;
     2:begin FOptions.HumanActivable := true; FOptions.AIActivable:=True; end;
   end;
-
 
   FOptions.AvailableFor := [];
 
