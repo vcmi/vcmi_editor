@@ -20,13 +20,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--all --format=plain"/>
+        <CommandLineParams Value="-a --format=plain"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--all --format=plain"/>
+            <CommandLineParams Value="-a --format=plain"/>
           </local>
         </Mode0>
       </Modes>

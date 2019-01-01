@@ -51,10 +51,6 @@ type
   TCSVParser = vcmi_csvreadwrite.TCSVParser;
   TCSVBuilder = vcmi_csvreadwrite.TCSVBuilder;
 
-  {$IFNDEF FPC}
-  TFPObjectList = TObjectList;
-  {$ENDIF}
-
   // Random access to CSV document. Reads entire document into memory.
   TCSVDocument = class(TCSVHandler)
   private

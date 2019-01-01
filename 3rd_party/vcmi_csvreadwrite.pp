@@ -319,9 +319,6 @@ end;
 
 procedure TCSVParser.SkipEndOfLine;
 begin
-  // treat LF+CR as two linebreaks, not one
-  if (FCurrentChar = CR) then
-    NextChar;
   if (FCurrentChar = LF) then
     NextChar;
 end;
@@ -340,12 +337,33 @@ end;
 
 procedure TCSVParser.NextChar;
 begin
+  EndOfLine := false;
   if FSourceStream.Read(FCurrentChar, CsvCharSize) < CsvCharSize then
   begin
     FCurrentChar := #0;
     EndOfFile := True;
   end;
-  EndOfLine := FCurrentChar in LineEndingChars;
+
+  if FCurrentChar = CR then
+  begin
+    if FSourceStream.Read(FCurrentChar, CsvCharSize) < CsvCharSize then
+    begin
+      FCurrentChar := #0;
+      EndOfFile := True;
+      exit;
+    end;
+
+    if FCurrentChar = LF then
+    begin
+      EndOfLine := True;
+    end
+    else
+    begin
+      AppendStr(FCellBuffer, #13);
+    end;
+  end;
+
+  //EndOfLine := FCurrentChar in LineEndingChars;
 end;
 
 procedure TCSVParser.ParseCell;
