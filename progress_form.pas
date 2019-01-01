@@ -41,6 +41,8 @@ type
   private
     FCompleted: Boolean;
     FHasErrors: boolean;
+    FMax: Integer;
+    FCurrent: integer;
     procedure SetCompleted(AValue: Boolean);
     { private declarations }
   public
@@ -65,9 +67,20 @@ implementation
 { TProgressForm }
 
 procedure TProgressForm.Advance(ADelta: integer);
+var
+  FOld, FOldNormalized, FCurrentNormalized: Integer;
 begin
-  pbDetail.Position := pbDetail.Position+ADelta;
-  Application.ProcessMessages;
+  FOld := FCurrent;
+  inc(FCurrent, ADelta);
+
+  FOldNormalized := FOld * pbDetail.Max div FMax;
+  FCurrentNormalized := FCurrent * pbDetail.Max div FMax;
+
+  if FOldNormalized < FCurrentNormalized then
+  begin
+    pbDetail.StepBy(FCurrentNormalized - FOldNormalized);
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TProgressForm.FormCreate(Sender: TObject);
@@ -96,7 +109,7 @@ end;
 
 function TProgressForm.GetMax: Integer;
 begin
-  Result := pbDetail.Max;
+  Result := FMax;
 end;
 
 procedure TProgressForm.NextStage(const AStageLabel: string);
@@ -128,13 +141,15 @@ end;
 procedure TProgressForm.Reset;
 begin
   pbDetail.Position := pbDetail.Min;
+  FCurrent:=0;
   lbDetail.Caption := '';
   FCompleted:=false;
 end;
 
 procedure TProgressForm.SetMax(AValue: Integer);
 begin
-  pbDetail.Max := AValue;
+  FMax := AValue;
+  FCurrent:=0;
   pbDetail.Position := pbDetail.Min;
   Application.ProcessMessages;
 end;

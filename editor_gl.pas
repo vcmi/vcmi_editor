@@ -259,7 +259,6 @@ procedure CheckGLErrors(Stage: string);
 var
   err: GLenum;
 begin
-
   repeat
     err := glGetError();
 

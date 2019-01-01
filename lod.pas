@@ -85,6 +85,7 @@ const
 
 var
   GlobalZBuffer: TZBuffer;
+  GlobalMemBuffer: TMemoryStream;
 
 { TLod }
 
@@ -103,20 +104,35 @@ end;
 
 procedure TLod.LoadResource(AResource: IResource; constref AItem: TLodItem);
 var
-  stm: TZlibInputStream;
+  zstm: TZlibInputStream;
   fname: AnsiString;
 begin
+  //todo: multithreaded LOD decompression
+
   fname:=AItem.Filename;
-  FFileStream.Seek(AItem.FileOffset,soBeginning);
-  if AItem.FileLength <> 0 then
-  begin
-    //todo: allow multithreaded use
-    stm := TZlibInputStream.Create(GlobalZBuffer, FFileStream,AItem.UncompressedFileSize);
-    AResource.LoadFromStream(fname, stm);
-    stm.free;
-  end
-  else begin
-    AResource.LoadFromStream(fname, FFileStream);
+
+  GlobalMemBuffer.SetSize(AItem.UncompressedFileSize);
+  zstm := nil;
+
+  try
+     FFileStream.Seek(AItem.FileOffset,soBeginning);
+     if AItem.FileLength <> 0 then
+     begin
+       zstm := TZlibInputStream.Create(GlobalZBuffer, FFileStream, AItem.UncompressedFileSize);
+       zstm.Read(GlobalMemBuffer.Memory^, AItem.UncompressedFileSize);
+     end
+     else begin
+       FFileStream.Read(GlobalMemBuffer.Memory^, AItem.UncompressedFileSize);
+     end;
+
+     GlobalMemBuffer.Seek(0, soBeginning);
+     AResource.LoadFromStream(fname, GlobalMemBuffer);
+  finally
+
+    if Assigned(zstm) then
+    begin
+      zstm.Free;
+    end;
   end;
 
 end;
@@ -164,7 +180,9 @@ end;
 initialization
 
   GlobalZBuffer := TZBuffer.Create;
+  GlobalMemBuffer := TMemoryStream.Create;
 
 finalization
   FreeAndNil(GlobalZBuffer);
+  FreeAndNil(GlobalMemBuffer);
 end.

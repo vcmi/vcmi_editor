@@ -91,7 +91,7 @@ type
     procedure UnBindTextures;
     property Loaded: TGraphicsLoadFlag read FLoaded write FLoaded;
 
-    procedure SetPalette(constref APlalette: TRGBAPalette);
+    procedure SetPalette(constref APalette: TRGBAPalette);
   end;
 
   { TAnimationMap }
@@ -262,11 +262,15 @@ type
     procedure SetLoadMode(AValue: TGraphicsLoadMode);
 
     procedure AddTask(ATarget: TAnimation; AMode: TGraphicsLoadMode);
+
+    procedure DoTask(ATask: TAnimationLoadTask; AProgress: IProgressCallback);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure PreLoad;
+
+    function HasTasks(): Boolean;
 
     property Blocked: Boolean read FBlocked write SetBlocked;
     property LoadMode: TGraphicsLoadMode read FLoadMode write SetLoadMode;
@@ -274,7 +278,7 @@ type
     //load all expect first
     procedure Load(AAnimation: TAnimation);
 
-    procedure LoadQueued(AState: TLocalState);
+    procedure LoadQueued(AState: TLocalState; AProgress: IProgressCallback);
 
     function GetGraphics(const AResourceName:string): TAnimation;
     function GetHeroFlagAnimation(APlayer: TPlayer): TAnimation;
@@ -297,6 +301,8 @@ type
 
     //if true blocks all actual assets operations
     property Blocked: Boolean read FBlocked write SetBlocked;
+
+    function HasTasks(): Boolean;
 
     property Icons: TGraphicsStorage read FIcons;
     property Animations: TGraphicsStorage read FAnimations;
@@ -486,6 +492,44 @@ begin
   end;
 end;
 
+procedure TGraphicsStorage.DoTask(ATask: TAnimationLoadTask; AProgress: IProgressCallback);
+var
+  ALoadMode: TGraphicsLoadMode;
+  ATarget: TAnimation;
+  found: Boolean;
+begin
+  ALoadMode := ATask.Mode;
+  ATarget := ATask.Target;
+
+  ATarget.FixLoadMode(ALoadMode);
+
+  FDefLoader.Current := ATarget;
+  FDefLoader.Mode := ALoadMode;
+  FDefLoader.CurrentPath := ATarget.ResourceID;
+
+  found := FDefLoader.TryLoad();
+
+  FJsonLoader.Current := ATarget;
+  FJsonLoader.Mode:=ALoadMode;
+  FJsonLoader.CurrentPath:=ATarget.ResourceID;
+
+  if FJsonLoader.TryLoad() then
+  begin
+    found := true;
+  end;
+
+  if not found then
+  begin
+    AProgress.AddError('Animation not found: '+ATarget.ResourceID);
+    DebugLn('Animation not found: '+ATarget.ResourceID);
+
+    ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
+  end;
+
+  ATarget.UpdateLoadFlag(ALoadMode);
+  AProgress.Advance(1);
+end;
+
 function TGraphicsStorage.GetGraphics(const AResourceName: string): TAnimation;
 var
   res_index: Integer;
@@ -540,18 +584,20 @@ begin
   end;
 end;
 
+function TGraphicsStorage.HasTasks(): Boolean;
+begin
+  Result := FQueue.Count <> 0;
+end;
+
 procedure TGraphicsStorage.Load(AAnimation: TAnimation);
 begin
   if AAnimation.Loaded <> TGraphicsLoadFlag.Complete then
     AddTask(AAnimation, TGraphicsLoadMode.LoadRest);
 end;
 
-procedure TGraphicsStorage.LoadQueued(AState: TLocalState);
+procedure TGraphicsStorage.LoadQueued(AState: TLocalState; AProgress: IProgressCallback);
 var
   ATask: TAnimationLoadTask;
-  ALoadMode: TGraphicsLoadMode;
-  ATarget: TAnimation;
-  found: Boolean;
 begin
   if Blocked then
   begin
@@ -564,37 +610,11 @@ begin
     exit;
   end;
 
+  AProgress.SetMax(FQueue.Count);
+
   for ATask in FQueue do
-  begin
-    ALoadMode := ATask.Mode;
-    ATarget := ATask.Target;
+    DoTask(ATask, AProgress);
 
-    ATarget.FixLoadMode(ALoadMode);
-
-    FDefLoader.Current := ATarget;
-    FDefLoader.Mode := ALoadMode;
-    FDefLoader.CurrentPath := ATarget.ResourceID;
-
-    found := FDefLoader.TryLoad();
-
-    FJsonLoader.Current := ATarget;
-    FJsonLoader.Mode:=ALoadMode;
-    FJsonLoader.CurrentPath:=ATarget.ResourceID;
-
-    if FJsonLoader.TryLoad() then
-    begin
-      found := true;
-    end;
-
-    if not found then
-    begin
-      DebugLn('Animation not found: '+ATarget.ResourceID);
-
-      ResourceLoader.LoadResource(FDefLoader, TResourceType.Animation, 'SPRITES/DEFAULT');
-    end;
-
-    ATarget.UpdateLoadFlag(ALoadMode);
-  end;
   FQueue.Clear;
 end;
 
@@ -1288,6 +1308,11 @@ begin
   FAnimations.PreLoad;
 end;
 
+function TGraphicsManager.HasTasks(): Boolean;
+begin
+  Result := FIcons.HasTasks() or FAnimations.HasTasks();
+end;
+
 procedure TGraphicsManager.SetBlocked(AValue: Boolean);
 begin
   FBlocked:=AValue;
@@ -1471,11 +1496,11 @@ begin
   end;
 end;
 
-procedure TAnimation.SetPalette(constref APlalette: TRGBAPalette);
+procedure TAnimation.SetPalette(constref APalette: TRGBAPalette);
 begin
   UnbindPalette;
   glGenTextures(1, @FPaletteID);
-  BindPalette(FPaletteID,@APlalette);
+  BindPalette(FPaletteID,@APalette);
 end;
 
 end.

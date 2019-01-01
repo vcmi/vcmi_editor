@@ -2,10 +2,10 @@ object fMain: TfMain
   Left = 376
   Height = 569
   Top = 9
-  Width = 1284
+  Width = 1274
   Caption = 'VCMI editor'
   ClientHeight = 569
-  ClientWidth = 1284
+  ClientWidth = 1274
   Icon.Data = {
     7C3D01000000010001000000000001004000663D01001600000089504E470D0A
     1A0A0000000D49484452000001000000010008060000005C72A86600013D2D49
@@ -2561,11 +2561,11 @@ object fMain: TfMain
     Left = 0
     Height = 34
     Top = 0
-    Width = 1284
+    Width = 1274
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 34
-    ClientWidth = 1284
+    ClientWidth = 1274
     TabOrder = 3
     object MainToolBar: TToolBar
       Left = 0
@@ -2665,7 +2665,7 @@ object fMain: TfMain
       Left = 345
       Height = 34
       Top = 0
-      Width = 939
+      Width = 929
       Align = alClient
       BorderSpacing.Left = 345
       ButtonHeight = 32
@@ -2752,7 +2752,7 @@ object fMain: TfMain
     end
   end
   object pnRight: TPanel
-    Left = 1080
+    Left = 1070
     Height = 512
     Top = 34
     Width = 204
@@ -2855,8 +2855,11 @@ object fMain: TfMain
     Left = 0
     Height = 23
     Top = 546
-    Width = 1284
+    Width = 1274
     Panels = <    
+      item
+        Width = 200
+      end    
       item
         Width = 300
       end    
@@ -2868,6 +2871,7 @@ object fMain: TfMain
         Width = 100
       end>
     SimplePanel = False
+    OnDrawPanel = StatusBarDrawPanel
   end
   object pnLeft: TPanel
     Left = 0
@@ -2905,7 +2909,7 @@ object fMain: TfMain
     Left = 202
     Height = 512
     Top = 34
-    Width = 878
+    Width = 868
     ActivePage = tsMap
     Align = alClient
     ShowTabs = False
@@ -2915,16 +2919,16 @@ object fMain: TfMain
     object tsMap: TTabSheet
       Caption = 'tsMap'
       ClientHeight = 504
-      ClientWidth = 870
+      ClientWidth = 860
       object pnMap: TPanel
         Left = 0
         Height = 504
         Top = 0
-        Width = 870
+        Width = 860
         Align = alClient
         BevelOuter = bvNone
         ClientHeight = 504
-        ClientWidth = 870
+        ClientWidth = 860
         Color = clWhite
         ParentColor = False
         TabOrder = 0
@@ -2932,7 +2936,7 @@ object fMain: TfMain
           Left = 18
           Height = 16
           Top = 488
-          Width = 834
+          Width = 824
           Align = alBottom
           BorderSpacing.Left = 18
           BorderSpacing.Right = 18
@@ -2942,7 +2946,7 @@ object fMain: TfMain
           OnScroll = hScrollBarScroll
         end
         object vScrollBar: TScrollBar
-          Left = 854
+          Left = 844
           Height = 465
           Top = 23
           Width = 16
@@ -2976,19 +2980,19 @@ object fMain: TfMain
           Left = 23
           Height = 23
           Top = 0
-          Width = 829
+          Width = 819
           Align = alTop
           BorderSpacing.Left = 23
           BorderSpacing.Right = 18
           BevelOuter = bvNone
           ClientHeight = 23
-          ClientWidth = 829
+          ClientWidth = 819
           TabOrder = 3
           object HorisontalAxis: TPaintBox
             Left = 0
             Height = 23
             Top = 0
-            Width = 829
+            Width = 819
             Align = alClient
             OnPaint = HorisontalAxisPaint
           end
@@ -3070,6 +3074,7 @@ object fMain: TfMain
   end
   object MainActions: TActionList
     Images = imlMainActions
+    OnUpdate = MainActionsUpdate
     left = 440
     top = 216
     object actCreateMap: TAction

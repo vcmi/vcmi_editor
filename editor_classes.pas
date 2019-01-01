@@ -30,25 +30,19 @@ type
   { IProgressCallback }
 
   IProgressCallback = interface
-    function GetMax: Integer;
-    procedure SetMax(AValue: Integer);
-
+      function GetMax: Integer;
+      procedure SetMax(AValue: Integer);
     property Max: Integer read GetMax write SetMax;
-
     procedure Advance(ADelta: integer);
-
     procedure NextStage(const AStageLabel:string);
-
     procedure AddError(const ADescription: string);
   end;
 
 
-  {
-    May contain only one published property serialized directly (w/o object node)
-  }
+  { IEmbeddedValue
+    May contain only one published property serialized directly (w/o object node) }
 
   IEmbeddedValue = interface ['IEmbbeddedValue']
-
   end;
 
   { INamedCollection
@@ -56,14 +50,12 @@ type
     uses TNamedCollectionItem.Identifier as a name of field }
 
   INamedCollection = interface ['INamedCollection']
-
   end;
 
   { IArrayCollection
     Stored as array in JSON  }
 
   IArrayCollection = interface ['IArrayCollection']
-
   end;
 
   { IEmbeddedCollection }
