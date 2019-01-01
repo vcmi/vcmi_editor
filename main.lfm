@@ -2571,10 +2571,9 @@ object fMain: TfMain
       Left = 0
       Height = 34
       Top = 0
-      Width = 340
+      Width = 348
       Align = alNone
       AutoSize = True
-      BorderSpacing.Around = 1
       ButtonHeight = 32
       ButtonWidth = 32
       Images = imlMainActions
@@ -2623,22 +2622,22 @@ object fMain: TfMain
         Caption = 'ToolButton7'
         Style = tbsDivider
       end
-      object ToolButton18: TToolButton
-        Left = 263
-        Top = 2
-        Action = actProperties
-        ShowCaption = False
-      end
-      object ToolButton19: TToolButton
-        Left = 304
-        Top = 2
-        Action = actDelete
-        ShowCaption = False
-      end
       object ToolButton8: TToolButton
         Left = 191
         Top = 2
         Action = actZoomIn
+        ShowCaption = False
+      end
+      object ToolButton10: TToolButton
+        Left = 227
+        Top = 2
+        Action = actZoomOut
+        ShowCaption = False
+      end
+      object ToolButton18: TToolButton
+        Left = 263
+        Top = 2
+        Action = actProperties
         ShowCaption = False
       end
       object ToolButton9: TToolButton
@@ -2648,20 +2647,27 @@ object fMain: TfMain
         Caption = 'ToolButton9'
         Style = tbsDivider
       end
-      object ToolButton10: TToolButton
-        Left = 227
+      object ToolButton19: TToolButton
+        Left = 304
         Top = 2
-        Action = actZoomOut
+        Action = actDelete
         ShowCaption = False
+      end
+      object ToolButton24: TToolButton
+        Left = 340
+        Height = 32
+        Top = 2
+        Caption = 'ToolButton24'
+        Style = tbsSeparator
       end
     end
     object FilterToolBar: TToolBar
-      Left = 340
+      Left = 345
       Height = 34
       Top = 0
-      Width = 944
+      Width = 939
       Align = alClient
-      BorderSpacing.Left = 340
+      BorderSpacing.Left = 345
       ButtonHeight = 32
       ButtonWidth = 32
       Caption = 'FilterToolBar'

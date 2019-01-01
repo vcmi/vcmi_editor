@@ -146,6 +146,7 @@ type
     SearchTimer: TTimer;
     FilterToolBar: TToolBar;
     ToolButton22: TToolButton;
+    ToolButton24: TToolButton;
     tsMap: TTabSheet;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;

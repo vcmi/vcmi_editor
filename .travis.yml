@@ -1,17 +1,19 @@
+dist: xenial
+
 language: generic
 
 addons:
   apt:
     update: true
+    packages:
+      - libgtk2.0-dev
+      - libgl1-mesa-dev
 
-install:
-    - sudo apt-get update
-    - sudo apt -y install libgtk2.0-dev
-    - wget -t 10 -O lazarus-project_2.0.0RC2-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC2/lazarus-project_2.0.0RC2-0_amd64.deb/download
-    - wget -t 10 -O fpc-laz_3.0.4-1_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC2/fpc-laz_3.0.4-1_amd64.deb/download
-    - wget -t 10 -O fpc-src_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC2/fpc-src_3.0.4-2_amd64.deb/download
-    - sudo dpkg -i fpc-src_3.0.4-2_amd64.deb fpc-laz_3.0.4-1_amd64.deb lazarus-project_2.0.0RC2-0_amd64.deb
-    - sudo tar -vzxf x86_64-linux-prt0-pre2.26-binutils.tar.gz --overwrite --no-same-owner --no-same-permissions -C /usr/
+before_install:
+    - wget -t 10 -O lazarus-project_2.0.0RC3-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/lazarus-project_2.0.0RC3-0_amd64.deb/download
+    - wget -t 10 -O fpc-laz_3.0.4-1_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/fpc-laz_3.0.4-1_amd64.deb/download
+    - wget -t 10 -O fpc-src_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/fpc-src_3.0.4-2_amd64.deb/download
+    - sudo dpkg -i fpc-src_3.0.4-2_amd64.deb fpc-laz_3.0.4-1_amd64.deb lazarus-project_2.0.0RC3-0_amd64.deb
 
 script:
     - make
