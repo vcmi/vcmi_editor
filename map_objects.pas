@@ -894,6 +894,7 @@ begin
 
     obj.MapObjectType.GetKeyWords(keywords);
 
+    FSearchIndexes[TObjectCategory.ALL].AddToIndex(keywords, obj);
     FSearchIndexes[ACategory].AddToIndex(keywords, obj);
   end;
   keywords.Free;

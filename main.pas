@@ -89,6 +89,7 @@ type
     actFilterDwelling: TAction;
     actFilterOnMap: TAction;
     actClearActiveBrush: TAction;
+    actFilterAll: TAction;
     actZoomOut: TAction;
     actZoomIn: TAction;
     actViewGrid: TAction;
@@ -144,6 +145,7 @@ type
     AnimTimer: TTimer;
     SearchTimer: TTimer;
     FilterToolBar: TToolBar;
+    ToolButton22: TToolButton;
     tsMap: TTabSheet;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
@@ -182,6 +184,7 @@ type
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
+    procedure actFilterAllExecute(Sender: TObject);
     procedure actFilterArtifactsExecute(Sender: TObject);
     procedure actFilterCreaturesExecute(Sender: TObject);
     procedure actFilterDwellingExecute(Sender: TObject);
@@ -594,6 +597,11 @@ begin
   (Sender as TAction).Enabled := Assigned(FToolsFrame.SelectedObject);
 end;
 
+procedure TfMain.actFilterAllExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.ALL);
+end;
+
 procedure TfMain.actFilterArtifactsExecute(Sender: TObject);
 begin
   DoObjectsCatSearch(TObjectCategory.Artifact);
@@ -953,7 +961,7 @@ begin
 
   FToolsFrame.SetVisibleObjects(FVisibleObjects);
 
-  FObjectCategory:=TObjectCategory.Hero;
+  FObjectCategory:=TObjectCategory.ALL;
 
   FTemplatesResult := TObjectsSelection.Create();
   FMapObjectsResult := TMapObjectsSelection.Create();
@@ -2140,7 +2148,7 @@ begin
   InvalidateObjects;
 end;
 
-procedure TfMain.UpdateWidgets;
+procedure TfMain.UpdateWidgets();
 var
   s, status_text: String;
   t: PMapTile;
@@ -2199,7 +2207,7 @@ begin
   //FocusControl(nil);
 end;
 
-procedure TfMain.DoObjectsSearch;
+procedure TfMain.DoObjectsSearch();
 begin
   SearchTimer.Enabled:=false;
 
@@ -2340,7 +2348,6 @@ begin
   end;
 
 end;
-
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);
 begin

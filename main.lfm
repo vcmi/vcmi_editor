@@ -4,7 +4,7 @@ object fMain: TfMain
   Top = 9
   Width = 1284
   Caption = 'VCMI editor'
-  ClientHeight = 549
+  ClientHeight = 569
   ClientWidth = 1284
   Icon.Data = {
     7C3D01000000010001000000000001004000663D01001600000089504E470D0A
@@ -2557,7 +2557,6 @@ object fMain: TfMain
   OnKeyDown = FormKeyDown
   OnResize = FormResize
   Position = poDefault
-  LCLVersion = '2.0.0.3'
   object pnTop: TPanel
     Left = 0
     Height = 34
@@ -2600,7 +2599,7 @@ object fMain: TfMain
       end
       object ToolButton4: TToolButton
         Left = 109
-        Height = 5
+        Height = 32
         Top = 2
         Caption = 'ToolButton4'
         Style = tbsDivider
@@ -2619,7 +2618,7 @@ object fMain: TfMain
       end
       object ToolButton7: TToolButton
         Left = 186
-        Height = 5
+        Height = 32
         Top = 2
         Caption = 'ToolButton7'
         Style = tbsDivider
@@ -2644,7 +2643,7 @@ object fMain: TfMain
       end
       object ToolButton9: TToolButton
         Left = 299
-        Height = 5
+        Height = 32
         Top = 2
         Caption = 'ToolButton9'
         Style = tbsDivider
@@ -2669,71 +2668,78 @@ object fMain: TfMain
       ShowCaptions = True
       TabOrder = 1
       Wrapable = False
-      object ToolButton11: TToolButton
+      object ToolButton22: TToolButton
         Left = 1
+        Top = 2
+        Action = actFilterAll
+        Grouped = True
+        Style = tbsCheck
+      end
+      object ToolButton11: TToolButton
+        Left = 33
         Top = 2
         Action = actFilterHeroes
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton12: TToolButton
-        Left = 46
+        Left = 78
         Top = 2
         Action = actFilterTowns
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton13: TToolButton
-        Left = 89
+        Left = 121
         Top = 2
         Action = actFilterArtifacts
         Grouped = True
         Style = tbsCheck
       end
-      object ToolButton14: TToolButton
-        Left = 258
-        Top = 2
-        Action = actFilterResources
-        Grouped = True
-        Style = tbsCheck
-      end
-      object ToolButton15: TToolButton
-        Left = 319
-        Top = 2
-        Action = actFilterStatic
-        Grouped = True
-        Style = tbsCheck
-      end
-      object ToolButton16: TToolButton
-        Left = 356
-        Top = 2
-        Action = actFilterOther
-        Grouped = True
-        Style = tbsCheck
-      end
       object ToolButton17: TToolButton
-        Left = 141
+        Left = 173
         Top = 2
         Action = actFilterCreatures
         Grouped = True
         Style = tbsCheck
       end
       object ToolButton20: TToolButton
-        Left = 199
+        Left = 231
         Top = 2
         Action = actFilterDwelling
         Grouped = True
         Style = tbsCheck
       end
+      object ToolButton14: TToolButton
+        Left = 290
+        Top = 2
+        Action = actFilterResources
+        Grouped = True
+        Style = tbsCheck
+      end
+      object ToolButton15: TToolButton
+        Left = 351
+        Top = 2
+        Action = actFilterStatic
+        Grouped = True
+        Style = tbsCheck
+      end
+      object ToolButton16: TToolButton
+        Left = 388
+        Top = 2
+        Action = actFilterOther
+        Grouped = True
+        Style = tbsCheck
+      end
       object ToolButton21: TToolButton
-        Left = 394
-        Height = 5
+        Left = 426
+        Height = 32
         Top = 2
         Caption = 'ToolButton21'
         Style = tbsDivider
       end
       object ToolButton23: TToolButton
-        Left = 399
+        Left = 431
         Top = 2
         Action = actFilterOnMap
       end
@@ -3164,7 +3170,6 @@ object fMain: TfMain
       Category = 'Filter'
       AutoCheck = True
       Caption = 'Heroes'
-      Checked = True
       GroupIndex = 1000
       OnExecute = actFilterHeroesExecute
     end
@@ -3210,16 +3215,24 @@ object fMain: TfMain
       GroupIndex = 1000
       OnExecute = actFilterDwellingExecute
     end
+    object actClearActiveBrush: TAction
+      Caption = 'Clear active brush'
+      OnExecute = actClearActiveBrushExecute
+      ShortCut = 27
+    end
+    object actFilterAll: TAction
+      Category = 'Filter'
+      AutoCheck = True
+      Caption = 'All'
+      Checked = True
+      GroupIndex = 1000
+      OnExecute = actFilterAllExecute
+    end
     object actFilterOnMap: TAction
       Category = 'Filter'
       AutoCheck = True
       Caption = 'On map'
       OnExecute = actFilterOnMapExecute
-    end
-    object actClearActiveBrush: TAction
-      Caption = 'Clear active brush'
-      OnExecute = actClearActiveBrushExecute
-      ShortCut = 27
     end
   end
   object ApplicationProperties1: TApplicationProperties

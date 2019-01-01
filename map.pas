@@ -3680,6 +3680,7 @@ begin
   keywords.Duplicates:=dupAccept;
   try
     AObject.GetKeyWords(keywords);
+    FSearchIndexes[TObjectCategory.ALL].AddToIndex(keywords, AObject);
     FSearchIndexes[AObject.Category].AddToIndex(keywords, AObject);
   finally
     keywords.Free;
@@ -3688,6 +3689,7 @@ end;
 
 procedure TVCMIMap.RemoveFromIndex(AObject: TMapObject);
 begin
+  FSearchIndexes[TObjectCategory.ALL].RemoveFromIndex(AObject);
   FSearchIndexes[AObject.Category].RemoveFromIndex(AObject);
 end;
 
