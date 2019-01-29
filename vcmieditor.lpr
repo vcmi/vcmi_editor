@@ -30,7 +30,7 @@ uses
 
 begin
 
-  {$IF DEFINED(DEBUG)}
+  {$IF DEFINED(VCMI_USE_HEAPTRACE)}
   if FileExists('heap.trc') then
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');

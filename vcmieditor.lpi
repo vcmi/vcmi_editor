@@ -29,7 +29,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="15"/>
-      <BuildNr Value="151"/>
+      <BuildNr Value="152"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
@@ -65,6 +65,11 @@
               </Win32>
             </Options>
           </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+            </Verbosity>
+          </Other>
         </CompilerOptions>
       </Item2>
       <Item3 Name="Profile">
@@ -96,9 +101,7 @@
           </Linking>
           <Other>
             <Verbosity>
-              <ShowNotes Value="False"/>
               <ShowHints Value="False"/>
-              <ShoLineNum Value="True"/>
             </Verbosity>
           </Other>
         </CompilerOptions>
@@ -134,6 +137,7 @@
           <Linking>
             <Debugging>
               <GenerateDebugInfo Value="False"/>
+              <StripSymbols Value="True"/>
             </Debugging>
             <LinkSmart Value="True"/>
             <Options>
@@ -145,7 +149,6 @@
           <Other>
             <Verbosity>
               <ShowHints Value="False"/>
-              <ShoLineNum Value="True"/>
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
@@ -193,11 +196,14 @@
           <Other>
             <Verbosity>
               <ShowHints Value="False"/>
-              <ShoLineNum Value="True"/>
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
             </ConfigFile>
+            <CustomOptions Value="-dVCMI_USE_HEAPTRACE"/>
+            <OtherDefines Count="1">
+              <Define0 Value="VCMI_USE_HEAPTRACE"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item5>
@@ -220,11 +226,17 @@
           </Parsing>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
+            <Checks>
+              <IOChecks Value="True"/>
+            </Checks>
             <Optimizations>
               <OptimizationLevel Value="3"/>
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
             <LinkSmart Value="True"/>
             <Options>
               <Win32>
@@ -232,6 +244,14 @@
               </Win32>
             </Options>
           </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+            </Verbosity>
+            <ConfigFile>
+              <UseCommentsInCustomOptions Value="True"/>
+            </ConfigFile>
+          </Other>
         </CompilerOptions>
       </Item6>
       <Item7 Name="ReleaseWin32">
@@ -276,7 +296,6 @@
           <Other>
             <Verbosity>
               <ShowHints Value="False"/>
-              <ShoLineNum Value="True"/>
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
@@ -284,10 +303,8 @@
           </Other>
         </CompilerOptions>
       </Item7>
-      <SharedMatrixOptions Count="3">
-        <Item1 ID="127405509966" Targets="#project" Modes="DebugWin64,Debug" Value="-dDEBUG"/>
-        <Item2 ID="440454387983" Targets="#project" Modes="Release,ReleaseWin64" Value="-dRELEASE"/>
-        <Item3 ID="578114123011" Targets="#project" Modes="Debug,Release,Profile,ReleaseWin64,DebugWin64" Value="-vm5024"/>
+      <SharedMatrixOptions Count="1">
+        <Item1 ID="578114123011" Targets="#project" Modes="Debug,Release,Profile,ReleaseWin64,DebugWin64,RD,ReleaseWin32" Value="-vm5024"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -868,11 +885,11 @@
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>
-        <ShoLineNum Value="True"/>
       </Verbosity>
       <ConfigFile>
         <StopAfterErrCount Value="10"/>
       </ConfigFile>
+      <CustomOptions Value="-dVCMI_USE_HEAPTRACE"/>
     </Other>
   </CompilerOptions>
   <Debugging>
