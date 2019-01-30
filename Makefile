@@ -1,7 +1,7 @@
 all: vcmieditor
 
 vcmieditor:
-	lazbuild 3rd_party/opengl/vcmiopenglcontext.lpk vcmieditor.lpr
+	lazbuild --bm=RD 3rd_party/opengl/vcmiopenglcontext.lpk vcmieditor.lpr
 
 build_tests:
 	lazbuild tests/unit_tests.lpr

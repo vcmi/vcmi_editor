@@ -15,6 +15,10 @@
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <XPManifest>
+        <TextName Value="VCMI.VCMI.VCMIEditor"/>
+        <TextDesc Value="Map editor for VCMI project"/>
+      </XPManifest>
       <Icon Value="0"/>
       <Resources Count="2">
         <Resource_0 FileName="shaders/default_v.glsl" Type="RCDATA" ResourceName="DEFAULT_VERTEX_SHADER"/>
@@ -29,7 +33,7 @@
       <AutoIncrementBuild Value="True"/>
       <MinorVersionNr Value="1"/>
       <RevisionNr Value="15"/>
-      <BuildNr Value="152"/>
+      <BuildNr Value="153"/>
       <Attributes pvaPreRelease="True"/>
       <StringTable OriginalFilename="vcmieditor.exe" ProductName="VCMI" ProductVersion="0.99"/>
     </VersionInfo>
@@ -69,6 +73,9 @@
             <Verbosity>
               <ShowHints Value="False"/>
             </Verbosity>
+            <ConfigFile>
+              <CustomConfigFile Value="True"/>
+            </ConfigFile>
           </Other>
         </CompilerOptions>
       </Item2>
@@ -103,6 +110,9 @@
             <Verbosity>
               <ShowHints Value="False"/>
             </Verbosity>
+            <ConfigFile>
+              <CustomConfigFile Value="True"/>
+            </ConfigFile>
           </Other>
         </CompilerOptions>
       </Item3>
@@ -152,6 +162,7 @@
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
+              <CustomConfigFile Value="True"/>
             </ConfigFile>
           </Other>
         </CompilerOptions>
@@ -199,6 +210,7 @@
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
+              <CustomConfigFile Value="True"/>
             </ConfigFile>
             <CustomOptions Value="-dVCMI_USE_HEAPTRACE"/>
             <OtherDefines Count="1">
@@ -249,7 +261,7 @@
               <ShowHints Value="False"/>
             </Verbosity>
             <ConfigFile>
-              <UseCommentsInCustomOptions Value="True"/>
+              <CustomConfigFile Value="True"/>
             </ConfigFile>
           </Other>
         </CompilerOptions>
@@ -299,6 +311,7 @@
             </Verbosity>
             <ConfigFile>
               <StopAfterErrCount Value="10"/>
+              <CustomConfigFile Value="True"/>
             </ConfigFile>
           </Other>
         </CompilerOptions>
@@ -888,6 +901,7 @@
       </Verbosity>
       <ConfigFile>
         <StopAfterErrCount Value="10"/>
+        <CustomConfigFile Value="True"/>
       </ConfigFile>
       <CustomOptions Value="-dVCMI_USE_HEAPTRACE"/>
     </Other>

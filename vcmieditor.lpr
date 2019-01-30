@@ -34,7 +34,7 @@ begin
   if FileExists('heap.trc') then
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');
-  {$ENDIF DEBUG}
+  {$ENDIF}
 
   Application.Title:='VCMI Editor';
   RequireDerivedFormResource := True;
