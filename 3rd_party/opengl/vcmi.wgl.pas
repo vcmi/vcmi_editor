@@ -5,7 +5,7 @@ unit vcmi.wgl;
 interface
 
 uses
-  Classes, SysUtils, LMessages, Windows, gl, LCLProc;
+  Classes, SysUtils, Windows, gl, LCLProc;
 
 const
   WGL_SAMPLE_BUFFERS_ARB                           = $2041;
@@ -190,7 +190,6 @@ var
 procedure InitWGL(RequireWGL_ARB_create_context : boolean);
 
 implementation
-uses vcmi.glext;
 
 var
   WGLInitialized: boolean = false;

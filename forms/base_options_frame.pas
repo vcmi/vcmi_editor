@@ -69,6 +69,8 @@ type
 
     procedure DoUpdateText(AControl: TCustomEdit; AFlag: TCustomCheckBox; ACustom: TLocalizedString; ADefault: TLocalizedString);
 
+    procedure AddBoolEditor(ATarget: TObject; const APropName: string; AWidget: TCustomCheckBox);
+
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox);
     procedure AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit; ACheck: TCustomCheckBox; ACallback: TOnGetString);
@@ -455,17 +457,17 @@ begin
   FFieldEditors.Load;
 end;
 
-procedure TBaseOptionsFrame.ApplyDefaults;
+procedure TBaseOptionsFrame.ApplyDefaults();
 begin
 
 end;
 
-procedure TBaseOptionsFrame.ReloadDefaults;
+procedure TBaseOptionsFrame.ReloadDefaults();
 begin
   FFieldEditors.ReloadDefaults;
 end;
 
-procedure TBaseOptionsFrame.UpdateControls;
+procedure TBaseOptionsFrame.UpdateControls();
 begin
   //do nothing
 end;
@@ -489,6 +491,11 @@ begin
   begin
     AControl.Text := ADefault;
   end;
+end;
+
+procedure TBaseOptionsFrame.AddBoolEditor(ATarget: TObject; const APropName: string; AWidget: TCustomCheckBox);
+begin
+  FFieldEditors.Add(TBooleanEditor.Create(ATarget, APropName, AWidget));
 end;
 
 procedure TBaseOptionsFrame.AddStrEditor(ATarget: TObject; const APropName: string; AWidget: TCustomEdit);

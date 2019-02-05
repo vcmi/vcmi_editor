@@ -60,7 +60,6 @@ type
     FShaderType: GLenum;
   public
     constructor Create(const ResName: string; AShaderType: GLenum);
-
     function Make: GLuint;
   end;
 
@@ -82,16 +81,26 @@ type
     property Handle: GLuint read FHandle;
   end;
 
-  { TGlobalState }
+  { TLocalState }
 
-  TGlobalState = class
+  TLocalState = class
   strict private
-    const
-       VERTEX_BUFFER_SIZE = 4 * 2 * 3 * 2; //4 rotation * 2 triangles * 3 poitns * 2 coordinates
-       UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
-  strict private
+  const
+     VERTEX_BUFFER_SIZE = 4 * 2 * 3 * 2; //4 rotation * 2 triangles * 3 poitns * 2 coordinates
+     UV_BUFFER_SIZE = VERTEX_BUFFER_SIZE; //also 2 coordinates
+  var
+    FInitialised: Boolean;
+    FContext: TCustomOpenGLControl;
+
+    SpriteVAO: GLuint;
+    RectVAO: GLuint;
+
     DefaultProgram: TShaderProgram;
-  private
+
+    FCurrentProgram: TShaderProgram;
+
+    FScale: GLfloat;
+
     FCoordAttribLocation: GLint;
     FUVAttribLocation: GLint;
 
@@ -108,40 +117,17 @@ type
     CoordsBuffer: GLuint;
     MirroredUVBuffer: GLuint;
 
+    procedure Init;
+
     procedure SetupUVBuffer;
     procedure SetupCoordsBuffer;
-
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure Init;
-
-    function UseDefaultProgram: TShaderProgram;
-  end;
-
-
-  { TLocalState }
-
-  TLocalState = class
-  strict private
-    FInitialised: Boolean;
-    FContext: TOpenGLControl;
-
-    SpriteVAO: GLuint;
-    RectVAO: GLuint;
-
-    FCurrentProgram: TShaderProgram;
-
-    FScale: GLfloat;
-
-    procedure Init;
 
     procedure SetupSpriteVAO;
     procedure SetupRectVAO;
 
     procedure DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
  public
-    constructor Create(AContext: TOpenGLControl);
+    constructor Create(AContext: TCustomOpenGLControl);
     destructor Destroy; override;
 
     procedure SetFlagColor(FlagColor: TRBGAColor);
@@ -179,10 +165,12 @@ type
 
     procedure SetScissor();
 
+    function UseDefaultProgram: TShaderProgram;
+
     property Scale: GLfloat read FScale write FScale;
   end;
 
-procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+procedure SetupGLControl(AControl: TOpenGLControl);
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
 procedure BindUncompressedPaletted(ATextureId: GLuint; w,h: Int32; ARawImage: Pointer);
@@ -195,8 +183,6 @@ procedure CheckGLErrors(Stage: string);
 
 function MakeShaderProgram(const AVertexSource: AnsiString; const AFragmentSource: AnsiString):GLuint;
 
-var
-  GlobalContextState: TGlobalState;
 
 implementation
 
@@ -209,22 +195,18 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  glTexImage2D(GL_TEXTURE_2D, 0,AInternalFormat,w,h,0,GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
+  glTexImage2D(GL_TEXTURE_2D, 0, AInternalFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ARawImage);
 
   CheckGLErrors('Bind RGBA');
 end;
 
-procedure SetupGLControl(AControl: TOpenGLControl; ARoot: TOpenGLControl);
+procedure SetupGLControl(AControl: TOpenGLControl);
 begin
   AControl.AlphaBits:=8;
   AControl.AutoResizeViewport := true;
   AControl.OpenGLMajorVersion:=3;
   AControl.OpenGLMinorVersion:=3;
 
-  if Assigned(ARoot) and (AControl <> ARoot) then
-  begin
-    AControl.SharedControl := ARoot;
-  end;
 end;
 
 procedure BindPalette(ATextureId: GLuint; ARawImage: Pointer);
@@ -277,7 +259,6 @@ procedure CheckGLErrors(Stage: string);
 var
   err: GLenum;
 begin
-
   repeat
     err := glGetError();
 
@@ -428,10 +409,90 @@ begin
   PaletteID:=0;
 end;
 
+{ TLocalState }
 
-{ TGlobalState }
+constructor TLocalState.Create(AContext: TCustomOpenGLControl);
+begin
+  FInitialised := False;
+  FContext := AContext;
+  FScale:=1.0;
+end;
 
-procedure TGlobalState.SetupUVBuffer;
+destructor TLocalState.Destroy;
+begin
+  FContext.MakeCurrent();
+
+  glDeleteVertexArrays(1, @SpriteVAO);
+  glDeleteVertexArrays(1, @RectVAO);
+
+  glDeleteBuffers(1, @MirroredUVBuffer);
+  glDeleteBuffers(1, @CoordsBuffer);
+
+  FreeAndNil(DefaultProgram);
+  inherited Destroy;
+end;
+
+function TLocalState.StartFrame: Boolean;
+begin
+  if FContext.MakeCurrent() then
+  begin
+    Result := true;
+
+    if not FInitialised then
+    begin
+      Init;
+      FInitialised:=True;
+    end;
+  end
+  else
+    Result := false;
+end;
+
+procedure TLocalState.FinishFrame;
+begin
+  StopDrawing;
+  FContext.SwapBuffers;
+end;
+
+procedure TLocalState.Init;
+begin
+  DefaultProgram := TShaderProgram.Create(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
+
+  CheckGLErrors('default shader create');
+
+  DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram.Handle, PChar('fragmentColor'));
+
+  UseFlagUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useFlag'));
+  UseTextureUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useTexture'));
+
+  PaletteUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('palette'));
+  FlagColorUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('flagColor'));
+  BitmapUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmap'));
+  BitmapRGBUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmapRGB'));
+
+  FCoordAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('coords'));
+  FUVAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('uv'));
+
+  CheckGLErrors('TLocalState: shader uniforms setup');
+
+  SetupCoordsBuffer;
+  SetupUVBuffer;
+  CheckGLErrors('TLocalState: VBO setup');
+
+  SetupSpriteVAO;
+  SetupRectVAO;
+  CheckGLErrors('TLocalState: VAO setup');
+
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DITHER);
+
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  CheckGLErrors('TLocalState: settings');
+end;
+
+procedure TLocalState.SetupUVBuffer;
 var
   uv_data: packed array of GLfloat;
   u: GLfloat;
@@ -492,107 +553,14 @@ begin
   glGenBuffers(1, @MirroredUVBuffer);
   glBindBuffer(GL_ARRAY_BUFFER,MirroredUVBuffer);
   glBufferData(GL_ARRAY_BUFFER,UV_BUFFER_SIZE * SizeOf(GLfloat),@uv_data[0],GL_STATIC_DRAW);
+
 end;
 
-procedure TGlobalState.SetupCoordsBuffer;
+procedure TLocalState.SetupCoordsBuffer;
 begin
   glGenBuffers(1,@CoordsBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, CoordsBuffer);
   glBufferData(GL_ARRAY_BUFFER, VERTEX_BUFFER_SIZE * SizeOf(GLfloat), nil, GL_STREAM_DRAW);
-end;
-
-constructor TGlobalState.Create;
-begin
-
-end;
-
-destructor TGlobalState.Destroy;
-begin
-  FreeAndNil(DefaultProgram);
-
-  inherited Destroy;
-end;
-
-procedure TGlobalState.Init;
-begin
-  DefaultProgram := TShaderProgram.Create(DEFAULT_V_S_RES, DEFAULT_F_S_RES);
-
-  CheckGLErrors('default shader create');
-
-  DefaultFragmentColorUniform:= glGetUniformLocation(DefaultProgram.Handle, PChar('fragmentColor'));
-
-  UseFlagUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useFlag'));
-  UseTextureUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('useTexture'));
-
-  PaletteUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('palette'));
-  FlagColorUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('flagColor'));
-  BitmapUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmap'));
-  BitmapRGBUniform:=glGetUniformLocation(DefaultProgram.Handle, PChar('bitmapRGB'));
-
-  FCoordAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('coords'));
-  FUVAttribLocation:=glGetAttribLocation(DefaultProgram.Handle, PChar('uv'));
-
-  CheckGLErrors('default shader get uniforms');
-
-  SetupCoordsBuffer;
-  SetupUVBuffer;
-  CheckGLErrors('VBO');
-end;
-
-function TGlobalState.UseDefaultProgram: TShaderProgram;
-begin
-  Result := DefaultProgram;
-  glUseProgram(Result.Handle);
-end;
-
-
-{ TLocalState }
-
-constructor TLocalState.Create(AContext: TOpenGLControl);
-begin
-  FInitialised := False;
-  FContext := AContext;
-  FScale:=1.0;
-end;
-
-destructor TLocalState.Destroy;
-begin
-  inherited Destroy;
-end;
-
-function TLocalState.StartFrame: Boolean;
-begin
-  if FContext.MakeCurrent() then
-  begin
-    Result := true;
-
-    if not FInitialised then
-    begin
-      Init;
-      FInitialised:=True;
-    end;
-  end
-  else
-    Result := false;
-end;
-
-procedure TLocalState.FinishFrame;
-begin
-  StopDrawing;
-  FContext.SwapBuffers;
-end;
-
-procedure TLocalState.Init;
-begin
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_DITHER);
-
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  SetupSpriteVAO;
-  SetupRectVAO;
-  CheckGLErrors('TLocalState.Init');
 end;
 
 procedure TLocalState.RenderRect(x, y: Integer; dimx, dimy: integer);
@@ -604,7 +572,7 @@ begin
   vertex_data[5] := X + dimx;  vertex_data[6] := Y + dimy;
   vertex_data[7] := X;         vertex_data[8] := Y + dimy;
 
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER,0, sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -626,7 +594,7 @@ begin
   vertex_data[9] := x;   vertex_data[10] := y+dimy;
   vertex_data[11] := x;  vertex_data[12] := y;
 
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -641,40 +609,46 @@ end;
 procedure TLocalState.StopDrawing;
 begin
   glBindVertexArray(0);
-  glDisableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
-  glDisableVertexAttribArray(GlobalContextState.FUVAttribLocation);
+  glDisableVertexAttribArray(FCoordAttribLocation);
+  glDisableVertexAttribArray(FUVAttribLocation);
   SetTranslation(0,0);
 end;
 
-procedure TLocalState.EnableScissor;
+procedure TLocalState.EnableScissor();
 begin
   glEnable(GL_SCISSOR_TEST);
 end;
 
-procedure TLocalState.DisableScissor;
+procedure TLocalState.DisableScissor();
 begin
   glDisable(GL_SCISSOR_TEST);
 end;
 
-procedure TLocalState.SetScissor;
+procedure TLocalState.SetScissor();
 begin
   glScissor(0, 0, FContext.Width, FContext.Height);
+end;
+
+function TLocalState.UseDefaultProgram: TShaderProgram;
+begin
+  Result := DefaultProgram;
+  glUseProgram(Result.Handle);
 end;
 
 procedure TLocalState.StartDrawingRects;
 begin
   SetTranslation(0,0);
   glBindVertexArray(RectVAO);
-  glEnableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
-  glDisableVertexAttribArray(GlobalContextState.FUVAttribLocation);
+  glEnableVertexAttribArray(FCoordAttribLocation);
+  glDisableVertexAttribArray(FUVAttribLocation);
 end;
 
 procedure TLocalState.StartDrawingSprites;
 begin
   SetTranslation(0,0);
   glBindVertexArray(SpriteVAO);
-  glEnableVertexAttribArray(GlobalContextState.FCoordAttribLocation);
-  glEnableVertexAttribArray(GlobalContextState.FUVAttribLocation);
+  glEnableVertexAttribArray(FCoordAttribLocation);
+  glEnableVertexAttribArray(FUVAttribLocation);
 end;
 
 procedure TLocalState.RenderSpriteMirrored(ASprite: PGLSprite; mir: UInt8);
@@ -807,10 +781,10 @@ procedure TLocalState.SetupSpriteVAO;
 begin
   glGenVertexArrays(1,@SpriteVAO);
   glBindVertexArray(SpriteVAO);
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-  glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.MirroredUVBuffer);
-  glVertexAttribPointer(GlobalContextState.FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindBuffer(GL_ARRAY_BUFFER, CoordsBuffer);
+  glVertexAttribPointer(FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
+  glBindBuffer(GL_ARRAY_BUFFER, MirroredUVBuffer);
+  glVertexAttribPointer(FUVAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 end;
@@ -819,20 +793,20 @@ procedure TLocalState.SetupRectVAO;
 begin
    glGenVertexArrays(1,@RectVAO);
    glBindVertexArray(RectVAO);
-   glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
-   glVertexAttribPointer(GlobalContextState.FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
+   glBindBuffer(GL_ARRAY_BUFFER,CoordsBuffer);
+   glVertexAttribPointer(FCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0,nil);
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 end;
 
 procedure TLocalState.SetFlagColor(FlagColor: TRBGAColor);
 begin
-  glUniform4f(GlobalContextState.FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
+  glUniform4f(FlagColorUniform, FlagColor.r/255, FlagColor.g/255, FlagColor.b/255, FlagColor.a/255);
 end;
 
 procedure TLocalState.SetFragmentColor(AColor: TRBGAColor);
 begin
-  glUniform4f(GlobalContextState.DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
+  glUniform4f(DefaultFragmentColorUniform, AColor.r/255, AColor.g/255, AColor.b/255, AColor.a/255 );
 end;
 
 procedure TLocalState.DoRenderSprite(constref ASprite: TGLSprite; x, y, w, h: Int32; mir: UInt8);
@@ -868,7 +842,7 @@ begin
     glBindTexture(GL_TEXTURE_2D,ASprite.TextureID);
   end;
 
-  glBindBuffer(GL_ARRAY_BUFFER,GlobalContextState.CoordsBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER,CoordsBuffer);
   glBufferSubData(GL_ARRAY_BUFFER, mir*sizeof(vertex_data),  sizeof(vertex_data),@vertex_data);
   glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -877,24 +851,24 @@ end;
 
 procedure TLocalState.SetUseFlag(const Value: Boolean);
 begin
-  glUniform1i(GlobalContextState.UseFlagUniform, ifthen(Value, 1, 0));
+  glUniform1i(UseFlagUniform, ifthen(Value, 1, 0));
 end;
 
 procedure TLocalState.UseTextures(Use, withpalette: Boolean);
 begin
-  FCurrentProgram := GlobalContextState.UseDefaultProgram();
+  FCurrentProgram := UseDefaultProgram();
 
   if Use then
   begin
-    glUniform1i(GlobalContextState.BitmapUniform, 0); //texture unit0
-    glUniform1i(GlobalContextState.PaletteUniform, 1);//texture unit1
-    glUniform1i(GlobalContextState.BitmapRGBUniform, 2);//texture unit2
-    glUniform1i(GlobalContextState.UseTextureUniform, ifthen(withpalette, 1, 2));
+    glUniform1i(BitmapUniform, 0); //texture unit0
+    glUniform1i(PaletteUniform, 1);//texture unit1
+    glUniform1i(BitmapRGBUniform, 2);//texture unit2
+    glUniform1i(UseTextureUniform, ifthen(withpalette, 1, 2));
   end
   else
   begin
     SetUseFlag(false);
-    glUniform1i(GlobalContextState.UseTextureUniform, 0);
+    glUniform1i(UseTextureUniform, 0);
   end;
 end;
 
@@ -902,11 +876,11 @@ procedure TLocalState.UsePalette(Use: Boolean);
 begin
   if Use then
   begin
-    glUniform1i(GlobalContextState.UseTextureUniform, 1);
+    glUniform1i(UseTextureUniform, 1);
   end
   else
   begin
-    glUniform1i(GlobalContextState.UseTextureUniform, 2);
+    glUniform1i(UseTextureUniform, 2);
   end;
 end;
 

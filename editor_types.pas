@@ -78,7 +78,7 @@ type
 
   TArtifactClass = (SPECIAL, TREASURE, MINOR, MAJOR, RELIC);
 
-  TObjectCategory = (Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
+  TObjectCategory = (ALL, Artifact, Creature, Dwelling, Hero, Other, Resource, Static, Town);
 
   TSelectObjectBy = (BBox, VisibleMask, BlockMask, VisitableMask);
 

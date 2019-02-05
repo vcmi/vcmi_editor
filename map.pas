@@ -390,7 +390,10 @@ type
     FTags: TStrings;
     FMaskWidth, FMaskHeight: Integer;
     FOwner: TMapObject;
-    FDef: TAnimation;
+
+    FMapAnimation: TAnimation;
+    FIcon: TAnimation;
+
     FIsVisitable: Boolean;
     FAnimation: AnsiString;
     FEditorAnimation: AnsiString;
@@ -401,7 +404,9 @@ type
     procedure SetAnimation(AValue: AnsiString);
     procedure SetEditorAnimation(AValue: AnsiString);
     procedure SetzIndex(AValue: Integer);
-    procedure SetDef(AValue:TAnimation);
+
+    procedure SetMapAnimation(AValue:TAnimation);
+    procedure SetIcon(AValue:TAnimation);
 
     procedure AnimationChanged;
     procedure CompactMask;
@@ -430,7 +435,9 @@ type
     property Width: Integer read FMaskWidth;
     property Height: Integer read FMaskHeight;
 
-    property Def: TAnimation read FDef;
+    property MapAnimation: TAnimation read FMapAnimation;
+    property Icon: TAnimation read FIcon;
+
     procedure GetKeyWords(ATarget: TStrings);
 
   published
@@ -1648,22 +1655,35 @@ begin
   FzIndex:=AValue;
 end;
 
-procedure TMapObjectAppearance.SetDef(AValue: TAnimation);
+procedure TMapObjectAppearance.SetMapAnimation(AValue: TAnimation);
 begin
-  FDef := AValue;
-  FOwner.GetMap.GraphicsManager.LoadGraphics(FDef);
+  FMapAnimation := AValue;
+  FOwner.GetMap.GraphicsManager.Animations.Load(FMapAnimation);
+end;
+
+procedure TMapObjectAppearance.SetIcon(AValue: TAnimation);
+begin
+  FIcon := AValue;
+  FOwner.GetMap.GraphicsManager.Icons.Load(FIcon);
 end;
 
 procedure TMapObjectAppearance.AnimationChanged;
+var
+  animation_url: String;
 begin
+
   if FEditorAnimation='' then
   begin
-    SetDef(FOwner.GetMap.GraphicsManager.GetGraphics(FAnimation));
+    animation_url := FAnimation;
   end
   else
   begin
-    SetDef(FOwner.GetMap.GraphicsManager.GetGraphics(FEditorAnimation));
+    animation_url := FEditorAnimation;
   end;
+
+  SetMapAnimation(FOwner.GetMap.GraphicsManager.Animations.GetGraphics(animation_url));
+  SetIcon(FOwner.GetMap.GraphicsManager.Icons.GetGraphics(animation_url));
+
 end;
 
 procedure TMapObjectAppearance.CompactMask;
@@ -1770,7 +1790,8 @@ begin
   FMask := TStringList.Create;
   FMask.FPOAttachObserver(Self);
   FVisitableFrom := TStringList.Create;
-  SetDef(FOwner.GetMap.GraphicsManager.GetGraphics('default'));
+  SetMapAnimation(FOwner.GetMap.GraphicsManager.Animations.GetGraphics('default'));
+  SetIcon(FOwner.GetMap.GraphicsManager.Icons.GetGraphics('default'));
   FAllowedTerrains := ALL_TERRAINS;
   FTags := TStringList.Create;
 end;
@@ -1793,7 +1814,8 @@ begin
     FVisitableFrom.Assign(ASource.VisitableFrom);
     FMask.Assign(ASource.Mask);
     CompactMask;
-    SetDef(ASource.Def);
+    SetMapAnimation(ASource.MapAnimation);
+    SetIcon(ASource.Icon);
     FZIndex := ASource.ZIndex;
     FAllowedTerrains:=ASource.AllowedTerrains;
     FTags.Assign(ASource.Tags);
@@ -1817,8 +1839,7 @@ begin
 
 end;
 
-procedure TMapObjectAppearance.AfterDeSerialize(Sender: TObject; AData: TJSONData
-  );
+procedure TMapObjectAppearance.AfterDeSerialize(Sender: TObject; AData: TJSONData);
 begin
   CompactMask;
   FMask.EndUpdate;
@@ -2125,8 +2146,8 @@ begin
   TSelectObjectBy.BBox:
   begin
     //TODO: use MASK
-    w := Template.Def.Width div TILE_SIZE;
-    h := Template.Def.Height div TILE_SIZE;
+    w := Template.MapAnimation.Width div TILE_SIZE;
+    h := Template.MapAnimation.Height div TILE_SIZE;
     Result := (L = ALevel)
       and (X>=AX) and (Y>=AY)
       and (X-w<AX) and (Y-h<AY);
@@ -2290,11 +2311,11 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.Def.RenderO(AState, Frame, Ax, Ay, owner);
+  Template.MapAnimation.RenderO(AState, Frame, Ax, Ay, owner);
 
   if (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    GetMap.GraphicsManager.GetHeroFlagDef(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
+    GetMap.GraphicsManager.Animations.GetHeroFlagAnimation(owner).RenderO(AState, 0, Ax, Ay);//todo: refactor
   end;
 end;
 
@@ -2304,7 +2325,7 @@ begin
   begin
     Inc(FLastFrame);
 
-    if FLastFrame >= Template.Def.FrameCount then
+    if FLastFrame >= Template.MapAnimation.FrameCount then
       FLastFrame := 0;
   end;
 
@@ -2324,11 +2345,11 @@ begin
   end;
 
   owner := GetPlayer;
-  Template.Def.RenderIcon(AState, Frame, dim, owner);
+  Template.Icon.RenderIcon(AState, Frame, dim, owner);
 
   if Assigned(FMapObjectGroup) and (owner <> TPlayer.none) and FMapObjectGroup.IsHeroLike then
   begin
-    GetMap.GraphicsManager.GetHeroFlagDef(owner).RenderOverlayIcon(AState, dim, Template.Def.GetSpriteHeight(Frame));//todo: refactor
+    GetMap.GraphicsManager.Icons.GetHeroFlagAnimation(owner).RenderOverlayIcon(AState, dim, Template.Icon.GetSpriteHeight(Frame));//todo: refactor
   end;
 end;
 
@@ -2339,7 +2360,7 @@ end;
 
 procedure TMapObject.RenderSelectionRect(AState: TLocalState);
 begin
-  Template.Def.RenderBorder(AState,X,Y);
+  Template.MapAnimation.RenderBorder(AState,X,Y);
 end;
 
 procedure TMapObject.RenderStatic(AState: TLocalState);
@@ -3659,6 +3680,7 @@ begin
   keywords.Duplicates:=dupAccept;
   try
     AObject.GetKeyWords(keywords);
+    FSearchIndexes[TObjectCategory.ALL].AddToIndex(keywords, AObject);
     FSearchIndexes[AObject.Category].AddToIndex(keywords, AObject);
   finally
     keywords.Free;
@@ -3667,6 +3689,7 @@ end;
 
 procedure TVCMIMap.RemoveFromIndex(AObject: TMapObject);
 begin
+  FSearchIndexes[TObjectCategory.ALL].RemoveFromIndex(AObject);
   FSearchIndexes[AObject.Category].RemoveFromIndex(AObject);
 end;
 

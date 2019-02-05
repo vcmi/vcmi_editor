@@ -21,9 +21,9 @@ unit root_manager;
 interface
 
 uses
-  Classes, SysUtils,  FileUtil, Graphics, LazFileUtils, LazLogger, LazUTF8Classes, gl, vcmi.glext, Forms, Controls,
-  progress_form, filesystem_base, root_form, filesystem, terrain, map_objects,
-  editor_graphics, lists_manager, vcmi.OpenGLContext, editor_gl, editor_types,
+  Classes, SysUtils,  FileUtil, Graphics, LazFileUtils, LazLogger, LazUTF8Classes, Forms, Controls,
+  progress_form, filesystem_base, filesystem, terrain, map_objects,
+  editor_graphics, lists_manager, editor_types,
   locale_manager, editor_classes, vcmi.dirs.base, vcmi.image_loaders, zlib_stream;
 
 type
@@ -48,15 +48,12 @@ type
     FParam1: AnsiString;
     FParam2: AnsiString;
     FProgressForm:    TProgressForm;
-    FHiddenForm:      TRootForm;
     FResourceManager: TFSManager;
 
     FTerrianManager:  TTerrainManager;
     FObjManager:      TObjectsManager;
     FGraphicsManager: TGraphicsManager;
     FListsManager:    TListsManager;
-
-    FGLContext: TOpenGLControl;
 
     FDestDirectory: AnsiString;
     FSrcFiles: TStrings;
@@ -70,7 +67,8 @@ type
 
     procedure LoadMapObjects;
     procedure LoadHeroPortraits;
-    procedure LoadVictLossIcons; unimplemented;
+    procedure LoadVictIcons; unimplemented;
+    procedure LoadLossIcons; unimplemented;
 
     procedure PrintUsage;
     procedure ProcessCommandLine;
@@ -93,7 +91,7 @@ type
     property GraphicsManager: TGraphicsManager read FGraphicsManager;
     property ObjectsManager: TObjectsManager read FObjManager;
     property TerrainManager: TTerrainManager read FTerrianManager;
-    property SharedContext: TOpenGLControl read FGLContext;
+
     property ListsManager: TListsManager read FListsManager;
     property LocaleManager: TLocaleManager read FLocaleManager;
 
@@ -120,8 +118,6 @@ procedure TRootManager.DataModuleCreate(Sender: TObject);
 var
   log_name: string;
 begin
-  FHiddenForm := TRootForm.Create(Self);
-
   FProgressForm := TProgressForm.Create(Self);
   FProgressForm.Visible := True;
 
@@ -140,46 +136,13 @@ begin
   DebugLogger.LogName := log_name;
   DebugLogger.CloseLogFileBetweenWrites := False;
 
-  FGLContext := FHiddenForm.RootContext;
-
   if not BatchMode then
   begin
-    if not FGLContext.MakeCurrent() then
-    begin
-      Application.Terminate;
-      raise Exception.Create('Unable to switch GL context');
-    end;
-
-    DebugLn('Version: ', glGetString(GL_VERSION));
-    DebugLn('Vendor: ', glGetString(GL_VENDOR));
-    DebugLn('Renderer: ', glGetString(GL_RENDERER));
-    DebugLn('Glsl: ', glGetString(GL_SHADING_LANGUAGE_VERSION));
-
-    if not Load_GL_version_3_3_CORE() then
-    begin
-      Application.Terminate;
-      raise Exception.Create('Error initializing OpenGL. Version 3.3 core required.');
-    end;
-
     GImageLoaders.CheckUpdated();
-
-    //if not Load_GL_ARB_texture_rg() then
-    //begin
-    //   Application.Terminate;
-    //   raise Exception.Create('Required extension GL_ARB_texture_rg missing');
-    //end;
-
   end;
-
-  glGetError();//ignore
 
   Application.ProcessMessages;
 
-  if not BatchMode then
-  begin
-    GlobalContextState := TGlobalState.Create;
-    GlobalContextState.Init;
-  end;
 
   FResourceManager := TFSManager.Create(self);
   FDirs.FillDataPaths(FResourceManager.DataPath);
@@ -211,7 +174,8 @@ begin
   begin
     ProgressForm.NextStage('Loading icons ...');
     LoadHeroPortraits;
-    LoadVictLossIcons;
+    LoadVictIcons;
+    LoadLossIcons;
   end;
 
   FTerrianManager := TTerrainManager.Create(FGraphicsManager);
@@ -237,8 +201,6 @@ end;
 procedure TRootManager.DataModuleDestroy(Sender: TObject);
 begin
   FSrcFiles.Free;
-  GlobalContextState.Free;
-  GlobalContextState := nil;
   FDirs.Free;
 end;
 
@@ -323,7 +285,7 @@ var
 begin
   HeroIcons.Width:=ICON_WIDTH;
   HeroIcons.Height:=ICON_HEIGHT;
-  //TODO: TRootManager.LoadHeroPortraits
+
   portrait_count := FListsManager.HeroPortraits.Count;
 
   for i := 0 to portrait_count - 1 do
@@ -368,9 +330,15 @@ begin
   end;
 end;
 
-procedure TRootManager.LoadVictLossIcons;
+procedure TRootManager.LoadVictIcons;
 begin
+  //SCNRVICT
+  VictoryIcons.Clear;
+end;
 
+procedure TRootManager.LoadLossIcons;
+begin
+  //SCNRLOSS
 end;
 
 procedure TRootManager.PrintUsage;

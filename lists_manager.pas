@@ -574,7 +574,6 @@ type
     function GetHeroClasses(AId: AnsiString): THeroClassInfo;
     function GetHeroes(AId: AnsiString): THeroInfo;
     procedure MergeLegacy(ASrc: TJsonObjectList; ADest:TJSONObject);
-    function AssembleConfig(APaths: TStrings; ALegacyData: TJsonObjectList): TJSONObject;
     procedure FillArtifactCache;
 
     procedure Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList; ATarget:THashedCollection);
@@ -1479,35 +1478,6 @@ begin
   Result := FArtifactSlotMaps[ASlot];
 end;
 
-function TListsManager.AssembleConfig(APaths: TStrings;
-  ALegacyData: TJsonObjectList): TJSONObject;
-var
-  AConfig: TJsonResource;
-  Path: String;
-begin
-  Result := CreateJSONObject([]);
-  try
-    for Path in APaths do
-    begin
-      AConfig := TJsonResource.Create(Path);
-      try
-        AConfig.Load(ResourceLoader);
-        MergeJson(AConfig.Root, Result);
-      finally
-        FreeAndNil(AConfig);
-      end;
-    end;
-
-    if Assigned(ALegacyData) then
-    begin
-      MergeLegacy(ALegacyData, Result);
-    end;
-  except
-    Result.Free;
-    raise;
-  end;
-end;
-
 function TListsManager.GetSpell(const AID: AnsiString): TSpellInfo;
 begin
    Result := FSpellInfos.FindItem(AID);
@@ -1849,9 +1819,16 @@ begin
     //DebugLn('49',' "',hctraits.Value[49,0],'"');
     //DebugLn('50',' "',hctraits.Value[50,0],'"');
 
+    if hctraits.Value[2,0] <> 'Initial Skills' then
+    begin
+      hctraits.DumpToLog;
+      raise Exception.CreateFmt('hctraits format check failed: cell[2,0] is "%s" instead of "%s"', [hctraits.Value[2,0], 'Initial Skills']);
+    end;
+
     if hctraits.Value[0,1] <> 'Name' then
     begin
-      raise Exception.Create('Invalid hctraits format.');
+      hctraits.DumpToLog;
+      raise Exception.CreateFmt('hctraits format check failed: cell[0,1] is "%s" instead of "%s"', [hctraits.Value[0,1], 'Name']);
     end;
 
     hctraits.TopRowSkip:=2;
@@ -2072,8 +2049,7 @@ begin
   end;
 end;
 
-procedure TListsManager.Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList;
-  ATarget: THashedCollection);
+procedure TListsManager.Load(AProgess: IProgressCallback; APaths: TModdedConfigPaths; ALegacyConfig: TJsonObjectList; ATarget: THashedCollection);
 var
   FConfig: TModdedConfigs;
   FCombinedConfig: TJSONObject;

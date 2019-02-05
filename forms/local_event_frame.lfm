@@ -1,10 +1,18 @@
 inherited LocalEventFrame: TLocalEventFrame
+  Height = 354
+  Width = 420
+  ClientHeight = 354
+  ClientWidth = 420
+  Constraints.MinHeight = 350
+  Constraints.MinWidth = 300
+  DesignLeft = -3
+  DesignTop = -3
   object edActivableBy: TComboBox[0]
     Left = 16
     Height = 23
-    Top = 64
-    Width = 296
-    Anchors = [akTop, akLeft, akRight]
+    Top = 168
+    Width = 396
+    Anchors = [akLeft, akRight, akBottom]
     ItemHeight = 15
     Items.Strings = (
       'Only human'
@@ -16,17 +24,18 @@ inherited LocalEventFrame: TLocalEventFrame
   object Label1: TLabel[1]
     Left = 16
     Height = 15
-    Top = 40
+    Top = 144
     Width = 68
+    Anchors = [akLeft, akBottom]
     Caption = 'Activable by:'
     ParentColor = False
   end
   object edPlayers: TCheckGroup[2]
     Left = 16
-    Height = 121
-    Top = 104
-    Width = 297
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    Height = 128
+    Top = 208
+    Width = 397
+    Anchors = [akLeft, akRight, akBottom]
     AutoFill = True
     Caption = 'Activable by players:'
     ChildSizing.LeftRightSpacing = 6
@@ -37,8 +46,8 @@ inherited LocalEventFrame: TLocalEventFrame
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 101
-    ClientWidth = 293
+    ClientHeight = 108
+    ClientWidth = 393
     Columns = 2
     Items.Strings = (
       'Red'
@@ -58,9 +67,27 @@ inherited LocalEventFrame: TLocalEventFrame
   object edRemoveAfterVisit: TCheckBox[3]
     Left = 16
     Height = 19
-    Top = 8
+    Top = 112
     Width = 114
+    Anchors = [akLeft, akBottom]
     Caption = 'Remove after visit'
     TabOrder = 2
+  end
+  object MessageEdit: TMemo[4]
+    Left = 16
+    Height = 69
+    Top = 32
+    Width = 395
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ScrollBars = ssAutoBoth
+    TabOrder = 3
+  end
+  object MessageLabel: TLabel[5]
+    Left = 16
+    Height = 15
+    Top = 8
+    Width = 49
+    Caption = 'Message:'
+    ParentColor = False
   end
 end

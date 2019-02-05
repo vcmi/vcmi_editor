@@ -24,6 +24,14 @@ unit vcmi.openglcontext;
 {$mode objfpc}{$H+}
 
 // choose the right backend depending on used LCL widgetset
+{$IFDEF LCLGTK}
+  {$IFDEF Linux}
+    {$DEFINE UseGtkGLX}
+    {$DEFINE HasRGBA}
+    {$DEFINE HasRGBBits}
+    {$DEFINE OpenGLTargetDefined}
+  {$ENDIF}
+{$ENDIF}
 {$IFDEF LCLGTK2}
   {$IF defined(Linux) or defined(FreeBSD)}
     {$DEFINE UseGtk2GLX}
@@ -44,6 +52,7 @@ unit vcmi.openglcontext;
   {$DEFINE UseCocoaNS}
   {$DEFINE UsesModernGL}
   {$DEFINE OpenGLTargetDefined}
+  {$DEFINE HasMacRetinaMode}
 {$ENDIF}
 {$IFDEF LCLWin32}
   {$DEFINE UseWin32WGL}
@@ -60,6 +69,13 @@ unit vcmi.openglcontext;
   {$DEFINE HasRGBBits}
   {$DEFINE OpenGLTargetDefined}
 {$ENDIF}
+{$IFDEF LCLQT5}
+  {$DEFINE UseQTGLX}
+  {$DEFINE UsesModernGL}
+  {$DEFINE HasRGBA}
+  {$DEFINE HasRGBBits}
+  {$DEFINE OpenGLTargetDefined}
+{$ENDIF}
 {$IFNDEF OpenGLTargetDefined}
   {$ERROR this LCL widgetset/OS is not yet supported}
 {$ENDIF}
@@ -69,6 +85,9 @@ interface
 uses
   Classes, SysUtils, LCLProc, Forms, Controls, LCLType, LCLIntf, LResources,
   Graphics, LMessages, WSLCLClasses, WSControls,
+{$IFDEF UseGtkGLX}
+  vcmi.GLGtkGlxContext;
+{$ENDIF}
 {$IFDEF UseGtk2GLX}
   vcmi.GLGtkGlxContext;
 {$ENDIF}
@@ -92,6 +111,8 @@ type
   TOpenGlCtrlMakeCurrentEvent = procedure(Sender: TObject;
                                           var Allow: boolean) of object;
 
+  TOpenGLControlOption = (ocoMacRetinaMode, ocoRenderAtDesignTime);
+  TOpenGLControlOptions = set of TOpenGLControlOption;
   { TCustomOpenGLControl }
   { Sharing:
     You can share opengl contexts. For example:
@@ -111,7 +132,7 @@ type
     FAutoResizeViewport: boolean;
     FCanvas: TCanvas; // only valid at designtime
     FDebugContext: boolean;
-    FDoubleBuffered: boolean;
+
     FFrameDiffTime: integer;
     FOnMakeCurrent: TOpenGlCtrlMakeCurrentEvent;
     FOnPaint: TNotifyEvent;
@@ -126,12 +147,14 @@ type
     FMultiSampling, FAlphaBits, FDepthBits, FStencilBits, FAUXBuffers: Cardinal;
     FSharedOpenGLControl: TCustomOpenGLControl;
     FSharingOpenGlControls: TList;
+    FOptions: TOpenGLControlOptions;
     function GetSharingControls(Index: integer): TCustomOpenGLControl;
     procedure SetAutoResizeViewport(const AValue: boolean);
     procedure SetDebugContext(AValue: boolean);
-    procedure SetDoubleBuffered(const AValue: boolean);
+
     procedure SetOpenGLMajorVersion(AValue: Cardinal);
     procedure SetOpenGLMinorVersion(AValue: Cardinal);
+    procedure SetOptions(AValue: TOpenGLControlOptions);
     procedure SetRGBA(const AValue: boolean);
     {$IFDEF HasRGBBits}
     procedure SetRedBits(const AValue: Cardinal);
@@ -144,11 +167,13 @@ type
     procedure SetStencilBits(const AValue: Cardinal);
     procedure SetAUXBuffers(const AValue: Cardinal);
     procedure SetSharedControl(const AValue: TCustomOpenGLControl);
+    function IsOpenGLRenderAllowed: boolean;
   protected
     procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
     procedure WMSize(var Message: TLMSize); message LM_SIZE;
     procedure UpdateFrameTimeDiff;
     procedure OpenGLAttributesChanged;
+    procedure CMDoubleBufferedChanged(var Message: TLMessage); message CM_DOUBLEBUFFEREDCHANGED;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -172,7 +197,8 @@ type
                                                  write SetSharedControl;
     property AutoResizeViewport: boolean read FAutoResizeViewport
                                          write SetAutoResizeViewport default false;
-    property DoubleBuffered: boolean read FDoubleBuffered write SetDoubleBuffered default true;
+    property DoubleBuffered stored True default True;
+    property ParentDoubleBuffered default False;
     property DebugContext: boolean read FDebugContext write SetDebugContext default false; // create context with debugging enabled. Requires OpenGLMajorVersion!
     property RGBA: boolean read FRGBA write SetRGBA default true;
     {$IFDEF HasRGBBits}
@@ -187,11 +213,11 @@ type
       Value <= 1 means that we use 1 sample per pixel, which means no anti-aliasing.
       Higher values mean anti-aliasing. Exactly which values are supported
       depends on GPU, common modern GPUs support values like 2 and 4.
-      
+
       If this is > 1, and we will not be able to create OpenGL
       with multi-sampling, we will fallback to normal non-multi-sampled context.
-      You can query OpenGL values GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB 
-      (see ARB_multisample extension) to see how many samples have been 
+      You can query OpenGL values GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB
+      (see ARB_multisample extension) to see how many samples have been
       actually allocated for your context. }
     property MultiSampling: Cardinal read FMultiSampling write SetMultiSampling default 1;
 
@@ -199,6 +225,7 @@ type
     property DepthBits: Cardinal read FDepthBits write SetDepthBits default DefaultDepthBits;
     property StencilBits: Cardinal read FStencilBits write SetStencilBits default 0;
     property AUXBuffers: Cardinal read FAUXBuffers write SetAUXBuffers default 0;
+    property Options: TOpenGLControlOptions read FOptions write SetOptions;
   end;
 
   { TOpenGLControl }
@@ -257,11 +284,12 @@ type
     class function CreateHandle(const AWinControl: TWinControl;
                                 const AParams: TCreateParams): HWND; override;
     class procedure DestroyHandle(const AWinControl: TWinControl); override;
+    class function GetDoubleBuffered(const AWinControl: TWinControl): Boolean; override;
   end;
 
 
 
-procedure Register;
+//procedure Register;
 
 
 implementation
@@ -271,10 +299,10 @@ implementation
 var
   OpenGLControlStack: TList = nil;
 
-procedure Register;
-begin
-  RegisterComponents('VCMI',[TOpenGLControl]);
-end;
+//procedure Register;
+//begin
+//  RegisterComponents('VCMI',[TOpenGLControl]);
+//end;
 
 { TCustomOpenGLControl }
 
@@ -292,7 +320,7 @@ begin
   and ([csLoading,csDestroying]*ComponentState=[])
   and IsVisible and HandleAllocated
   and MakeCurrent then
-    LOpenGLViewport(0,0,Width,Height);
+    LOpenGLViewport(Handle,0,0,Width,Height);
 end;
 
 procedure TCustomOpenGLControl.SetDebugContext(AValue: boolean);
@@ -302,10 +330,10 @@ begin
   OpenGLAttributesChanged;
 end;
 
-procedure TCustomOpenGLControl.SetDoubleBuffered(const AValue: boolean);
+procedure TCustomOpenGLControl.CMDoubleBufferedChanged(var Message: TLMessage);
 begin
-  if FDoubleBuffered=AValue then exit;
-  FDoubleBuffered:=AValue;
+  inherited;
+
   OpenGLAttributesChanged;
 end;
 
@@ -321,6 +349,26 @@ begin
   fOpenGLMinorVersion:=AValue;
 end;
 
+procedure TCustomOpenGLControl.SetOptions(AValue: TOpenGLControlOptions);
+var
+  RemovedRenderAtDesignTime: boolean;
+begin
+  if FOptions=AValue then Exit;
+  RemovedRenderAtDesignTime:=
+         (ocoRenderAtDesignTime in FOptions) and
+    (not (ocoRenderAtDesignTime in AValue));
+  FOptions:=AValue;
+  { if you remove the flag ocoRenderAtDesignTime at design-time,
+    we need to destroy the handle. The call to OpenGLAttributesChanged
+    would not do this, so do it explicitly by calling ReCreateWnd
+    (ReCreateWnd will destroy handle, and not create new one,
+    since IsOpenGLRenderAllowed = false). }
+  if (csDesigning in ComponentState) and
+     RemovedRenderAtDesignTime and
+     HandleAllocated then
+    ReCreateWnd(Self);
+  OpenGLAttributesChanged();
+end;
 procedure TCustomOpenGLControl.SetRGBA(const AValue: boolean);
 begin
   if FRGBA=AValue then exit;
@@ -409,8 +457,15 @@ begin
     end;
   end;
   // recreate handle if needed
-  if HandleAllocated and (not (csDesigning in ComponentState)) then
+  if HandleAllocated and IsOpenGLRenderAllowed then
     ReCreateWnd(Self);
+end;
+{ OpenGL rendering allowed, because not in design-mode or because we
+  should render even in design-mode. }
+function TCustomOpenGLControl.IsOpenGLRenderAllowed: boolean;
+begin
+  Result := (not (csDesigning in ComponentState)) or
+    (ocoRenderAtDesignTime in Options);
 end;
 
 procedure TCustomOpenGLControl.WMPaint(var Message: TLMPaint);
@@ -418,7 +473,7 @@ begin
   Include(FControlState, csCustomPaint);
   inherited WMPaint(Message);
   //debugln('TCustomGTKGLAreaControl.WMPaint A ',dbgsName(Self),' ',dbgsName(FCanvas));
-  if (csDesigning in ComponentState) and (FCanvas<>nil) then begin
+  if (not IsOpenGLRenderAllowed) and (FCanvas<>nil) then begin
     with FCanvas do begin
       if Message.DC <> 0 then
         Handle := Message.DC;
@@ -458,8 +513,8 @@ end;
 
 procedure TCustomOpenGLControl.OpenGLAttributesChanged;
 begin
-  if HandleAllocated
-  and ([csLoading,csDesigning,csDestroying]*ComponentState=[]) then
+  if HandleAllocated and
+    ( ([csLoading,csDestroying]*ComponentState=[]) and IsOpenGLRenderAllowed ) then
     RecreateWnd(Self);
 end;
 
@@ -472,6 +527,7 @@ end;
 constructor TCustomOpenGLControl.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
+  ParentDoubleBuffered:=False;
   FDoubleBuffered:=true;
   FRGBA:=true;
   {$IFDEF HasRGBBits}
@@ -484,7 +540,7 @@ begin
   FMultiSampling:=1;
   FDepthBits:=DefaultDepthBits;
   ControlStyle:=ControlStyle-[csSetCaption];
-  if (csDesigning in ComponentState) then begin
+  if not IsOpenGLRenderAllowed then begin
     FCanvas := TControlCanvas.Create;
     TControlCanvas(FCanvas).Control := Self;
   end else
@@ -510,14 +566,15 @@ begin
   inherited Destroy;
 end;
 
-Procedure TCustomOpenGLControl.Paint;
+procedure TCustomOpenGLControl.Paint;
 begin
   if IsVisible and HandleAllocated then begin
     UpdateFrameTimeDiff;
-    if ([csDesigning,csDestroying]*ComponentState=[]) then begin
-      if not MakeCurrent then exit;
-      if AutoResizeViewport then
-        LOpenGLViewport(0,0,Width,Height);
+    if IsOpenGLRenderAllowed and ([csDestroying]*ComponentState=[]) then begin
+      if AutoResizeViewport then begin
+        if not MakeCurrent then exit;
+        LOpenGLViewport(Handle,0,0,Width,Height);
+      end;
     end;
     //LOpenGLClip(Handle);
     DoOnPaint;
@@ -527,17 +584,21 @@ end;
 procedure TCustomOpenGLControl.RealizeBounds;
 begin
   if IsVisible and HandleAllocated
-  and ([csDesigning,csDestroying]*ComponentState=[])
+  and IsOpenGLRenderAllowed
+  and ([csDestroying]*ComponentState=[])
   and AutoResizeViewport then begin
     if MakeCurrent then
-      LOpenGLViewport(0,0,Width,Height);
+      LOpenGLViewport(Handle,0,0,Width,Height);
   end;
   inherited RealizeBounds;
 end;
 
 procedure TCustomOpenGLControl.DoOnPaint;
 begin
-  if Assigned(OnPaint) then OnPaint(Self);
+  if Assigned(OnPaint) then begin
+    if not MakeCurrent then exit;
+    OnPaint(Self);
+  end;
 end;
 
 procedure TCustomOpenGLControl.SwapBuffers;
@@ -549,7 +610,7 @@ function TCustomOpenGLControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 var
   Allowed: Boolean;
 begin
-  if csDesigning in ComponentState then exit(false);
+  if not IsOpenGLRenderAllowed then exit(false);
   if Assigned(FOnMakeCurrent) then begin
     Allowed:=true;
     OnMakeCurrent(Self,Allowed);
@@ -618,14 +679,15 @@ var
   OpenGlControl: TCustomOpenGLControl;
   AttrControl: TCustomOpenGLControl;
 begin
-  if csDesigning in AWinControl.ComponentState then
+  OpenGlControl:=AWinControl as TCustomOpenGLControl;
+  if not OpenGlControl.IsOpenGLRenderAllowed then
   begin
     // do not use "inherited CreateHandle", because the LCL changes the hierarchy at run time
     Result:=TWSWinControlClass(ClassParent).CreateHandle(AWinControl,AParams);
   end
   else
   begin
-    OpenGlControl:=AWinControl as TCustomOpenGLControl;
+
     if OpenGlControl.SharedControl<>nil then
       AttrControl:=OpenGlControl.SharedControl
     else
@@ -633,6 +695,9 @@ begin
     Result:=LOpenGLCreateContext(OpenGlControl,WSPrivate,
                                  OpenGlControl.SharedControl,
                                  AttrControl.DoubleBuffered,
+                                 {$IFDEF HasMacRetinaMode}
+                                 ocoMacRetinaMode in OpenGlControl.Options,
+                                 {$ENDIF}
                                  {$IFDEF HasRGBA}
                                  AttrControl.RGBA,
                                  {$ENDIF}
@@ -664,6 +729,10 @@ begin
   TWSWinControlClass(ClassParent).DestroyHandle(AWinControl);
 end;
 
+class function TWSOpenGLControl.GetDoubleBuffered(const AWinControl: TWinControl): Boolean;
+begin
+  Result := False;
+end;
 initialization
   RegisterWSComponent(TCustomOpenGLControl,TWSOpenGLControl);
 

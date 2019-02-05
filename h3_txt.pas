@@ -39,7 +39,6 @@ type
     function GetRowCount: Integer;
     function GetValue(Col, Row: Integer): TLocalizedString;
     procedure SetDelimiter(AValue: TDelimiter);
-    procedure SetTopRowSkip(AValue: Integer);
   public
     constructor Create(APath: AnsiString);
     destructor Destroy; override;
@@ -50,14 +49,16 @@ type
 
     property RowCount: Integer read GetRowCount;
   public
+    procedure DumpToLog;
+
     property Delimiter: TDelimiter read FDelimiter write SetDelimiter;
-    property TopRowSkip: Integer read FTopRowSkip write SetTopRowSkip;
+    property TopRowSkip: Integer read FTopRowSkip write FTopRowSkip;
   end;
 
 
 implementation
 
-uses LazUTF8;
+uses LazUTF8, LazLoggerBase;
 
 
 { TTextResource }
@@ -103,6 +104,19 @@ begin
   Result := FDoc.HasCell(Col,Row);
 end;
 
+procedure TTextResource.DumpToLog;
+var
+  i, j: Integer;
+begin
+  for i := 0 to Pred(FDoc.RowCount) do
+  begin
+    for j := 0 to Pred(Fdoc.ColCount[i]) do
+    begin
+      DebugLn(['[', j, ',', i,']=',FDoc.Cells[j,i]]);
+    end;
+  end;
+end;
+
 procedure TTextResource.LoadFromStream(AFileName: AnsiString; AStream: TStream);
 begin
   FDoc.LoadFromStream(AStream);
@@ -116,11 +130,6 @@ begin
   FDoc.Delimiter := DELIMITERS[AValue];
 end;
 
-procedure TTextResource.SetTopRowSkip(AValue: Integer);
-begin
-  if FTopRowSkip=AValue then Exit;
-  FTopRowSkip:=AValue;
-end;
 
 end.
 

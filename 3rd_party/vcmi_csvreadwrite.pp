@@ -94,10 +94,9 @@ Type
 
   TCSVParser = class(TCSVHandler)
   private
-    FFreeStream: Boolean;
-    // fields
-    FSourceStream: TStream;
-    FStrStreamWrapper: TStringStream;
+    FSourceString: string;
+    FSourcePosition: PChar;
+
     // parser state
     EndOfFile: Boolean;
     EndOfLine: Boolean;
@@ -138,8 +137,6 @@ Type
     property CurrentCellText: String read FCellBuffer;
     // The maximum number of columns found in the stream:
     property MaxColCount: Integer read FMaxColCount;
-    // Does the parser own the stream ? If true, a previous stream is freed when set or when parser is destroyed.
-    Property FreeStream : Boolean Read FFreeStream Write FFreeStream;
   end;
 
   // Sequential output to CSV stream
@@ -319,9 +316,6 @@ end;
 
 procedure TCSVParser.SkipEndOfLine;
 begin
-  // treat LF+CR as two linebreaks, not one
-  if (FCurrentChar = CR) then
-    NextChar;
   if (FCurrentChar = LF) then
     NextChar;
 end;
@@ -339,13 +333,39 @@ begin
 end;
 
 procedure TCSVParser.NextChar;
+   function ReadChar(): Boolean;
+   begin
+     FCurrentChar := FSourcePosition^;
+     inc(FSourcePosition);
+     Result := FCurrentChar = #0;
+   end;
 begin
-  if FSourceStream.Read(FCurrentChar, CsvCharSize) < CsvCharSize then
+  EndOfLine := false;
+  if ReadChar() then
   begin
-    FCurrentChar := #0;
     EndOfFile := True;
+    exit;
   end;
-  EndOfLine := FCurrentChar in LineEndingChars;
+
+  if FCurrentChar = CR then
+  begin
+    if ReadChar() then
+    begin
+      EndOfFile := True;
+      exit;
+    end;
+
+    if FCurrentChar = LF then
+    begin
+      EndOfLine := True;
+    end
+    else
+    begin
+      AppendStr(FCellBuffer, #13);
+    end;
+  end;
+
+  //EndOfLine := FCurrentChar in LineEndingChars;
 end;
 
 procedure TCSVParser.ParseCell;
@@ -414,38 +434,31 @@ constructor TCSVParser.Create;
 begin
   inherited Create;
   ClearOutput;
-  FStrStreamWrapper := nil;
   EndOfFile := True;
 end;
 
 destructor TCSVParser.Destroy;
 begin
-  if FFreeStream and (FSourceStream<>FStrStreamWrapper) then
-     FreeAndNil(FSourceStream);
-  FreeAndNil(FStrStreamWrapper);
   inherited Destroy;
 end;
 
 procedure TCSVParser.SetSource(AStream: TStream);
 begin
-  If FSourceStream=AStream then exit;
-  if FFreeStream and (FSourceStream<>FStrStreamWrapper) then
-     FreeAndNil(FSourceStream);
-  FSourceStream := AStream;
+  SetLength(FSourceString, AStream.Size);
+  AStream.Read((@FSourceString[1])^, FSourceString.Length);
   ResetParser;
 end;
 
 procedure TCSVParser.SetSource(const AString: String); overload;
 begin
-  FreeAndNil(FStrStreamWrapper);
-  FStrStreamWrapper := TStringStream.Create(AString);
-  SetSource(FStrStreamWrapper);
+  FSourceString:=AString;
+  ResetParser;
 end;
 
 procedure TCSVParser.ResetParser;
 begin
   ClearOutput;
-  FSourceStream.Seek(0, soFromBeginning);
+  FSourcePosition:=@FSourceString[1];
   EndOfFile := False;
   NextChar;
 end;

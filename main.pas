@@ -22,12 +22,15 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, vcmi.OpenGLContext, LCLType, Forms, Controls, Graphics, GraphType,
-  Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls, Buttons, EditBtn, PopupNotifier, Map, terrain, editor_types,
+  Classes, SysUtils, FileUtil, LazFileUtils, LazUTF8, GL, LCLType, Forms, Controls, Graphics, GraphType,
+  Dialogs, ExtCtrls, Menus, ActnList, StdCtrls, ComCtrls, Buttons, EditBtn, PopupNotifier,
+
+  vcmi.OpenGLContext, Map, terrain, editor_types, editor_classes,
+
   undo_base, map_actions, map_objects, editor_graphics, minimap, filesystem, filesystem_base, lists_manager,
   zlib_stream, editor_gl, map_terrain_actions, map_road_river_actions, map_object_actions, undo_map, object_options,
   map_rect, map_format_json, search_index, vcmi.frames.tools, player_options_form, edit_triggered_events,
-  player_selection_form, types;
+  player_selection_form, types, vcmi.glext;
 
 type
   TAxisKind = (Vertical,Horizontal);
@@ -74,6 +77,32 @@ type
     procedure RenderOverlay(AState: TLocalState; x,y: integer); override;
   end;
 
+  { TMainProgressListener }
+
+  TMainProgressListener = class(TComponent, IProgressCallback)
+  strict private
+    FMax: Integer;
+    FCurrent: integer;
+    FCurrentNormalized: Integer;
+    FStageLabel: string;
+    FWidget: TStatusBar;
+    procedure SetWidget(AValue: TStatusBar);
+
+    procedure UpdateWidget();
+  public
+    constructor Create(AOwner: TComponent); override;
+    function GetMax: Integer;
+    procedure SetMax(AValue: Integer);
+
+    procedure Advance(ADelta: integer);
+    procedure NextStage(const AStageLabel: string);
+    procedure AddError(const ADescription: string);
+
+    procedure DrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+
+    property Widget: TStatusBar read FWidget write SetWidget;
+  end;
+
   { TfMain }
 
   TfMain = class(TForm)
@@ -89,6 +118,7 @@ type
     actFilterDwelling: TAction;
     actFilterOnMap: TAction;
     actClearActiveBrush: TAction;
+    actFilterAll: TAction;
     actZoomOut: TAction;
     actZoomIn: TAction;
     actViewGrid: TAction;
@@ -144,6 +174,8 @@ type
     AnimTimer: TTimer;
     SearchTimer: TTimer;
     FilterToolBar: TToolBar;
+    ToolButton22: TToolButton;
+    ToolButton24: TToolButton;
     tsMap: TTabSheet;
     ToolButton10: TToolButton;
     ToolButton11: TToolButton;
@@ -182,6 +214,7 @@ type
     procedure actCreateMapExecute(Sender: TObject);
     procedure actDeleteExecute(Sender: TObject);
     procedure actDeleteUpdate(Sender: TObject);
+    procedure actFilterAllExecute(Sender: TObject);
     procedure actFilterArtifactsExecute(Sender: TObject);
     procedure actFilterCreaturesExecute(Sender: TObject);
     procedure actFilterDwellingExecute(Sender: TObject);
@@ -222,6 +255,7 @@ type
     procedure HorisontalAxisPaint(Sender: TObject);
     procedure hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
+    procedure MainActionsUpdate(AAction: TBasicAction; var Handled: Boolean);
 
     procedure MinimapMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -241,6 +275,7 @@ type
     procedure sbObjectsScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure SearchTimerTimer(Sender: TObject);
+    procedure StatusBarDrawPanel(AStatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     procedure VerticalAxisPaint(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -279,6 +314,8 @@ type
     procedure ObjectsViewDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
   private
+    FProgressListener: TMainProgressListener;
+
     ObjectsView: TOpenGLControl;
     MapView: TOpenGLControl;
 
@@ -339,6 +376,8 @@ type
 
     FAnimTick: int64;
 
+    FEnableActions: Boolean;
+
     function GetObjIdx(col, row:integer): integer;
     function GetActiveSelection: ISearchResult;
 
@@ -386,7 +425,7 @@ type
 
     procedure UpdateWidgets();
 
-    procedure ResetFocus;
+    procedure ResetFocus();
 
     procedure DoObjectsSearch();
     procedure DoObjectsCatSearch(ACategory: TObjectCategory);
@@ -410,9 +449,88 @@ implementation
 uses
   map_format, map_format_h3m, editor_str_consts,
   root_manager, map_format_zip, editor_consts, edit_map_options,
-  new_map, edit_object_options, Math, lazutf8classes, LazUTF8SysUtils;
+  new_map, edit_object_options, Math, lazutf8classes, LazSysUtils, LazLoggerBase;
 
 {$R *.lfm}
+
+{ TMainProgressListener }
+
+procedure TMainProgressListener.SetWidget(AValue: TStatusBar);
+begin
+  FWidget:=AValue;
+end;
+
+procedure TMainProgressListener.UpdateWidget();
+begin
+  if Assigned(FWidget) then
+  begin
+    FWidget.Invalidate;
+  end;
+end;
+
+constructor TMainProgressListener.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
+function TMainProgressListener.GetMax: Integer;
+begin
+  Result := FMax;
+end;
+
+procedure TMainProgressListener.SetMax(AValue: Integer);
+begin
+  FMax:=AValue;
+  FCurrent:=0;
+  FCurrentNormalized:=0;
+  UpdateWidget();
+end;
+
+procedure TMainProgressListener.Advance(ADelta: integer);
+var
+  FOld, FOldNormalized: Integer;
+begin
+  FOld := FCurrent;
+  inc(FCurrent, ADelta);
+
+  FOldNormalized := FOld * 100 div FMax;
+  FCurrentNormalized := FCurrent * 100 div FMax;
+
+  if FOldNormalized < FCurrentNormalized then
+  begin
+    Application.ProcessMessages;
+  end;
+end;
+
+procedure TMainProgressListener.NextStage(const AStageLabel: string);
+begin
+  FStageLabel:=AStageLabel;
+  FCurrent:=0;
+  FCurrentNormalized:=0;
+  UpdateWidget();
+end;
+
+procedure TMainProgressListener.AddError(const ADescription: string);
+begin
+  //???
+end;
+
+procedure TMainProgressListener.DrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+var
+  canvas: TCanvas;
+begin
+  canvas := StatusBar.Canvas;
+  canvas.Changing;
+  canvas.Lock;
+  try
+    canvas.Pen.Color:=clBtnFace;
+    canvas.FillRect(Rect);
+    canvas.TextOut(Rect.Left, Rect.Bottom, FStageLabel);
+  finally
+    canvas.Unlock;
+    canvas.Changed;
+  end;
+end;
 
 { TDragProxy }
 
@@ -594,6 +712,11 @@ begin
   (Sender as TAction).Enabled := Assigned(FToolsFrame.SelectedObject);
 end;
 
+procedure TfMain.actFilterAllExecute(Sender: TObject);
+begin
+  DoObjectsCatSearch(TObjectCategory.ALL);
+end;
+
 procedure TfMain.actFilterArtifactsExecute(Sender: TObject);
 begin
   DoObjectsCatSearch(TObjectCategory.Artifact);
@@ -741,7 +864,7 @@ begin
   end
   else if (FMapFilename = '') and (FMap.Name <> '') then
   begin
-    SaveMapAsDialog.FileName:=FMap.Name;
+    SaveMapAsDialog.FileName:=FMap.Name + '.vmap';
     if SaveMapAsDialog.Execute then
     begin
       SaveMap(SaveMapAsDialog.FileName);
@@ -835,6 +958,13 @@ end;
 procedure TfMain.ApplicationProperties1IdleEnd(Sender: TObject);
 begin
   UpdateWidgets;
+
+  if FGraphicsManager.HasTasks() then
+  begin
+    FGraphicsManager.Icons.LoadQueued(FObjectsViewState, FProgressListener);
+    FGraphicsManager.Animations.LoadQueued(FMapViewState, FProgressListener);
+  end;
+
 end;
 
 function TfMain.CheckUnsavedMap: boolean;
@@ -875,6 +1005,9 @@ var
   dir: String;
   map_filename: String;
 begin
+  FProgressListener := TMainProgressListener.Create(Self);
+  FProgressListener.Widget := StatusBar;
+
   ObjectsView := TOpenGLControl.Create(Self);
   ObjectsView.Align:=alClient;
   ObjectsView.Parent := pnObjects;
@@ -886,7 +1019,7 @@ begin
   ObjectsView.OnMouseWheel:=@ObjectsViewMouseWheel;
   ObjectsView.OnPaint:=@ObjectsViewPaint;
 
-  SetupGLControl(ObjectsView,RootManager.SharedContext);
+  SetupGLControl(ObjectsView);
 
   MapView := TOpenGLControl.Create(Self);
   MapView.Left:=23;
@@ -905,7 +1038,7 @@ begin
   MapView.OnMouseWheel:=@MapViewMouseWheel;
   MapView.OnPaint:=@MapViewPaint;
 
-  SetupGLControl(MapView, RootManager.SharedContext);
+  SetupGLControl(MapView);
 
   FObjectCellSize:=OBJ_CELL_SIZE;
   FObjectsPerRow:=OBJ_PER_ROW;
@@ -914,11 +1047,6 @@ begin
   FObjectCellTotalSize:=FObjectCellSize+FObjectBorderWidth*2;
 
   FZbuffer := TZBuffer.Create;
-  pnHAxis.DoubleBuffered := True;
-  pnVAxis.DoubleBuffered := True;
-  pnMinimap.DoubleBuffered := True;
-  MapView.SharedControl := RootManager.SharedContext;
-
 
   FToolsFrame := TToolsFrame.Create(self);
   FToolsFrame.BorderStyle :=  bsNone;
@@ -955,13 +1083,39 @@ begin
 
   FToolsFrame.SetVisibleObjects(FVisibleObjects);
 
-  FObjectCategory:=TObjectCategory.Hero;
+  FObjectCategory:=TObjectCategory.ALL;
 
   FTemplatesResult := TObjectsSelection.Create();
   FMapObjectsResult := TMapObjectsSelection.Create();
 
-  FMapViewState := TLocalState.Create(MapView);
   FObjectsViewState := TLocalState.Create(ObjectsView);
+
+  FMapViewState := TLocalState.Create(MapView);
+
+  if not MapView.MakeCurrent() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Unable to switch GL context');
+  end;
+
+  DebugLn('Version: ', glGetString(GL_VERSION));
+  DebugLn('Vendor: ', glGetString(GL_VENDOR));
+  DebugLn('Renderer: ', glGetString(GL_RENDERER));
+  DebugLn('Glsl: ', glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+  if not Load_GL_version_3_3_CORE() then
+  begin
+    Application.Terminate;
+    raise Exception.Create('Error initializing OpenGL. Version 3.3 core required.');
+  end;
+
+  glGetError();//ignore
+
+  RootManager.ProgressForm.NextStage('Loading object icons ...');
+  FGraphicsManager.Icons.LoadQueued(FObjectsViewState, RootManager.ProgressForm);
+
+  RootManager.ProgressForm.NextStage('Loading object animations ...');
+  FGraphicsManager.Animations.LoadQueued(FMapViewState, RootManager.ProgressForm);
 
   //load map if specified
 
@@ -1063,7 +1217,7 @@ procedure TfMain.FormResize(Sender: TObject);
 begin
   InvalidateMapDimensions;
   InvalidateObjects;
-  StatusBar.Panels[0].Width:=StatusBar.Width - 210;
+  StatusBar.Panels[1].Width:=StatusBar.Width - StatusBar.Panels[0].Width - StatusBar.Panels[2].Width - StatusBar.Panels[3].Width;
 end;
 
 function TfMain.getMapHeight: Integer;
@@ -1105,10 +1259,15 @@ end;
 procedure TfMain.hScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
-  ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize +1,ScrollPos);
+  ScrollPos := Min((sender as TScrollBar).Max - (sender as TScrollBar).PageSize + 1,ScrollPos);
   ScrollPos := Max(ScrollPos, 0);
   FMapHPos := ScrollPos;
   InvalidateMapAxis;
+end;
+
+procedure TfMain.MainActionsUpdate(AAction: TBasicAction; var Handled: Boolean);
+begin
+//
 end;
 
 procedure TfMain.InvalidateMapAxis;
@@ -1610,7 +1769,7 @@ begin
   FMapViewState.SetUseFlag(false);
   FMap.RenderTerrain(FMapViewState, FMapHPos, FMapHPos + FViewTilesH, FMapVPos, FMapVPos + FViewTilesV);
 
-  new_tick := LazUTF8SysUtils.GetTickCount64;
+  new_tick := LazSysUtils.GetTickCount64;
 
   new_anim_frame := false;
 
@@ -1918,39 +2077,40 @@ procedure TfMain.PaintAxis(Kind: TAxisKind; Axis: TPaintBox);
 var
   ctx: TCanvas;
   i:   Integer;
-  tiles, tmp: Integer;
+  tiles, MapLength, AxisLength: Integer;
   text_width: Integer;
   txt: string;
   ofs, text_scale: Integer;
 
-  img: TBitmap;
 begin
   case Kind of
-    TAxisKind.Horizontal: tmp := Axis.Width;
-    TAxisKind.Vertical: tmp := Axis.Height;
+    TAxisKind.Horizontal: AxisLength := Axis.Width;
+    TAxisKind.Vertical: AxisLength := Axis.Height;
   end;
 
-  tiles := tmp div FRealTileSize;
+  tiles := AxisLength div FRealTileSize;
 
-  img := TBitmap.Create;
-
-  img.SetSize(Axis.Width,Axis.Height);
-
-  ctx := img.Canvas;
-
-  case Kind of
-    TAxisKind.Horizontal: tmp := FMapHPos;
-    TAxisKind.Vertical: tmp := FMapVPos;
-  end;
-
-  txt := IntToStr(tmp + tiles);//max number
-  text_width := ctx.GetTextWidth(txt);
-
-  text_scale := 1 + (text_width div FRealTileSize);
+  ctx := axis.Canvas;
+  ctx.Changing;
 
   try
+    case Kind of
+      TAxisKind.Horizontal: MapLength := FMapHPos;
+      TAxisKind.Vertical: MapLength := FMapVPos;
+    end;
+
+    case Kind of
+      TAxisKind.Horizontal: ctx.Font.Orientation := 0;
+      TAxisKind.Vertical: ctx.Font.Orientation := 900;
+    end;
+
+    txt := IntToStr(MapLength + tiles);//maximum possible number
+    text_width := ctx.GetTextWidth(txt);
+
+    text_scale := 1 + (text_width div FRealTileSize);
+
     ctx.Brush.Color := clWhite;
-    ctx.FillRect(0, 0, Axis.Width, Axis.Height);
+    ctx.FillRect(0, 0, ctx.Width, ctx.Height);
 
     for i := 0 to tiles do
     begin
@@ -1959,37 +2119,31 @@ begin
         Continue;
       end;
 
-      txt := IntToStr(tmp + i);
+      txt := IntToStr(MapLength + i);
       text_width := ctx.GetTextWidth(txt);
 
       case Kind of
-        TAxisKind.Horizontal: ofs := (FRealTileSize - text_width) div 2;
-        TAxisKind.Vertical: ofs :=(FRealTileSize + text_width) div 2;
-      end;
-
-      case Kind of
-        TAxisKind.Horizontal: begin
+        TAxisKind.Horizontal:
+        begin
           if (FMapHPos + 1 + i) <= FMap.CurrentLevel.Width then
           begin
+            ofs := (FRealTileSize - text_width) div 2;
             ctx.TextOut(I * FRealTileSize + ofs, 0, txt);
           end;
         end;
-        TAxisKind.Vertical: begin
+        TAxisKind.Vertical:
+        begin
           if (FMapVPos + 1 + i) <= FMap.CurrentLevel.Height then
           begin
-            ctx.Font.Orientation := 900;
+            ofs :=(FRealTileSize + text_width) div 2;
             ctx.TextOut(0, I * FRealTileSize + ofs, txt);
-            ctx.Font.Orientation := 0;
           end;
         end;
       end;
     end;
 
-    axis.Canvas.Changing;
-    Axis.Canvas.Draw(0,0,img);
-    Axis.Canvas.Changed;
   finally
-    img.Free;
+    ctx.Changed;
   end;
 end;
 
@@ -2102,6 +2256,11 @@ begin
   DoObjectsSearch();
 end;
 
+procedure TfMain.StatusBarDrawPanel(AStatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+begin
+  FProgressListener.DrawPanel(AStatusBar, Panel, Rect);
+end;
+
 procedure TfMain.SetCurrentPlayer(APlayer: TPlayer);
 var
   i: Integer;
@@ -2121,7 +2280,7 @@ begin
   InvalidateObjects;
 end;
 
-procedure TfMain.UpdateWidgets;
+procedure TfMain.UpdateWidgets();
 var
   s, status_text: String;
   t: PMapTile;
@@ -2156,7 +2315,7 @@ begin
     status_text += FToolsFrame.SelectedObject.FormatDisplayName(FObjManager.FormatObjectName(FToolsFrame.SelectedObject.&Type, FToolsFrame.SelectedObject.Subtype));
   end;
 
-  StatusBar.Panels[0].Text:= status_text;
+  StatusBar.Panels[1].Text:= status_text;
 
   status_text := '';
 
@@ -2165,12 +2324,12 @@ begin
     status_text := Format('Level %d %dx%d',[FMap.CurrentLevelIndex, FMap.CurrentLevel.Width,FMap.CurrentLevel.Height])
   end;
 
-  StatusBar.Panels[1].Text:=status_text;
+  StatusBar.Panels[2].Text:=status_text;
 
-  StatusBar.Panels[2].Text:=FEnv.lm.PlayerName[FCurrentPlayer];
+  StatusBar.Panels[3].Text:=FEnv.lm.PlayerName[FCurrentPlayer];
 end;
 
-procedure TfMain.ResetFocus;
+procedure TfMain.ResetFocus();
 begin
   //if ObjectsSearch.Focused then
   //begin
@@ -2180,7 +2339,7 @@ begin
   //FocusControl(nil);
 end;
 
-procedure TfMain.DoObjectsSearch;
+procedure TfMain.DoObjectsSearch();
 begin
   SearchTimer.Enabled:=false;
 
@@ -2321,7 +2480,6 @@ begin
   end;
 
 end;
-
 
 procedure TfMain.DoStartDrag(var DragObject: TDragObject);
 begin

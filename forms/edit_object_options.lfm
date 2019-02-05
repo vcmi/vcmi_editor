@@ -7,11 +7,10 @@ object EditObjectOptions: TEditObjectOptions
   Caption = 'EditObjectOptions'
   ClientHeight = 609
   ClientWidth = 762
-  Constraints.MinHeight = 200
+  Constraints.MinHeight = 300
   Constraints.MinWidth = 300
   Position = poMainFormCenter
   ShowInTaskBar = stNever
-  LCLVersion = '1.8.1.0'
   object pcMain: TPageControl
     Left = 0
     Height = 569

@@ -30,13 +30,13 @@ uses
 
 begin
 
-  {$IF DEFINED(DEBUG)}
+  {$IF DEFINED(VCMI_USE_HEAPTRACE)}
   if FileExists('heap.trc') then
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');
-  {$ENDIF DEBUG}
+  {$ENDIF}
 
-  Application.Title := 'VCMI Editor';
+  Application.Title:='VCMI Editor';
   RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TRootManager, RootManager);

@@ -1,8 +1,0 @@
-object RootForm: TRootForm
-  Left = 270
-  Height = 240
-  Top = 130
-  Width = 320
-  OnCreate = FormCreate
-  LCLVersion = '1.8.3.0'
-end
