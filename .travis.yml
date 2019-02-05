@@ -10,10 +10,10 @@ addons:
       - libgl1-mesa-dev
 
 before_install:
-    - wget -t 10 -O lazarus-project_2.0.0RC3-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/lazarus-project_2.0.0RC3-0_amd64.deb/download
-    - wget -t 10 -O fpc-laz_3.0.4-1_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/fpc-laz_3.0.4-1_amd64.deb/download
-    - wget -t 10 -O fpc-src_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0RC3/fpc-src_3.0.4-2_amd64.deb/download
-    - sudo dpkg -i fpc-src_3.0.4-2_amd64.deb fpc-laz_3.0.4-1_amd64.deb lazarus-project_2.0.0RC3-0_amd64.deb
+    - wget -t 10 -O lazarus-project_2.0.0-0_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0.0/lazarus-project_2.0.0-0_amd64.deb/download
+    - wget -t 10 -O fpc-laz_3.0.4-1_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0.0/fpc-laz_3.0.4-1_amd64.deb/download
+    - wget -t 10 -O fpc-src_3.0.4-2_amd64.deb https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0.0/fpc-src_3.0.4-2_amd64.deb/download
+    - sudo dpkg -i fpc-src_3.0.4-2_amd64.deb fpc-laz_3.0.4-1_amd64.deb lazarus-project_2.0.0-0_amd64.deb
 
 script:
     - make

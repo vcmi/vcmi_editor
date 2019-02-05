@@ -72,7 +72,7 @@ type
 implementation
 
 uses
-  FileUtil;
+  LazFileUtils;
 
 function CompareStringProxy(const s1,s2: string): integer;
 begin
