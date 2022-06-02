@@ -1422,8 +1422,10 @@ procedure TModdedConfigs.Load(AProgess: IProgressCallback;
   APaths: TModdedConfigPaths; ALoader: IResourceLoader; ADest: TJSONObject);
 begin
   Preload(AProgess, APaths, ALoader);
+{
   ExtractPatches;
   ApplyPatches;
+}
   CombineTo(ADest);
 end;
 
