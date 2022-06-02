@@ -280,8 +280,7 @@ begin
   end;
 
   DecompressTill(new_position);
-
-  FPosition := Min(new_position, FDecompressedSize);
+  FPosition := MinValue(PInteger(new_position), FDecompressedSize);
   Result := FPosition;
 end;
 

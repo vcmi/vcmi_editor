@@ -60,7 +60,7 @@ type
   NSScreenFix = objccategory external (NSScreen)
      function backingScaleFactor: CGFloat ; message 'backingScaleFactor';
   end;
-  TDummyNoWarnObjCNotUsed = objc.BOOL;
+  TDummyNoWarnObjCNotUsed = ObjCBOOL;
   TDummyNoWarnObjCBaseNotUsed = objcbase.NSInteger;
 
   { TCocoaOpenGLView }
@@ -197,7 +197,7 @@ begin
   Result:=0;
   p := nil;
   if (AParams.WndParent <> 0) then
-    p := CocoaUtils.GetNSObjectView(NSObject(AParams.WndParent));
+    p := NSObject(AParams.WndParent).lclContentView();
   if Assigned(p) then
     LCLToNSRect(types.Bounds(AParams.X, AParams.Y, AParams.Width, AParams.Height),
       p.frame.size.height, ns)
@@ -507,20 +507,20 @@ end;
 
 procedure TCocoaOpenGLView.keyDown(event: NSEvent);
 begin
-  if not Assigned(callback) or not callback.KeyEvent(event) then
-    inherited keyDown(event);
+//  if not Assigned(callback) or not callback.KeyEvent(event) then
+//    inherited keyDown(event);
 end;
 
 procedure TCocoaOpenGLView.keyUp(event: NSEvent);
 begin
-  if not Assigned(callback) or not callback.KeyEvent(event) then
-    inherited keyUp(event);
+//  if not Assigned(callback) or not callback.KeyEvent(event) then
+//    inherited keyUp(event);
 end;
 
 procedure TCocoaOpenGLView.flagsChanged(event: NSEvent);
 begin
-  if not Assigned(callback) or not callback.KeyEvent(event) then
-    inherited flagsChanged(event);
+//  if not Assigned(callback) or not callback.KeyEvent(event) then
+//    inherited flagsChanged(event);
 end;
 
 procedure TCocoaOpenGLView.resetCursorRects;

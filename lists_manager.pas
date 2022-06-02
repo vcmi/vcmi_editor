@@ -517,11 +517,11 @@ type
   TListsManager = class (TFSConsumer)
   private
     type
-      TSlotMap = specialize gmap.TMap<AnsiString, Integer, TStringCompare>;
+      TSlotMap = specialize TMap<AnsiString, Integer, TStringCompare>;
 
-      TLessInteger = specialize gutil.TLess<Integer>;
+      TLessInteger = specialize TLess<Integer>;
 
-      TBuildingCnv = specialize gmap.TMap<Integer, Integer, TLessInteger>;
+      TBuildingCnv = specialize TMap<Integer, Integer, TLessInteger>;
 
       PResolveRequest = ^TResolveRequest;
       TResolveRequest = record

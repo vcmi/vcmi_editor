@@ -648,7 +648,7 @@ procedure TObjectMap.Deref(Item: Pointer);
 begin
   Finalize(TKey(Item^));
 
-  TData(Pointer(PByte(Item)+KeySize)^).Free;
+//  TData(Pointer(PByte(Item)+KeySize)^).Free;
 end;
 
 { TPrimarySkills }
