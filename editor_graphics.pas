@@ -27,7 +27,7 @@ uses
   fpjson;
 
 type
-  TSprites = specialize gvector.TVector<TGLSprite>;
+  TSprites = specialize TVector<TGLSprite>;
   TGraphicsLoadMode = (LoadFisrt, LoadRest, LoadComplete);
   TGraphicsLoadFlag = (None, First, Complete);
 
